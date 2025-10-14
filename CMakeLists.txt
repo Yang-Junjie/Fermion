@@ -16,6 +16,9 @@ if(USE_SFML)
     set(BUILD_SHARED_LIBS ON CACHE BOOL "" FORCE)
     add_subdirectory(external/SFML)
 endif()
+add_subdirectory(external/spdlog)
 
 add_subdirectory(engine)
 add_subdirectory(game)
+
+

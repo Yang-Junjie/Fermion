@@ -1,4 +1,5 @@
 ﻿#include "Engine/EngineCore.h"
+#include "spdlog/spdlog.h"
 
 #ifdef USE_SFML_BACKEND
 #include "Platform/SFMLWindow.h"
@@ -26,12 +27,15 @@ EngineCore::EngineCore()
 
 void EngineCore::run()
 {
+    spdlog::info("Engine starting...");
     while (m_window->isOpen())
     {
         m_window->pollEvents();
         m_window->clear();
+
         m_renderer->drawImage("assets/textures/test.jpg", 0, 0);
         m_window->display();
+
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
     }
 }
