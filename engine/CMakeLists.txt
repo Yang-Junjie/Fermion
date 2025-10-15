@@ -10,6 +10,7 @@ target_include_directories(engine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/external/spdlog/include
     ${CMAKE_SOURCE_DIR}/external/entt/single_include
+    ${CMAKE_SOURCE_DIR}/external/glm/glm
 )
 
 

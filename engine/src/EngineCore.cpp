@@ -2,6 +2,7 @@
 #include "spdlog/spdlog.h"
 
 
+
 #ifdef USE_SFML_BACKEND
 #include "Platform/SFMLWindow.h"
 #include "Platform/SFMLRenderer.h"
@@ -29,6 +30,7 @@ EngineCore::EngineCore()
 void EngineCore::run()
 {
     spdlog::info("Engine starting...");
+   
     while (m_window->isOpen())
     {
         m_window->pollEvents();

@@ -17,9 +17,12 @@ if(USE_SFML)
     add_subdirectory(external/SFML)
 endif()
 
+# 第三方库
 add_subdirectory(external/spdlog)
 add_subdirectory(external/entt)
+add_subdirectory(external/glm)
 
+# OxyGine 
 add_subdirectory(engine)
 add_subdirectory(game)
 
