@@ -1,7 +1,5 @@
-﻿#include "Engine/EngineCore.h"
-#include "spdlog/spdlog.h"
-
-
+﻿#include "Engine/Engine.h"
+#include "Core/Log.hpp"
 
 #ifdef USE_SFML_BACKEND
 #include "Platform/SFMLWindow.h"
@@ -14,7 +12,7 @@
 #include <thread>
 #include <chrono>
 
-EngineCore::EngineCore()
+Engine::Engine()
 {
 #ifdef USE_SFML_BACKEND
     auto sfmlWindow = std::make_unique<SFMLWindow>();
@@ -27,10 +25,11 @@ EngineCore::EngineCore()
 #endif
 }
 
-void EngineCore::run()
+void Engine::run()
 {
-    spdlog::info("Engine starting...");
-   
+    Oxygine::Log::Init("engine.log", Oxygine::LogLevel::Debug);
+
+    Oxygine::Log::Info("Engine started!");
     while (m_window->isOpen())
     {
         m_window->pollEvents();

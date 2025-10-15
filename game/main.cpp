@@ -1,7 +1,8 @@
-﻿#include "Engine/EngineCore.h"
+﻿#include "Engine/Engine.h"
 
-int main() {
-    EngineCore engine;
+int main()
+{
+    Engine engine;
     engine.run();
     return 0;
 }

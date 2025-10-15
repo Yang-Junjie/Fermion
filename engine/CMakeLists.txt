@@ -1,9 +1,10 @@
 ﻿project(engine LANGUAGES CXX)
 
 add_library(engine STATIC
-    src/EngineCore.cpp
+    src/Engine.cpp
     src/Platform/SFMLWindow.cpp
     src/Platform/SFMLRenderer.cpp
+    src/Core/Log.cpp
 )
 
 target_include_directories(engine PUBLIC

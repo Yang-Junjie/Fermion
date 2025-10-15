@@ -1,12 +1,12 @@
 ﻿#pragma once
-#include "IWindow.h"
-#include "IRenderer.h"
+#include "Platform/IWindow.h"
+#include "Renderer/IRenderer.h"
 #include <memory>
 
-class EngineCore {
+class Engine {
     std::unique_ptr<IWindow> m_window;
     std::unique_ptr<IRenderer> m_renderer;
 public:
-    EngineCore();
+    Engine();
     void run();
 };
