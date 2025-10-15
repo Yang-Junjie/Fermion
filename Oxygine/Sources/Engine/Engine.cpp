@@ -1,6 +1,7 @@
 ﻿#include "Engine/Engine.h"
 #include "Core/Log.hpp"
 
+
 #ifdef USE_SFML_BACKEND
 #include "SFMLWindow.h"
 #include "SFMLRenderer.h"
@@ -45,7 +46,8 @@ namespace Oxygine
             m_window->pollEvents();
             m_window->clear();
 
-            m_renderer->drawImage("assets/textures/test.jpg", 0, 0);
+            // m_renderer->drawImage("assets/textures/test.jpg", 0, 0);
+            m_renderer->drawRect({0,0},{100,100},{1.0f,0.0f,0.0f,1.0f});
             m_window->display();
 
             std::this_thread::sleep_for(std::chrono::milliseconds(16));

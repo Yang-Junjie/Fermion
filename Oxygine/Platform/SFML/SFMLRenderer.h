@@ -11,6 +11,7 @@ namespace Oxygine
 
     public:
         explicit SFMLRenderer(sf::RenderWindow &win);
-        void drawImage(const std::string &texturePath, float x, float y) override;
+        void drawRect(const glm::vec2 &pos, const glm::vec2 &size, const glm::vec4 &color) override;
+        void drawImage(const std::string &texturePath, const glm::vec2 &pos) override;
     };
 }
