@@ -1,4 +1,4 @@
-﻿#include "Platform/SFMLRenderer.h"
+﻿#include "SFMLRenderer.h"
 #include <unordered_map>
 namespace Oxygine
 {

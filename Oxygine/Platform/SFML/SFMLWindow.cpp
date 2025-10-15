@@ -1,4 +1,4 @@
-﻿#include "Platform/SFMLWindow.h"
+﻿#include "SFMLWindow.h"
 #include <SFML/Graphics.hpp>
 namespace Oxygine
 {

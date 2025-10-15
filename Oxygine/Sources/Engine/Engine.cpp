@@ -2,17 +2,17 @@
 #include "Core/Log.hpp"
 
 #ifdef USE_SFML_BACKEND
-#include "Platform/SFMLWindow.h"
-#include "Platform/SFMLRenderer.h"
+#include "SFMLWindow.h"
+#include "SFMLRenderer.h"
 #elif defined(USE_SDL_BACKEND)
-#include "Platform/SDLWindow.h"
-#include "Platform/SDLRenderer.h"
+#include "SDLWindow.h"
+#include "SDLRenderer.h"
 #elif defined(USE_OPENGL_BACKEND)
-#include "Platform/OpenGLWindow.h"
-#include "Platform/OpenGLRenderer.h"
+#include "OpenGLWindow.h"
+#include "OpenGLRenderer.h"
 #elif defined(USE_VULKAN_BACKEND)
-#include "Platform/VulkanWindow.h"
-#include "Platform/VulkanRenderer.h"
+#include "VulkanWindow.h"
+#include "VulkanRenderer.h"
 #else
 #error "No backend specified!"
 #endif

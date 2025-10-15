@@ -1,14 +1,19 @@
 ﻿project(engine LANGUAGES CXX)
 
+set(OXYGINE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
+set(PLATFORM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Platform)
+
 add_library(engine STATIC
-    src/Engine/Engine.cpp
-    src/Platform/SFMLWindow.cpp
-    src/Platform/SFMLRenderer.cpp
-    src/Core/Log.cpp
+    ${OXYGINE_DIR}/Engine/Engine.cpp
+    ${OXYGINE_DIR}/Core/Log.cpp
+    ${PLATFORM_DIR}/SFML/SFMLWindow.cpp
+    ${PLATFORM_DIR}/SFML/SFMLRenderer.cpp
+
 )
 
 target_include_directories(engine PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${OXYGINE_DIR}
+    ${PLATFORM_DIR}/SFML
     ${CMAKE_SOURCE_DIR}/external/spdlog/include
     ${CMAKE_SOURCE_DIR}/external/entt/single_include
     ${CMAKE_SOURCE_DIR}/external/glm/glm

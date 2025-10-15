@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Platform/IWindow.h"
+#include "Core/IWindow.h"
 #include "Renderer/IRenderer.h"
 #include <memory>
 namespace Oxygine

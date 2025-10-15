@@ -23,7 +23,7 @@ add_subdirectory(external/entt)
 add_subdirectory(external/glm)
 
 # OxyGine 
-add_subdirectory(engine)
+add_subdirectory(Oxygine)
 add_subdirectory(game)
 
 
