@@ -1,6 +1,7 @@
 ﻿#include "Engine/EngineCore.h"
 #include "spdlog/spdlog.h"
 
+
 #ifdef USE_SFML_BACKEND
 #include "Platform/SFMLWindow.h"
 #include "Platform/SFMLRenderer.h"

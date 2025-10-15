@@ -6,10 +6,13 @@ add_library(engine STATIC
     src/Platform/SFMLRenderer.cpp
 )
 
-target_include_directories(engine
-    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
+target_include_directories(engine PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/external/spdlog/include
+    ${CMAKE_SOURCE_DIR}/external/entt/single_include
 )
+
+
 target_link_libraries(engine PUBLIC spdlog::spdlog)
 
 
