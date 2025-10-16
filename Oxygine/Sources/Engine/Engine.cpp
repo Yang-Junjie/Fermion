@@ -1,7 +1,6 @@
 ﻿#include "Engine/Engine.h"
 #include "Core/Log.hpp"
 
-
 #ifdef USE_SFML_BACKEND
 #include "SFMLWindow.h"
 #include "SFMLRenderer.h"
@@ -25,20 +24,20 @@ namespace Oxygine
 {
     Engine::Engine()
     {
+        Log::Init("engine.log", LogLevel::Debug);
+        WindowProps windowProps;
 #ifdef USE_SFML_BACKEND
-        auto sfmlWindow = std::make_unique<SFMLWindow>();
+        auto sfmlWindow = std::make_unique<SFMLWindow>(windowProps);
         m_renderer = std::make_unique<SFMLRenderer>(sfmlWindow->get());
         m_window = std::move(sfmlWindow);
-#elif defined(USE_SDL_BACKEND)
-        auto sdlWindow = std::make_unique<SDLWindow>();
-        m_renderer = std::make_unique<SDLRenderer>(sdlWindow->getRenderer());
-        m_window = std::move(sdlWindow);
 #endif
+
+        m_window->setEventCallback([this](IEvent &event)
+                                   { this->onEvent(event); });
     }
 
     void Engine::run()
     {
-        Log::Init("engine.log", LogLevel::Debug);
         Log::Info("Engine started!");
 
         while (m_window->isOpen())
@@ -47,11 +46,25 @@ namespace Oxygine
             m_window->clear();
 
             // m_renderer->drawImage("assets/textures/test.jpg", 0, 0);
-            m_renderer->drawRect({0,0},{100,100},{1.0f,0.0f,0.0f,1.0f});
+            m_renderer->drawRect({0, 0}, {100, 100}, {1.0f, 0.0f, 0.0f, 1.0f});
             m_window->display();
 
             std::this_thread::sleep_for(std::chrono::milliseconds(16));
         }
     }
 
+    void Engine::onEvent(IEvent &event)
+    {
+        EventDispatcher dispatcher(event);
+
+        dispatcher.dispatch<WindowResizeEvent>([this](WindowResizeEvent &e)
+                                               {
+            this->onWindowResize(e);
+            return false; });
+    }
+
+    void Engine::onWindowResize(WindowResizeEvent &event)
+    {
+        Log::Info("Window resized to " + std::to_string(event.GetWidth()) + "x" + std::to_string(event.GetHeight()));
+    }
 }

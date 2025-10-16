@@ -1,7 +1,10 @@
 ﻿#pragma once
 #include "Core/Window.h"
 #include "Renderer/Renderer.h"
+#include "Events/Event.hpp"
+#include "Events/ApplicationEvent.hpp"
 #include <memory>
+
 namespace Oxygine
 {
     class Engine
@@ -12,5 +15,9 @@ namespace Oxygine
     public:
         Engine();
         void run();
+        
+    private:
+        void onEvent(IEvent& event);
+        void onWindowResize(WindowResizeEvent& event);
     };
 }
