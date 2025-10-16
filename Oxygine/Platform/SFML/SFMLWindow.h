@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Core/IWindow.h"
+#include "Core/Window.h"
 #include <SFML/Graphics.hpp>
 namespace Oxygine
 {

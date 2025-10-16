@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Renderer/IRenderer.h"
+#include "Renderer/Renderer.h"
 #include <SFML/Graphics.hpp>
 #include <unordered_map>
 namespace Oxygine

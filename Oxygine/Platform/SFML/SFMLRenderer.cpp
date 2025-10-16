@@ -1,5 +1,6 @@
 ﻿#include "SFMLRenderer.h"
 #include <unordered_map>
+#include "Core/Log.hpp"
 namespace Oxygine
 {
     SFMLRenderer::SFMLRenderer(sf::RenderWindow &win) : m_window(win) {}
@@ -15,6 +16,7 @@ namespace Oxygine
             static_cast<sf::Uint8>(color.w * 255)));
 
         m_window.draw(rect);
+        Log::Trace("Drawing rect at (" + std::to_string(pos.x) + "," + std::to_string(pos.y) + ") with size (" + std::to_string(size.x) + "," + std::to_string(size.y) + ")");
     }
     void SFMLRenderer::drawImage(const std::string &texturePath, const glm::vec2 &pos)
     {
@@ -23,5 +25,6 @@ namespace Oxygine
         sf::Sprite sprite(m_cache[texturePath]);
         sprite.setPosition(pos.x, pos.y);
         m_window.draw(sprite);
+        Log::Trace("Drawing image " + texturePath + " at (" + std::to_string(pos.x) + "," + std::to_string(pos.y) + ")");
     }
 }
