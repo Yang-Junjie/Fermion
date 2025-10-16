@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "Events/Event.hpp"
 namespace Oxygine
 {
     class IWindow

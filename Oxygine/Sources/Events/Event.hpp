@@ -45,6 +45,7 @@ namespace Oxygine
     class IEvent
     {
     public:
+        bool Handled = false;
         virtual ~IEvent() {}
         virtual EventType getEventType() const = 0;
         virtual const char *getName() const = 0;
