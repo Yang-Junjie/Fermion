@@ -44,18 +44,4 @@ SetLevel 后低于该等级的日志不会被打印。
 
 # 事件模块
 借鉴了hazel的实现
-
-用户输入 → SFML 捕获 sf::Event::KeyPressed
-   ↓
-SFMLWindow::processEvent(event)
-   ↓
-创建 KeyPressedEvent
-   ↓
-m_data.EventCallback(KeyPressedEvent)
-   ↓
-Application::OnEvent(event)
-   ↓
-EventDispatcher dispatcher(event);
-dispatcher.dispatch<KeyPressedEvent>(handleKey);
-   ↓
-游戏逻辑模块响应
+Engine通过OnEvent进行事件分发，将对应的事件派发到对应的回调函数中，事件一般由窗口库抛出，所以在创建窗口时将OnEvent作为窗口的事件回调函数，这样窗口捕获到一个事件后，我们创建对应的事件对象后通过OnEvent进行分发
