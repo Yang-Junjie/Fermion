@@ -44,3 +44,18 @@ SetLevel 后低于该等级的日志不会被打印。
 
 # 事件模块
 借鉴了hazel的实现
+
+用户输入 → SFML 捕获 sf::Event::KeyPressed
+   ↓
+SFMLWindow::processEvent(event)
+   ↓
+创建 KeyPressedEvent
+   ↓
+m_data.EventCallback(KeyPressedEvent)
+   ↓
+Application::OnEvent(event)
+   ↓
+EventDispatcher dispatcher(event);
+dispatcher.dispatch<KeyPressedEvent>(handleKey);
+   ↓
+游戏逻辑模块响应

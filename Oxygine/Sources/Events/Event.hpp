@@ -52,7 +52,7 @@ namespace Oxygine
         virtual int getCategoryFlags() const = 0;
         virtual std::string toString() const { return getName(); }
 
-        bool isInCategory(EventCategory category)
+        bool isInCategory(EventCategory category) const
         {
             return getCategoryFlags() & static_cast<int>(category);
         }

@@ -34,27 +34,6 @@ namespace Oxygine
         while (m_window.pollEvent(event))
         {
             processEvent(event);
-
-            if (event.type == sf::Event::Closed)
-            {
-                if (m_data.EventCallback)
-                {
-                    WindowCloseEvent closeEvent;
-                    m_data.EventCallback(closeEvent);
-                }
-                m_window.close();
-                Log::Info("SFML Window closed");
-            }
-            else if (event.type == sf::Event::Resized)
-            {
-                if (m_data.EventCallback)
-                {
-                    WindowResizeEvent resizeEvent(event.size.width, event.size.height);
-                    m_data.EventCallback(resizeEvent);
-                }
-                m_data.width = event.size.width;
-                m_data.height = event.size.height;
-            }
         }
     }
 
@@ -67,19 +46,27 @@ namespace Oxygine
         {
         case sf::Event::Closed:
         {
-            WindowCloseEvent closeEvent;
-            m_data.EventCallback(closeEvent);
+            WindowCloseEvent e;
+            m_data.EventCallback(e);
+            m_window.close();
+            Log::Info("SFML Window closed");
             break;
         }
         case sf::Event::Resized:
         {
-            WindowResizeEvent resizeEvent(event.size.width, event.size.height);
-            m_data.EventCallback(resizeEvent);
+            m_data.width = event.size.width;
+            m_data.height = event.size.height;
+            WindowResizeEvent e(event.size.width, event.size.height);
+            m_data.EventCallback(e);
             break;
         }
         default:
             break;
         }
+    }
+
+    void SFMLWindow::OnUpdate()
+    {
     }
 
     void SFMLWindow::clear()
