@@ -9,20 +9,23 @@ namespace Fermion
     class GameLayer : public Layer
     {
     public:
-        GameLayer(const std::string &name = "GameLayer") : Layer(name) {
-            
+        GameLayer(const std::string &name = "GameLayer") : Layer(name)
+        {
         }
         virtual ~GameLayer() = default;
 
         virtual void OnAttach() override {}
         virtual void OnDetach() override {}
-        virtual void OnUpdate() override {
+        virtual void OnUpdate() override
+        {
             Log::Trace("GameLayer OnUpdate called");
+            getRenderer()->drawRect({50, 50}, {200, 200}, {0.0f, 1.0f, 0.0f, 1.0f});
         }
-        virtual void OnEvent(IEvent &event) override {
+        virtual void OnEvent(IEvent &event) override
+        {
             Log::Trace("GameLayer OnEvent called: " + event.toString());
         }
+
     private:
-        
     };
 }

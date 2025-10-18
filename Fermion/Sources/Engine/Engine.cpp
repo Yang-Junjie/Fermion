@@ -48,7 +48,6 @@ namespace Fermion
             // m_renderer->drawRect({0, 0}, {100, 100}, {1.0f, 0.0f, 0.0f, 1.0f});
             for (auto &layer : m_layerStack)
                 layer->OnUpdate();
-            
 
             m_window->onUpdate();
             std::this_thread::sleep_for(std::chrono::milliseconds(16));
@@ -56,11 +55,13 @@ namespace Fermion
     }
     void Engine::pushLayer(std::unique_ptr<Layer> layer)
     {
+        layer->setRenderer(m_renderer.get());
         layer->OnAttach();
         m_layerStack.pushLayer(std::move(layer));
     }
     void Engine::pushOverlay(std::unique_ptr<Layer> overlay)
     {
+        overlay->setRenderer(m_renderer.get());
         overlay->OnAttach();
         m_layerStack.pushOverlay(std::move(overlay));
     }
