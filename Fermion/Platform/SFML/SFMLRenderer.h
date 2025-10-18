@@ -2,7 +2,7 @@
 #include "Renderer/Renderer.h"
 #include <SFML/Graphics.hpp>
 #include <unordered_map>
-namespace Oxygine
+namespace Fermion
 {
     class SFMLRenderer : public IRenderer
     {

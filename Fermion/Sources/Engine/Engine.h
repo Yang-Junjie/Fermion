@@ -6,7 +6,7 @@
 #include "Core/Log.hpp"
 #include <memory>
 
-namespace Oxygine
+namespace Fermion
 {
     class Engine
     {

@@ -2,7 +2,7 @@
 #include "Events/Event.hpp"
 #include "Core/MouseCodes.h"
 
-namespace Oxygine
+namespace Fermion
 {
     class MouseMovedEvent : public IEvent
     {

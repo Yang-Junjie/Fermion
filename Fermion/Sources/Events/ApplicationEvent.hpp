@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "Events/Event.hpp"
-namespace Oxygine
+namespace Fermion
 {
     class WindowResizeEvent : public IEvent
     {

@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "Events/Event.hpp"
 #include <functional>
-namespace Oxygine
+namespace Fermion
 {
     using EventCallbackFn = std::function<void(IEvent &)>;
     struct WindowProps
@@ -10,9 +10,9 @@ namespace Oxygine
         uint32_t width;
         uint32_t height;
 
-        WindowProps(const std::string &title = "Oxygine",
-                    uint32_t width = 1600,
-                    uint32_t height = 900)
+        WindowProps(const std::string &title = "Fermion",
+                    uint32_t width = 800,
+                    uint32_t height = 600)
             : title(title), width(width), height(height)
         {
         }

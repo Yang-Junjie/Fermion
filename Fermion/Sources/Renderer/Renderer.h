@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <string>
 #include "glm.hpp"
-namespace Oxygine
+namespace Fermion
 {
     class IRenderer
     {

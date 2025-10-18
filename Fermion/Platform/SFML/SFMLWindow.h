@@ -6,7 +6,7 @@
 #include "Events/MouseEvent.hpp"
 #include <unordered_set>
 
-namespace Oxygine
+namespace Fermion
 {
     class SFMLWindow : public IWindow
     {

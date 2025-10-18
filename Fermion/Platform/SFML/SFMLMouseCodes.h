@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <SFML/Window/Mouse.hpp>
 #include "Core/MouseCodes.h"
-namespace Oxygine{
+namespace Fermion{
     MouseCode SFMLMouseCodeToOMouseCode(int sfmlMouseCode){
         switch (sfmlMouseCode)
         {

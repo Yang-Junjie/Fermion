@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-namespace Oxygine
+namespace Fermion
 {
     enum class LogLevel
     {

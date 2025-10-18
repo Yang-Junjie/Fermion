@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <string>
 #include <sstream>
-namespace Oxygine
+namespace Fermion
 {
     enum class EventType : int
     {

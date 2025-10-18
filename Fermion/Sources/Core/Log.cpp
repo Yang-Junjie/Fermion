@@ -1,7 +1,7 @@
 ﻿#include "Core/Log.hpp"
 #include <iostream>
 
-namespace Oxygine
+namespace Fermion
 {
     std::shared_ptr<spdlog::logger> Log::s_Logger = nullptr;
     std::vector<spdlog::sink_ptr> Log::s_Sinks;

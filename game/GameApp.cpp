@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "Engine/Engine.h"
-namespace Oxygine
+namespace Fermion
 {
     class GameApp : public Engine
     {
@@ -12,6 +12,6 @@ namespace Oxygine
     };
     Engine *createEngine()
     {
-        return new Oxygine::GameApp();
+        return new Fermion::GameApp();
     }
 }

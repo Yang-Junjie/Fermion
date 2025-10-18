@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <SFML/Window/Keyboard.hpp>
 #include "Core/KeyCodes.h"
-namespace Oxygine
+namespace Fermion
 {
     KeyCode SFMLKeyCodeToOKeyCode(int sfmlKeyCode){
         switch (sfmlKeyCode)

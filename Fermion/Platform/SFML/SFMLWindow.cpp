@@ -5,9 +5,9 @@
 #include "SFMLKeyCodes.h"
 #include "SFMLMouseCodes.h"
 
-namespace Oxygine
+namespace Fermion
 {
-    SFMLWindow::SFMLWindow() : m_window(sf::VideoMode(1600, 900), "Oxygine")
+    SFMLWindow::SFMLWindow() : m_window(sf::VideoMode(1600, 900), "Fermion")
     {
         Init(WindowProps());
         Log::Info("SFML Window created with default title and size 1600x900");

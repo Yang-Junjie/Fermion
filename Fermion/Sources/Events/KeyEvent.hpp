@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "Events/Event.hpp"
 #include "Core/KeyCodes.h"
-namespace Oxygine
+namespace Fermion
 {
 
     class KeyEvent : public IEvent

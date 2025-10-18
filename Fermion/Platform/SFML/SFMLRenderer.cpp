@@ -1,7 +1,7 @@
 ﻿#include "SFMLRenderer.h"
 #include <unordered_map>
 #include "Core/Log.hpp"
-namespace Oxygine
+namespace Fermion
 {
     SFMLRenderer::SFMLRenderer(sf::RenderWindow &win) : m_window(win) {}
 

@@ -1,19 +1,19 @@
 ﻿project(engine LANGUAGES CXX)
 
-set(OXYGINE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
+set(Fermion_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
 set(PLATFORM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Platform)
 
 add_library(engine STATIC
-    ${OXYGINE_DIR}/Engine/Engine.cpp
-    ${OXYGINE_DIR}/Core/Log.cpp
-    ${OXYGINE_DIR}/Core/EntryPoint.cpp
+    ${Fermion_DIR}/Engine/Engine.cpp
+    ${Fermion_DIR}/Core/Log.cpp
+    ${Fermion_DIR}/Core/EntryPoint.cpp
     ${PLATFORM_DIR}/SFML/SFMLWindow.cpp
     ${PLATFORM_DIR}/SFML/SFMLRenderer.cpp
 
 )
 
 target_include_directories(engine PUBLIC
-    ${OXYGINE_DIR}
+    ${Fermion_DIR}
     ${PLATFORM_DIR}/SFML
     ${CMAKE_SOURCE_DIR}/external/spdlog/include
     ${CMAKE_SOURCE_DIR}/external/entt/single_include
