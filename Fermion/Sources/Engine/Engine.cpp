@@ -1,6 +1,5 @@
 ﻿#include "Engine/Engine.hpp"
 
-
 #ifdef USE_SFML_BACKEND
 #include "SFMLWindow.hpp"
 #include "SFMLRenderer.hpp"
@@ -24,7 +23,7 @@ namespace Fermion
 {
     Engine::Engine()
     {
-       
+
         WindowProps windowProps;
 #ifdef USE_SFML_BACKEND
         auto sfmlWindow = std::make_unique<SFMLWindow>(windowProps);
@@ -45,14 +44,26 @@ namespace Fermion
             m_window->pollEvents();
             m_window->clear();
 
-            m_renderer->drawImage("assets/textures/test.jpg", {100, 100});
-            m_renderer->drawRect({0, 0}, {100, 100}, {1.0f, 0.0f, 0.0f, 1.0f});
-            m_window->display();
+            // m_renderer->drawImage("assets/textures/test.jpg", {100, 100});
+            // m_renderer->drawRect({0, 0}, {100, 100}, {1.0f, 0.0f, 0.0f, 1.0f});
+            for (auto &layer : m_layerStack)
+                layer->OnUpdate();
+            
 
+            m_window->onUpdate();
             std::this_thread::sleep_for(std::chrono::milliseconds(16));
         }
     }
-
+    void Engine::pushLayer(std::unique_ptr<Layer> layer)
+    {
+        layer->OnAttach();
+        m_layerStack.pushLayer(std::move(layer));
+    }
+    void Engine::pushOverlay(std::unique_ptr<Layer> overlay)
+    {
+        overlay->OnAttach();
+        m_layerStack.pushOverlay(std::move(overlay));
+    }
     void Engine::onEvent(IEvent &event)
     {
         EventDispatcher dispatcher(event);
@@ -61,6 +72,13 @@ namespace Fermion
                                                { return this->onWindowResize(e); });
         dispatcher.dispatch<WindowCloseEvent>([this](WindowCloseEvent &e)
                                               { return this->onWindowClose(e); });
+        // 从后往前遍历 LayerStack，优先分发给最上层的 Layer
+        for (auto it = m_layerStack.rbegin(); it != m_layerStack.rend(); ++it)
+        {
+            if (event.Handled)
+                break;
+            (*it)->OnEvent(event);
+        }
     }
 
     bool Engine::onWindowResize(WindowResizeEvent &event)

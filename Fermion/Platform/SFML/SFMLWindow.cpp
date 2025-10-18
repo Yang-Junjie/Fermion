@@ -120,6 +120,7 @@ namespace Fermion
 
     void SFMLWindow::onUpdate()
     {
+        display();
         pollEvents();
     }
 

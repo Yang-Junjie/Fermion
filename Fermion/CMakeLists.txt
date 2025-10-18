@@ -4,12 +4,15 @@ set(Fermion_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
 set(PLATFORM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Platform)
 
 add_library(engine STATIC
+    ${Fermion_DIR}/fmpch.cpp
     ${Fermion_DIR}/Engine/Engine.cpp
     ${Fermion_DIR}/Core/Log.cpp
     ${Fermion_DIR}/Core/EntryPoint.cpp
+    ${Fermion_DIR}/Core/LayerStack.cpp
+
+
     ${PLATFORM_DIR}/SFML/SFMLWindow.cpp
     ${PLATFORM_DIR}/SFML/SFMLRenderer.cpp
-
 )
 
 target_include_directories(engine PUBLIC
