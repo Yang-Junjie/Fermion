@@ -49,7 +49,6 @@ namespace Oxygine
             WindowCloseEvent e;
             m_data.EventCallback(e);
             m_window.close();
-            Log::Info("SFML Window closed");
             break;
         }
         case sf::Event::Resized:

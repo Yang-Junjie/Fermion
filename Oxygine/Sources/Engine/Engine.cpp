@@ -40,7 +40,7 @@ namespace Oxygine
     {
         Log::Info("Engine started!");
 
-        while (m_window->isOpen())
+        while (m_running && m_window->isOpen())
         {
             m_window->pollEvents();
             m_window->clear();
@@ -58,13 +58,27 @@ namespace Oxygine
         EventDispatcher dispatcher(event);
 
         dispatcher.dispatch<WindowResizeEvent>([this](WindowResizeEvent &e)
-                                               {
-            this->onWindowResize(e);
-            return false; });
+                                               { return this->onWindowResize(e); });
+        dispatcher.dispatch<WindowCloseEvent>([this](WindowCloseEvent &e)
+                                              { return this->onWindowClose(e); });
     }
 
-    void Engine::onWindowResize(WindowResizeEvent &event)
+    bool Engine::onWindowResize(WindowResizeEvent &event)
     {
-        Log::Info("Window resized to " + std::to_string(event.GetWidth()) + "x" + std::to_string(event.GetHeight()));
+        if (event.getWidth() == 0 || event.getHeight() == 0)
+        {
+            m_minimized = true;
+            return false;
+        }
+        m_minimized = false;
+        Log::Info("Window resized to " + std::to_string(event.getWidth()) + "x" + std::to_string(event.getHeight()));
+        return false;
+    }
+
+    bool Engine::onWindowClose(WindowCloseEvent &event)
+    {
+        m_running = false;
+        Log::Info("SFML Window closed");
+        return true;
     }
 }
