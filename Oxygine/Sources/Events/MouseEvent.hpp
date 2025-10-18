@@ -10,8 +10,8 @@ namespace Oxygine
         MouseMovedEvent(const float x, const float y)
             : m_mouseX(x), m_mouseY(y) {}
 
-        float GetX() const { return m_mouseX; }
-        float GetY() const { return m_mouseY; }
+        float getX() const { return m_mouseX; }
+        float getY() const { return m_mouseY; }
 
         std::string toString() const override
         {
@@ -38,13 +38,13 @@ namespace Oxygine
         MouseScrolledEvent(const float xOffset, const float yOffset)
             : m_xOffset(xOffset), m_yOffset(yOffset) {}
 
-        float GetXOffset() const { return m_xOffset; }
-        float GetYOffset() const { return m_yOffset; }
+        float getXOffset() const { return m_xOffset; }
+        float getYOffset() const { return m_yOffset; }
 
         std::string toString() const override
         {
             std::stringstream ss;
-            ss << "MouseScrolledEvent: " << GetXOffset() << ", " << GetYOffset();
+            ss << "MouseScrolledEvent: " << getXOffset() << ", " << getYOffset();
             return ss.str();
         }
         static EventType getStaticType() { return EventType::MouseScrolled; }

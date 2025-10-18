@@ -11,6 +11,10 @@ namespace Oxygine
         RightControl,
         LeftAlt,
         RightAlt,
+        Space,
+        Enter,
+        Delete,
+        Escape,
 
         Up,
         Down,

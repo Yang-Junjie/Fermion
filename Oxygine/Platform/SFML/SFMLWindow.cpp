@@ -1,6 +1,9 @@
 ﻿#include "SFMLWindow.h"
 #include <SFML/Graphics.hpp>
 #include "Core/Log.hpp"
+#include "Core/KeyCodes.h"
+#include "SFMLKeyCodes.h"
+#include "SFMLMouseCodes.h"
 
 namespace Oxygine
 {
@@ -59,6 +62,57 @@ namespace Oxygine
             m_data.EventCallback(e);
             break;
         }
+        case sf::Event::KeyPressed:
+        {
+            KeyCode keyCode = SFMLKeyCodeToOKeyCode(event.key.code);
+            bool isRepeat = m_heldKeys.contains(event.key.code);
+            m_heldKeys.insert(event.key.code);
+
+            KeyPressedEvent e(keyCode, isRepeat);
+            m_data.EventCallback(e);
+            Log::Trace("Key Pressed: " + std::to_string(static_cast<int>(keyCode)) + (isRepeat ? " (repeat)" : ""));
+            break;
+        }
+        case sf::Event::KeyReleased:
+        {
+            KeyCode keyCode = SFMLKeyCodeToOKeyCode(event.key.code);
+            m_heldKeys.erase(event.key.code);
+
+            KeyReleasedEvent e(keyCode);
+            m_data.EventCallback(e);
+            Log::Trace("Key Released: " + std::to_string(static_cast<int>(keyCode)));
+            break;
+        }
+        case sf::Event::MouseMoved:
+        {
+            MouseMovedEvent e(static_cast<float>(event.mouseMove.x), static_cast<float>(event.mouseMove.y));
+            m_data.EventCallback(e);
+            Log::Trace("Mouse Moved: " + std::to_string(event.mouseMove.x) + ", " + std::to_string(event.mouseMove.y));
+            break;
+        }
+        case sf::Event::MouseButtonPressed:
+        {
+            MouseCode mouseCode = SFMLMouseCodeToOMouseCode(event.mouseButton.button);
+            MouseButtonPressedEvent e(mouseCode);
+            m_data.EventCallback(e);
+            Log::Trace("Mouse Button Pressed: " + std::to_string(static_cast<int>(mouseCode)));
+            break;
+        }
+        case sf::Event::MouseButtonReleased:
+        {
+            MouseCode mouseCode = SFMLMouseCodeToOMouseCode(event.mouseButton.button);
+            MouseButtonReleasedEvent e(mouseCode);
+            m_data.EventCallback(e);
+            Log::Trace("Mouse Button Released: " + std::to_string(static_cast<int>(mouseCode)));
+            break;
+        }
+        case sf::Event::MouseWheelScrolled:
+        {
+            MouseScrolledEvent e(static_cast<float>(event.mouseWheelScroll.delta), 0.0f);
+            m_data.EventCallback(e);
+            Log::Trace("Mouse Wheel Scrolled: " + std::to_string(event.mouseWheelScroll.delta));
+            break;
+        }
         default:
             break;
         }
@@ -66,6 +120,7 @@ namespace Oxygine
 
     void SFMLWindow::OnUpdate()
     {
+        pollEvents();
     }
 
     void SFMLWindow::clear()

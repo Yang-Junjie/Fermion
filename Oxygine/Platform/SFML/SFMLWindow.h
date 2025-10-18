@@ -4,6 +4,7 @@
 #include "Events/ApplicationEvent.hpp"
 #include "Events/KeyEvent.hpp"
 #include "Events/MouseEvent.hpp"
+#include <unordered_set>
 
 namespace Oxygine
 {
@@ -43,5 +44,7 @@ namespace Oxygine
 
         sf::RenderWindow m_window;
         WindowData m_data;
+
+        std::unordered_set<sf::Keyboard::Key> m_heldKeys;
     };
 }
