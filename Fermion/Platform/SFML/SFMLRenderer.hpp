@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Renderer/Renderer.h"
+#include "Renderer/Renderer.hpp"
 #include <SFML/Graphics.hpp>
 #include <unordered_map>
 namespace Fermion

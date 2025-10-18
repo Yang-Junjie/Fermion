@@ -1,4 +1,4 @@
-﻿#include "SFMLRenderer.h"
+﻿#include "SFMLRenderer.hpp"
 #include <unordered_map>
 #include "Core/Log.hpp"
 namespace Fermion

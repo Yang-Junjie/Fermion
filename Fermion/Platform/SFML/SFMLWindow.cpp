@@ -1,9 +1,9 @@
-﻿#include "SFMLWindow.h"
+﻿#include "SFMLWindow.hpp"
 #include <SFML/Graphics.hpp>
 #include "Core/Log.hpp"
-#include "Core/KeyCodes.h"
-#include "SFMLKeyCodes.h"
-#include "SFMLMouseCodes.h"
+#include "Core/KeyCodes.hpp"
+#include "SFMLKeyCodes.hpp"
+#include "SFMLMouseCodes.hpp"
 
 namespace Fermion
 {
@@ -70,7 +70,7 @@ namespace Fermion
 
             KeyPressedEvent e(keyCode, isRepeat);
             m_data.EventCallback(e);
-            Log::Trace("Key Pressed: " + std::to_string(static_cast<int>(keyCode)) + (isRepeat ? " (repeat)" : ""));
+            Log::Info("Key Pressed: " + std::to_string(static_cast<int>(keyCode)) + (isRepeat ? " (repeat)" : ""));
             break;
         }
         case sf::Event::KeyReleased:
@@ -80,7 +80,7 @@ namespace Fermion
 
             KeyReleasedEvent e(keyCode);
             m_data.EventCallback(e);
-            Log::Trace("Key Released: " + std::to_string(static_cast<int>(keyCode)));
+            Log::Info("Key Released: " + std::to_string(static_cast<int>(keyCode)));
             break;
         }
         case sf::Event::MouseMoved:
@@ -95,7 +95,7 @@ namespace Fermion
             MouseCode mouseCode = SFMLMouseCodeToOMouseCode(event.mouseButton.button);
             MouseButtonPressedEvent e(mouseCode);
             m_data.EventCallback(e);
-            Log::Trace("Mouse Button Pressed: " + std::to_string(static_cast<int>(mouseCode)));
+            Log::Info("Mouse Button Pressed: " + std::to_string(static_cast<int>(mouseCode)));
             break;
         }
         case sf::Event::MouseButtonReleased:
@@ -103,14 +103,14 @@ namespace Fermion
             MouseCode mouseCode = SFMLMouseCodeToOMouseCode(event.mouseButton.button);
             MouseButtonReleasedEvent e(mouseCode);
             m_data.EventCallback(e);
-            Log::Trace("Mouse Button Released: " + std::to_string(static_cast<int>(mouseCode)));
+            Log::Info("Mouse Button Released: " + std::to_string(static_cast<int>(mouseCode)));
             break;
         }
         case sf::Event::MouseWheelScrolled:
         {
             MouseScrolledEvent e(static_cast<float>(event.mouseWheelScroll.delta), 0.0f);
             m_data.EventCallback(e);
-            Log::Trace("Mouse Wheel Scrolled: " + std::to_string(event.mouseWheelScroll.delta));
+            Log::Info("Mouse Wheel Scrolled: " + std::to_string(event.mouseWheelScroll.delta));
             break;
         }
         default:

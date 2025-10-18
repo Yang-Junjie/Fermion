@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "Events/Event.hpp"
-#include "Core/MouseCodes.h"
+#include "Core/MouseCodes.hpp"
 
 namespace Fermion
 {

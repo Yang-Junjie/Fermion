@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include "Core/Window.h"
-#include "Renderer/Renderer.h"
+#include "Core/Window.hpp"
+#include "Renderer/Renderer.hpp"
 #include "Events/Event.hpp"
 #include "Events/ApplicationEvent.hpp"
 #include "Core/Log.hpp"

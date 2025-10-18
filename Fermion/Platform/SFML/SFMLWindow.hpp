@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Core/Window.h"
+#include "Core/Window.hpp"
 #include <SFML/Graphics.hpp>
 #include "Events/ApplicationEvent.hpp"
 #include "Events/KeyEvent.hpp"

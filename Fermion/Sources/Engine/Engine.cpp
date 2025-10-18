@@ -1,9 +1,9 @@
-﻿#include "Engine/Engine.h"
+﻿#include "Engine/Engine.hpp"
 
 
 #ifdef USE_SFML_BACKEND
-#include "SFMLWindow.h"
-#include "SFMLRenderer.h"
+#include "SFMLWindow.hpp"
+#include "SFMLRenderer.hpp"
 #elif defined(USE_SDL_BACKEND)
 #include "SDLWindow.h"
 #include "SDLRenderer.h"

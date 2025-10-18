@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include <SFML/Window/Keyboard.hpp>
-#include "Core/KeyCodes.h"
+#include "Core/KeyCodes.hpp"
 namespace Fermion
 {
     KeyCode SFMLKeyCodeToOKeyCode(int sfmlKeyCode){

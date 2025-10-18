@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "Events/Event.hpp"
-#include "Core/KeyCodes.h"
+#include "Core/KeyCodes.hpp"
 namespace Fermion
 {
 

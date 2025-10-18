@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include <SFML/Window/Mouse.hpp>
-#include "Core/MouseCodes.h"
+#include "Core/MouseCodes.hpp"
 namespace Fermion{
     MouseCode SFMLMouseCodeToOMouseCode(int sfmlMouseCode){
         switch (sfmlMouseCode)
