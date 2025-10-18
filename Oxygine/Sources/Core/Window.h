@@ -25,8 +25,11 @@ namespace Oxygine
         virtual void clear() = 0;
         virtual void display() = 0;
         virtual void pollEvents() = 0;
-        virtual void OnUpdate() = 0;
-        
+        virtual void onUpdate() = 0;
+
+        virtual void setVSync(bool enabled) = 0;
+        virtual bool isVSync() const = 0;
+
         virtual void setEventCallback(const EventCallbackFn &callback) = 0;
 
         virtual uint32_t getWidth() const = 0;

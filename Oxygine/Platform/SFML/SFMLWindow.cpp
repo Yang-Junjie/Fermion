@@ -118,7 +118,7 @@ namespace Oxygine
         }
     }
 
-    void SFMLWindow::OnUpdate()
+    void SFMLWindow::onUpdate()
     {
         pollEvents();
     }
@@ -136,5 +136,16 @@ namespace Oxygine
     sf::RenderWindow &SFMLWindow::get()
     {
         return m_window;
+    }
+
+    void SFMLWindow::setVSync(bool enabled)
+    {
+        m_window.setVerticalSyncEnabled(enabled);
+        m_data.VSync = enabled;
+    }
+
+    bool SFMLWindow::isVSync() const
+    {
+        return m_data.VSync;
     }
 }

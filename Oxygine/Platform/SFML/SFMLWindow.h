@@ -14,20 +14,27 @@ namespace Oxygine
         SFMLWindow();
         SFMLWindow(const WindowProps &props);
         virtual ~SFMLWindow() = default;
-
-        bool isOpen() const override;
-        void pollEvents() override;
-        void clear() override;
-        void display() override;
+        virtual void onUpdate() override;
 
         virtual uint32_t getWidth() const override { return m_data.width; }
         virtual uint32_t getHeight() const override { return m_data.height; }
 
         virtual void setEventCallback(const EventCallbackFn &callback) override { m_data.EventCallback = callback; }
 
+        bool isOpen() const override;
+        void pollEvents() override;
+        void clear() override;
+        void display() override;
+        void setVSync(bool enabled) override;
+        bool isVSync() const override;
+
+        
+
+        
+
         sf::RenderWindow &get();
 
-        virtual void OnUpdate() override;
+        
 
     private:
         virtual void Init(const WindowProps &props);
