@@ -20,6 +20,7 @@ namespace Fermion
         {
             Log::Trace("GameLayer OnUpdate called");
             getRenderer()->drawRect({50, 50}, {200, 200}, {0.0f, 1.0f, 0.0f, 1.0f});
+            getRenderer()->drawImage("assets/textures/test.jpg", {300, 300});
         }
         virtual void OnEvent(IEvent &event) override
         {
