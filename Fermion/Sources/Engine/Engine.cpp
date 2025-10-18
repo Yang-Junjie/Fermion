@@ -38,7 +38,7 @@ namespace Fermion
     void Engine::run()
     {
         Log::Info("Engine started!");
-
+        init();
         while (m_running && m_window->isOpen())
         {
             m_window->pollEvents();
