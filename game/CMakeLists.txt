@@ -1,4 +1,4 @@
-﻿add_executable(game main.cpp)
+﻿add_executable(game GameApp.cpp)
 
 # 指定输出目录
 set_target_properties(game PROPERTIES

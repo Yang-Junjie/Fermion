@@ -3,6 +3,7 @@
 #include "Renderer/Renderer.h"
 #include "Events/Event.hpp"
 #include "Events/ApplicationEvent.hpp"
+#include "Core/Log.hpp"
 #include <memory>
 
 namespace Oxygine
@@ -24,4 +25,6 @@ namespace Oxygine
         std::unique_ptr<IWindow> m_window;
         std::unique_ptr<IRenderer> m_renderer;
     };
+    // clinet 实现
+    Engine* createEngine();
 }

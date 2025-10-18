@@ -1,5 +1,5 @@
 ﻿#include "Engine/Engine.h"
-#include "Core/Log.hpp"
+
 
 #ifdef USE_SFML_BACKEND
 #include "SFMLWindow.h"
@@ -24,7 +24,7 @@ namespace Oxygine
 {
     Engine::Engine()
     {
-        Log::Init("engine.log", LogLevel::Debug);
+       
         WindowProps windowProps;
 #ifdef USE_SFML_BACKEND
         auto sfmlWindow = std::make_unique<SFMLWindow>(windowProps);

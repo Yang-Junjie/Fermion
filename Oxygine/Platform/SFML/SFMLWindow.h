@@ -27,15 +27,10 @@ namespace Oxygine
         void display() override;
         void setVSync(bool enabled) override;
         bool isVSync() const override;
-
         
-
-        
-
         sf::RenderWindow &get();
 
         
-
     private:
         virtual void Init(const WindowProps &props);
         void processEvent(const sf::Event &event);

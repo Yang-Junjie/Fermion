@@ -6,6 +6,7 @@ set(PLATFORM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Platform)
 add_library(engine STATIC
     ${OXYGINE_DIR}/Engine/Engine.cpp
     ${OXYGINE_DIR}/Core/Log.cpp
+    ${OXYGINE_DIR}/Core/EntryPoint.cpp
     ${PLATFORM_DIR}/SFML/SFMLWindow.cpp
     ${PLATFORM_DIR}/SFML/SFMLRenderer.cpp
 
