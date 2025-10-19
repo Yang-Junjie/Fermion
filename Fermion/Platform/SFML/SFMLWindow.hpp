@@ -27,7 +27,7 @@ namespace Fermion
         void display() override;
         void setVSync(bool enabled) override;
         bool isVSync() const override;
-        sf::RenderWindow &get();
+        sf::RenderWindow &getWindow();
 
     private:
         virtual void Init(const WindowProps &props);
@@ -45,6 +45,6 @@ namespace Fermion
         sf::RenderWindow m_window;
         WindowData m_data;
         std::unordered_set<sf::Keyboard::Key> m_heldKeys;
-         sf::Clock m_deltaClock;
+        sf::Clock m_deltaClock;
     };
 }

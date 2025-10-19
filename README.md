@@ -3,7 +3,9 @@
 Fermion 是一款基于 C++20 开发的轻量级游戏引擎，由 oxygen studio (Yang-Junjie)打造。引擎采用模块化设计，支持多渲染后端，提供简洁的 API 以简化游戏开发流程。
 
 TODO:
-已经完整了imgui的sfml渲染集成，待调整imgui渲染逻辑
+调整imgui渲染逻辑，独立分层
+设计Timer类
+
 
 ## 特性
 
@@ -56,7 +58,7 @@ TODO:
 
 1. **克隆仓库**
    ```bash
-   git clone <repository-url> Fermion
+   git clone https://github.com/Yang-Junjie/Fermion.git
    cd Fermion
    ```
 

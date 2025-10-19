@@ -110,14 +110,6 @@ namespace Fermion
 
     void SFMLWindow::onUpdate()
     {
-        ImGui::SFML::Update(m_window, m_deltaClock.restart());
-
-        // ImGui::ShowDemoWindow();
-
-        ImGui::Begin("Hello, world!");
-        ImGui::Button("button");
-        ImGui::End();
-        ImGui::SFML::Render(m_window);
         m_window.display();
         pollEvents();
     }
@@ -132,7 +124,7 @@ namespace Fermion
         m_window.display();
     }
 
-    sf::RenderWindow &SFMLWindow::get()
+    sf::RenderWindow &SFMLWindow::getWindow()
     {
         return m_window;
     }

@@ -1,49 +1,26 @@
 ﻿#include "ImGuiLayer.hpp"
-#include "fmpch.hpp"
 #include "imgui.h"
-#include "imgui-SFML.h"
-#include "Platform/SFML/SFMLWindow.hpp"
-#include <SFML/Graphics.hpp>
 
 namespace Fermion
 {
-    ImGuiLayer::ImGuiLayer()
-        : Layer("ImGuiLayer")
-    {
-    }
+    ImGuiLayer::ImGuiLayer() : Layer("ImGuiLayer") {}
 
     void ImGuiLayer::OnAttach()
     {
-        ImGuiIO& io = ImGui::GetIO();
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  
-
+        ImGuiIO &io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         ImGui::StyleColorsDark();
     }
 
-    void ImGuiLayer::OnDetach()
-    {
-       
-    }
+    void ImGuiLayer::OnDetach() {}
 
     void ImGuiLayer::OnUpdate()
     {
-       
+        ImGui::Begin("Hello, world!");
+        ImGui::Button("button");
+        ImGui::End();
     }
 
-    void ImGuiLayer::OnEvent(IEvent &e)
-    {
-      
-    }
-
-    void ImGuiLayer::Begin()
-    {
-        ImGui::NewFrame();
-        
-        
-    }
-
-    void ImGuiLayer::End()
-    {
-    }
+    void ImGuiLayer::OnEvent(IEvent &e) {}
 
 }

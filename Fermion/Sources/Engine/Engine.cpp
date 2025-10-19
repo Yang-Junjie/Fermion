@@ -1,9 +1,11 @@
 ﻿#include "Engine/Engine.hpp"
 #include "imgui.h"
-#include "imgui-SFML.h"
+
 #ifdef USE_SFML_BACKEND
 #include "SFMLWindow.hpp"
 #include "SFMLRenderer.hpp"
+#include "imgui-SFML.h"
+#include "ImGuiBackendSFML.hpp"
 #elif defined(USE_SDL_BACKEND)
 #include "SDLWindow.h"
 #include "SDLRenderer.h"
@@ -24,41 +26,56 @@ namespace Fermion
 {
     Engine::Engine()
     {
-
         WindowProps windowProps;
 #ifdef USE_SFML_BACKEND
-        auto sfmlWindow = std::make_unique<SFMLWindow>(windowProps);
-        SFMLWindow *sfmlWin = sfmlWindow.get();
-        m_renderer = std::make_unique<SFMLRenderer>(sfmlWin->get());
-        m_window = std::move(sfmlWindow);
-        if (ImGui::SFML::Init(sfmlWin->get()))
+        m_window = std::make_unique<SFMLWindow>(windowProps);
+        auto &sfWindow = static_cast<SFMLWindow *>(m_window.get())->getWindow();
+
+        if (!sfWindow.setActive(true))
         {
-            Log::Info("ImGui initialized!");
+            Log::Error("Failed to activate SFML OpenGL context!");
+            return;
         }
+        Log::Info("SFML OpenGL context activated.");
+
+        m_renderer = std::make_unique<SFMLRenderer>(sfWindow);
+
+        if (ImGuiBackendSFML::Init(sfWindow))
+            Log::Info("ImGui initialized successfully!");
         else
-        {
-            Log::Debug("ImGui failed to initialize!");
-        }
+            Log::Error("ImGui initialization failed!");
+
 #endif
+
         m_window->setEventCallback([this](IEvent &event)
                                    { this->onEvent(event); });
+
+        m_imGuiLayer = std::make_unique<ImGuiLayer>();
+        m_imGuiLayerRaw = m_imGuiLayer.get();
+
+        m_layerStack.pushOverlay(std::move(m_imGuiLayer));
     }
 
     void Engine::run()
     {
         Log::Info("Engine started!");
         init();
+
+        auto &sfWindow = static_cast<SFMLWindow *>(m_window.get())->getWindow();
+        sf::Clock deltaClock;
         while (m_running && m_window->isOpen())
         {
-            // m_window->pollEvents();
-            m_window->clear();
+            sf::Time dt = deltaClock.restart(); // 待实现Timer类
+            ImGuiBackendSFML::BeginFrame(sfWindow, dt);
 
+            sfWindow.clear();
             for (auto &layer : m_layerStack)
                 layer->OnUpdate();
 
+            ImGuiBackendSFML::EndFrame(sfWindow);
             m_window->onUpdate();
         }
-         ImGui::SFML::Shutdown();
+        ImGuiBackendSFML::Shutdown(sfWindow);
     }
 
     void Engine::pushLayer(std::unique_ptr<Layer> layer)

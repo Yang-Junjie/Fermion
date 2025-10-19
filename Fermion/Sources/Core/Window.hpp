@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Events/Event.hpp"
 #include <functional>
+#include <cstdint>
 namespace Fermion
 {
     using EventCallbackFn = std::function<void(IEvent &)>;
@@ -11,8 +12,8 @@ namespace Fermion
         uint32_t height;
 
         WindowProps(const std::string &title = "Fermion",
-                    uint32_t width = 800,
-                    uint32_t height = 600)
+                    uint32_t width = 1600,
+                    uint32_t height = 900)
             : title(title), width(width), height(height)
         {
         }

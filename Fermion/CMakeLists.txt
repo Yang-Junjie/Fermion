@@ -9,6 +9,7 @@ add_library(engine STATIC
     ${Fermion_DIR}/Core/Log.cpp
     ${Fermion_DIR}/Core/EntryPoint.cpp
     ${Fermion_DIR}/Core/LayerStack.cpp
+    ${Fermion_DIR}/ImGui/ImGuiLayer.cpp
 
 
     ${PLATFORM_DIR}/SFML/SFMLWindow.cpp
