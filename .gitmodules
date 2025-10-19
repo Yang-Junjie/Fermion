@@ -10,3 +10,9 @@
 [submodule "external/glm"]
 	path = external/glm
 	url = https://github.com/icaven/glm.git
+[submodule "external/imgui-sfml"]
+	path = external/imgui-sfml
+	url = https://github.com/SFML/imgui-sfml.git
+[submodule "external/imgui"]
+	path = external/imgui
+	url = https://github.com/ocornut/imgui.git

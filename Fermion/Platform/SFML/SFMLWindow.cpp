@@ -7,13 +7,13 @@
 
 namespace Fermion
 {
-    SFMLWindow::SFMLWindow() : m_window(sf::VideoMode(1600, 900), "Fermion")
+    SFMLWindow::SFMLWindow() : m_window(sf::VideoMode({1600, 900}), "Fermion")
     {
         Init(WindowProps());
         Log::Info("SFML Window created with default title and size 1600x900");
     }
 
-    SFMLWindow::SFMLWindow(const WindowProps &props) : m_window(sf::VideoMode(props.width, props.height), props.title)
+    SFMLWindow::SFMLWindow(const WindowProps &props) : m_window(sf::VideoMode({props.width, props.height}), props.title)
     {
         Init(props);
         Log::Info("SFML Window created with title: " + props.title + " and size: " + std::to_string(props.width) + "x" + std::to_string(props.height));
@@ -33,10 +33,10 @@ namespace Fermion
 
     void SFMLWindow::pollEvents()
     {
-        sf::Event event;
-        while (m_window.pollEvent(event))
+        std::optional<sf::Event> event;
+        while ((event = m_window.pollEvent()))
         {
-            processEvent(event);
+            processEvent(*event);
         }
     }
 
@@ -45,82 +45,62 @@ namespace Fermion
         if (!m_data.EventCallback)
             return;
 
-        switch (event.type)
-        {
-        case sf::Event::Closed:
-        {
+        // 使用SFML 3.0的getIf方法检查事件类型
+        if (event.is<sf::Event::Closed>()) {
             WindowCloseEvent e;
             m_data.EventCallback(e);
             m_window.close();
-            break;
         }
-        case sf::Event::Resized:
-        {
-            m_data.width = event.size.width;
-            m_data.height = event.size.height;
-            WindowResizeEvent e(event.size.width, event.size.height);
-            m_data.EventCallback(e);
-            break;
-        }
-        case sf::Event::KeyPressed:
-        {
-            KeyCode keyCode = SFMLKeyCodeToOKeyCode(event.key.code);
-            bool isRepeat = m_heldKeys.contains(event.key.code);
-            m_heldKeys.insert(event.key.code);
+        else if (const auto* keyPress = event.getIf<sf::Event::KeyPressed>()) {
+            KeyCode keyCode = SFMLKeyCodeToOKeyCode(keyPress->code);
+            bool isRepeat = m_heldKeys.contains(keyPress->code);
+            m_heldKeys.insert(keyPress->code);
 
             KeyPressedEvent e(keyCode, isRepeat);
             m_data.EventCallback(e);
             Log::Info("Key Pressed: " + std::to_string(static_cast<int>(keyCode)) + (isRepeat ? " (repeat)" : ""));
-            break;
         }
-        case sf::Event::KeyReleased:
-        {
-            KeyCode keyCode = SFMLKeyCodeToOKeyCode(event.key.code);
-            m_heldKeys.erase(event.key.code);
+        else if (const auto* keyRelease = event.getIf<sf::Event::KeyReleased>()) {
+            KeyCode keyCode = SFMLKeyCodeToOKeyCode(keyRelease->code);
+            m_heldKeys.erase(keyRelease->code);
 
             KeyReleasedEvent e(keyCode);
             m_data.EventCallback(e);
             Log::Info("Key Released: " + std::to_string(static_cast<int>(keyCode)));
-            break;
         }
-        case sf::Event::MouseMoved:
-        {
-            MouseMovedEvent e(static_cast<float>(event.mouseMove.x), static_cast<float>(event.mouseMove.y));
+        else if (const auto* resized = event.getIf<sf::Event::Resized>()) {
+            m_data.width = resized->size.x;
+            m_data.height = resized->size.y;
+            WindowResizeEvent e(resized->size.x, resized->size.y);
             m_data.EventCallback(e);
-            Log::Trace("Mouse Moved: " + std::to_string(event.mouseMove.x) + ", " + std::to_string(event.mouseMove.y));
-            break;
         }
-        case sf::Event::MouseButtonPressed:
-        {
-            MouseCode mouseCode = SFMLMouseCodeToOMouseCode(event.mouseButton.button);
+        else if (const auto* mouseMove = event.getIf<sf::Event::MouseMoved>()) {
+            MouseMovedEvent e(static_cast<float>(mouseMove->position.x), static_cast<float>(mouseMove->position.y));
+            m_data.EventCallback(e);
+            Log::Trace("Mouse Moved: " + std::to_string(mouseMove->position.x) + ", " + std::to_string(mouseMove->position.y));
+        }
+        else if (const auto* mousePress = event.getIf<sf::Event::MouseButtonPressed>()) {
+            MouseCode mouseCode = SFMLMouseCodeToOMouseCode(mousePress->button);
             MouseButtonPressedEvent e(mouseCode);
             m_data.EventCallback(e);
             Log::Info("Mouse Button Pressed: " + std::to_string(static_cast<int>(mouseCode)));
-            break;
         }
-        case sf::Event::MouseButtonReleased:
-        {
-            MouseCode mouseCode = SFMLMouseCodeToOMouseCode(event.mouseButton.button);
+        else if (const auto* mouseRelease = event.getIf<sf::Event::MouseButtonReleased>()) {
+            MouseCode mouseCode = SFMLMouseCodeToOMouseCode(mouseRelease->button);
             MouseButtonReleasedEvent e(mouseCode);
             m_data.EventCallback(e);
             Log::Info("Mouse Button Released: " + std::to_string(static_cast<int>(mouseCode)));
-            break;
         }
-        case sf::Event::MouseWheelScrolled:
-        {
-            MouseScrolledEvent e(static_cast<float>(event.mouseWheelScroll.delta), 0.0f);
+        else if (const auto* mouseScroll = event.getIf<sf::Event::MouseWheelScrolled>()) {
+            MouseScrolledEvent e(static_cast<float>(mouseScroll->delta), 0.0f);
             m_data.EventCallback(e);
-            Log::Info("Mouse Wheel Scrolled: " + std::to_string(event.mouseWheelScroll.delta));
-            break;
-        }
-        default:
-            break;
+            Log::Info("Mouse Wheel Scrolled: " + std::to_string(mouseScroll->delta));
         }
     }
 
     void SFMLWindow::onUpdate()
     {
-        display();
+        m_window.display();
         pollEvents();
     }
 
@@ -141,7 +121,11 @@ namespace Fermion
 
     void SFMLWindow::setVSync(bool enabled)
     {
-        m_window.setVerticalSyncEnabled(enabled);
+        if (enabled) {
+            m_window.setFramerateLimit(60);
+        } else {
+            m_window.setFramerateLimit(0);
+        }
         m_data.VSync = enabled;
     }
 

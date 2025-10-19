@@ -52,25 +52,26 @@ if(USE_SFML)
         sfml-audio
     )
     # Windows 下的 DLL
-    if(WIN32 AND USE_SFML AND BUILD_SHARED_LIBS)
-        # Debug DLL 名称
-        set(SFML_DLL_DIR ${CMAKE_BINARY_DIR}/external/SFML/lib)
+    if(WIN32 AND BUILD_SHARED_LIBS)
+        # 确保 bin 目录存在
+        file(MAKE_DIRECTORY ${BIN_DIR})
+        
+        # 使用更可靠的方法查找SFML DLL
         if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+            # 尝试不同可能的路径
             file(GLOB SFML_DLLS
-                "${SFML_DLL_DIR}/sfml-graphics-d-2.dll"
-                "${SFML_DLL_DIR}/sfml-window-d-2.dll"
-                "${SFML_DLL_DIR}/sfml-system-d-2.dll"
-                "${SFML_DLL_DIR}/sfml-audio-d-2.dll"
-                "${SFML_DLL_DIR}/sfml-network-d-2.dll"
+                "${CMAKE_BINARY_DIR}/external/SFML/lib/Debug/sfml-*-d-3.dll"
+                "${CMAKE_BINARY_DIR}/external/SFML/bin/sfml-*-d-3.dll"
+                "${CMAKE_BINARY_DIR}/lib/Debug/sfml-*-d-3.dll"
+                "${CMAKE_BINARY_DIR}/bin/sfml-*-d-3.dll"
             )
         else()
-            # Release DLL 名称
+            # Release DLL
             file(GLOB SFML_DLLS
-                "${SFML_DLL_DIR}/sfml-graphics-2.dll"
-                "${SFML_DLL_DIR}/sfml-window-2.dll"
-                "${SFML_DLL_DIR}/sfml-system-2.dll"
-                "${SFML_DLL_DIR}/sfml-audio-2.dll"
-                "${SFML_DLL_DIR}/sfml-network-2.dll"
+                "${CMAKE_BINARY_DIR}/external/SFML/lib/Release/sfml-*-3.dll"
+                "${CMAKE_BINARY_DIR}/external/SFML/bin/sfml-*-3.dll"
+                "${CMAKE_BINARY_DIR}/lib/Release/sfml-*-3.dll"
+                "${CMAKE_BINARY_DIR}/bin/sfml-*-3.dll"
             )
         endif()
 
@@ -80,8 +81,21 @@ if(USE_SFML)
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 ${dll}
                 ${BIN_DIR}/
+                COMMENT "正在复制 ${dll} 到 ${BIN_DIR}/"
             )
         endforeach()
+        
+        # 为了确保可执行文件运行时能找到DLL，我们也为game目标添加DLL复制逻辑
+        if(TARGET game)
+            foreach(dll ${SFML_DLLS})
+                add_custom_command(TARGET game POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    ${dll}
+                    ${BIN_DIR}/
+                    COMMENT "正在为game目标复制 ${dll} 到 ${BIN_DIR}/"
+                )
+            endforeach()
+        endif()
     endif()
 else()
     find_package(SDL2 REQUIRED)
