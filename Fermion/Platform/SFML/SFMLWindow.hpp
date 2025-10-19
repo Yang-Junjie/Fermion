@@ -13,7 +13,7 @@ namespace Fermion
     public:
         SFMLWindow();
         SFMLWindow(const WindowProps &props);
-        virtual ~SFMLWindow() = default;
+        ~SFMLWindow();
         virtual void onUpdate() override;
 
         virtual uint32_t getWidth() const override { return m_data.width; }
@@ -27,10 +27,8 @@ namespace Fermion
         void display() override;
         void setVSync(bool enabled) override;
         bool isVSync() const override;
-        
         sf::RenderWindow &get();
 
-        
     private:
         virtual void Init(const WindowProps &props);
         void processEvent(const sf::Event &event);
@@ -46,7 +44,7 @@ namespace Fermion
 
         sf::RenderWindow m_window;
         WindowData m_data;
-
         std::unordered_set<sf::Keyboard::Key> m_heldKeys;
+         sf::Clock m_deltaClock;
     };
 }

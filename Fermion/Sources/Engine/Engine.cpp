@@ -1,5 +1,6 @@
 ﻿#include "Engine/Engine.hpp"
-
+#include "imgui.h"
+#include "imgui-SFML.h"
 #ifdef USE_SFML_BACKEND
 #include "SFMLWindow.hpp"
 #include "SFMLRenderer.hpp"
@@ -27,10 +28,18 @@ namespace Fermion
         WindowProps windowProps;
 #ifdef USE_SFML_BACKEND
         auto sfmlWindow = std::make_unique<SFMLWindow>(windowProps);
-        m_renderer = std::make_unique<SFMLRenderer>(sfmlWindow->get());
+        SFMLWindow *sfmlWin = sfmlWindow.get();
+        m_renderer = std::make_unique<SFMLRenderer>(sfmlWin->get());
         m_window = std::move(sfmlWindow);
+        if (ImGui::SFML::Init(sfmlWin->get()))
+        {
+            Log::Info("ImGui initialized!");
+        }
+        else
+        {
+            Log::Debug("ImGui failed to initialize!");
+        }
 #endif
-
         m_window->setEventCallback([this](IEvent &event)
                                    { this->onEvent(event); });
     }
@@ -41,18 +50,17 @@ namespace Fermion
         init();
         while (m_running && m_window->isOpen())
         {
-            m_window->pollEvents();
+            // m_window->pollEvents();
             m_window->clear();
 
-            // m_renderer->drawImage("assets/textures/test.jpg", {100, 100});
-            // m_renderer->drawRect({0, 0}, {100, 100}, {1.0f, 0.0f, 0.0f, 1.0f});
             for (auto &layer : m_layerStack)
                 layer->OnUpdate();
 
             m_window->onUpdate();
-            std::this_thread::sleep_for(std::chrono::milliseconds(16));
         }
+         ImGui::SFML::Shutdown();
     }
+
     void Engine::pushLayer(std::unique_ptr<Layer> layer)
     {
         layer->setRenderer(m_renderer.get());
@@ -65,6 +73,7 @@ namespace Fermion
         overlay->OnAttach();
         m_layerStack.pushOverlay(std::move(overlay));
     }
+
     void Engine::onEvent(IEvent &event)
     {
         EventDispatcher dispatcher(event);

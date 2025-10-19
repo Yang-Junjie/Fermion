@@ -4,6 +4,8 @@
 #include "Core/KeyCodes.hpp"
 #include "SFMLKeyCodes.hpp"
 #include "SFMLMouseCodes.hpp"
+#include "imgui.h"
+#include "imgui-SFML.h"
 
 namespace Fermion
 {
@@ -36,6 +38,7 @@ namespace Fermion
         std::optional<sf::Event> event;
         while ((event = m_window.pollEvent()))
         {
+            ImGui::SFML::ProcessEvent(m_window, *event);
             processEvent(*event);
         }
     }
@@ -45,13 +48,14 @@ namespace Fermion
         if (!m_data.EventCallback)
             return;
 
-        // 使用SFML 3.0的getIf方法检查事件类型
-        if (event.is<sf::Event::Closed>()) {
+        if (event.is<sf::Event::Closed>())
+        {
             WindowCloseEvent e;
             m_data.EventCallback(e);
             m_window.close();
         }
-        else if (const auto* keyPress = event.getIf<sf::Event::KeyPressed>()) {
+        else if (const auto *keyPress = event.getIf<sf::Event::KeyPressed>())
+        {
             KeyCode keyCode = SFMLKeyCodeToOKeyCode(keyPress->code);
             bool isRepeat = m_heldKeys.contains(keyPress->code);
             m_heldKeys.insert(keyPress->code);
@@ -60,7 +64,8 @@ namespace Fermion
             m_data.EventCallback(e);
             Log::Info("Key Pressed: " + std::to_string(static_cast<int>(keyCode)) + (isRepeat ? " (repeat)" : ""));
         }
-        else if (const auto* keyRelease = event.getIf<sf::Event::KeyReleased>()) {
+        else if (const auto *keyRelease = event.getIf<sf::Event::KeyReleased>())
+        {
             KeyCode keyCode = SFMLKeyCodeToOKeyCode(keyRelease->code);
             m_heldKeys.erase(keyRelease->code);
 
@@ -68,30 +73,35 @@ namespace Fermion
             m_data.EventCallback(e);
             Log::Info("Key Released: " + std::to_string(static_cast<int>(keyCode)));
         }
-        else if (const auto* resized = event.getIf<sf::Event::Resized>()) {
+        else if (const auto *resized = event.getIf<sf::Event::Resized>())
+        {
             m_data.width = resized->size.x;
             m_data.height = resized->size.y;
             WindowResizeEvent e(resized->size.x, resized->size.y);
             m_data.EventCallback(e);
         }
-        else if (const auto* mouseMove = event.getIf<sf::Event::MouseMoved>()) {
+        else if (const auto *mouseMove = event.getIf<sf::Event::MouseMoved>())
+        {
             MouseMovedEvent e(static_cast<float>(mouseMove->position.x), static_cast<float>(mouseMove->position.y));
             m_data.EventCallback(e);
             Log::Trace("Mouse Moved: " + std::to_string(mouseMove->position.x) + ", " + std::to_string(mouseMove->position.y));
         }
-        else if (const auto* mousePress = event.getIf<sf::Event::MouseButtonPressed>()) {
+        else if (const auto *mousePress = event.getIf<sf::Event::MouseButtonPressed>())
+        {
             MouseCode mouseCode = SFMLMouseCodeToOMouseCode(mousePress->button);
             MouseButtonPressedEvent e(mouseCode);
             m_data.EventCallback(e);
             Log::Info("Mouse Button Pressed: " + std::to_string(static_cast<int>(mouseCode)));
         }
-        else if (const auto* mouseRelease = event.getIf<sf::Event::MouseButtonReleased>()) {
+        else if (const auto *mouseRelease = event.getIf<sf::Event::MouseButtonReleased>())
+        {
             MouseCode mouseCode = SFMLMouseCodeToOMouseCode(mouseRelease->button);
             MouseButtonReleasedEvent e(mouseCode);
             m_data.EventCallback(e);
             Log::Info("Mouse Button Released: " + std::to_string(static_cast<int>(mouseCode)));
         }
-        else if (const auto* mouseScroll = event.getIf<sf::Event::MouseWheelScrolled>()) {
+        else if (const auto *mouseScroll = event.getIf<sf::Event::MouseWheelScrolled>())
+        {
             MouseScrolledEvent e(static_cast<float>(mouseScroll->delta), 0.0f);
             m_data.EventCallback(e);
             Log::Info("Mouse Wheel Scrolled: " + std::to_string(mouseScroll->delta));
@@ -100,6 +110,14 @@ namespace Fermion
 
     void SFMLWindow::onUpdate()
     {
+        ImGui::SFML::Update(m_window, m_deltaClock.restart());
+
+        // ImGui::ShowDemoWindow();
+
+        ImGui::Begin("Hello, world!");
+        ImGui::Button("button");
+        ImGui::End();
+        ImGui::SFML::Render(m_window);
         m_window.display();
         pollEvents();
     }
@@ -121,16 +139,23 @@ namespace Fermion
 
     void SFMLWindow::setVSync(bool enabled)
     {
-        if (enabled) {
+        if (enabled)
+        {
             m_window.setFramerateLimit(60);
-        } else {
+        }
+        else
+        {
             m_window.setFramerateLimit(0);
         }
         m_data.VSync = enabled;
+        Log::Info("VSync " + std::string(enabled ? "enabled" : "disabled"));
     }
 
     bool SFMLWindow::isVSync() const
     {
         return m_data.VSync;
+    }
+    SFMLWindow::~SFMLWindow()
+    {
     }
 }

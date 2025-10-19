@@ -24,23 +24,23 @@ target_include_directories(engine PUBLIC
 )
 
 
-target_link_libraries(engine PUBLIC spdlog::spdlog)
+# target_link_libraries(engine PUBLIC spdlog::spdlog imgui::imgui ImGui-SFML::ImGui-SFML)
+
+target_link_libraries(engine PUBLIC spdlog::spdlog ImGui-SFML::ImGui-SFML)
 
 
+# if(WIN32 AND BUILD_SHARED_LIBS)
+#     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+#         set(SPDLOG_DLL ${CMAKE_BINARY_DIR}/external/spdlog/spdlogd.dll)
+#     else()
+#         set(SPDLOG_DLL ${CMAKE_BINARY_DIR}/external/spdlog/spdlog.dll)
+#     endif()
 
-
-if(WIN32 AND BUILD_SHARED_LIBS)
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        set(SPDLOG_DLL ${CMAKE_BINARY_DIR}/external/spdlog/spdlogd.dll)
-    else()
-        set(SPDLOG_DLL ${CMAKE_BINARY_DIR}/external/spdlog/spdlog.dll)
-    endif()
-
-    add_custom_command(TARGET engine POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${SPDLOG_DLL} ${BIN_DIR}/
-    )
-endif()
+#     add_custom_command(TARGET engine POST_BUILD
+#         COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#         ${SPDLOG_DLL} ${BIN_DIR}/
+#     )
+# endif()
 
 # 链接 SFML
 if(USE_SFML)
@@ -55,7 +55,7 @@ if(USE_SFML)
     if(WIN32 AND BUILD_SHARED_LIBS)
         # 确保 bin 目录存在
         file(MAKE_DIRECTORY ${BIN_DIR})
-        
+
         # 使用更可靠的方法查找SFML DLL
         if(CMAKE_BUILD_TYPE STREQUAL "Debug")
             # 尝试不同可能的路径
@@ -84,7 +84,7 @@ if(USE_SFML)
                 COMMENT "正在复制 ${dll} 到 ${BIN_DIR}/"
             )
         endforeach()
-        
+
         # 为了确保可执行文件运行时能找到DLL，我们也为game目标添加DLL复制逻辑
         if(TARGET game)
             foreach(dll ${SFML_DLLS})

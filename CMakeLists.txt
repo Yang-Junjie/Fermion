@@ -12,14 +12,13 @@ set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
 # 确保输出目录存在
 file(MAKE_DIRECTORY ${BIN_DIR})
 
-# 设置运行时输出目录（适用于所有构建类型）
+# 设置运行时输出目录
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${BIN_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${BIN_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${BIN_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${BIN_DIR})
 
-# 添加调试信息，帮助排查DLL问题
 message(STATUS "CMake构建类型: ${CMAKE_BUILD_TYPE}")
 message(STATUS "输出目录: ${BIN_DIR}")
 message(STATUS "SFML使用共享库: ${BUILD_SHARED_LIBS}")
@@ -36,6 +35,12 @@ endif()
 add_subdirectory(external/spdlog)
 add_subdirectory(external/entt)
 add_subdirectory(external/glm)
+
+# ImGui-SFML配置
+set(IMGUI_SFML_FIND_SFML OFF)  
+set(IMGUI_SFML_IMGUI_DEMO OFF)
+set(IMGUI_DIR "${CMAKE_SOURCE_DIR}/external/imgui")  # 告诉imgui-sfml ImGui的位置
+add_subdirectory(external/imgui-sfml)
 
 # Fermion 
 add_subdirectory(Fermion)
