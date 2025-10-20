@@ -14,7 +14,6 @@ namespace Fermion
         SFMLWindow();
         SFMLWindow(const WindowProps &props);
         ~SFMLWindow();
-        virtual void onUpdate() override;
 
         virtual uint32_t getWidth() const override { return m_data.width; }
         virtual uint32_t getHeight() const override { return m_data.height; }

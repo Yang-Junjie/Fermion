@@ -107,13 +107,6 @@ namespace Fermion
             Log::Info("Mouse Wheel Scrolled: " + std::to_string(mouseScroll->delta));
         }
     }
-
-    void SFMLWindow::onUpdate()
-    {
-        m_window.display();
-        pollEvents();
-    }
-
     void SFMLWindow::clear()
     {
         m_window.clear();

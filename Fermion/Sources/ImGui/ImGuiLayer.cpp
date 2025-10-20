@@ -14,14 +14,12 @@ namespace Fermion
 
     void ImGuiLayer::OnDetach() {}
 
-    void ImGuiLayer::OnUpdate(Timestep dt)
+    void ImGuiLayer::OnEvent(IEvent &e) {}
+    void ImGuiLayer::OnImGuiRender()
     {
         ImGui::Begin("Hello, world!");
         ImGui::Button("button");
         ImGui::ShowDemoWindow();
         ImGui::End();
     }
-
-    void ImGuiLayer::OnEvent(IEvent &e) {}
-
 }

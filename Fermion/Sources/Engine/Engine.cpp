@@ -77,13 +77,16 @@ namespace Fermion
             //     timestep = 1.0f / 60.0f;
 
             m_window->pollEvents();
-            ImGuiBackendSFML::BeginFrame(sfWindow, timestep);
             sfWindow.clear();
             for (auto &layer : m_layerStack)
                 layer->OnUpdate(timestep);
 
+            ImGuiBackendSFML::BeginFrame(sfWindow, timestep);
+            for (auto &layer : m_layerStack)
+                layer->OnImGuiRender();
             ImGuiBackendSFML::EndFrame(sfWindow);
-            m_window->onUpdate();
+
+            m_window->display();
         }
 
         ImGuiBackendSFML::Shutdown(sfWindow);

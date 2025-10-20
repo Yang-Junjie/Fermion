@@ -11,11 +11,11 @@ namespace Fermion
         virtual ~Layer() = default;
         void setRenderer(IRenderer *renderer) { m_renderer = renderer; }
 
-        virtual void OnAttach() = 0;
-        virtual void OnDetach() = 0;
-        virtual void OnUpdate(Timestep dt) = 0;
-        virtual void OnEvent(IEvent &event) = 0;
-
+        virtual void OnAttach() {};
+        virtual void OnDetach() {};
+        virtual void OnUpdate(Timestep dt) {};
+        virtual void OnEvent(IEvent &event){};
+        virtual void OnImGuiRender(){};
         const std::string &getName() const { return m_name; }
 
     protected:

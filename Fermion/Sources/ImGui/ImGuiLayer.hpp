@@ -17,8 +17,7 @@ namespace Fermion
         virtual void OnDetach() override;
         
         virtual void OnEvent(IEvent &e) override;
-        virtual void OnUpdate(Timestep dt) override;
-
+        virtual void OnImGuiRender() override;
         
 
         void BlockEvents(bool block) { m_BlockEvents = block; }
