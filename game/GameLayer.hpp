@@ -16,7 +16,7 @@ namespace Fermion
 
         virtual void OnAttach() override {}
         virtual void OnDetach() override {}
-        virtual void OnUpdate() override
+        virtual void OnUpdate(Timestep dt) override
         {
             Log::Trace("GameLayer OnUpdate called");
             getRenderer()->drawRect({50, 50}, {200, 200}, {0.0f, 1.0f, 0.0f, 1.0f});

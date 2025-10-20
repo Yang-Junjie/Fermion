@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "Events/Event.hpp"
 #include "Renderer/Renderer.hpp"
-
+#include "Core/Timestep.hpp"
 namespace Fermion
 {
     class Layer
@@ -13,7 +13,7 @@ namespace Fermion
 
         virtual void OnAttach() = 0;
         virtual void OnDetach() = 0;
-        virtual void OnUpdate() = 0;
+        virtual void OnUpdate(Timestep dt) = 0;
         virtual void OnEvent(IEvent &event) = 0;
 
         const std::string &getName() const { return m_name; }

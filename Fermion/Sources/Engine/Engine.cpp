@@ -1,11 +1,13 @@
 ﻿#include "Engine/Engine.hpp"
 #include "imgui.h"
+#include "Core/Timestep.hpp"
 
 #ifdef USE_SFML_BACKEND
 #include "SFMLWindow.hpp"
 #include "SFMLRenderer.hpp"
 #include "imgui-SFML.h"
 #include "ImGuiBackendSFML.hpp"
+#include "SFMLTimer.hpp"
 #elif defined(USE_SDL_BACKEND)
 #include "SDLWindow.h"
 #include "SDLRenderer.h"
@@ -45,6 +47,8 @@ namespace Fermion
         else
             Log::Error("ImGui initialization failed!");
 
+        m_timer = std::make_unique<SFMLTimer>();
+
 #endif
 
         m_window->setEventCallback([this](IEvent &event)
@@ -62,19 +66,26 @@ namespace Fermion
         init();
 
         auto &sfWindow = static_cast<SFMLWindow *>(m_window.get())->getWindow();
-        sf::Clock deltaClock;
+
         while (m_running && m_window->isOpen())
         {
-            sf::Time dt = deltaClock.restart(); // 待实现Timer类
-            ImGuiBackendSFML::BeginFrame(sfWindow, dt);
+            float time = m_timer->Elapsed();
+            Timestep timestep = time - m_lastFrameTime;
+            m_lastFrameTime = time;
 
+            // if (timestep.GetSeconds() <= 0.0f)
+            //     timestep = 1.0f / 60.0f;
+
+            m_window->pollEvents();
+            ImGuiBackendSFML::BeginFrame(sfWindow, timestep);
             sfWindow.clear();
             for (auto &layer : m_layerStack)
-                layer->OnUpdate();
+                layer->OnUpdate(timestep);
 
             ImGuiBackendSFML::EndFrame(sfWindow);
             m_window->onUpdate();
         }
+
         ImGuiBackendSFML::Shutdown(sfWindow);
     }
 

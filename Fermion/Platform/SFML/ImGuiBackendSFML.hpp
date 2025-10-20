@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <SFML/Graphics/RenderWindow.hpp>
 #include "imgui-SFML.h"
+#include "Core/Timestep.hpp"
 
 namespace Fermion
 {
@@ -17,14 +18,15 @@ namespace Fermion
             ImGui::SFML::Shutdown(window);
         }
 
-        static void BeginFrame(sf::RenderWindow& window, sf::Time dt)
+        static void BeginFrame(sf::RenderWindow& window, Timestep dt)
         {
-            ImGui::SFML::Update(window, dt);
+            ImGui::SFML::Update(window, sf::seconds(dt.GetSeconds()));
         }
 
         static void EndFrame(sf::RenderWindow& window)
         {
             ImGui::SFML::Render(window);
         }
+
     };
 }
