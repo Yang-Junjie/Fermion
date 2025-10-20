@@ -75,9 +75,6 @@ namespace Fermion
 
             // if (timestep.GetSeconds() <= 0.0f)
             //     timestep = 1.0f / 60.0f;
-
-            m_window->pollEvents();
-            sfWindow.clear();
             for (auto &layer : m_layerStack)
                 layer->OnUpdate(timestep);
 
@@ -86,7 +83,7 @@ namespace Fermion
                 layer->OnImGuiRender();
             ImGuiBackendSFML::EndFrame(sfWindow);
 
-            m_window->display();
+            m_window->OnUpdate();
         }
 
         ImGuiBackendSFML::Shutdown(sfWindow);

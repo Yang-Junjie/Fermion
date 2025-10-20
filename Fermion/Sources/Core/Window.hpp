@@ -26,6 +26,7 @@ namespace Fermion
         virtual void clear() = 0;
         virtual void display() = 0;
         virtual void pollEvents() = 0;
+        virtual void OnUpdate() = 0;
 
         virtual void setVSync(bool enabled) = 0;
         virtual bool isVSync() const = 0;

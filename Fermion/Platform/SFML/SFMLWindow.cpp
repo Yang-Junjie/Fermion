@@ -112,6 +112,12 @@ namespace Fermion
         m_window.clear();
     }
 
+    void SFMLWindow::OnUpdate()
+    {
+        pollEvents();
+        display();
+        clear();
+    }
     void SFMLWindow::display()
     {
         m_window.display();

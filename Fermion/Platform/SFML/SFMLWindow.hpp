@@ -20,12 +20,13 @@ namespace Fermion
 
         virtual void setEventCallback(const EventCallbackFn &callback) override { m_data.EventCallback = callback; }
 
-        bool isOpen() const override;
-        void pollEvents() override;
-        void clear() override;
-        void display() override;
-        void setVSync(bool enabled) override;
-        bool isVSync() const override;
+        virtual bool isOpen() const override;
+        virtual void pollEvents() override;
+        virtual void clear() override;
+        virtual void display() override;
+        virtual void setVSync(bool enabled) override;
+        virtual bool isVSync() const override;
+        virtual void OnUpdate() override;
         sf::RenderWindow &getWindow();
 
     private:
