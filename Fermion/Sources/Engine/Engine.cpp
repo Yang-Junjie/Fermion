@@ -42,11 +42,11 @@ namespace Fermion
 
         m_renderer = std::make_unique<SFMLRenderer>(sfWindow);
 
-        if (ImGuiBackendSFML::Init(sfWindow))
-            Log::Info("ImGui initialized successfully!");
+        m_imguiBackend = std::make_unique<ImGuiBackendSFMLImpl>(sfWindow);
+        if (m_imguiBackend->Init(&sfWindow))
+            Log::Info("ImGui (SFML) initialized successfully!");
         else
-            Log::Error("ImGui initialization failed!");
-
+            Log::Error("ImGui (SFML) initialization failed!");
         m_timer = std::make_unique<SFMLTimer>();
 
 #endif
@@ -78,15 +78,15 @@ namespace Fermion
             for (auto &layer : m_layerStack)
                 layer->OnUpdate(timestep);
 
-            ImGuiBackendSFML::BeginFrame(sfWindow, timestep);
+            m_imguiBackend->BeginFrame(timestep);
             for (auto &layer : m_layerStack)
                 layer->OnImGuiRender();
-            ImGuiBackendSFML::EndFrame(sfWindow);
+            m_imguiBackend->EndFrame();
 
             m_window->OnUpdate();
         }
 
-        ImGuiBackendSFML::Shutdown(sfWindow);
+        m_imguiBackend->Shutdown();
     }
 
     void Engine::pushLayer(std::unique_ptr<Layer> layer)

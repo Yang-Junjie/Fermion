@@ -8,6 +8,7 @@
 #include "Core/Layer.hpp"
 #include "ImGui/ImGuiLayer.hpp"
 #include "Time/Timer.hpp"
+#include "ImGui/ImGuiBackend.hpp"
 #include <memory>
 
 namespace Fermion
@@ -37,10 +38,11 @@ namespace Fermion
     private:
         bool m_running = true;
         bool m_minimized = false;
-        
+
         std::unique_ptr<IWindow> m_window;
         std::unique_ptr<IRenderer> m_renderer;
 
+        std::unique_ptr<IImGuiBackend> m_imguiBackend;
         std::unique_ptr<ImGuiLayer> m_imGuiLayer; // 管理生命周期
         ImGuiLayer *m_imGuiLayerRaw = nullptr;    // 供开发者访问
         LayerStack m_layerStack;

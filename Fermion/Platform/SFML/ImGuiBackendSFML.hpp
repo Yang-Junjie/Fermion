@@ -2,31 +2,39 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include "imgui-SFML.h"
 #include "Core/Timestep.hpp"
+#include "ImGui/ImGuiBackend.hpp"
 
 namespace Fermion
 {
-    class ImGuiBackendSFML
+
+    class ImGuiBackendSFMLImpl : public IImGuiBackend
     {
     public:
-        static bool Init(sf::RenderWindow& window)
+        ImGuiBackendSFMLImpl(sf::RenderWindow &window)
+            : m_window(window) {}
+
+        bool Init(void *nativeWindow) override
         {
-            return ImGui::SFML::Init(window);
+            return ImGui::SFML::Init(m_window);
         }
 
-        static void Shutdown(sf::RenderWindow& window)
+        void BeginFrame(Timestep dt) override
         {
-            ImGui::SFML::Shutdown(window);
+            ImGui::SFML::Update(m_window, sf::seconds(dt.GetSeconds()));
         }
 
-        static void BeginFrame(sf::RenderWindow& window, Timestep dt)
+        void EndFrame() override
         {
-            ImGui::SFML::Update(window, sf::seconds(dt.GetSeconds()));
+            ImGui::SFML::Render(m_window);
         }
 
-        static void EndFrame(sf::RenderWindow& window)
+        void Shutdown() override
         {
-            ImGui::SFML::Render(window);
+            ImGui::SFML::Shutdown(m_window);
         }
 
+    private:
+        sf::RenderWindow &m_window;
     };
-}
+
+} // namespace Fermion
