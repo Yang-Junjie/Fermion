@@ -7,9 +7,9 @@ namespace Fermion {
     public:
         virtual ~ITimer() = default;
 
-        virtual void Reset() = 0;
-        virtual float Elapsed() = 0;        // 返回秒
-        virtual float ElapsedMillis() = 0;  // 返回毫秒
+        virtual void reset() = 0;
+        virtual float elapsed() = 0;        // 返回秒
+        virtual float elapsedMillis() = 0;  // 返回毫秒
     };
 
 }

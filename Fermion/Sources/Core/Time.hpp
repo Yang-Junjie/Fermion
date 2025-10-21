@@ -7,22 +7,22 @@ namespace Fermion {
     class ChronoTimer : public ITimer
     {
     public:
-        ChronoTimer() { Reset(); }
+        ChronoTimer() { reset(); }
 
-        void Reset() override
+        void reset() override
         {
             m_Start = std::chrono::high_resolution_clock::now();
         }
 
-        float Elapsed() override
+        float elapsed() override
         {
             auto now = std::chrono::high_resolution_clock::now();
             return std::chrono::duration<float>(now - m_Start).count();
         }
 
-        float ElapsedMillis() override
+        float elapsedMillis() override
         {
-            return Elapsed() * 1000.0f;
+            return elapsed() * 1000.0f;
         }
 
     private:

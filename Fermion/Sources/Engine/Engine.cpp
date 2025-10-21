@@ -69,7 +69,7 @@ namespace Fermion
 
         while (m_running && m_window->isOpen())
         {
-            float time = m_timer->Elapsed();
+            float time = m_timer->elapsed();
             Timestep timestep = time - m_lastFrameTime;
             m_lastFrameTime = time;
 

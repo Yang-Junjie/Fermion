@@ -7,19 +7,19 @@ namespace Fermion {
     class SFMLTimer : public ITimer
     {
     public:
-        SFMLTimer() { Reset(); }
+        SFMLTimer() { reset(); }
 
-        void Reset() override
+        void reset() override
         {
             m_Clock.restart();
         }
 
-        float Elapsed() override
+        float elapsed() override
         {
             return m_Clock.getElapsedTime().asSeconds();
         }
 
-        float ElapsedMillis() override
+        float elapsedMillis() override
         {
             return m_Clock.getElapsedTime().asMilliseconds();
         }

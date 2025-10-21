@@ -20,7 +20,7 @@ namespace Fermion
 
         void BeginFrame(Timestep dt) override
         {
-            ImGui::SFML::Update(m_window, sf::seconds(dt.GetSeconds()));
+            ImGui::SFML::Update(m_window, sf::seconds(dt.getSeconds()));
         }
 
         void EndFrame() override
