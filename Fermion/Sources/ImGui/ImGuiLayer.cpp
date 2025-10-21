@@ -17,9 +17,6 @@ namespace Fermion
     void ImGuiLayer::OnEvent(IEvent &e) {}
     void ImGuiLayer::OnImGuiRender()
     {
-        ImGui::Begin("Hello, world!");
-        ImGui::Button("button");
-        ImGui::ShowDemoWindow();
-        ImGui::End();
+        
     }
 }
