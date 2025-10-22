@@ -13,4 +13,9 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include <chrono>
+#include <thread>
+
+#include <cstdint>
+
 #include "Core/Log.hpp"

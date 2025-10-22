@@ -1,5 +1,5 @@
 ﻿#include "Core/Log.hpp"
-#include <iostream>
+#include "fmpch.hpp"
 
 namespace Fermion
 {

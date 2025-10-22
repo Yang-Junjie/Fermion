@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include "Events/Event.hpp"
-#include <functional>
-#include <cstdint>
+#include "fmpch.hpp"
 namespace Fermion
 {
     using EventCallbackFn = std::function<void(IEvent &)>;

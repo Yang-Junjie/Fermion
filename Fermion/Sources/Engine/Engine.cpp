@@ -1,4 +1,5 @@
 ﻿#include "Engine/Engine.hpp"
+#include "fmpch.hpp"
 #include "imgui.h"
 #include "Core/Timestep.hpp"
 
@@ -21,8 +22,6 @@
 #error "No backend specified!"
 #endif
 
-#include <thread>
-#include <chrono>
 
 namespace Fermion
 {
