@@ -15,10 +15,16 @@ namespace Fermion
         Log::Info("SFML Window created with default title and size 1600x900");
     }
 
-    SFMLWindow::SFMLWindow(const WindowProps &props) : m_window(sf::VideoMode({props.width, props.height}), props.title)
+    SFMLWindow::SFMLWindow(const WindowProps &props, sf::ContextSettings settings)
+        : m_window(
+              sf::VideoMode({props.width, props.height}),
+              props.title,
+              sf::Style::Default,
+              sf::State::Windowed)
     {
         Init(props);
-        Log::Info("SFML Window created with title: " + props.title + " and size: " + std::to_string(props.width) + "x" + std::to_string(props.height));
+        Log::Info("SFML Window created with title: " + props.title +
+                  " and size: " + std::to_string(props.width) + "x" + std::to_string(props.height));
     }
 
     bool SFMLWindow::isOpen() const

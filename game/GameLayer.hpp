@@ -4,6 +4,7 @@
 #include "Renderer/Renderer.hpp"
 #include "Core/Log.hpp"
 #include "imgui.h"
+
 namespace Fermion
 {
     class GameLayer : public Layer
@@ -19,8 +20,7 @@ namespace Fermion
         virtual void OnUpdate(Timestep dt) override
         {
             Log::Trace("GameLayer OnUpdate called");
-            getRenderer()->drawRect({50, 50}, {200, 200}, {0.0f, 1.0f, 0.0f, 1.0f});
-            getRenderer()->drawImage("assets/textures/test.jpg", {300, 50});
+
         }
         virtual void OnEvent(IEvent &event) override
         {

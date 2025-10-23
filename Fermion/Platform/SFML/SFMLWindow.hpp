@@ -12,7 +12,7 @@ namespace Fermion
     {
     public:
         SFMLWindow();
-        SFMLWindow(const WindowProps &props);
+        SFMLWindow(const WindowProps &props,sf::ContextSettings settings = {0,0,0,3,3,sf::ContextSettings::Core});
         ~SFMLWindow();
 
         virtual uint32_t getWidth() const override { return m_data.width; }

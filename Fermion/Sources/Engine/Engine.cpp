@@ -9,6 +9,8 @@
 #include "imgui-SFML.h"
 #include "ImGuiBackendSFML.hpp"
 #include "SFMLTimer.hpp"
+#include "OpenGLRenderer.hpp"
+#elif defined(USE_GLFW_BACKEND)
 #elif defined(USE_SDL_BACKEND)
 #include "SDLWindow.h"
 #include "SDLRenderer.h"
@@ -21,7 +23,6 @@
 #else
 #error "No backend specified!"
 #endif
-
 
 namespace Fermion
 {

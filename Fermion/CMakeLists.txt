@@ -1,9 +1,11 @@
-﻿project(engine LANGUAGES CXX)
+﻿project(engine LANGUAGES CXX C)
 
 set(Fermion_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
 set(PLATFORM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Platform)
 
+
 add_library(engine STATIC
+
     ${Fermion_DIR}/fmpch.cpp
     ${Fermion_DIR}/Engine/Engine.cpp
     ${Fermion_DIR}/Core/Log.cpp
@@ -11,24 +13,37 @@ add_library(engine STATIC
     ${Fermion_DIR}/Core/LayerStack.cpp
     ${Fermion_DIR}/ImGui/ImGuiLayer.cpp
 
-
     ${PLATFORM_DIR}/SFML/SFMLWindow.cpp
     ${PLATFORM_DIR}/SFML/SFMLRenderer.cpp
+    ${PLATFORM_DIR}/OpenGL/OpenGLRenderer.cpp
+    ${CMAKE_SOURCE_DIR}/external/GLAD/src/glad.c
 )
+
+
 
 target_include_directories(engine PUBLIC
     ${Fermion_DIR}
     ${PLATFORM_DIR}/SFML
+    ${PLATFORM_DIR}/OpenGL
     ${CMAKE_SOURCE_DIR}/external/spdlog/include
     ${CMAKE_SOURCE_DIR}/external/entt/single_include
     ${CMAKE_SOURCE_DIR}/external/glm/glm
+    ${CMAKE_SOURCE_DIR}/external/GLAD/include
+
 )
+# if(USE_SFML)
+#     add_library(engine STATIC
+#        
+#     target_link_libraries(engine PUBLIC
+#         ImGui-SFML::ImGui-SFML
+#     )
+# endif()
 
 
-# target_link_libraries(engine PUBLIC spdlog::spdlog imgui::imgui ImGui-SFML::ImGui-SFML)
+
+# target_link_libraries(engine PUBLIC spdlog::spdlog)
 
 target_link_libraries(engine PUBLIC spdlog::spdlog ImGui-SFML::ImGui-SFML)
-
 
 # if(WIN32 AND BUILD_SHARED_LIBS)
 #     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -98,9 +113,5 @@ if(USE_SFML)
             endforeach()
         endif()
     endif()
-else()
-    find_package(SDL2 REQUIRED)
-    target_compile_definitions(engine PUBLIC USE_SDL_BACKEND)
-    target_include_directories(engine PUBLIC ${SDL2_INCLUDE_DIRS})
-    target_link_libraries(engine PUBLIC ${SDL2_LIBRARIES})
+elseif(USE_GLFW)
 endif()
