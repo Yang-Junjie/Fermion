@@ -6,9 +6,12 @@
 #include "Core/Log.hpp"
 #include "Core/LayerStack.hpp"
 #include "Core/Layer.hpp"
-#include "ImGui/ImGuiLayer.hpp"
+
+// #include "ImGui/ImGuiLayer.hpp"
+// #include "ImGui/ImGuiBackend.hpp"
+
 #include "Time/Timer.hpp"
-#include "ImGui/ImGuiBackend.hpp"
+
 #include "fmpch.hpp"
 namespace Fermion
 {
@@ -22,7 +25,7 @@ namespace Fermion
         virtual ~Engine() = default;
         virtual void init() {};
         IWindow &getWindow() { return *m_window; }
-        ImGuiLayer *getImGuiLayer() { return m_imGuiLayerRaw; }
+        // ImGuiLayer *getImGuiLayer() { return m_imGuiLayerRaw; }
         static Engine &getInstance()
         {
             static Engine instance;
@@ -41,9 +44,9 @@ namespace Fermion
         std::unique_ptr<IWindow> m_window;
         std::unique_ptr<IRenderer> m_renderer;
 
-        std::unique_ptr<IImGuiBackend> m_imguiBackend;
-        std::unique_ptr<ImGuiLayer> m_imGuiLayer; // 管理生命周期
-        ImGuiLayer *m_imGuiLayerRaw = nullptr;    // 供开发者访问
+        // std::unique_ptr<IImGuiBackend> m_imguiBackend;
+        // std::unique_ptr<ImGuiLayer> m_imGuiLayer; // 管理生命周期
+        // ImGuiLayer *m_imGuiLayerRaw = nullptr;    // 供开发者访问
         LayerStack m_layerStack;
 
         std::unique_ptr<ITimer> m_timer;

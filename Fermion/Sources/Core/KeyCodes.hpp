@@ -11,6 +11,7 @@ namespace Fermion
         RightControl,
         LeftAlt,
         RightAlt,
+        
         Space,
         Enter,
         Delete,

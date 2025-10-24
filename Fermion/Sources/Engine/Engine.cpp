@@ -1,28 +1,8 @@
 ﻿#include "Engine/Engine.hpp"
 #include "fmpch.hpp"
-#include "imgui.h"
 #include "Core/Timestep.hpp"
+#include "GLFW/glfw3.h"
 
-#ifdef USE_SFML_BACKEND
-#include "SFMLWindow.hpp"
-#include "SFMLRenderer.hpp"
-#include "imgui-SFML.h"
-#include "ImGuiBackendSFML.hpp"
-#include "SFMLTimer.hpp"
-#include "OpenGLRenderer.hpp"
-#elif defined(USE_GLFW_BACKEND)
-#elif defined(USE_SDL_BACKEND)
-#include "SDLWindow.h"
-#include "SDLRenderer.h"
-#elif defined(USE_OPENGL_BACKEND)
-#include "OpenGLWindow.h"
-#include "OpenGLRenderer.h"
-#elif defined(USE_VULKAN_BACKEND)
-#include "VulkanWindow.h"
-#include "VulkanRenderer.h"
-#else
-#error "No backend specified!"
-#endif
 
 namespace Fermion
 {
@@ -50,14 +30,14 @@ namespace Fermion
         m_timer = std::make_unique<SFMLTimer>();
 
 #endif
-
+        m_window = IWindow::create(windowProps);
         m_window->setEventCallback([this](IEvent &event)
                                    { this->onEvent(event); });
 
-        m_imGuiLayer = std::make_unique<ImGuiLayer>();
-        m_imGuiLayerRaw = m_imGuiLayer.get();
+        // m_imGuiLayer = std::make_unique<ImGuiLayer>();
+        // m_imGuiLayerRaw = m_imGuiLayer.get();
 
-        m_layerStack.pushOverlay(std::move(m_imGuiLayer));
+        // m_layerStack.pushOverlay(std::move(m_imGuiLayer));
     }
 
     void Engine::run()
@@ -65,11 +45,9 @@ namespace Fermion
         Log::Info("Engine started!");
         init();
 
-        auto &sfWindow = static_cast<SFMLWindow *>(m_window.get())->getWindow();
-
-        while (m_running && m_window->isOpen())
+        while (m_running)
         {
-            float time = m_timer->elapsed();
+            float time = static_cast<float>(glfwGetTime());
             Timestep timestep = time - m_lastFrameTime;
             m_lastFrameTime = time;
 
@@ -78,15 +56,15 @@ namespace Fermion
             for (auto &layer : m_layerStack)
                 layer->OnUpdate(timestep);
 
-            m_imguiBackend->BeginFrame(timestep);
-            for (auto &layer : m_layerStack)
-                layer->OnImGuiRender();
-            m_imguiBackend->EndFrame();
+            // m_imguiBackend->BeginFrame(timestep);
+            // for (auto &layer : m_layerStack)
+            //     layer->OnImGuiRender();
+            // m_imguiBackend->EndFrame();
 
             m_window->OnUpdate();
         }
 
-        m_imguiBackend->Shutdown();
+        // m_imguiBackend->Shutdown();
     }
 
     void Engine::pushLayer(std::unique_ptr<Layer> layer)
