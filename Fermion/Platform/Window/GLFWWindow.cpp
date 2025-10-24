@@ -40,22 +40,27 @@ namespace Fermion
 
         if (s_GLFWWindowCount == 0)
         {
-
             int success = glfwInit();
-
             glfwSetErrorCallback(GLFWErrorCallback);
         }
 
         {
-
             m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
             glfwMakeContextCurrent(m_Window);
+            if (!glfwGetCurrentContext())
+            {
+                Log::Error("No GLFW current context after glfwMakeContextCurrent!");
+            }
+            else
+            {
+                Log::Info("GLFW current context set.");
+            }
+
             auto status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
             if (!status)
             {
                 Log::Error("Failed to initialize GLFW!");
             }
-
             ++s_GLFWWindowCount;
         }
 

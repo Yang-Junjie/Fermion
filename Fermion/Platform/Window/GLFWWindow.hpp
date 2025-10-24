@@ -20,7 +20,7 @@ namespace Fermion
         void setVSync(bool enabled) override;
         bool isVSync() const override;
 
-        virtual void *GetNativeWindow() const { return m_Window; }
+        virtual void *getNativeWindow() const override { return m_Window; }
 
     private:
         virtual void Init(const WindowProps &props);
@@ -28,7 +28,6 @@ namespace Fermion
 
     private:
         GLFWwindow *m_Window;
-       
 
         struct WindowData
         {

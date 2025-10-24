@@ -1,41 +1,61 @@
-﻿project(engine LANGUAGES CXX C)
+﻿cmake_minimum_required(VERSION 3.16)
+project(engine LANGUAGES CXX C)
 
-set(Fermion_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
+set(FERMION_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
 set(PLATFORM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Platform)
+set(EXTERNAL_DIR ${CMAKE_SOURCE_DIR}/external)
 
-
-add_library(engine STATIC
-
-    ${Fermion_DIR}/fmpch.cpp
-    ${Fermion_DIR}/Engine/Engine.cpp
-    ${Fermion_DIR}/Core/Log.cpp
-    ${Fermion_DIR}/Core/EntryPoint.cpp
-    ${Fermion_DIR}/Core/LayerStack.cpp
-    ${Fermion_DIR}/Core/Window.cpp
-
-    # ${Fermion_DIR}/ImGui/ImGuiLayer.cpp
-
-    ${PLATFORM_DIR}/OpenGL/OpenGLRenderer.cpp
-    ${PLATFORM_DIR}/Window/GLFWWindow.cpp
-    ${CMAKE_SOURCE_DIR}/external/GLAD/src/glad.c
+set(CORE_SOURCES
+    ${FERMION_DIR}/fmpch.cpp
+    ${FERMION_DIR}/Engine/Engine.cpp
+    ${FERMION_DIR}/Core/Log.cpp
+    ${FERMION_DIR}/Core/EntryPoint.cpp
+    ${FERMION_DIR}/Core/LayerStack.cpp
+    ${FERMION_DIR}/Core/Window.cpp
+    ${FERMION_DIR}/ImGui/ImGuiLayer.cpp
 )
 
+set(PLATFORM_SOURCES
+    ${PLATFORM_DIR}/OpenGL/OpenGLRenderer.cpp
+    ${PLATFORM_DIR}/Window/GLFWWindow.cpp
+)
+
+set(THIRD_PARTY_SOURCES
+    ${EXTERNAL_DIR}/GLAD/src/glad.c
+    ${EXTERNAL_DIR}/imgui/imgui.cpp
+    ${EXTERNAL_DIR}/imgui/imgui_demo.cpp
+    ${EXTERNAL_DIR}/imgui/imgui_draw.cpp
+    ${EXTERNAL_DIR}/imgui/imgui_tables.cpp
+    ${EXTERNAL_DIR}/imgui/imgui_widgets.cpp
+    ${EXTERNAL_DIR}/imgui/backends/imgui_impl_glfw.cpp
+    ${EXTERNAL_DIR}/imgui/backends/imgui_impl_opengl3.cpp
+)
+
+set(ENGINE_SOURCES
+    ${CORE_SOURCES}
+    ${PLATFORM_SOURCES}
+    ${THIRD_PARTY_SOURCES}
+)
+
+
+add_library(engine STATIC ${ENGINE_SOURCES})
 
 
 target_include_directories(engine PUBLIC
-    ${Fermion_DIR}
+    ${FERMION_DIR}
     ${PLATFORM_DIR}/OpenGL
     ${PLATFORM_DIR}/Window
-    ${CMAKE_SOURCE_DIR}/external/spdlog/include
-    ${CMAKE_SOURCE_DIR}/external/entt/single_include
-    ${CMAKE_SOURCE_DIR}/external/glm/glm
-    ${CMAKE_SOURCE_DIR}/external/GLAD/include
-    ${CMAKE_SOURCE_DIR}/external/GLFW/include
-
+    ${EXTERNAL_DIR}/spdlog/include
+    ${EXTERNAL_DIR}/entt/single_include
+    ${EXTERNAL_DIR}/glm/glm
+    ${EXTERNAL_DIR}/imgui
+    ${EXTERNAL_DIR}/imgui/backends
+    ${EXTERNAL_DIR}/GLAD/include
+    ${EXTERNAL_DIR}/GLFW/include
 )
 
-target_link_libraries(engine PUBLIC spdlog::spdlog)
 
+target_link_libraries(engine PUBLIC spdlog::spdlog)
 
 if(USE_GLFW)
     target_link_libraries(engine PRIVATE glfw)
