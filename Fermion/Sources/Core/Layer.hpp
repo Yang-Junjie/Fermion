@@ -9,8 +9,6 @@ namespace Fermion
     public:
         Layer(const std::string &name = "Layer") : m_name(name) {}
         virtual ~Layer() = default;
-        void setRenderer(IRenderer *renderer) { m_renderer = renderer; }
-
         virtual void OnAttach() {};
         virtual void OnDetach() {};
         virtual void OnUpdate(Timestep dt) {};

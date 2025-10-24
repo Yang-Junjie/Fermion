@@ -10,12 +10,8 @@ namespace Fermion
         GameApp()
         {
             Log::Info("GameApp constructor called");
-        };
-        virtual void init() override
-        {
-            Log::Info("GameApp init called");
             pushLayer(std::make_unique<GameLayer>());
-        }
+        };
         ~GameApp() = default;
     };
     Engine *createEngine()

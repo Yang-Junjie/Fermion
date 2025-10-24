@@ -1,117 +1,62 @@
-﻿project(engine LANGUAGES CXX C)
+﻿cmake_minimum_required(VERSION 3.16)
+project(engine LANGUAGES CXX C)
 
-set(Fermion_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
+set(FERMION_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
 set(PLATFORM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Platform)
+set(EXTERNAL_DIR ${CMAKE_SOURCE_DIR}/external)
 
-
-add_library(engine STATIC
-
-    ${Fermion_DIR}/fmpch.cpp
-    ${Fermion_DIR}/Engine/Engine.cpp
-    ${Fermion_DIR}/Core/Log.cpp
-    ${Fermion_DIR}/Core/EntryPoint.cpp
-    ${Fermion_DIR}/Core/LayerStack.cpp
-    ${Fermion_DIR}/ImGui/ImGuiLayer.cpp
-
-    ${PLATFORM_DIR}/SFML/SFMLWindow.cpp
-    ${PLATFORM_DIR}/SFML/SFMLRenderer.cpp
-    ${PLATFORM_DIR}/OpenGL/OpenGLRenderer.cpp
-    ${CMAKE_SOURCE_DIR}/external/GLAD/src/glad.c
+set(CORE_SOURCES
+    ${FERMION_DIR}/fmpch.cpp
+    ${FERMION_DIR}/Engine/Engine.cpp
+    ${FERMION_DIR}/Core/Log.cpp
+    ${FERMION_DIR}/Core/EntryPoint.cpp
+    ${FERMION_DIR}/Core/LayerStack.cpp
+    ${FERMION_DIR}/Core/Window.cpp
+    ${FERMION_DIR}/ImGui/ImGuiLayer.cpp
 )
 
+set(PLATFORM_SOURCES
+    ${PLATFORM_DIR}/OpenGL/OpenGLRenderer.cpp
+    ${PLATFORM_DIR}/Window/GLFWWindow.cpp
+)
+
+set(THIRD_PARTY_SOURCES
+    ${EXTERNAL_DIR}/GLAD/src/glad.c
+    ${EXTERNAL_DIR}/imgui/imgui.cpp
+    ${EXTERNAL_DIR}/imgui/imgui_demo.cpp
+    ${EXTERNAL_DIR}/imgui/imgui_draw.cpp
+    ${EXTERNAL_DIR}/imgui/imgui_tables.cpp
+    ${EXTERNAL_DIR}/imgui/imgui_widgets.cpp
+    ${EXTERNAL_DIR}/imgui/backends/imgui_impl_glfw.cpp
+    ${EXTERNAL_DIR}/imgui/backends/imgui_impl_opengl3.cpp
+)
+
+set(ENGINE_SOURCES
+    ${CORE_SOURCES}
+    ${PLATFORM_SOURCES}
+    ${THIRD_PARTY_SOURCES}
+)
+
+
+add_library(engine STATIC ${ENGINE_SOURCES})
 
 
 target_include_directories(engine PUBLIC
-    ${Fermion_DIR}
-    ${PLATFORM_DIR}/SFML
+    ${FERMION_DIR}
     ${PLATFORM_DIR}/OpenGL
-    ${CMAKE_SOURCE_DIR}/external/spdlog/include
-    ${CMAKE_SOURCE_DIR}/external/entt/single_include
-    ${CMAKE_SOURCE_DIR}/external/glm/glm
-    ${CMAKE_SOURCE_DIR}/external/GLAD/include
-
+    ${PLATFORM_DIR}/Window
+    ${EXTERNAL_DIR}/spdlog/include
+    ${EXTERNAL_DIR}/entt/single_include
+    ${EXTERNAL_DIR}/glm/glm
+    ${EXTERNAL_DIR}/imgui
+    ${EXTERNAL_DIR}/imgui/backends
+    ${EXTERNAL_DIR}/GLAD/include
+    ${EXTERNAL_DIR}/GLFW/include
 )
-# if(USE_SFML)
-#     add_library(engine STATIC
-#        
-#     target_link_libraries(engine PUBLIC
-#         ImGui-SFML::ImGui-SFML
-#     )
-# endif()
 
 
+target_link_libraries(engine PUBLIC spdlog::spdlog)
 
-# target_link_libraries(engine PUBLIC spdlog::spdlog)
-
-target_link_libraries(engine PUBLIC spdlog::spdlog ImGui-SFML::ImGui-SFML)
-
-# if(WIN32 AND BUILD_SHARED_LIBS)
-#     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-#         set(SPDLOG_DLL ${CMAKE_BINARY_DIR}/external/spdlog/spdlogd.dll)
-#     else()
-#         set(SPDLOG_DLL ${CMAKE_BINARY_DIR}/external/spdlog/spdlog.dll)
-#     endif()
-
-#     add_custom_command(TARGET engine POST_BUILD
-#         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-#         ${SPDLOG_DLL} ${BIN_DIR}/
-#     )
-# endif()
-
-# 链接 SFML
-if(USE_SFML)
-    target_compile_definitions(engine PUBLIC USE_SFML_BACKEND)
-    target_link_libraries(engine PRIVATE
-        sfml-graphics
-        sfml-window
-        sfml-system
-        sfml-audio
-    )
-    # Windows 下的 DLL
-    if(WIN32 AND BUILD_SHARED_LIBS)
-        # 确保 bin 目录存在
-        file(MAKE_DIRECTORY ${BIN_DIR})
-
-        # 使用更可靠的方法查找SFML DLL
-        if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-            # 尝试不同可能的路径
-            file(GLOB SFML_DLLS
-                "${CMAKE_BINARY_DIR}/external/SFML/lib/Debug/sfml-*-d-3.dll"
-                "${CMAKE_BINARY_DIR}/external/SFML/bin/sfml-*-d-3.dll"
-                "${CMAKE_BINARY_DIR}/lib/Debug/sfml-*-d-3.dll"
-                "${CMAKE_BINARY_DIR}/bin/sfml-*-d-3.dll"
-            )
-        else()
-            # Release DLL
-            file(GLOB SFML_DLLS
-                "${CMAKE_BINARY_DIR}/external/SFML/lib/Release/sfml-*-3.dll"
-                "${CMAKE_BINARY_DIR}/external/SFML/bin/sfml-*-3.dll"
-                "${CMAKE_BINARY_DIR}/lib/Release/sfml-*-3.dll"
-                "${CMAKE_BINARY_DIR}/bin/sfml-*-3.dll"
-            )
-        endif()
-
-        # 拷贝 DLL 到 bin 目录
-        foreach(dll ${SFML_DLLS})
-            add_custom_command(TARGET engine POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                ${dll}
-                ${BIN_DIR}/
-                COMMENT "正在复制 ${dll} 到 ${BIN_DIR}/"
-            )
-        endforeach()
-
-        # 为了确保可执行文件运行时能找到DLL，我们也为game目标添加DLL复制逻辑
-        if(TARGET game)
-            foreach(dll ${SFML_DLLS})
-                add_custom_command(TARGET game POST_BUILD
-                    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                    ${dll}
-                    ${BIN_DIR}/
-                    COMMENT "正在为game目标复制 ${dll} 到 ${BIN_DIR}/"
-                )
-            endforeach()
-        endif()
-    endif()
-elseif(USE_GLFW)
+if(USE_GLFW)
+    target_link_libraries(engine PRIVATE glfw)
 endif()
