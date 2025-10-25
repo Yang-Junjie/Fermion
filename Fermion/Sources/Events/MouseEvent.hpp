@@ -1,4 +1,7 @@
-﻿#pragma once
+﻿/*
+    本文件描述了鼠标事件
+*/
+#pragma once
 #include "Events/Event.hpp"
 #include "Core/MouseCodes.hpp"
 

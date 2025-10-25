@@ -1,4 +1,7 @@
-﻿#pragma once
+﻿/*
+    本文件描述了键盘事件
+*/
+#pragma once
 #include "Events/Event.hpp"
 #include "Core/KeyCodes.hpp"
 namespace Fermion

@@ -1,4 +1,8 @@
-﻿#pragma once
+﻿/*
+    本文化定义了渲染API
+*/
+
+#pragma once
 #include "glm.hpp"
 #include "fmpch.hpp"
 namespace Fermion

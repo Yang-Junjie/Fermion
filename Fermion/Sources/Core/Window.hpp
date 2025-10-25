@@ -1,4 +1,8 @@
-﻿#pragma once
+﻿/*
+    Window.hpp
+    本文件定义了窗口接口类
+*/
+#pragma once
 #include "Events/Event.hpp"
 #include "fmpch.hpp"
 namespace Fermion

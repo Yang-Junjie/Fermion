@@ -1,4 +1,8 @@
-﻿#pragma once
+﻿/*
+    Log.hpp
+    本文件定义了日志系统
+*/
+#pragma once
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>

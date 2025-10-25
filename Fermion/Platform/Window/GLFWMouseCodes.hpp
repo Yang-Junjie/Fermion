@@ -1,4 +1,8 @@
-﻿#pragma once 
+﻿/*
+    GLFWMouseCodes.hpp
+    本文件定义并实现了将 GLFW 鼠标按键代码转换成 FMouseCode 的方法
+*/
+#pragma once 
 #include "Core/MouseCodes.hpp"
 #include "GLFW/glfw3.h"
 

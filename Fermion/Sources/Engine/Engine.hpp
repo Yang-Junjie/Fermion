@@ -1,4 +1,8 @@
-﻿#pragma once
+﻿/*
+    Engine.hpp
+    本头文件定义了引擎类
+*/
+#pragma once
 #include "fmpch.hpp"
 
 #include "Core/Window.hpp"

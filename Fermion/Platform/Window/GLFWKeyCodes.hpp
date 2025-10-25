@@ -1,4 +1,9 @@
-﻿#pragma once 
+﻿/*
+    GLFWKeyCodes.hpp
+    本头文件定义了 GLFW 的按键代码转换成 Fermion 的按键代码的方法
+*/
+
+#pragma once 
 #include "Core/KeyCodes.hpp"
 #include "GLFW/glfw3.h"
 
