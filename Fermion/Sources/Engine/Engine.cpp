@@ -85,7 +85,7 @@ namespace Fermion
     bool Engine::onWindowClose(WindowCloseEvent &event)
     {
         m_running = false;
-        Log::Info("SFML Window closed");
+        Log::Info("Window closed");
         return true;
     }
 }

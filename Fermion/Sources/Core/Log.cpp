@@ -24,7 +24,7 @@ namespace Fermion
             // 错误及以上等级立即刷新
             s_Logger->flush_on(spdlog::level::err);
 
-            s_Logger->info("Engine log initialized!");
+            s_Logger->info("log initialized!");
         }
         catch (const spdlog::spdlog_ex &ex)
         {

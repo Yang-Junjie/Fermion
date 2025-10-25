@@ -46,6 +46,14 @@ namespace Fermion
 
         {
             m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
+            if (m_Window)
+            {
+                Log::Info("Window created: " + props.Title);
+            }
+            else
+            {
+                Log::Error("Window creation failed");
+            }
             ++s_GLFWWindowCount;
         }
         m_Context = GraphicsContext::create(m_Window);
@@ -161,7 +169,7 @@ namespace Fermion
     void GLFWWindow::OnUpdate()
     {
         m_Context->swapBuffers();
-       
+
         glfwPollEvents();
     }
 

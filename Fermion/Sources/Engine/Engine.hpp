@@ -25,9 +25,9 @@ namespace Fermion
         virtual ~Engine() = default;
         IWindow &getWindow() { return *m_window; }
         ImGuiLayer *getImGuiLayer() { return m_imGuiLayerRaw; }
+        void run();
 
     private:
-        void run();
         void onEvent(IEvent &event);
         bool onWindowResize(WindowResizeEvent &event);
         bool onWindowClose(WindowCloseEvent &event);

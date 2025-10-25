@@ -16,6 +16,7 @@ namespace Fermion
     };
     Engine *createEngine()
     {
+        Log::Info("start preparing to create the engine");
         return new Fermion::GameApp();
     }
 }
