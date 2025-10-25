@@ -46,24 +46,10 @@ namespace Fermion
 
         {
             m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
-            glfwMakeContextCurrent(m_Window);
-            if (!glfwGetCurrentContext())
-            {
-                Log::Error("No GLFW current context after glfwMakeContextCurrent!");
-            }
-            else
-            {
-                Log::Info("GLFW current context set.");
-            }
-
-            auto status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-            if (!status)
-            {
-                Log::Error("Failed to initialize GLFW!");
-            }
             ++s_GLFWWindowCount;
         }
-
+        m_Context = GraphicsContext::create(m_Window);
+        m_Context->init();
         glfwSetWindowUserPointer(m_Window, &m_Data);
         setVSync(true);
 
@@ -174,9 +160,8 @@ namespace Fermion
 
     void GLFWWindow::OnUpdate()
     {
-        glfwSwapBuffers(m_Window);
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        m_Context->swapBuffers();
+       
         glfwPollEvents();
     }
 

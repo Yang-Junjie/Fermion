@@ -13,10 +13,13 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Core/LayerStack.cpp
     ${FERMION_DIR}/Core/Window.cpp
     ${FERMION_DIR}/ImGui/ImGuiLayer.cpp
+    ${FERMION_DIR}/Renderer/RendererAPI.cpp
+    ${FERMION_DIR}/Renderer/GraphicsContext.cpp
 )
 
 set(PLATFORM_SOURCES
-    ${PLATFORM_DIR}/OpenGL/OpenGLRenderer.cpp
+    ${PLATFORM_DIR}/OpenGL/OpenGLRendererAPI.cpp
+    ${PLATFORM_DIR}/OpenGL/OpenGLContext.cpp
     ${PLATFORM_DIR}/Window/GLFWWindow.cpp
 )
 
@@ -58,5 +61,5 @@ target_include_directories(engine PUBLIC
 target_link_libraries(engine PUBLIC spdlog::spdlog)
 
 if(USE_GLFW)
-    target_link_libraries(engine PRIVATE glfw)
+    target_link_libraries(engine PRIVATE glfw opengl32)
 endif()

@@ -1,6 +1,5 @@
 ﻿#pragma once
-#define FERMION_PLATFORM_GLFW
-#include "glad/glad.h"
+#include "Renderer/GraphicsContext.hpp"
 #include <GLFW/glfw3.h>
 #include "Core/Window.hpp"
 namespace Fermion
@@ -28,7 +27,7 @@ namespace Fermion
 
     private:
         GLFWwindow *m_Window;
-
+        std::unique_ptr<GraphicsContext> m_Context;
         struct WindowData
         {
             std::string Title;

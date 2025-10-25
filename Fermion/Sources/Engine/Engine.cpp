@@ -22,7 +22,8 @@ namespace Fermion
 
         while (m_running)
         {
-            m_window->OnUpdate();
+            glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
             float time = static_cast<float>(glfwGetTime()); // TODO :GLFE TIMER
             Timestep timestep = time - m_lastFrameTime;
             m_lastFrameTime = time;
@@ -36,6 +37,7 @@ namespace Fermion
             for (auto &layer : m_layerStack)
                 layer->OnImGuiRender();
             m_imGuiLayerRaw->End();
+            m_window->OnUpdate();
         }
     }
 

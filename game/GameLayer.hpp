@@ -1,6 +1,5 @@
 ﻿#pragma once
 #include "Core/Layer.hpp"
-#include "Renderer/Renderer.hpp"
 #include "Core/Log.hpp"
 #include "imgui.h"
 
