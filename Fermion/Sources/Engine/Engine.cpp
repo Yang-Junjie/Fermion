@@ -31,12 +31,12 @@ namespace Fermion
             // if (timestep.GetSeconds() <= 0.0f)
             //     timestep = 1.0f / 60.0f;
             for (auto &layer : m_layerStack)
-                layer->OnUpdate(timestep);
+                layer->onUpdate(timestep);
 
-            m_imGuiLayerRaw->Begin();
+            m_imGuiLayerRaw->begin();
             for (auto &layer : m_layerStack)
-                layer->OnImGuiRender();
-            m_imGuiLayerRaw->End();
+                layer->onImGuiRender();
+            m_imGuiLayerRaw->end();
             m_window->OnUpdate();
         }
     }
@@ -44,12 +44,12 @@ namespace Fermion
     void Engine::pushLayer(std::unique_ptr<Layer> layer)
     {
 
-        layer->OnAttach();
+        layer->onAttach();
         m_layerStack.pushLayer(std::move(layer));
     }
     void Engine::pushOverlay(std::unique_ptr<Layer> overlay)
     {
-        overlay->OnAttach();
+        overlay->onAttach();
         m_layerStack.pushOverlay(std::move(overlay));
     }
 
@@ -64,9 +64,9 @@ namespace Fermion
         // 从后往前遍历 LayerStack，优先分发给最上层的 Layer
         for (auto it = m_layerStack.rbegin(); it != m_layerStack.rend(); ++it)
         {
-            if (event.Handled)
+            if (event.handled)
                 break;
-            (*it)->OnEvent(event);
+            (*it)->onEvent(event);
         }
     }
 

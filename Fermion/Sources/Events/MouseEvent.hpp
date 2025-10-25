@@ -63,7 +63,7 @@ namespace Fermion
     class MouseButtonEvent : public IEvent
     {
     public:
-        MouseCode GetMouseButton() const { return m_button; }
+        MouseCode getMouseButton() const { return m_button; }
         virtual int getCategoryFlags() const override
         {
             return static_cast<int>(EventCategory::EventCategoryMouse) | static_cast<int>(EventCategory::EventCategoryInput) | static_cast<int>(EventCategory::EventCategoryMouseButton);

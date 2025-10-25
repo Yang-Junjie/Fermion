@@ -7,29 +7,29 @@ namespace Fermion
     class KeyEvent : public IEvent
     {
     public:
-        KeyCode GetKeyCode() const { return m_KeyCode; }
+        KeyCode GetKeyCode() const { return m_keyCode; }
 
         virtual int getCategoryFlags() const override { return static_cast<int>(EventCategory::EventCategoryKeyboard) |
                                                                static_cast<int>(EventCategory::EventCategoryInput); }
 
     protected:
         KeyEvent(const KeyCode keycode)
-            : m_KeyCode(keycode) {}
+            : m_keyCode(keycode) {}
 
-        KeyCode m_KeyCode;
+        KeyCode m_keyCode;
     };
     class KeyPressedEvent : public KeyEvent
     {
     public:
         KeyPressedEvent(const KeyCode keycode, bool isRepeat = false)
-            : KeyEvent(keycode), m_IsRepeat(isRepeat) {}
+            : KeyEvent(keycode), m_isRepeat(isRepeat) {}
 
-        bool IsRepeat() const { return m_IsRepeat; }
+        bool IsRepeat() const { return m_isRepeat; }
 
         std::string toString() const override
         {
             std::stringstream ss;
-            ss << "KeyPressedEvent: " << static_cast<int>(m_KeyCode) << " (repeat = " << m_IsRepeat << ")";
+            ss << "KeyPressedEvent: " << static_cast<int>(m_keyCode) << " (repeat = " << m_isRepeat << ")";
             return ss.str();
         }
         static EventType getStaticType() { return EventType::KeyPressed; }
@@ -37,7 +37,7 @@ namespace Fermion
         virtual const char *getName() const override { return "KeyPressed"; }
 
     private:
-        bool m_IsRepeat;
+        bool m_isRepeat;
     };
 
     class KeyReleasedEvent : public KeyEvent
@@ -49,7 +49,7 @@ namespace Fermion
         std::string toString() const override
         {
             std::stringstream ss;
-            ss << "KeyReleasedEvent: " << static_cast<int>(m_KeyCode);
+            ss << "KeyReleasedEvent: " << static_cast<int>(m_keyCode);
             return ss.str();
         }
         static EventType getStaticType() { return EventType::KeyReleased; }
@@ -66,7 +66,7 @@ namespace Fermion
         std::string toString() const override
         {
             std::stringstream ss;
-            ss << "KeyTypedEvent: " << static_cast<int>(m_KeyCode);
+            ss << "KeyTypedEvent: " << static_cast<int>(m_keyCode);
             return ss.str();
         }
         static EventType getStaticType() { return EventType::KeyTyped; }

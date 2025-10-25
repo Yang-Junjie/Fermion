@@ -4,14 +4,14 @@ namespace Fermion
     enum class KeyCode
     {
         None,
-        
+
         LeftShift,
         RightShift,
         LeftControl,
         RightControl,
         LeftAlt,
         RightAlt,
-        
+
         Space,
         Enter,
         Delete,

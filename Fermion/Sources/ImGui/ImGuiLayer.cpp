@@ -6,11 +6,11 @@
 namespace Fermion
 {
     ImGuiLayer::ImGuiLayer(void *nativeWindow)
-        : Layer("ImGuiLayer"), m_Window(static_cast<GLFWwindow *>(nativeWindow))
+        : Layer("ImGuiLayer"), m_window(static_cast<GLFWwindow *>(nativeWindow))
     {
     }
 
-    void ImGuiLayer::OnAttach()
+    void ImGuiLayer::onAttach()
     {
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -18,36 +18,36 @@ namespace Fermion
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         ImGui::StyleColorsDark();
 
-        ImGui_ImplGlfw_InitForOpenGL(m_Window, true);
+        ImGui_ImplGlfw_InitForOpenGL(m_window, true);
         ImGui_ImplOpenGL3_Init("#version 430");
     }
 
-    void ImGuiLayer::OnDetach()
+    void ImGuiLayer::onDetach()
     {
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
     }
 
-    void ImGuiLayer::OnEvent(IEvent &e)
+    void ImGuiLayer::onEvent(IEvent &e)
     {
-        if (m_BlockEvents)
+        if (m_blockEvents)
         {
             ImGuiIO &io = ImGui::GetIO();
-            e.Handled |= e.isInCategory(EventCategory::EventCategoryMouse) & io.WantCaptureMouse;
-            e.Handled |= e.isInCategory(EventCategory::EventCategoryKeyboard) & io.WantCaptureKeyboard;
+            e.handled |= e.isInCategory(EventCategory::EventCategoryMouse) & io.WantCaptureMouse;
+            e.handled |= e.isInCategory(EventCategory::EventCategoryKeyboard) & io.WantCaptureKeyboard;
         }
     }
-    void ImGuiLayer::OnImGuiRender()
+    void ImGuiLayer::onImGuiRender()
     {
     }
-    void ImGuiLayer::Begin()
+    void ImGuiLayer::begin()
     {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
     }
-    void ImGuiLayer::End()
+    void ImGuiLayer::end()
     {
         // 渲染
         ImGui::Render();

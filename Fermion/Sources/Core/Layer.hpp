@@ -8,11 +8,13 @@ namespace Fermion
     public:
         Layer(const std::string &name = "Layer") : m_name(name) {}
         virtual ~Layer() = default;
-        virtual void OnAttach() {};
-        virtual void OnDetach() {};
-        virtual void OnUpdate(Timestep dt) {};
-        virtual void OnEvent(IEvent &event){};
-        virtual void OnImGuiRender(){};
+        
+        virtual void onAttach() {};
+        virtual void onDetach() {};
+        virtual void onUpdate(Timestep dt) {};
+        virtual void onEvent(IEvent &event){};
+        virtual void onImGuiRender(){};
+
         const std::string &getName() const { return m_name; }
 
     protected:

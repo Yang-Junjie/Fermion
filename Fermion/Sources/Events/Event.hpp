@@ -44,7 +44,7 @@ namespace Fermion
     class IEvent
     {
     public:
-        bool Handled = false;
+        bool handled = false;
         virtual ~IEvent() {}
         virtual EventType getEventType() const = 0;
         virtual const char *getName() const = 0;
@@ -61,23 +61,23 @@ namespace Fermion
     {
     public:
         EventDispatcher(IEvent &event)
-            : m_Event(event)
+            : m_event(event)
         {
         }
 
         template <typename T, typename F>
         bool dispatch(const F &func)
         {
-            if (m_Event.getEventType() == T::getStaticType())
+            if (m_event.getEventType() == T::getStaticType())
             {
-                m_Event.Handled |= func(static_cast<T &>(m_Event));
+                m_event.handled |= func(static_cast<T &>(m_event));
                 return true;
             }
             return false;
         }
 
     private:
-        IEvent &m_Event;
+        IEvent &m_event;
     };
 
     inline std::ostream &operator<<(std::ostream &os, const IEvent &e)

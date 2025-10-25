@@ -20,7 +20,7 @@ namespace Fermion
                                { return ptr.get() == layer; });
         if (it != m_layers.begin() + m_layerInsertIndex)
         {
-            (*it)->OnDetach();
+            (*it)->onDetach();
             m_layers.erase(it);
             m_layerInsertIndex--;
         }
@@ -33,7 +33,7 @@ namespace Fermion
                                { return ptr.get() == overlay; });
         if (it != m_layers.end())
         {
-            (*it)->OnDetach();
+            (*it)->onDetach();
             m_layers.erase(it);
         }
     }

@@ -11,13 +11,13 @@ namespace Fermion {
 
         void reset() override
         {
-            m_Start = std::chrono::high_resolution_clock::now();
+            m_start = std::chrono::high_resolution_clock::now();
         }
 
         float elapsed() override
         {
             auto now = std::chrono::high_resolution_clock::now();
-            return std::chrono::duration<float>(now - m_Start).count();
+            return std::chrono::duration<float>(now - m_start).count();
         }
 
         float elapsedMillis() override
@@ -26,7 +26,7 @@ namespace Fermion {
         }
 
     private:
-        std::chrono::time_point<std::chrono::high_resolution_clock> m_Start;
+        std::chrono::time_point<std::chrono::high_resolution_clock> m_start;
     };
 
 }

@@ -7,7 +7,7 @@ namespace Fermion
 {
 
     OpenGLContext::OpenGLContext(GLFWwindow *windowHandle)
-        : m_WindowHandle(windowHandle)
+        : m_windowHandle(windowHandle)
     {
         Log::Info("OpenGL Context created successfully.");
     }
@@ -15,7 +15,7 @@ namespace Fermion
     void OpenGLContext::init()
     {
 
-        glfwMakeContextCurrent(m_WindowHandle);
+        glfwMakeContextCurrent(m_windowHandle);
         int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
         if (!status)
             Log::Error("Failed to initialize Glad");
@@ -33,7 +33,7 @@ namespace Fermion
 
     void OpenGLContext::swapBuffers()
     {
-        glfwSwapBuffers(m_WindowHandle);
+        glfwSwapBuffers(m_windowHandle);
     }
 
 }

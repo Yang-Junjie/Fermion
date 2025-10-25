@@ -12,31 +12,31 @@ namespace Fermion
 
         void OnUpdate() override;
 
-        unsigned int getWidth() const override { return m_Data.Width; }
-        unsigned int getHeight() const override { return m_Data.Height; }
+        unsigned int getWidth() const override { return m_data.width; }
+        unsigned int getHeight() const override { return m_data.height; }
 
-        void setEventCallback(const EventCallbackFn &callback) override { m_Data.EventCallback = callback; }
+        void setEventCallback(const EventCallbackFn &callback) override { m_data.eventCallback = callback; }
         void setVSync(bool enabled) override;
         bool isVSync() const override;
 
-        virtual void *getNativeWindow() const override { return m_Window; }
+        virtual void *getNativeWindow() const override { return m_window; }
 
     private:
         virtual void Init(const WindowProps &props);
         virtual void Shutdown();
 
     private:
-        GLFWwindow *m_Window;
-        std::unique_ptr<GraphicsContext> m_Context;
+        GLFWwindow *m_window;
+        std::unique_ptr<GraphicsContext> m_context;
         struct WindowData
         {
-            std::string Title;
-            unsigned int Width, Height;
+            std::string title;
+            unsigned int width, height;
             bool VSync;
 
-            EventCallbackFn EventCallback;
+            EventCallbackFn eventCallback;
         };
 
-        WindowData m_Data;
+        WindowData m_data;
     };
 }

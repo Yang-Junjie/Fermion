@@ -13,19 +13,19 @@ namespace Fermion
         ImGuiLayer(void *nativeWindow);
         ~ImGuiLayer() = default;
 
-        virtual void OnAttach() override;
-        virtual void OnDetach() override;
+        virtual void onAttach() override;
+        virtual void onDetach() override;
 
-        virtual void OnEvent(IEvent &e) override;
-        virtual void OnImGuiRender() override;
+        virtual void onEvent(IEvent &e) override;
+        virtual void onImGuiRender() override;
         
-        void Begin();
-        void End();
+        void begin();
+        void end();
 
-        void BlockEvents(bool block) { m_BlockEvents = block; }
+        void blockEvents(bool block) { m_blockEvents = block; }
 
     private:
-        bool m_BlockEvents = true;
-        GLFWwindow *m_Window;
+        bool m_blockEvents = true;
+        GLFWwindow *m_window;
     };
 }

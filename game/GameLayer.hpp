@@ -13,17 +13,17 @@ namespace Fermion
         }
         virtual ~GameLayer() = default;
 
-        virtual void OnAttach() override {}
-        virtual void OnDetach() override {}
-        virtual void OnUpdate(Timestep dt) override
+        virtual void onAttach() override {}
+        virtual void onDetach() override {}
+        virtual void onUpdate(Timestep dt) override
         {
             Log::Trace("GameLayer OnUpdate called");
         }
-        virtual void OnEvent(IEvent &event) override
+        virtual void onEvent(IEvent &event) override
         {
             Log::Trace("GameLayer OnEvent called: " + event.toString());
         }
-        virtual void OnImGuiRender() override
+        virtual void onImGuiRender() override
         {
             ImGui::ShowDemoWindow();
         }

@@ -5,14 +5,14 @@ namespace Fermion
 {
     struct WindowProps
     {
-        std::string Title;
-        uint32_t Width;
-        uint32_t Height;
+        std::string title;
+        uint32_t width;
+        uint32_t height;
 
         WindowProps(const std::string &title = "Fermion Engine",
                     uint32_t width = 1600,
                     uint32_t height = 900)
-            : Title(title), Width(width), Height(height)
+            : title(title), width(width), height(height)
         {
         }
     };

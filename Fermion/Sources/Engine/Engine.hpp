@@ -19,14 +19,15 @@ namespace Fermion
     {
     public:
         Engine();
+        virtual ~Engine() = default;
 
         void pushLayer(std::unique_ptr<Layer> layer);
         void pushOverlay(std::unique_ptr<Layer> overlay);
-        virtual ~Engine() = default;
+
         IWindow &getWindow() { return *m_window; }
         ImGuiLayer *getImGuiLayer() { return m_imGuiLayerRaw; }
-        void run();
 
+        void run();
     private:
         void onEvent(IEvent &event);
         bool onWindowResize(WindowResizeEvent &event);
