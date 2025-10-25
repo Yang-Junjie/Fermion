@@ -36,5 +36,3 @@ add_subdirectory(external/glm)
 # Fermion 
 add_subdirectory(Fermion)
 add_subdirectory(game)
-
-
