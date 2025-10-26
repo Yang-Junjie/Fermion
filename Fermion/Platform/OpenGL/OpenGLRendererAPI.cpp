@@ -23,4 +23,22 @@ namespace Fermion
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
+
+    void OpenGLRendererAPI::drawIndexed(const std::shared_ptr<VertexArray> &vertexArray, uint32_t indexCount)
+    {
+        vertexArray->bind();
+        uint32_t count = indexCount ? indexCount : vertexArray->getIndexBuffer()->getCount();
+        glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
+    }
+
+    void OpenGLRendererAPI::drawLines(const std::shared_ptr<VertexArray> &vertexArray, uint32_t vertexCount)
+    {
+        vertexArray->bind();
+        glDrawArrays(GL_LINES, 0, vertexCount);
+    }
+
+    void OpenGLRendererAPI::setLineWidth(float width)
+    {
+        glLineWidth(width);
+    }
 }

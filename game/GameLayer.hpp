@@ -2,6 +2,7 @@
 #include "Core/Layer.hpp"
 #include "Core/Log.hpp"
 #include "imgui.h"
+#include "Renderer/RenderCommand.hpp"
 
 namespace Fermion
 {
@@ -10,6 +11,7 @@ namespace Fermion
     public:
         GameLayer(const std::string &name = "GameLayer") : Layer(name)
         {
+            
         }
         virtual ~GameLayer() = default;
 
@@ -18,6 +20,7 @@ namespace Fermion
         virtual void onUpdate(Timestep dt) override
         {
             Log::Trace("GameLayer OnUpdate called");
+            
         }
         virtual void onEvent(IEvent &event) override
         {
