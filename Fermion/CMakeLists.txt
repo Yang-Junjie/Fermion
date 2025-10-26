@@ -8,18 +8,25 @@ set(EXTERNAL_DIR ${CMAKE_SOURCE_DIR}/external)
 set(CORE_SOURCES
     ${FERMION_DIR}/fmpch.cpp
     ${FERMION_DIR}/Engine/Engine.cpp
+    
     ${FERMION_DIR}/Core/Log.cpp
     ${FERMION_DIR}/Core/EntryPoint.cpp
     ${FERMION_DIR}/Core/LayerStack.cpp
     ${FERMION_DIR}/Core/Window.cpp
+
     ${FERMION_DIR}/ImGui/ImGuiLayer.cpp
+
     ${FERMION_DIR}/Renderer/RendererAPI.cpp
     ${FERMION_DIR}/Renderer/GraphicsContext.cpp
+    ${FERMION_DIR}/Renderer/Buffer.cpp
+    ${FERMION_DIR}/Renderer/VertexArray.cpp
 )
 
 set(PLATFORM_SOURCES
     ${PLATFORM_DIR}/OpenGL/OpenGLRendererAPI.cpp
     ${PLATFORM_DIR}/OpenGL/OpenGLContext.cpp
+    ${PLATFORM_DIR}/OpenGL/OpenGLBuffer.cpp
+    ${PLATFORM_DIR}/OpenGL/OpenGLVertexArray.cpp
     ${PLATFORM_DIR}/Window/GLFWWindow.cpp
 )
 
