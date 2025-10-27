@@ -22,6 +22,7 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Renderer/GraphicsContext.cpp
     ${FERMION_DIR}/Renderer/Buffer.cpp
     ${FERMION_DIR}/Renderer/VertexArray.cpp
+    ${FERMION_DIR}/Renderer/OrthographicCamera.cpp
 
 
 )

@@ -54,10 +54,7 @@ namespace Fermion
         std::unique_ptr<ITimer> m_timer;
         float m_lastFrameTime = 0.0f;
 
-        std::shared_ptr<OpenGLShader> m_shader;
-        std::shared_ptr<VertexArray> m_vertexArray;
-        std::shared_ptr<VertexBuffer> m_vertexBuffer;
-        std::shared_ptr<IndexBuffer> m_indexBuffer;
+        
     };
     // clinet 实现
     Engine *createEngine();
