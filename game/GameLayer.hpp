@@ -58,6 +58,7 @@ namespace Fermion
     }
 )";
             m_shader = std::make_shared<OpenGLShader>(vertexShader, fragmentShader);
+            m_camera.setRotation(45.0f);
         }
         virtual ~GameLayer() = default;
 
@@ -76,6 +77,32 @@ namespace Fermion
         virtual void onEvent(IEvent &event) override
         {
             Log::Trace("GameLayer OnEvent called: " + event.toString());
+            EventDispatcher dispatcher(event);
+            dispatcher.dispatch<KeyPressedEvent>([this](KeyPressedEvent &e)
+                                                 {
+        switch(e.getKeyCode()) {
+            case KeyCode::Up:
+                m_camera.setPosition(m_camera.getPosition() + glm::vec3(0.0f, 0.1f, 0.0f));
+                break;
+            case KeyCode::Down:
+                m_camera.setPosition(m_camera.getPosition() + glm::vec3(0.0f, -0.1f, 0.0f));
+                break;
+            case KeyCode::Left:
+                m_camera.setPosition(m_camera.getPosition() + glm::vec3(-0.1f, 0.0f, 0.0f));
+                break;
+            case KeyCode::Right:
+                m_camera.setPosition(m_camera.getPosition() + glm::vec3(0.1f, 0.0f, 0.0f));
+                break;
+            case KeyCode::Q:
+                m_camera.setRotation(m_camera.getRotation() + 5.0f);
+                break;
+            case KeyCode::R:
+                m_camera.setRotation(m_camera.getRotation() - 5.0f);
+                break;
+            default:
+                break;
+        }
+        return false; });
         }
         virtual void onImGuiRender() override
         {

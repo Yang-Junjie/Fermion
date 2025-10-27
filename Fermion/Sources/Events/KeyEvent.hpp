@@ -10,7 +10,7 @@ namespace Fermion
     class KeyEvent : public IEvent
     {
     public:
-        KeyCode GetKeyCode() const { return m_keyCode; }
+        KeyCode getKeyCode() const { return m_keyCode; }
 
         virtual int getCategoryFlags() const override { return static_cast<int>(EventCategory::EventCategoryKeyboard) |
                                                                static_cast<int>(EventCategory::EventCategoryInput); }
@@ -27,7 +27,7 @@ namespace Fermion
         KeyPressedEvent(const KeyCode keycode, bool isRepeat = false)
             : KeyEvent(keycode), m_isRepeat(isRepeat) {}
 
-        bool IsRepeat() const { return m_isRepeat; }
+        bool isRepeat() const { return m_isRepeat; }
 
         std::string toString() const override
         {
