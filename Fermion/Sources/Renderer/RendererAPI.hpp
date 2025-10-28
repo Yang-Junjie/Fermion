@@ -2,7 +2,7 @@
 
 #include "Renderer/VertexArray.hpp"
 
-#include "glm.hpp"
+#include <glm/glm.hpp>
 
 namespace Fermion {
 

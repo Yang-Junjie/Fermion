@@ -1,6 +1,6 @@
 ﻿#include "fmpch.hpp"
 #include "Renderer/OrthographicCamera.hpp"
-#include "gtc/matrix_transform.hpp"
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace Fermion
 {

@@ -5,7 +5,7 @@
 
 #pragma once 
 #include "Core/KeyCodes.hpp"
-#include "GLFW/glfw3.h"
+#include <GLFW/glfw3.h>
 
 namespace Fermion{
     inline KeyCode GLFWKeyCodeToFMKeyCode(int keyCode){

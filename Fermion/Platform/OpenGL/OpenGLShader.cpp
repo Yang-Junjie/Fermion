@@ -1,10 +1,9 @@
 ﻿#include "OpenGLShader.hpp"
 #include "Core/Log.hpp"
-#include "glm.hpp"
-#include "gtc/type_ptr.hpp"
+#include <glm/gtc/type_ptr.hpp>
 #include <fstream>
 #include <sstream>
-#include "glad/glad.h"
+#include <glad/glad.h>
 namespace Fermion
 {
 

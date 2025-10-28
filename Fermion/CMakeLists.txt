@@ -64,7 +64,7 @@ target_include_directories(engine PUBLIC
     ${PLATFORM_DIR}/Window
     ${EXTERNAL_DIR}/spdlog/include
     ${EXTERNAL_DIR}/entt/single_include
-    ${EXTERNAL_DIR}/glm/glm
+    ${EXTERNAL_DIR}/glm
     ${EXTERNAL_DIR}/imgui
     ${EXTERNAL_DIR}/imgui/backends
     ${EXTERNAL_DIR}/GLAD/include

@@ -1,8 +1,5 @@
 ﻿#pragma once
-#include <cstdint>
-#include <string>
-#include <vector>
-#include <memory>
+#include "fmpch.hpp"
 namespace Fermion {
 
 	enum class ShaderDataType

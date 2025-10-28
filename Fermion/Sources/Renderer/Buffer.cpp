@@ -1,8 +1,5 @@
-﻿#include "fmpch.hpp"
-#include "Renderer/Buffer.hpp"
-
+﻿#include "Renderer/Buffer.hpp"
 #include "Renderer/RendererAPI.hpp"
-
 #include "OpenGLBuffer.hpp"
 
 namespace Fermion

@@ -4,7 +4,7 @@
 */
 #pragma once
 #include "Core/MouseCodes.hpp"
-#include "GLFW/glfw3.h"
+#include <GLFW/glfw3.h>
 
 namespace Fermion
 {
@@ -38,6 +38,10 @@ namespace Fermion
             return GLFW_MOUSE_BUTTON_3;
         case MouseCode::XButton1:
             return GLFW_MOUSE_BUTTON_4;
+        case MouseCode::XButton2:
+            return GLFW_MOUSE_BUTTON_5;
+        default:
+            return GLFW_MOUSE_BUTTON_LAST;
         }
     }
 }
