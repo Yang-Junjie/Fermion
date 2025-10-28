@@ -35,6 +35,7 @@ namespace Fermion
         ImGuiLayer *getImGuiLayer() { return m_imGuiLayerRaw; }
 
         void run();
+        static Engine &get() { return *s_instance; }
 
     private:
         void onEvent(IEvent &event);
@@ -53,8 +54,7 @@ namespace Fermion
 
         std::unique_ptr<ITimer> m_timer;
         float m_lastFrameTime = 0.0f;
-
-        
+        static Engine *s_instance;
     };
     // clinet 实现
     Engine *createEngine();

@@ -34,6 +34,7 @@ set(PLATFORM_SOURCES
     ${PLATFORM_DIR}/OpenGL/OpenGLVertexArray.cpp
     ${PLATFORM_DIR}/OpenGL/OpenGLShader.cpp
     ${PLATFORM_DIR}/Window/GLFWWindow.cpp
+    ${PLATFORM_DIR}/Window/GLFWWindowInput.cpp
 )
 
 set(THIRD_PARTY_SOURCES

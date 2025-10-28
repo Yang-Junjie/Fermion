@@ -2,12 +2,14 @@
     GLFWMouseCodes.hpp
     本文件定义并实现了将 GLFW 鼠标按键代码转换成 FMouseCode 的方法
 */
-#pragma once 
+#pragma once
 #include "Core/MouseCodes.hpp"
 #include "GLFW/glfw3.h"
 
-namespace Fermion{
-    inline MouseCode GLFWMouseCodeToFMouseCode(int mouseCode){
+namespace Fermion
+{
+    inline MouseCode GLFWMouseCodeToFMouseCode(int mouseCode)
+    {
         switch (mouseCode)
         {
         case GLFW_MOUSE_BUTTON_1:
@@ -22,6 +24,20 @@ namespace Fermion{
             return MouseCode::XButton2;
         default:
             return MouseCode::None;
+        }
+    }
+    inline int FMMouseCodeToGLFWMouseCode(MouseCode mousecode)
+    {
+        switch (mousecode)
+        {
+        case MouseCode::Left:
+            return GLFW_MOUSE_BUTTON_1;
+        case MouseCode::Right:
+            return GLFW_MOUSE_BUTTON_2;
+        case MouseCode::Middle:
+            return GLFW_MOUSE_BUTTON_3;
+        case MouseCode::XButton1:
+            return GLFW_MOUSE_BUTTON_4;
         }
     }
 }

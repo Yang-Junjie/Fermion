@@ -6,9 +6,11 @@
 
 namespace Fermion
 {
+    Engine* Engine::s_instance = nullptr;
     Engine::Engine()
     {
-        WindowProps windowProps;
+        s_instance = this;
+        WindowProps windowProps; 
         m_window = IWindow::create(windowProps);
         m_window->setEventCallback([this](IEvent &event)
                                    { this->onEvent(event); });

@@ -6,6 +6,9 @@
 #include "Renderer/RenderCommand.hpp"
 #include "Renderer/Renderer.hpp"
 #include "Renderer/OrthographicCamera.hpp"
+
+#include "Core/Input.hpp"
+
 namespace Fermion
 {
     class GameLayer : public Layer
@@ -66,7 +69,29 @@ namespace Fermion
         virtual void onDetach() override {}
         virtual void onUpdate(Timestep dt) override
         {
+
+
             Log::Trace("GameLayer OnUpdate called");
+
+            if(Input::IsKeyPressed(KeyCode::Up)){
+                m_camera.setPosition(m_camera.getPosition() + glm::vec3(0.0f, 0.01f, 0.0f));
+            }
+            if(Input::IsKeyPressed(KeyCode::Down)){
+                m_camera.setPosition(m_camera.getPosition() + glm::vec3(0.0f, -0.01f, 0.0f));
+            }
+            if(Input::IsKeyPressed(KeyCode::Left)){
+                m_camera.setPosition(m_camera.getPosition() + glm::vec3(-0.01f, 0.0f, 0.0f));
+            }
+            if(Input::IsKeyPressed(KeyCode::Right)){
+                m_camera.setPosition(m_camera.getPosition() + glm::vec3(0.01f, 0.0f, 0.0f));
+            }
+            if(Input::IsKeyPressed(KeyCode::Q)){
+                m_camera.setRotation(m_camera.getRotation() + 1.0f);
+            }
+            if(Input::IsKeyPressed(KeyCode::R)){
+                m_camera.setRotation(m_camera.getRotation() - 1.0f);
+            }
+
             RenderCommand::setClearColor({0.2f, 0.3f, 0.3f, 1.0f});
             RenderCommand::clear();
 
@@ -77,32 +102,7 @@ namespace Fermion
         virtual void onEvent(IEvent &event) override
         {
             Log::Trace("GameLayer OnEvent called: " + event.toString());
-            EventDispatcher dispatcher(event);
-            dispatcher.dispatch<KeyPressedEvent>([this](KeyPressedEvent &e)
-                                                 {
-        switch(e.getKeyCode()) {
-            case KeyCode::Up:
-                m_camera.setPosition(m_camera.getPosition() + glm::vec3(0.0f, 0.1f, 0.0f));
-                break;
-            case KeyCode::Down:
-                m_camera.setPosition(m_camera.getPosition() + glm::vec3(0.0f, -0.1f, 0.0f));
-                break;
-            case KeyCode::Left:
-                m_camera.setPosition(m_camera.getPosition() + glm::vec3(-0.1f, 0.0f, 0.0f));
-                break;
-            case KeyCode::Right:
-                m_camera.setPosition(m_camera.getPosition() + glm::vec3(0.1f, 0.0f, 0.0f));
-                break;
-            case KeyCode::Q:
-                m_camera.setRotation(m_camera.getRotation() + 5.0f);
-                break;
-            case KeyCode::R:
-                m_camera.setRotation(m_camera.getRotation() - 5.0f);
-                break;
-            default:
-                break;
-        }
-        return false; });
+       
         }
         virtual void onImGuiRender() override
         {
