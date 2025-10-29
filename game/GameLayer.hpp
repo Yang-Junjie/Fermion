@@ -36,31 +36,71 @@ public:
         m_vertexArray->setIndexBuffer(m_indexBuffer);
 
         std::string vertexShader = R"(
+            #version 330 core
+            layout (location = 0) in vec3 aPos;
+            layout (location = 1) in vec4 aColor;
+            
+            out vec4 vertexColor;
+            uniform mat4 u_ViewProjection;
+            uniform mat4 u_Transform;
+            
+            void main() {
+                gl_Position = u_ViewProjection* u_Transform * vec4(aPos, 1.0);
+                vertexColor = aColor;
+            })";
+
+        std::string fragmentShader = R"(
+            #version 330 core
+            in vec4 vertexColor;
+            out vec4 FragColor;
+            
+            void main() {
+                FragColor = vertexColor;
+            })";
+        m_shader = std::make_shared<Fermion::OpenGLShader>(vertexShader, fragmentShader);
+
+        m_squareVA = Fermion::VertexArray::create();
+
+        float squareVertices[4 * 3 + 4 * 4] = {
+            -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+            0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+            0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+            -0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f};
+
+        std::shared_ptr<Fermion::VertexBuffer> squareVB = Fermion::VertexBuffer::create(squareVertices, sizeof(squareVertices));
+        squareVB->setLayout({{Fermion::ShaderDataType::Float3, "a_Position"},
+                             {Fermion::ShaderDataType::Float4, "a_Color"}});
+        m_squareVA->addVertexBuffer(squareVB);
+
+        uint32_t squareIndices[6] = {0, 1, 2, 2, 3, 0};
+        std::shared_ptr<Fermion::IndexBuffer> squareIB = Fermion::IndexBuffer::create(squareIndices, sizeof(squareIndices) / sizeof(uint32_t));
+        m_squareVA->setIndexBuffer(squareIB);
+        std::string flatColorShaderVertexSrc = R"(
     #version 330 core
-    layout (location = 0) in vec3 aPos;
-    layout (location = 1) in vec4 aColor;
+    layout (location = 0) in vec3 a_Position;
+    layout (location = 1) in vec4 a_Color;
     
     out vec4 vertexColor;
     uniform mat4 u_ViewProjection;
     uniform mat4 u_Transform;
     
     void main() {
-        gl_Position = u_ViewProjection* u_Transform * vec4(aPos, 1.0);
-        vertexColor = aColor;
+        gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);
+        vertexColor = a_Color;
     }
 )";
 
-        std::string fragmentShader = R"(
-    #version 330 core
-    in vec4 vertexColor;
-    out vec4 FragColor;
-    
-    void main() {
-        FragColor = vertexColor;
-    }
-)";
-        m_shader = std::make_shared<Fermion::OpenGLShader>(vertexShader, fragmentShader);
+        std::string flatColorShaderFragmentSrc = R"(
+			#version 330 core
+            in vec4 vertexColor;
+            out vec4 FragColor;
+            
+            void main() {
+                FragColor = vertexColor;
+            }
+		)";
 
+        m_squareShader = std::make_shared<Fermion::OpenGLShader>(flatColorShaderVertexSrc, flatColorShaderFragmentSrc);
         m_camera.setRotation(45.0f);
     }
     virtual ~GameLayer() = default;
@@ -84,9 +124,6 @@ public:
             m_cameraRotation += m_cameraRotationSpeed * dt;
         if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::E))
             m_cameraRotation -= m_cameraRotationSpeed * dt;
-        
-
-        
 
         m_camera.setPosition(m_cameraPosition);
         m_camera.setRotation(m_cameraRotation);
@@ -102,10 +139,10 @@ public:
             {
                 glm::vec3 pos(x * 0.11f, y * 0.11f, 0.0f);
                 glm::mat4 transform = glm::translate(glm::mat4(1.0f), pos) * scale;
-                Fermion::Renderer::submit(m_shader, m_vertexArray, transform);
+                Fermion::Renderer::submit(m_squareShader, m_squareVA, transform);
             }
         }
-        // Fermion::Renderer::submit(m_shader, m_vertexArray);
+        Fermion::Renderer::submit(m_shader, m_vertexArray);
         Fermion::Renderer::endScene();
     }
     virtual void onEvent(Fermion::IEvent &event) override
