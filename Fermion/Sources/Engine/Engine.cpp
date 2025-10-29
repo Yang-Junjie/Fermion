@@ -14,6 +14,7 @@ namespace Fermion
         m_window = IWindow::create(windowProps);
         m_window->setEventCallback([this](IEvent &event)
                                    { this->onEvent(event); });
+        m_window->setVSync(true);
         m_imGuiLayer = std::make_unique<ImGuiLayer>(m_window->getNativeWindow());
         m_imGuiLayerRaw = m_imGuiLayer.get();
         pushOverlay(std::move(m_imGuiLayer));
@@ -31,8 +32,6 @@ namespace Fermion
             Timestep timestep = time - m_lastFrameTime;
             m_lastFrameTime = time;
 
-            // if (timestep.GetSeconds() <= 0.0f)
-            //     timestep = 1.0f / 60.0f;
             for (auto &layer : m_layerStack)
                 layer->onUpdate(timestep);
 

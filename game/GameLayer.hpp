@@ -69,30 +69,21 @@ public:
 
         Fermion::Log::Trace("GameLayer OnUpdate called");
 
-        if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::Up))
-        {
-            m_camera.setPosition(m_camera.getPosition() + glm::vec3(0.0f, 0.01f, 0.0f));
-        }
-        if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::Down))
-        {
-            m_camera.setPosition(m_camera.getPosition() + glm::vec3(0.0f, -0.01f, 0.0f));
-        }
-        if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::Left))
-        {
-            m_camera.setPosition(m_camera.getPosition() + glm::vec3(-0.01f, 0.0f, 0.0f));
-        }
-        if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::Right))
-        {
-            m_camera.setPosition(m_camera.getPosition() + glm::vec3(0.01f, 0.0f, 0.0f));
-        }
+        if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::W))
+            m_cameraPosition.y += m_cameraMoveSpeed * dt;
+        if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::S))
+            m_cameraPosition.y -= m_cameraMoveSpeed * dt;
+        if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::A))
+            m_cameraPosition.x -= m_cameraMoveSpeed * dt;
+        if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::D))
+            m_cameraPosition.x += m_cameraMoveSpeed * dt;
         if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::Q))
-        {
-            m_camera.setRotation(m_camera.getRotation() + 1.0f);
-        }
-        if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::R))
-        {
-            m_camera.setRotation(m_camera.getRotation() - 1.0f);
-        }
+            m_cameraRotation += m_cameraRotationSpeed * dt;
+        if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::E))
+            m_cameraRotation -= m_cameraRotationSpeed * dt;
+
+        m_camera.setPosition(m_cameraPosition);
+        m_camera.setRotation(m_cameraRotation);
 
         Fermion::RenderCommand::setClearColor({0.2f, 0.3f, 0.3f, 1.0f});
         Fermion::RenderCommand::clear();
@@ -117,4 +108,8 @@ private:
     std::shared_ptr<Fermion::IndexBuffer> m_indexBuffer;
 
     Fermion::OrthographicCamera m_camera;
+    float m_cameraRotation = 0.0f;
+    float m_cameraRotationSpeed = 180.0f;
+    float m_cameraMoveSpeed = 2.5f;
+    glm::vec3 m_cameraPosition = {0, 0, 0};
 };
