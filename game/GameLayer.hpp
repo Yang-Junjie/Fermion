@@ -5,7 +5,8 @@
 #include "Renderer/RenderCommand.hpp"
 #include "Renderer/Renderer.hpp"
 #include "Renderer/OrthographicCamera.hpp"
-
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "Core/Input.hpp"
 
 class GameLayer : public Fermion::Layer
@@ -41,9 +42,10 @@ public:
     
     out vec4 vertexColor;
     uniform mat4 u_ViewProjection;
+    uniform mat4 u_Transform;
     
     void main() {
-        gl_Position = u_ViewProjection * vec4(aPos, 1.0);
+        gl_Position = u_ViewProjection* u_Transform * vec4(aPos, 1.0);
         vertexColor = aColor;
     }
 )";
@@ -58,6 +60,7 @@ public:
     }
 )";
         m_shader = std::make_shared<Fermion::OpenGLShader>(vertexShader, fragmentShader);
+
         m_camera.setRotation(45.0f);
     }
     virtual ~GameLayer() = default;
@@ -68,7 +71,7 @@ public:
     {
 
         Fermion::Log::Trace("GameLayer OnUpdate called");
-
+        glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
         if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::W))
             m_cameraPosition.y += m_cameraMoveSpeed * dt;
         if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::S))
@@ -81,6 +84,9 @@ public:
             m_cameraRotation += m_cameraRotationSpeed * dt;
         if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::E))
             m_cameraRotation -= m_cameraRotationSpeed * dt;
+        
+
+        
 
         m_camera.setPosition(m_cameraPosition);
         m_camera.setRotation(m_cameraRotation);
@@ -89,7 +95,17 @@ public:
         Fermion::RenderCommand::clear();
 
         Fermion::Renderer::beginScene(m_camera);
-        Fermion::Renderer::submit(m_shader, m_vertexArray);
+
+        for (int y = 0; y < 20; y++)
+        {
+            for (int x = 0; x < 20; x++)
+            {
+                glm::vec3 pos(x * 0.11f, y * 0.11f, 0.0f);
+                glm::mat4 transform = glm::translate(glm::mat4(1.0f), pos) * scale;
+                Fermion::Renderer::submit(m_shader, m_vertexArray, transform);
+            }
+        }
+        // Fermion::Renderer::submit(m_shader, m_vertexArray);
         Fermion::Renderer::endScene();
     }
     virtual void onEvent(Fermion::IEvent &event) override
@@ -106,6 +122,9 @@ private:
     std::shared_ptr<Fermion::VertexArray> m_vertexArray;
     std::shared_ptr<Fermion::VertexBuffer> m_vertexBuffer;
     std::shared_ptr<Fermion::IndexBuffer> m_indexBuffer;
+
+    std::shared_ptr<Fermion::VertexArray> m_squareVA;
+    std::shared_ptr<Fermion::OpenGLShader> m_squareShader;
 
     Fermion::OrthographicCamera m_camera;
     float m_cameraRotation = 0.0f;
