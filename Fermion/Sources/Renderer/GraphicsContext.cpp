@@ -1,11 +1,11 @@
 ﻿#include "GraphicsContext.hpp"
-#include "Renderer/RendererAPI.hpp"
+#include "Renderer/Renderer.hpp"
 #include "OpenGLContext.hpp"
 namespace Fermion
 {
     std::unique_ptr<GraphicsContext> GraphicsContext::create(void *window)
     {
-        switch (RendererAPI::getAPI())
+        switch (Renderer::getAPI())
         {
         case RendererAPI::API::None:
            

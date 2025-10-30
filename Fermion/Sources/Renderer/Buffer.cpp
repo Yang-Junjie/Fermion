@@ -1,5 +1,5 @@
 ﻿#include "Renderer/Buffer.hpp"
-#include "Renderer/RendererAPI.hpp"
+#include "Renderer/Renderer.hpp"
 #include "OpenGLBuffer.hpp"
 
 namespace Fermion
@@ -7,7 +7,7 @@ namespace Fermion
 
     std::shared_ptr<VertexBuffer> VertexBuffer::create(uint32_t size)
     {
-        switch (RendererAPI::getAPI())
+        switch (Renderer::getAPI())
         {
         case RendererAPI::API::None:
             return nullptr;
@@ -20,7 +20,7 @@ namespace Fermion
 
     std::shared_ptr<VertexBuffer> VertexBuffer::create(float *vertices, uint32_t size)
     {
-        switch (RendererAPI::getAPI())
+        switch (Renderer::getAPI())
         {
         case RendererAPI::API::None:
             return nullptr;
@@ -33,7 +33,7 @@ namespace Fermion
 
     std::shared_ptr<IndexBuffer> IndexBuffer::create(uint32_t *indices, uint32_t size)
     {
-        switch (RendererAPI::getAPI())
+        switch (Renderer::getAPI())
         {
         case RendererAPI::API::None:
             return nullptr;
