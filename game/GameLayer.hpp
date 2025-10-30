@@ -1,13 +1,18 @@
 ﻿#pragma once
 #include "Core/Layer.hpp"
 #include "Core/Log.hpp"
+#include "Core/Input.hpp"
+
 #include <imgui.h>
+#include "OpenGLShader.hpp"
+
 #include "Renderer/RenderCommand.hpp"
 #include "Renderer/Renderer.hpp"
 #include "Renderer/OrthographicCamera.hpp"
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "Core/Input.hpp"
+
 
 class GameLayer : public Fermion::Layer
 {
@@ -57,7 +62,7 @@ public:
             void main() {
                 FragColor = vertexColor;
             })";
-        m_shader = std::make_shared<Fermion::OpenGLShader>(vertexShader, fragmentShader);
+        m_shader = Fermion::Shader::create(vertexShader, fragmentShader);
 
         m_squareVA = Fermion::VertexArray::create();
 
@@ -89,13 +94,13 @@ public:
         std::string flatColorShaderFragmentSrc = R"(
 			#version 330 core
             out vec4 FragColor;
-            uniform vec4 vertexColor;
+            uniform vec3 vertexColor;
             void main() {
-                FragColor = vertexColor;
+                FragColor = vec4(vertexColor,1);
             }
 		)";
 
-        m_squareShader = std::make_shared<Fermion::OpenGLShader>(flatColorShaderVertexSrc, flatColorShaderFragmentSrc);
+        m_squareShader = Fermion::Shader::create(flatColorShaderVertexSrc, flatColorShaderFragmentSrc);
         m_camera.setRotation(45.0f);
     }
     virtual ~GameLayer() = default;
@@ -128,13 +133,14 @@ public:
 
         Fermion::Renderer::beginScene(m_camera);
 
-        glm::vec4 redColor = glm::vec4(0.8f, 0.3f, 0.2f, 1.0f);
-        glm::vec4 blueColor = glm::vec4(0.2f, 0.3f, 8.0f, 1.0f);
+        // glm::vec4 redColor = glm::vec4(0.8f, 0.3f, 0.2f, 1.0f);
+        // glm::vec4 blueColor = glm::vec4(0.2f, 0.3f, 8.0f, 1.0f);
+        std::dynamic_pointer_cast<Fermion::OpenGLShader>(m_squareShader)->bind();
+        std::dynamic_pointer_cast<Fermion::OpenGLShader>(m_squareShader)->setFloat3("vertexColor",m_squareColor);
         for (int y = 0; y < 20; y++)
         {
             for (int x = 0; x < 20; x++)
             {
-                m_squareShader->setFloat4("vertexColor", (x % 2 == 0 ? redColor : blueColor));
                 glm::vec3 pos(x * 0.11f, y * 0.11f, 0.0f);
                 glm::mat4 transform = glm::translate(glm::mat4(1.0f), pos) * scale;
                 Fermion::Renderer::submit(m_squareShader, m_squareVA, transform);
@@ -149,17 +155,21 @@ public:
     }
     virtual void onImGuiRender() override
     {
-        ImGui::ShowDemoWindow();
+        // ImGui::ShowDemoWindow();
+        ImGui::Begin("Settings");
+        ImGui::ColorEdit3("Square Color", glm::value_ptr(m_squareColor));
+        ImGui::End();
     }
 
 private:
-    std::shared_ptr<Fermion::OpenGLShader> m_shader;
+    std::shared_ptr<Fermion::Shader> m_shader;
     std::shared_ptr<Fermion::VertexArray> m_vertexArray;
     std::shared_ptr<Fermion::VertexBuffer> m_vertexBuffer;
     std::shared_ptr<Fermion::IndexBuffer> m_indexBuffer;
 
     std::shared_ptr<Fermion::VertexArray> m_squareVA;
-    std::shared_ptr<Fermion::OpenGLShader> m_squareShader;
+    std::shared_ptr<Fermion::Shader> m_squareShader;
+    glm::vec3 m_squareColor = {0.2,0.3,0.8};
 
     Fermion::OrthographicCamera m_camera;
     float m_cameraRotation = 0.0f;
