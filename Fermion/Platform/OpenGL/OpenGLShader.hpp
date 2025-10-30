@@ -30,7 +30,9 @@ namespace Fermion {
         void setInt(const std::string& name, int value);
         void setFloat(const std::string& name, float value);
         void setFloat3(const std::string& name, float v0, float v1, float v2);
+        void setFloat3(const std::string& name, const glm::vec3& value);
         void setFloat4(const std::string& name, float v0, float v1, float v2, float v3);
+        void setFloat4(const std::string& name, const glm::vec4& value);
         void setMat4(const std::string& name, const glm::mat4& matrix);
 
     private:

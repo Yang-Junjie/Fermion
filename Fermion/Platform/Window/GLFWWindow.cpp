@@ -86,21 +86,21 @@ namespace Fermion
 				{
 					KeyPressedEvent event(GLFWKeyCodeToFMKeyCode(key), 0);
 					data.eventCallback(event);
-                    Log::Info("Key pressed: " + std::to_string(key));
+                    Log::Trace("Key pressed: " + std::to_string(key));
 					break;
 				}
 				case GLFW_RELEASE:
 				{
 					KeyReleasedEvent event(GLFWKeyCodeToFMKeyCode(key));
 					data.eventCallback(event);
-                    Log::Info("Key released: " + std::to_string(key));
+                    Log::Trace("Key released: " + std::to_string(key));
 					break;
 				}
 				case GLFW_REPEAT:
 				{
 					KeyPressedEvent event(GLFWKeyCodeToFMKeyCode(key), true);
 					data.eventCallback(event);
-                    Log::Info("GLFW_REPEAT: " + std::to_string(key));
+                    Log::Trace("GLFW_REPEAT: " + std::to_string(key));
 					break;
 				}
 			} });
@@ -122,14 +122,14 @@ namespace Fermion
 				{
 					MouseButtonPressedEvent event(GLFWMouseCodeToFMouseCode(button));
 					data.eventCallback(event);
-                    Log::Info("Mouse button pressed: " + std::to_string(button));
+                    Log::Trace("Mouse button pressed: " + std::to_string(button));
 					break;
 				}
 				case GLFW_RELEASE:
 				{
 					MouseButtonReleasedEvent event(GLFWMouseCodeToFMouseCode(button));
 					data.eventCallback(event);
-                    Log::Info("Mouse button released: " + std::to_string(button));
+                    Log::Trace("Mouse button released: " + std::to_string(button));
 					break;
 				}
 			} });
@@ -140,7 +140,7 @@ namespace Fermion
 
 			MouseScrolledEvent event((float)xOffset, (float)yOffset);
 			data.eventCallback(event);
-            Log::Info("Mouse scrolled: " + std::to_string(xOffset) + ", " + std::to_string(yOffset)); });
+            Log::Trace("Mouse scrolled: " + std::to_string(xOffset) + ", " + std::to_string(yOffset)); });
 
         glfwSetCursorPosCallback(m_window, [](GLFWwindow *window, double xPos, double yPos)
                                  {

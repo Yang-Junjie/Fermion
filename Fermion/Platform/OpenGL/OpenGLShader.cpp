@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <glad/glad.h>
+
 namespace Fermion
 {
 
@@ -145,10 +146,19 @@ namespace Fermion
     {
         glUniform3f(getUniformLocation(name), v0, v1, v2);
     }
+    void OpenGLShader::setFloat3(const std::string &name, const glm::vec3 &value)
+    {
+        glUniform3f(getUniformLocation(name), value.x, value.y, value.z);
+    }
 
     void OpenGLShader::setFloat4(const std::string &name, float v0, float v1, float v2, float v3)
     {
         glUniform4f(getUniformLocation(name), v0, v1, v2, v3);
+    }
+    
+    void OpenGLShader::setFloat4(const std::string &name, const glm::vec4 &value)
+    {
+        glUniform4f(getUniformLocation(name), value.x, value.y, value.z, value.w);
     }
 
     void OpenGLShader::setMat4(const std::string &name, const glm::mat4 &matrix)

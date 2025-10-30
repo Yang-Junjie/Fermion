@@ -61,15 +61,14 @@ public:
 
         m_squareVA = Fermion::VertexArray::create();
 
-        float squareVertices[4 * 3 + 4 * 4] = {
-            -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-            0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-            0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-            -0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f};
+        float squareVertices[4 * 3] = {
+            -0.5f, -0.5f, 0.0f,
+            0.5f, -0.5f, 0.0f,
+            0.5f, 0.5f, 0.0f,
+            -0.5f, 0.5f, 0.0f};
 
         std::shared_ptr<Fermion::VertexBuffer> squareVB = Fermion::VertexBuffer::create(squareVertices, sizeof(squareVertices));
-        squareVB->setLayout({{Fermion::ShaderDataType::Float3, "a_Position"},
-                             {Fermion::ShaderDataType::Float4, "a_Color"}});
+        squareVB->setLayout({{Fermion::ShaderDataType::Float3, "a_Position"}});
         m_squareVA->addVertexBuffer(squareVB);
 
         uint32_t squareIndices[6] = {0, 1, 2, 2, 3, 0};
@@ -78,23 +77,19 @@ public:
         std::string flatColorShaderVertexSrc = R"(
     #version 330 core
     layout (location = 0) in vec3 a_Position;
-    layout (location = 1) in vec4 a_Color;
     
-    out vec4 vertexColor;
     uniform mat4 u_ViewProjection;
     uniform mat4 u_Transform;
     
     void main() {
         gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);
-        vertexColor = a_Color;
     }
 )";
 
         std::string flatColorShaderFragmentSrc = R"(
 			#version 330 core
-            in vec4 vertexColor;
             out vec4 FragColor;
-            
+            uniform vec4 vertexColor;
             void main() {
                 FragColor = vertexColor;
             }
@@ -133,10 +128,13 @@ public:
 
         Fermion::Renderer::beginScene(m_camera);
 
+        glm::vec4 redColor = glm::vec4(0.8f, 0.3f, 0.2f, 1.0f);
+        glm::vec4 blueColor = glm::vec4(0.2f, 0.3f, 8.0f, 1.0f);
         for (int y = 0; y < 20; y++)
         {
             for (int x = 0; x < 20; x++)
             {
+                m_squareShader->setFloat4("vertexColor", (x % 2 == 0 ? redColor : blueColor));
                 glm::vec3 pos(x * 0.11f, y * 0.11f, 0.0f);
                 glm::mat4 transform = glm::translate(glm::mat4(1.0f), pos) * scale;
                 Fermion::Renderer::submit(m_squareShader, m_squareVA, transform);
