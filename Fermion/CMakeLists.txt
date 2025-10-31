@@ -70,6 +70,7 @@ target_include_directories(engine PUBLIC
     ${EXTERNAL_DIR}/imgui/backends
     ${EXTERNAL_DIR}/GLAD/include
     ${EXTERNAL_DIR}/GLFW/include
+    ${EXTERNAL_DIR}/stb
 )
 
 
