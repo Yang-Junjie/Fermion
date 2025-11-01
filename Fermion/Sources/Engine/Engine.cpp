@@ -1,5 +1,4 @@
 ﻿#include "Engine/Engine.hpp"
-#include "fmpch.hpp"
 #include "Core/Timestep.hpp"
 #include <GLFW/glfw3.h>
 

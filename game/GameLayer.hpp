@@ -1,14 +1,10 @@
 ﻿#pragma once
-#include "Core/Layer.hpp"
-#include "Core/Log.hpp"
-#include "Core/Input.hpp"
+#include "Fermion.hpp"
 
 #include <imgui.h>
 #include "OpenGLShader.hpp"
 
-#include "Renderer/RenderCommand.hpp"
-#include "Renderer/Renderer.hpp"
-#include "Renderer/OrthographicCamera.hpp"
+
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>

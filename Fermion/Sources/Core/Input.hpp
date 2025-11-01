@@ -2,7 +2,6 @@
 
 #include "Core/KeyCodes.hpp"
 #include "Core/MouseCodes.hpp"
-
 #include <glm/glm.hpp>
 
 namespace Fermion

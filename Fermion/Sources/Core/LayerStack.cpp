@@ -1,5 +1,4 @@
 ﻿#include "LayerStack.hpp"
-#include "fmpch.hpp"
 namespace Fermion
 {
     void LayerStack::pushLayer(std::unique_ptr<Layer> layer)
