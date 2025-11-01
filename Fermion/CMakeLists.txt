@@ -40,6 +40,7 @@ set(PLATFORM_SOURCES
 
 set(THIRD_PARTY_SOURCES
     ${EXTERNAL_DIR}/GLAD/src/glad.c
+
     ${EXTERNAL_DIR}/imgui/imgui.cpp
     ${EXTERNAL_DIR}/imgui/imgui_demo.cpp
     ${EXTERNAL_DIR}/imgui/imgui_draw.cpp
@@ -47,6 +48,8 @@ set(THIRD_PARTY_SOURCES
     ${EXTERNAL_DIR}/imgui/imgui_widgets.cpp
     ${EXTERNAL_DIR}/imgui/backends/imgui_impl_glfw.cpp
     ${EXTERNAL_DIR}/imgui/backends/imgui_impl_opengl3.cpp
+
+    ${EXTERNAL_DIR}/stb/stb_image.cpp
 )
 
 set(ENGINE_SOURCES
