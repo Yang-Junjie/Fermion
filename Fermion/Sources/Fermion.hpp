@@ -31,3 +31,4 @@
 #include "Renderer/RendererAPI.hpp"
 #include "Renderer/Shader.hpp"
 #include "Renderer/VertexArray.hpp"
+#include "Renderer/Texture.hpp"

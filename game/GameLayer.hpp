@@ -4,11 +4,8 @@
 #include <imgui.h>
 #include "OpenGLShader.hpp"
 
-
-
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
 
 class GameLayer : public Fermion::Layer
 {
@@ -62,14 +59,15 @@ public:
 
         m_squareVA = Fermion::VertexArray::create();
 
-        float squareVertices[4 * 3] = {
-            -0.5f, -0.5f, 0.0f,
-            0.5f, -0.5f, 0.0f,
-            0.5f, 0.5f, 0.0f,
-            -0.5f, 0.5f, 0.0f};
+        float squareVertices[4 * 5] = {
+            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
+            0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+            0.5f, 0.5f, 0.0f, 1.0f, 1.0f,
+            -0.5f, 0.5f, 0.0f, 0.0f, 1.0f};
 
         std::shared_ptr<Fermion::VertexBuffer> squareVB = Fermion::VertexBuffer::create(squareVertices, sizeof(squareVertices));
-        squareVB->setLayout({{Fermion::ShaderDataType::Float3, "a_Position"}});
+        squareVB->setLayout({{Fermion::ShaderDataType::Float3, "a_Position"},
+                             {Fermion::ShaderDataType::Float2, "a_TexCoord"}});
         m_squareVA->addVertexBuffer(squareVB);
 
         uint32_t squareIndices[6] = {0, 1, 2, 2, 3, 0};
@@ -97,7 +95,40 @@ public:
 		)";
 
         m_squareShader = Fermion::Shader::create(flatColorShaderVertexSrc, flatColorShaderFragmentSrc);
-        m_camera.setRotation(45.0f);
+
+        std::string trxureShaderVertrxSrc = R"(
+    #version 330 core
+    layout (location = 0) in vec3 a_Position;
+    layout (location = 1) in vec2 a_TexCoord;
+    
+    uniform mat4 u_ViewProjection;
+    uniform mat4 u_Transform;
+    out vec2 v_TexCoord;
+    
+    void main() {
+        v_TexCoord = a_TexCoord;
+        gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);
+    }
+)";
+
+        std::string trxureShaderFragmentSrc = R"(
+			#version 330 core
+            out vec4 FragColor;
+
+            uniform sampler2D u_Texture;
+            in vec2 v_TexCoord;
+
+            void main() {
+                FragColor = texture(u_Texture, v_TexCoord);
+            }
+		)";
+
+        m_TextureShader = Fermion::Shader::create(trxureShaderVertrxSrc, trxureShaderFragmentSrc);
+
+        m_Texture = Fermion::Texture2D::create("assets/textures/Checkerboard.png");
+        std::dynamic_pointer_cast<Fermion::OpenGLShader>(m_TextureShader)->bind();
+        std::dynamic_pointer_cast<Fermion::OpenGLShader>(m_TextureShader)->setInt("u_Texture", 0);
+
     }
     virtual ~GameLayer() = default;
 
@@ -107,7 +138,7 @@ public:
     {
 
         Fermion::Log::Trace("GameLayer OnUpdate called");
-        glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
+
         if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::W))
             m_cameraPosition.y += m_cameraMoveSpeed * dt;
         if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::S))
@@ -132,7 +163,9 @@ public:
         // glm::vec4 redColor = glm::vec4(0.8f, 0.3f, 0.2f, 1.0f);
         // glm::vec4 blueColor = glm::vec4(0.2f, 0.3f, 8.0f, 1.0f);
         std::dynamic_pointer_cast<Fermion::OpenGLShader>(m_squareShader)->bind();
-        std::dynamic_pointer_cast<Fermion::OpenGLShader>(m_squareShader)->setFloat3("vertexColor",m_squareColor);
+        std::dynamic_pointer_cast<Fermion::OpenGLShader>(m_squareShader)->setFloat3("vertexColor", m_squareColor);
+
+        glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
         for (int y = 0; y < 20; y++)
         {
             for (int x = 0; x < 20; x++)
@@ -142,7 +175,11 @@ public:
                 Fermion::Renderer::submit(m_squareShader, m_squareVA, transform);
             }
         }
-        Fermion::Renderer::submit(m_shader, m_vertexArray);
+        m_Texture->bind();
+        Fermion::Renderer::submit(m_TextureShader, m_squareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
+
+        // triangle
+        // Fermion::Renderer::submit(m_shader, m_vertexArray);
         Fermion::Renderer::endScene();
     }
     virtual void onEvent(Fermion::IEvent &event) override
@@ -165,7 +202,10 @@ private:
 
     std::shared_ptr<Fermion::VertexArray> m_squareVA;
     std::shared_ptr<Fermion::Shader> m_squareShader;
-    glm::vec3 m_squareColor = {0.2,0.3,0.8};
+    glm::vec3 m_squareColor = {0.2, 0.3, 0.8};
+
+    std::shared_ptr<Fermion::Shader> m_TextureShader;
+    std::shared_ptr<Fermion::Texture2D> m_Texture;
 
     Fermion::OrthographicCamera m_camera;
     float m_cameraRotation = 0.0f;

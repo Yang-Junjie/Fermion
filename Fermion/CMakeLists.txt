@@ -24,6 +24,7 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Renderer/VertexArray.cpp
     ${FERMION_DIR}/Renderer/OrthographicCamera.cpp
     ${FERMION_DIR}/Renderer/Shader.cpp
+    ${FERMION_DIR}/Renderer/Texture.cpp
 
 
 )
@@ -33,9 +34,12 @@ set(PLATFORM_SOURCES
     ${PLATFORM_DIR}/OpenGL/OpenGLContext.cpp
     ${PLATFORM_DIR}/OpenGL/OpenGLBuffer.cpp
     ${PLATFORM_DIR}/OpenGL/OpenGLVertexArray.cpp
+    ${PLATFORM_DIR}/OpenGL/OpenGLTexture.cpp
     ${PLATFORM_DIR}/OpenGL/OpenGLShader.cpp
+    
     ${PLATFORM_DIR}/Window/GLFWWindow.cpp
     ${PLATFORM_DIR}/Window/GLFWWindowInput.cpp
+
 )
 
 set(THIRD_PARTY_SOURCES
