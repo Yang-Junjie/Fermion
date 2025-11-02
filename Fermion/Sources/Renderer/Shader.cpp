@@ -11,4 +11,13 @@ namespace Fermion
 		}
 		return nullptr;
     }
+
+	std::shared_ptr<Shader> Shader::create(const std::string &filepath){
+		switch (Renderer::getAPI())
+		{
+			case RendererAPI::API::None:    return nullptr;
+			case RendererAPI::API::OpenGL:  return std::make_shared<OpenGLShader>(filepath);
+		}
+		return nullptr;
+	}
 }

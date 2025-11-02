@@ -38,4 +38,32 @@ namespace Fermion
         static std::shared_ptr<spdlog::logger> s_Logger;
         static std::vector<spdlog::sink_ptr> s_Sinks;
     };
+
+#ifdef NDEBUG
+#define FERMION_ASSERT(condition, message) ((void)0)
+#else
+#define FERMION_ASSERT(condition, message)                                                                               \
+    do                                                                                                                   \
+    {                                                                                                                    \
+        if (!(condition))                                                                                                \
+        {                                                                                                                \
+            Fermion::Log::Error("Assertion failed: {0}, file {1}, line {2}", message, __FILE__, __LINE__);               \
+            std::cerr << "Assertion failed: " << message << ", file " << __FILE__ << ", line " << __LINE__ << std::endl; \
+            assert(false);                                                                                               \
+        }                                                                                                                \
+    } while (0)
+#endif
+
+    class FMAssert
+    {
+    public:
+        static void Assert(bool condition, const std::string &message, const char *file, int line)
+        {
+            if (!condition)
+            {
+                Log::Error("Assertion failed: " + message + ", file " + file + ", line" + std::to_string(line));
+                assert(false);
+            }
+        }
+    };
 }
