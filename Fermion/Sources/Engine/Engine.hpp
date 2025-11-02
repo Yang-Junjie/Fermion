@@ -20,6 +20,7 @@
 
 #include "Renderer/Buffer.hpp"
 #include "Renderer/VertexArray.hpp"
+#include "Renderer/Renderer.hpp"
 
 namespace Fermion
 {

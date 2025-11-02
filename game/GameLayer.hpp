@@ -126,9 +126,10 @@ public:
         m_TextureShader = Fermion::Shader::create(trxureShaderVertrxSrc, trxureShaderFragmentSrc);
 
         m_Texture = Fermion::Texture2D::create("assets/textures/Checkerboard.png");
+        m_logoTexture = Fermion::Texture2D::create("assets/textures/pslogo.png");
+
         std::dynamic_pointer_cast<Fermion::OpenGLShader>(m_TextureShader)->bind();
         std::dynamic_pointer_cast<Fermion::OpenGLShader>(m_TextureShader)->setInt("u_Texture", 0);
-
     }
     virtual ~GameLayer() = default;
 
@@ -177,6 +178,8 @@ public:
         }
         m_Texture->bind();
         Fermion::Renderer::submit(m_TextureShader, m_squareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
+        m_logoTexture->bind();
+        Fermion::Renderer::submit(m_TextureShader, m_squareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
 
         // triangle
         // Fermion::Renderer::submit(m_shader, m_vertexArray);
@@ -205,7 +208,7 @@ private:
     glm::vec3 m_squareColor = {0.2, 0.3, 0.8};
 
     std::shared_ptr<Fermion::Shader> m_TextureShader;
-    std::shared_ptr<Fermion::Texture2D> m_Texture;
+    std::shared_ptr<Fermion::Texture2D> m_Texture, m_logoTexture;
 
     Fermion::OrthographicCamera m_camera;
     float m_cameraRotation = 0.0f;

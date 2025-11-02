@@ -14,13 +14,16 @@ namespace Fermion
 		virtual ~OpenGLTexture2D();
 
 		virtual void bind(uint32_t slot = 0) const override;
-		virtual uint32_t getWidth() const override { return m_Width; }
-		virtual uint32_t getHeight() const override { return m_Height; }
+		virtual uint32_t getWidth() const override { return m_width; }
+		virtual uint32_t getHeight() const override { return m_height; }
 
 	private:
-		std::string m_Path;
-		uint32_t m_Width, m_Height;
-		uint32_t m_RendererID;
+		std::string m_path;
+		uint32_t m_width, m_height;
+		uint32_t m_rendererID;
+		GLenum m_internalFormat, m_dataFormat;
+		bool m_isLoaded = false;
+	
 	};
 
 }

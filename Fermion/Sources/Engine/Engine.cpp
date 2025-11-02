@@ -14,6 +14,7 @@ namespace Fermion
         m_window->setEventCallback([this](IEvent &event)
                                    { this->onEvent(event); });
         m_window->setVSync(true);
+        Renderer::init();
         m_imGuiLayer = std::make_unique<ImGuiLayer>(m_window->getNativeWindow());
         m_imGuiLayerRaw = m_imGuiLayer.get();
         pushOverlay(std::move(m_imGuiLayer));
