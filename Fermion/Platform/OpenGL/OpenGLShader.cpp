@@ -204,7 +204,7 @@ namespace Fermion
         int location = glGetUniformLocation(m_RendererID, name.c_str());
         if (location == -1)
         {
-            Log::Warn("Uniform '{0}' not found in shader");
+            Log::Warn("Uniform " + name + " not found");
         }
 
         m_UniformLocationCache[name] = location;

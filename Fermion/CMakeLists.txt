@@ -7,7 +7,7 @@ set(EXTERNAL_DIR ${CMAKE_SOURCE_DIR}/external)
 
 set(CORE_SOURCES
     ${FERMION_DIR}/fmpch.cpp
-    ${FERMION_DIR}/Engine/Engine.cpp
+    ${FERMION_DIR}/Core/Engine.cpp
 
     ${FERMION_DIR}/Core/Log.cpp
     ${FERMION_DIR}/Core/EntryPoint.cpp

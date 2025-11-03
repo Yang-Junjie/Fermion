@@ -96,7 +96,6 @@ public:
 
         m_squareShader = Fermion::Shader::create(flatColorShaderVertexSrc, flatColorShaderFragmentSrc);
 
-
         m_TextureShader = Fermion::Shader::create("game/assets/shaders/Texture.glsl");
 
         m_Texture = Fermion::Texture2D::create("assets/textures/Checkerboard.png");

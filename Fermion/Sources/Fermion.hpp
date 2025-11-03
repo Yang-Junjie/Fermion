@@ -17,7 +17,7 @@
 #include "Events/MouseEvent.hpp"
 
 // Engine
-#include "Engine/Engine.hpp"
+#include "Core/Engine.hpp"
 
 // ImGui
 #include "ImGui/ImGuiLayer.hpp"
