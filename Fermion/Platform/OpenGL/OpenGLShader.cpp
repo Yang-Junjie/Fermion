@@ -155,12 +155,12 @@ namespace Fermion
             }
             else
             {
-                Log::Error("Failed to read file :" + filepath);
+                Log::Error(std::format("Failed to read file : {}", filepath));
             }
         }
         else
         {
-            Log::Error("Failed to open file : " + filepath);
+            Log::Error(std::format("Failed to open file : {}", filepath));
         }
 
         return result;
@@ -213,7 +213,7 @@ namespace Fermion
         int location = glGetUniformLocation(m_rendererID, name.c_str());
         if (location == -1)
         {
-            Log::Warn("Uniform " + name + " not found");
+            Log::Warn(std::format("Uniform{} not found in shader {}", name, m_name));
         }
 
         m_UniformLocationCache[name] = location;

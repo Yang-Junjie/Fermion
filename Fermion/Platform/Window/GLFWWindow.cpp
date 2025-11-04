@@ -45,10 +45,10 @@ namespace Fermion
         }
 
         {
-            m_window = glfwCreateWindow(static_cast<int>(props.width),static_cast<int>(props.height), m_data.title.c_str(), nullptr, nullptr);
+            m_window = glfwCreateWindow(static_cast<int>(props.width), static_cast<int>(props.height), m_data.title.c_str(), nullptr, nullptr);
             if (m_window)
             {
-                Log::Info("Window created: " + props.title);
+                Log::Info(std::format("Window created: {}", props.title));
             }
             else
             {
@@ -86,21 +86,21 @@ namespace Fermion
 				{
 					KeyPressedEvent event(GLFWKeyCodeToFMKeyCode(key), 0);
 					data.eventCallback(event);
-                    Log::Trace("Key pressed: " + std::to_string(key));
+                    Log::Trace(std::format("Key pressed: {}", key));
 					break;
 				}
 				case GLFW_RELEASE:
 				{
 					KeyReleasedEvent event(GLFWKeyCodeToFMKeyCode(key));
 					data.eventCallback(event);
-                    Log::Trace("Key released: " + std::to_string(key));
+                    Log::Trace(std::format("Key released: {}", key));
 					break;
 				}
 				case GLFW_REPEAT:
 				{
 					KeyPressedEvent event(GLFWKeyCodeToFMKeyCode(key), true);
 					data.eventCallback(event);
-                    Log::Trace("GLFW_REPEAT: " + std::to_string(key));
+                    Log::Trace(std::format("Key pressed (repeat): {}", key));
 					break;
 				}
 			} });
@@ -122,14 +122,14 @@ namespace Fermion
 				{
 					MouseButtonPressedEvent event(GLFWMouseCodeToFMouseCode(button));
 					data.eventCallback(event);
-                    Log::Trace("Mouse button pressed: " + std::to_string(button));
+                    Log::Trace(std::format("Mouse button pressed: {}", button));
 					break;
 				}
 				case GLFW_RELEASE:
 				{
 					MouseButtonReleasedEvent event(GLFWMouseCodeToFMouseCode(button));
 					data.eventCallback(event);
-                    Log::Trace("Mouse button released: " + std::to_string(button));
+                    Log::Trace(std::format("Mouse button released: {}", button));
 					break;
 				}
 			} });
@@ -140,7 +140,7 @@ namespace Fermion
 
 			MouseScrolledEvent event((float)xOffset, (float)yOffset);
 			data.eventCallback(event);
-            Log::Trace("Mouse scrolled: " + std::to_string(xOffset) + ", " + std::to_string(yOffset)); });
+            Log::Trace(std::format("Mouse scrolled: {}, {}", xOffset, yOffset)); });
 
         glfwSetCursorPosCallback(m_window, [](GLFWwindow *window, double xPos, double yPos)
                                  {
@@ -148,7 +148,8 @@ namespace Fermion
 
 			MouseMovedEvent event((float)xPos, (float)yPos);
 			data.eventCallback(event); 
-            Log::Trace("Mouse moved: " + std::to_string(xPos) + ", " + std::to_string(yPos)); });
+            Log::Trace(std::format("Mouse moved: {}, {}", xPos, yPos));
+        });
     }
 
     void GLFWWindow::Shutdown()

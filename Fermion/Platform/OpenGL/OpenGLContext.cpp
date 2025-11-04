@@ -22,13 +22,12 @@ namespace Fermion
         else
             Log::Info("Glad Initialized");
 
-       
         Log::Info("OpenGL Info:");
-        Log::Info("  Vendor: " + std::string(reinterpret_cast<const char *>(glGetString(GL_VENDOR))));
-        Log::Info("  Renderer: " + std::string(reinterpret_cast<const char *>(glGetString(GL_RENDERER))));
-        Log::Info("  Version: " + std::string(reinterpret_cast<const char *>(glGetString(GL_VERSION))));
-        Log::Info("  GLSL: " + std::string(reinterpret_cast<const char *>(glGetString(GL_SHADING_LANGUAGE_VERSION))));
-
+        Log::Info(std::format("  Vendor:{} ", std::string(reinterpret_cast<const char *>(glGetString(GL_VENDOR)))));
+        Log::Info(std::format("  Renderer:{}", std::string(reinterpret_cast<const char *>(glGetString(GL_RENDERER)))));
+        Log::Info(std::format("  Version:{}", std::string(reinterpret_cast<const char *>(glGetString(GL_VERSION)))));
+        Log::Info(std::format("  GLSL:{}", std::string(reinterpret_cast<const char *>(glGetString(GL_SHADING_LANGUAGE_VERSION)))));
+        
     }
 
     void OpenGLContext::swapBuffers()

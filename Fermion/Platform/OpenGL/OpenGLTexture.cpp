@@ -18,7 +18,7 @@ namespace Fermion
 		}
 		if (data)
 		{
-			Fermion::Log::Info("Loaded texture: " + path);
+			Log::Info(std::format("Loaded texture:{}", path));
 
 			m_isLoaded = true;
 
@@ -55,7 +55,7 @@ namespace Fermion
 		}
 		else
 		{
-			Fermion::Log::Error("Failed to load texture image: " + path);
+			Log::Error(std::format("Failed to load texture image: {}", path));
 		}
 	}
 

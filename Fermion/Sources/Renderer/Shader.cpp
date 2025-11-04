@@ -31,7 +31,8 @@ namespace Fermion
 	{
 		FMAssert::Assert(!exists(name), "Shader already exists!", __FILE__, __LINE__);
 		m_Shaders[name] = shader;
-		Log::Info("Shader loaded: " + name);
+		// Log::Info("Shader loaded: " + name);
+		Log::Info(std::format("Shader loaded: {}", name));
 	}
 
 	void ShaderLibrary::add(const std::shared_ptr<Shader> &shader)
