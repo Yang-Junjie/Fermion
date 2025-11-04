@@ -22,7 +22,8 @@ namespace Fermion
         }
 
     }
-    OpenGLShader::OpenGLShader(const std::string &vertexSrc, const std::string &fragmentSrc)
+    OpenGLShader::OpenGLShader(const std::string &name, const std::string &vertexSrc, const std::string &fragmentSrc)
+        : m_name(name)
     {
         compile(vertexSrc, fragmentSrc);
     }
@@ -37,13 +38,21 @@ namespace Fermion
 
         // 编译着色器
         compile(vertexSrc, fragmentSrc);
+
+        // assets/shaders/Basic.glsl -> Basic
+        auto lastSlash = filepath.find_last_of("/\\");
+        lastSlash = lastSlash == std::string::npos ? 0 : lastSlash + 1;
+        auto lastDot = filepath.rfind('.');
+        auto count = lastDot == std::string::npos ? filepath.size() - lastSlash : lastDot - lastSlash;
+        m_name = filepath.substr(lastSlash, count);
+        // Log::Trace("Shader loaded: " + m_name);
     }
 
     OpenGLShader::~OpenGLShader()
     {
-        if (m_RendererID != 0)
+        if (m_rendererID != 0)
         {
-            glDeleteProgram(m_RendererID);
+            glDeleteProgram(m_rendererID);
         }
     }
 
@@ -96,23 +105,23 @@ namespace Fermion
         }
 
         // 创建着色器程序并链接
-        m_RendererID = glCreateProgram();
-        glAttachShader(m_RendererID, vertexShader);
-        glAttachShader(m_RendererID, fragmentShader);
-        glLinkProgram(m_RendererID);
+        m_rendererID = glCreateProgram();
+        glAttachShader(m_rendererID, vertexShader);
+        glAttachShader(m_rendererID, fragmentShader);
+        glLinkProgram(m_rendererID);
 
         // 检查链接错误
         int isLinked = 0;
-        glGetProgramiv(m_RendererID, GL_LINK_STATUS, &isLinked);
+        glGetProgramiv(m_rendererID, GL_LINK_STATUS, &isLinked);
         if (isLinked == GL_FALSE)
         {
             int maxLength = 0;
-            glGetProgramiv(m_RendererID, GL_INFO_LOG_LENGTH, &maxLength);
+            glGetProgramiv(m_rendererID, GL_INFO_LOG_LENGTH, &maxLength);
 
             std::vector<char> infoLog(maxLength);
-            glGetProgramInfoLog(m_RendererID, maxLength, &maxLength, &infoLog[0]);
+            glGetProgramInfoLog(m_rendererID, maxLength, &maxLength, &infoLog[0]);
 
-            glDeleteProgram(m_RendererID);
+            glDeleteProgram(m_rendererID);
             glDeleteShader(vertexShader);
             glDeleteShader(fragmentShader);
 
@@ -121,8 +130,8 @@ namespace Fermion
         }
 
         // 链接成功后删除着色器对象
-        glDetachShader(m_RendererID, vertexShader);
-        glDetachShader(m_RendererID, fragmentShader);
+        glDetachShader(m_rendererID, vertexShader);
+        glDetachShader(m_rendererID, fragmentShader);
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);
 
@@ -184,7 +193,7 @@ namespace Fermion
     }
     void OpenGLShader::bind() const
     {
-        glUseProgram(m_RendererID);
+        glUseProgram(m_rendererID);
     }
 
     void OpenGLShader::unbind() const
@@ -201,7 +210,7 @@ namespace Fermion
         }
 
         // 如果缓存中没有，则查询并缓存
-        int location = glGetUniformLocation(m_RendererID, name.c_str());
+        int location = glGetUniformLocation(m_rendererID, name.c_str());
         if (location == -1)
         {
             Log::Warn("Uniform " + name + " not found");

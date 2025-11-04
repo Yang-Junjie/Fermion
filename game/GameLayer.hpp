@@ -55,7 +55,7 @@ public:
             void main() {
                 FragColor = vertexColor;
             })";
-        m_shader = Fermion::Shader::create(vertexShader, fragmentShader);
+        m_shader = Fermion::Shader::create("VertexPosColor", vertexShader, fragmentShader);
 
         m_squareVA = Fermion::VertexArray::create();
 
@@ -94,15 +94,15 @@ public:
             }
 		)";
 
-        m_squareShader = Fermion::Shader::create(flatColorShaderVertexSrc, flatColorShaderFragmentSrc);
+        m_squareShader = Fermion::Shader::create("FlatShader", flatColorShaderVertexSrc, flatColorShaderFragmentSrc);
 
-        m_TextureShader = Fermion::Shader::create("game/assets/shaders/Texture.glsl");
+        auto textureShader = m_shaderLibrary.load("game/assets/shaders/Texture.glsl");
 
         m_Texture = Fermion::Texture2D::create("assets/textures/Checkerboard.png");
         m_logoTexture = Fermion::Texture2D::create("assets/textures/pslogo.png");
 
-        std::dynamic_pointer_cast<Fermion::OpenGLShader>(m_TextureShader)->bind();
-        std::dynamic_pointer_cast<Fermion::OpenGLShader>(m_TextureShader)->setInt("u_Texture", 0);
+        std::dynamic_pointer_cast<Fermion::OpenGLShader>(textureShader)->bind();
+        std::dynamic_pointer_cast<Fermion::OpenGLShader>(textureShader)->setInt("u_Texture", 0);
     }
     virtual ~GameLayer() = default;
 
@@ -149,10 +149,11 @@ public:
                 Fermion::Renderer::submit(m_squareShader, m_squareVA, transform);
             }
         }
+        auto textureShader = m_shaderLibrary.get("Texture");
         m_Texture->bind();
-        Fermion::Renderer::submit(m_TextureShader, m_squareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
+        Fermion::Renderer::submit(textureShader, m_squareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
         m_logoTexture->bind();
-        Fermion::Renderer::submit(m_TextureShader, m_squareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
+        Fermion::Renderer::submit(textureShader, m_squareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
 
         // triangle
         // Fermion::Renderer::submit(m_shader, m_vertexArray);
@@ -171,6 +172,8 @@ public:
     }
 
 private:
+    Fermion::ShaderLibrary m_shaderLibrary;
+
     std::shared_ptr<Fermion::Shader> m_shader;
     std::shared_ptr<Fermion::VertexArray> m_vertexArray;
     std::shared_ptr<Fermion::VertexBuffer> m_vertexBuffer;
@@ -180,7 +183,6 @@ private:
     std::shared_ptr<Fermion::Shader> m_squareShader;
     glm::vec3 m_squareColor = {0.2, 0.3, 0.8};
 
-    std::shared_ptr<Fermion::Shader> m_TextureShader;
     std::shared_ptr<Fermion::Texture2D> m_Texture, m_logoTexture;
 
     Fermion::OrthographicCamera m_camera;

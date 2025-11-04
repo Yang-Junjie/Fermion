@@ -12,7 +12,7 @@ namespace Fermion
     {
     public:
         OpenGLShader() = default;
-        OpenGLShader(const std::string &vertexSrc, const std::string &fragmentSrc);
+        OpenGLShader(const std::string &name, const std::string &vertexSrc, const std::string &fragmentSrc);
         OpenGLShader(const std::string &filepath);
         virtual ~OpenGLShader();
 
@@ -25,28 +25,30 @@ namespace Fermion
         virtual void unbind() const override;
 
         // 获取着色器程序ID
-        uint32_t getRendererID() const { return m_RendererID; }
+        uint32_t getRendererID() const { return m_rendererID; }
 
         // 设置uniform变量
-        void setInt(const std::string &name, int value);
-        void setFloat(const std::string &name, float value);
-        void setFloat3(const std::string &name, float v0, float v1, float v2);
-        void setFloat3(const std::string &name, const glm::vec3 &value);
-        void setFloat4(const std::string &name, float v0, float v1, float v2, float v3);
-        void setFloat4(const std::string &name, const glm::vec4 &value);
-        void setMat4(const std::string &name, const glm::mat4 &matrix);
+        virtual void setInt(const std::string &name, int value) override;
+        virtual void setFloat(const std::string &name, float value) override;
+        virtual void setFloat3(const std::string &name, float v0, float v1, float v2) override;
+        virtual void setFloat3(const std::string &name, const glm::vec3 &value) override;
+        virtual void setFloat4(const std::string &name, float v0, float v1, float v2, float v3) override;
+        virtual void setFloat4(const std::string &name, const glm::vec4 &value) override;
+        virtual void setMat4(const std::string &name, const glm::mat4 &matrix) override;
+
+        virtual const std::string &getName() const override { return m_name; }
 
     private:
-        uint32_t m_RendererID = 0;
-        mutable std::unordered_map<std::string, int> m_UniformLocationCache;
-
         int getUniformLocation(const std::string &name) const;
-        // 编译着色器
         void compile(const std::string &vertexSrc, const std::string &fragmentSrc);
-
         std::string readFile(const std::string &filepath);
-
         std::unordered_map<uint32_t, std::string> preProcess(const std::string &source);
+
+    private:
+        uint32_t m_rendererID = 0;
+        std::string m_name;
+        std::string m_filePathl;
+        mutable std::unordered_map<std::string, int> m_UniformLocationCache;
     };
 
 }
