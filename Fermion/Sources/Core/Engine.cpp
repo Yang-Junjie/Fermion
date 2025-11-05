@@ -81,6 +81,7 @@ namespace Fermion
             return false;
         }
         m_minimized = false;
+        Renderer::onWindowResize(event.getWidth(), event.getHeight());
         // Log::Info("Window resized to " + std::to_string(event.getWidth()) + "x" + std::to_string(event.getHeight()));
         Log::Info(std::format("Window resized to {}x{}", event.getWidth(), event.getHeight()));
         return false;
