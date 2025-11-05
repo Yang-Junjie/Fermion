@@ -1,6 +1,7 @@
 ﻿#pragma once 
 
 // Core
+#include "Core/Engine.hpp"
 #include "Core/Input.hpp"
 #include "Core/KeyCodes.hpp"
 #include "Core/Log.hpp"
@@ -15,9 +16,6 @@
 #include "Events/ApplicationEvent.hpp"
 #include "Events/KeyEvent.hpp"
 #include "Events/MouseEvent.hpp"
-
-// Engine
-#include "Core/Engine.hpp"
 
 // ImGui
 #include "ImGui/ImGuiLayer.hpp"

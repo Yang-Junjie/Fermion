@@ -2,14 +2,13 @@
 #include "Core/Timestep.hpp"
 #include <GLFW/glfw3.h>
 
-
 namespace Fermion
 {
-    Engine* Engine::s_instance = nullptr;
+    Engine *Engine::s_instance = nullptr;
     Engine::Engine()
     {
         s_instance = this;
-        WindowProps windowProps; 
+        WindowProps windowProps;
         m_window = IWindow::create(windowProps);
         m_window->setEventCallback([this](IEvent &event)
                                    { this->onEvent(event); });
@@ -18,7 +17,6 @@ namespace Fermion
         m_imGuiLayer = std::make_unique<ImGuiLayer>(m_window->getNativeWindow());
         m_imGuiLayerRaw = m_imGuiLayer.get();
         pushOverlay(std::move(m_imGuiLayer));
-        
     }
 
     void Engine::run()
@@ -27,18 +25,21 @@ namespace Fermion
 
         while (m_running)
         {
-            
+
             float time = static_cast<float>(glfwGetTime()); // TODO :GLFE TIMER
             Timestep timestep = time - m_lastFrameTime;
             m_lastFrameTime = time;
 
-            for (auto &layer : m_layerStack)
-                layer->onUpdate(timestep);
+            if (!m_minimized)
+            {
+                for (auto &layer : m_layerStack)
+                    layer->onUpdate(timestep);
 
-            m_imGuiLayerRaw->begin();
-            for (auto &layer : m_layerStack)
-                layer->onImGuiRender();
-            m_imGuiLayerRaw->end();
+                m_imGuiLayerRaw->begin();
+                for (auto &layer : m_layerStack)
+                    layer->onImGuiRender();
+                m_imGuiLayerRaw->end();
+            }
             m_window->OnUpdate();
         }
     }
