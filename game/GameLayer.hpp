@@ -10,7 +10,7 @@
 class GameLayer : public Fermion::Layer
 {
 public:
-    GameLayer(const std::string &name = "GameLayer") : Layer(name), m_camera(-1.6f, 1.6f, -0.9f, 0.9f)
+    GameLayer(const std::string &name = "GameLayer") : Layer(name), m_cameraController(1600.0f / 900.0f)
     {
         m_vertexArray = Fermion::VertexArray::create();
         float vertices[] = {
@@ -112,27 +112,28 @@ public:
     {
 
         Fermion::Log::Trace("GameLayer OnUpdate called");
+        m_cameraController.onUpdate(dt);
 
-        if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::W))
-            m_cameraPosition.y += m_cameraMoveSpeed * dt;
-        if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::S))
-            m_cameraPosition.y -= m_cameraMoveSpeed * dt;
-        if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::A))
-            m_cameraPosition.x -= m_cameraMoveSpeed * dt;
-        if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::D))
-            m_cameraPosition.x += m_cameraMoveSpeed * dt;
-        if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::Q))
-            m_cameraRotation += m_cameraRotationSpeed * dt;
-        if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::E))
-            m_cameraRotation -= m_cameraRotationSpeed * dt;
+        // if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::W))
+        //     m_cameraPosition.y += m_cameraMoveSpeed * dt;
+        // if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::S))
+        //     m_cameraPosition.y -= m_cameraMoveSpeed * dt;
+        // if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::A))
+        //     m_cameraPosition.x -= m_cameraMoveSpeed * dt;
+        // if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::D))
+        //     m_cameraPosition.x += m_cameraMoveSpeed * dt;
+        // if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::Q))
+        //     m_cameraRotation += m_cameraRotationSpeed * dt;
+        // if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::E))
+        //     m_cameraRotation -= m_cameraRotationSpeed * dt;
 
-        m_camera.setPosition(m_cameraPosition);
-        m_camera.setRotation(m_cameraRotation);
+        // m_camera.setPosition(m_cameraPosition);
+        // m_camera.setRotation(m_cameraRotation);
 
         Fermion::RenderCommand::setClearColor({0.2f, 0.3f, 0.3f, 1.0f});
         Fermion::RenderCommand::clear();
 
-        Fermion::Renderer::beginScene(m_camera);
+        Fermion::Renderer::beginScene(m_cameraController.getCamera());
 
         // glm::vec4 redColor = glm::vec4(0.8f, 0.3f, 0.2f, 1.0f);
         // glm::vec4 blueColor = glm::vec4(0.2f, 0.3f, 8.0f, 1.0f);
@@ -162,6 +163,7 @@ public:
     virtual void onEvent(Fermion::IEvent &event) override
     {
         Fermion::Log::Trace("GameLayer OnEvent called: " + event.toString());
+        m_cameraController.onEvent(event);
     }
     virtual void onImGuiRender() override
     {
@@ -185,7 +187,8 @@ private:
 
     std::shared_ptr<Fermion::Texture2D> m_Texture, m_logoTexture;
 
-    Fermion::OrthographicCamera m_camera;
+    // Fermion::OrthographicCamera m_camera;
+    Fermion::OrthographicCameraController m_cameraController;
     float m_cameraRotation = 0.0f;
     float m_cameraRotationSpeed = 180.0f;
     float m_cameraMoveSpeed = 2.5f;

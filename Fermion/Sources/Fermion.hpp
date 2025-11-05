@@ -26,6 +26,7 @@
 #include "Renderer/Buffer.hpp"
 #include "Renderer/GraphicsContext.hpp"
 #include "Renderer/OrthographicCamera.hpp"
+#include "Renderer/OrthographicCameraController.hpp"
 #include "Renderer/RenderCommand.hpp"
 #include "Renderer/Renderer.hpp"
 #include "Renderer/RendererAPI.hpp"
