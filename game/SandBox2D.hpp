@@ -45,14 +45,9 @@ public:
         Fermion::RenderCommand::setClearColor({0.2f, 0.3f, 0.3f, 1.0f});
         Fermion::RenderCommand::clear();
 
-        Fermion::Renderer::beginScene(m_cameraController.getCamera());
-
-        std::dynamic_pointer_cast<Fermion::OpenGLShader>(m_flatColorShader)->bind();
-        std::dynamic_pointer_cast<Fermion::OpenGLShader>(m_flatColorShader)->setFloat4("u_Color", m_squareColor);
-
-        Fermion::Renderer::submit(m_flatColorShader, m_squareVA);
-
-        Fermion::Renderer::endScene();
+        Fermion::Renderer2D::beginScene(m_cameraController.getCamera());
+        Fermion::Renderer2D::drawQuad(glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.8f, 0.8f), m_squareColor);
+        Fermion::Renderer2D::endScene();
     }
     virtual void onEvent(Fermion::IEvent &event) override
     {

@@ -19,6 +19,7 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Renderer/Renderer.cpp
     ${FERMION_DIR}/Renderer/RendererAPI.cpp
     ${FERMION_DIR}/Renderer/RenderCommand.cpp
+    ${FERMION_DIR}/Renderer/Renderer2D.cpp
     ${FERMION_DIR}/Renderer/GraphicsContext.cpp
     ${FERMION_DIR}/Renderer/Buffer.cpp
     ${FERMION_DIR}/Renderer/VertexArray.cpp

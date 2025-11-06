@@ -1,5 +1,6 @@
 ﻿
 #include "Renderer/Renderer.hpp"
+#include "Renderer/Renderer2D.hpp"
 #include "OpenGLShader.hpp"
 namespace Fermion
 {
@@ -7,6 +8,7 @@ namespace Fermion
     void Renderer::init()
     {
         RenderCommand::init();
+        Renderer2D::init();
     }
 
     void Renderer::shutdown()
