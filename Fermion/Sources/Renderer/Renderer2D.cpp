@@ -42,9 +42,9 @@ namespace Fermion
 
     void Renderer2D::beginScene(const OrthographicCamera &camera)
     {
-        std::dynamic_pointer_cast<OpenGLShader>(s_Data.FlatColorShader)->bind(); 
-        std::dynamic_pointer_cast<OpenGLShader>(s_Data.FlatColorShader)->setMat4("u_ViewProjection", camera.getViewProjectionMatrix());
-        std::dynamic_pointer_cast<OpenGLShader>(s_Data.FlatColorShader)->setMat4("u_Transform", glm::mat4(1.0f));
+        s_Data.FlatColorShader->bind(); 
+        s_Data.FlatColorShader->setMat4("u_ViewProjection", camera.getViewProjectionMatrix());
+        s_Data.FlatColorShader->setMat4("u_Transform", glm::mat4(1.0f));
     }
 
     void Renderer2D::endScene()

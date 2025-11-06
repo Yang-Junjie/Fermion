@@ -27,14 +27,22 @@ namespace Fermion
         // 获取着色器程序ID
         uint32_t getRendererID() const { return m_rendererID; }
 
-        // 设置uniform变量
         virtual void setInt(const std::string &name, int value) override;
         virtual void setFloat(const std::string &name, float value) override;
         virtual void setFloat3(const std::string &name, float v0, float v1, float v2) override;
-        virtual void setFloat3(const std::string &name, const glm::vec3 &value) override;
         virtual void setFloat4(const std::string &name, float v0, float v1, float v2, float v3) override;
+        virtual void setFloat3(const std::string &name, const glm::vec3 &value) override;
         virtual void setFloat4(const std::string &name, const glm::vec4 &value) override;
         virtual void setMat4(const std::string &name, const glm::mat4 &matrix) override;
+
+        // 设置uniform变量
+        void uploadInt(const std::string &name, int value);
+        void uploadFloat(const std::string &name, float value);
+        void uploadFloat3(const std::string &name, float v0, float v1, float v2);
+        void uploadFloat3(const std::string &name, const glm::vec3 &value);
+        void uploadFloat4(const std::string &name, float v0, float v1, float v2, float v3);
+        void uploadFloat4(const std::string &name, const glm::vec4 &value);
+        void uploadMat4(const std::string &name, const glm::mat4 &matrix);
 
         virtual const std::string &getName() const override { return m_name; }
 
@@ -45,7 +53,7 @@ namespace Fermion
         std::unordered_map<uint32_t, std::string> preProcess(const std::string &source);
 
     private:
-        uint32_t m_rendererID = 0;
+        uint32_t m_rendererID;
         std::string m_name;
         std::string m_filePathl;
         mutable std::unordered_map<std::string, int> m_UniformLocationCache;

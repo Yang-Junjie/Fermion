@@ -39,7 +39,7 @@ namespace Fermion
         // 编译着色器
         compile(vertexSrc, fragmentSrc);
 
-        // assets/shaders/Basic.glsl -> Basic
+        // asuploads/shaders/Basic.glsl -> Basic
         auto lastSlash = filepath.find_last_of("/\\");
         lastSlash = lastSlash == std::string::npos ? 0 : lastSlash + 1;
         auto lastDot = filepath.rfind('.');
@@ -222,34 +222,62 @@ namespace Fermion
 
     void OpenGLShader::setInt(const std::string &name, int value)
     {
+        uploadInt(name, value);
+    }
+    void OpenGLShader::setFloat(const std::string &name, float value)
+    {
+        uploadFloat(name, value);
+    }
+    void OpenGLShader::setFloat3(const std::string &name, float v0, float v1, float v2)
+    {
+        uploadFloat3(name, v0, v1, v2);
+    }
+    void OpenGLShader::setFloat4(const std::string &name, float v0, float v1, float v2, float v3)
+    {
+        uploadFloat4(name, v0, v1, v2, v3);
+    }
+    void OpenGLShader::setFloat3(const std::string &name, const glm::vec3 &value)
+    {
+        uploadFloat3(name, value);
+    }
+    void OpenGLShader::setFloat4(const std::string &name, const glm::vec4 &value)
+    {
+        uploadFloat4(name, value);
+    }
+    void OpenGLShader::setMat4(const std::string &name, const glm::mat4 &matrix)
+    {
+        uploadMat4(name, matrix);
+    }
+    void OpenGLShader::uploadInt(const std::string &name, int value)
+    {
         glUniform1i(getUniformLocation(name), value);
     }
 
-    void OpenGLShader::setFloat(const std::string &name, float value)
+    void OpenGLShader::uploadFloat(const std::string &name, float value)
     {
         glUniform1f(getUniformLocation(name), value);
     }
 
-    void OpenGLShader::setFloat3(const std::string &name, float v0, float v1, float v2)
+    void OpenGLShader::uploadFloat3(const std::string &name, float v0, float v1, float v2)
     {
         glUniform3f(getUniformLocation(name), v0, v1, v2);
     }
-    void OpenGLShader::setFloat3(const std::string &name, const glm::vec3 &value)
+    void OpenGLShader::uploadFloat3(const std::string &name, const glm::vec3 &value)
     {
         glUniform3f(getUniformLocation(name), value.x, value.y, value.z);
     }
 
-    void OpenGLShader::setFloat4(const std::string &name, float v0, float v1, float v2, float v3)
+    void OpenGLShader::uploadFloat4(const std::string &name, float v0, float v1, float v2, float v3)
     {
         glUniform4f(getUniformLocation(name), v0, v1, v2, v3);
     }
 
-    void OpenGLShader::setFloat4(const std::string &name, const glm::vec4 &value)
+    void OpenGLShader::uploadFloat4(const std::string &name, const glm::vec4 &value)
     {
         glUniform4f(getUniformLocation(name), value.x, value.y, value.z, value.w);
     }
 
-    void OpenGLShader::setMat4(const std::string &name, const glm::mat4 &matrix)
+    void OpenGLShader::uploadMat4(const std::string &name, const glm::mat4 &matrix)
     {
         glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, glm::value_ptr(matrix));
     }
