@@ -32,8 +32,8 @@ namespace Fermion
     void Renderer::submit(const std::shared_ptr<Shader> &shader, const std::shared_ptr<VertexArray> &vertexArray, const glm::mat4 &transform)
     {
         shader->bind();
-        std::dynamic_pointer_cast<OpenGLShader>(shader)->setMat4("u_ViewProjection", s_sceneData->viewProjectionMatrix);
-        std::dynamic_pointer_cast<OpenGLShader>(shader)->setMat4("u_Transform", transform);
+        shader->setMat4("u_ViewProjection", s_sceneData->viewProjectionMatrix);
+        shader->setMat4("u_Transform", transform);
         vertexArray->bind();
         RenderCommand::drawIndexed(vertexArray);
     }

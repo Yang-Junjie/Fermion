@@ -15,25 +15,7 @@ public:
 
     virtual void onAttach() override
     {
-        m_squareVA = Fermion::VertexArray::create();
-
-        float squareVertices[4 * 3] = {
-            -0.5f, -0.5f, 0.0f,
-            0.5f, -0.5f, 0.0f,
-            0.5f, 0.5f, 0.0f,
-            -0.5f, 0.5f, 0.0f};
-
-        std::shared_ptr<Fermion::VertexBuffer> squareVB = Fermion::VertexBuffer::create(squareVertices, sizeof(squareVertices));
-        squareVB->setLayout({
-            {Fermion::ShaderDataType::Float3, "a_Position"},
-        });
-        m_squareVA->addVertexBuffer(squareVB);
-
-        uint32_t squareIndices[6] = {0, 1, 2, 2, 3, 0};
-        std::shared_ptr<Fermion::IndexBuffer> squareIB = Fermion::IndexBuffer::create(squareIndices, sizeof(squareIndices) / sizeof(uint32_t));
-        m_squareVA->setIndexBuffer(squareIB);
-
-        m_flatColorShader = Fermion::Shader::create("../game/assets/shaders/FlatColor.glsl");
+        m_checkerboardTexture = Fermion::Texture2D::create("../assets/textures/Checkerboard.png");
     }
     virtual void onDetach() override {}
     virtual void onUpdate(Fermion::Timestep dt) override
@@ -46,11 +28,12 @@ public:
         Fermion::Renderer2D::beginScene(m_cameraController.getCamera());
         Fermion::Renderer2D::drawQuad(glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.8f, 0.8f),  glm::vec4(0.8f, 0.2f, 0.3f, 1.0f));
         Fermion::Renderer2D::drawQuad(glm::vec3(0.5f, 0.5f, 0.0f), glm::vec2(0.5f, 0.75f), m_squareColor);
+        Fermion::Renderer2D::drawQuad(glm::vec3(0.0f, 0.0f, -0.1f), glm::vec2(10.0f, 10.0f), m_checkerboardTexture);
         Fermion::Renderer2D::endScene();
     }
     virtual void onEvent(Fermion::IEvent &event) override
     {
-       
+        m_cameraController.onEvent(event);
     }
     virtual void onImGuiRender() override
     {
@@ -64,6 +47,8 @@ private:
     std::shared_ptr<Fermion::VertexArray> m_squareVA;
     std::shared_ptr<Fermion::Shader> m_flatColorShader;
     glm::vec4 m_squareColor = {0.2, 0.3, 0.8, 1.0};
+
+     std::shared_ptr<Fermion::Texture2D> m_checkerboardTexture;
 
     Fermion::OrthographicCameraController m_cameraController;
 };
