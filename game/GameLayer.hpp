@@ -88,9 +88,9 @@ public:
         std::string flatColorShaderFragmentSrc = R"(
 			#version 330 core
             out vec4 FragColor;
-            uniform vec3 vertexColor;
+            uniform vec3 u_Color;
             void main() {
-                FragColor = vec4(vertexColor,1);
+                FragColor = vec4(u_Color,1);
             }
 		)";
 
@@ -114,31 +114,12 @@ public:
         Fermion::Log::Trace("GameLayer OnUpdate called");
         m_cameraController.onUpdate(dt);
 
-        // if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::W))
-        //     m_cameraPosition.y += m_cameraMoveSpeed * dt;
-        // if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::S))
-        //     m_cameraPosition.y -= m_cameraMoveSpeed * dt;
-        // if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::A))
-        //     m_cameraPosition.x -= m_cameraMoveSpeed * dt;
-        // if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::D))
-        //     m_cameraPosition.x += m_cameraMoveSpeed * dt;
-        // if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::Q))
-        //     m_cameraRotation += m_cameraRotationSpeed * dt;
-        // if (Fermion::Input::IsKeyPressed(Fermion::KeyCode::E))
-        //     m_cameraRotation -= m_cameraRotationSpeed * dt;
-
-        // m_camera.setPosition(m_cameraPosition);
-        // m_camera.setRotation(m_cameraRotation);
-
         Fermion::RenderCommand::setClearColor({0.2f, 0.3f, 0.3f, 1.0f});
         Fermion::RenderCommand::clear();
 
         Fermion::Renderer::beginScene(m_cameraController.getCamera());
-
-        // glm::vec4 redColor = glm::vec4(0.8f, 0.3f, 0.2f, 1.0f);
-        // glm::vec4 blueColor = glm::vec4(0.2f, 0.3f, 8.0f, 1.0f);
         std::dynamic_pointer_cast<Fermion::OpenGLShader>(m_squareShader)->bind();
-        std::dynamic_pointer_cast<Fermion::OpenGLShader>(m_squareShader)->setFloat3("vertexColor", m_squareColor);
+        std::dynamic_pointer_cast<Fermion::OpenGLShader>(m_squareShader)->setFloat3("u_Color", m_squareColor);
 
         glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
         for (int y = 0; y < 20; y++)
@@ -189,8 +170,5 @@ private:
 
     // Fermion::OrthographicCamera m_camera;
     Fermion::OrthographicCameraController m_cameraController;
-    float m_cameraRotation = 0.0f;
-    float m_cameraRotationSpeed = 180.0f;
-    float m_cameraMoveSpeed = 2.5f;
-    glm::vec3 m_cameraPosition = {0, 0, 0};
+ 
 };

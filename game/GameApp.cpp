@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Core/Engine.hpp"
 #include "GameLayer.hpp"
+#include "SandBox2D.hpp"
 
 namespace Fermion
 {
@@ -10,7 +11,8 @@ namespace Fermion
         GameApp()
         {
             Log::Info("GameApp constructor called");
-            pushLayer(std::make_unique<GameLayer>());
+            // pushLayer(std::make_unique<GameLayer>());
+            pushLayer(std::make_unique<SandBox2D>());
         };
         ~GameApp() = default;
     };

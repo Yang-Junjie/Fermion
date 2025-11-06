@@ -69,8 +69,10 @@ add_library(engine STATIC ${ENGINE_SOURCES})
 
 target_include_directories(engine PUBLIC
     ${FERMION_DIR}
+
     ${PLATFORM_DIR}/OpenGL
     ${PLATFORM_DIR}/Window
+    
     ${EXTERNAL_DIR}/spdlog/include
     ${EXTERNAL_DIR}/entt/single_include
     ${EXTERNAL_DIR}/glm
