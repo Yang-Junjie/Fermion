@@ -4,7 +4,7 @@
 #include "Renderer/Shader.hpp"
 #include "Renderer/RenderCommand.hpp"
 
-#include "OpenGLShader.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 namespace Fermion
 {
     struct Renderer2DData
@@ -21,9 +21,9 @@ namespace Fermion
 
         float squareVertices[5 * 4] = {
             -0.5f, -0.5f, 0.0f,
-             0.5f, -0.5f, 0.0f,
-             0.5f,  0.5f, 0.0f,
-            -0.5f,  0.5f, 0.0f};
+            0.5f, -0.5f, 0.0f,
+            0.5f, 0.5f, 0.0f,
+            -0.5f, 0.5f, 0.0f};
         std::shared_ptr<VertexBuffer> squareVB = VertexBuffer::create(squareVertices, sizeof(squareVertices));
         squareVB->setLayout({
             {ShaderDataType::Float3, "a_Position"},
@@ -33,7 +33,6 @@ namespace Fermion
         std::shared_ptr<IndexBuffer> squareIB = IndexBuffer::create(indices, sizeof(indices) / sizeof(uint32_t));
         s_Data.QuadVertexArray->setIndexBuffer(squareIB);
         s_Data.FlatColorShader = Shader::create("../game/assets/shaders/FlatColor.glsl");
-                   
     }
 
     void Renderer2D::shutdown()
@@ -42,9 +41,8 @@ namespace Fermion
 
     void Renderer2D::beginScene(const OrthographicCamera &camera)
     {
-        s_Data.FlatColorShader->bind(); 
+        s_Data.FlatColorShader->bind();
         s_Data.FlatColorShader->setMat4("u_ViewProjection", camera.getViewProjectionMatrix());
-        s_Data.FlatColorShader->setMat4("u_Transform", glm::mat4(1.0f));
     }
 
     void Renderer2D::endScene()
@@ -58,9 +56,11 @@ namespace Fermion
 
     void Renderer2D::drawQuad(const glm::vec3 &position, const glm::vec2 &size, const glm::vec4 &color)
     {
-        std::dynamic_pointer_cast<OpenGLShader>(s_Data.FlatColorShader)->bind();
-        std::dynamic_pointer_cast<OpenGLShader>(s_Data.FlatColorShader)->setFloat4("u_Color", color);
-        
+        s_Data.FlatColorShader->bind();
+        s_Data.FlatColorShader->setFloat4("u_Color", color);
+
+        glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) * glm::scale(glm::mat4(1.0f), {size.x, size.y, 1.0f});
+        s_Data.FlatColorShader->setMat4("u_Transform", transform);
         s_Data.QuadVertexArray->bind();
         RenderCommand::drawIndexed(s_Data.QuadVertexArray);
     }

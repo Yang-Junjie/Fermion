@@ -2,7 +2,6 @@
 #include "Fermion.hpp"
 
 #include <imgui.h>
-#include "OpenGLShader.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -101,8 +100,8 @@ public:
         m_Texture = Fermion::Texture2D::create("../assets/textures/Checkerboard.png");
         m_logoTexture = Fermion::Texture2D::create("../assets/textures/pslogo.png");
 
-        std::dynamic_pointer_cast<Fermion::OpenGLShader>(textureShader)->bind();
-        std::dynamic_pointer_cast<Fermion::OpenGLShader>(textureShader)->setInt("u_Texture", 0);
+        textureShader->bind();
+        textureShader->setInt("u_Texture", 0);
     }
     virtual ~GameLayer() = default;
 
@@ -118,8 +117,8 @@ public:
         Fermion::RenderCommand::clear();
 
         Fermion::Renderer::beginScene(m_cameraController.getCamera());
-        std::dynamic_pointer_cast<Fermion::OpenGLShader>(m_squareShader)->bind();
-        std::dynamic_pointer_cast<Fermion::OpenGLShader>(m_squareShader)->setFloat3("u_Color", m_squareColor);
+        m_squareShader->bind();
+        m_squareShader->setFloat3("u_Color", m_squareColor);
 
         glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
         for (int y = 0; y < 20; y++)
@@ -170,5 +169,4 @@ private:
 
     // Fermion::OrthographicCamera m_camera;
     Fermion::OrthographicCameraController m_cameraController;
- 
 };

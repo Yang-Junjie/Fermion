@@ -2,8 +2,6 @@
 #include "Fermion.hpp"
 
 #include <imgui.h>
-#include "OpenGLShader.hpp"
-
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -46,7 +44,8 @@ public:
         Fermion::RenderCommand::clear();
 
         Fermion::Renderer2D::beginScene(m_cameraController.getCamera());
-        Fermion::Renderer2D::drawQuad(glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.8f, 0.8f), m_squareColor);
+        Fermion::Renderer2D::drawQuad(glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.8f, 0.8f),  glm::vec4(0.8f, 0.2f, 0.3f, 1.0f));
+        Fermion::Renderer2D::drawQuad(glm::vec3(0.5f, 0.5f, 0.0f), glm::vec2(0.5f, 0.75f), m_squareColor);
         Fermion::Renderer2D::endScene();
     }
     virtual void onEvent(Fermion::IEvent &event) override
