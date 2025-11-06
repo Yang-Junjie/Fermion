@@ -10,8 +10,8 @@ namespace Fermion
     struct Renderer2DData
     {
         std::shared_ptr<VertexArray> QuadVertexArray;
-        std::shared_ptr<Shader> FlatColorShader;
         std::shared_ptr<Shader> TextureShader;
+        std::shared_ptr<Texture2D> WhiteTexture;
     };
 
     static Renderer2DData s_Data;
@@ -34,7 +34,12 @@ namespace Fermion
         uint32_t indices[6] = {0, 1, 2, 2, 3, 0};
         std::shared_ptr<IndexBuffer> squareIB = IndexBuffer::create(indices, sizeof(indices) / sizeof(uint32_t));
         s_Data.QuadVertexArray->setIndexBuffer(squareIB);
-        s_Data.FlatColorShader = Shader::create("../game/assets/shaders/FlatColor.glsl");
+
+        s_Data.WhiteTexture = Texture2D::create(1, 1);
+        uint32_t whiteTextureData = 0xffffffff;
+        s_Data.WhiteTexture->setData(&whiteTextureData, sizeof(uint32_t));
+
+
         s_Data.TextureShader = Shader::create("../game/assets/shaders/Texture.glsl");
         s_Data.TextureShader->bind();
         s_Data.TextureShader->setInt("u_Texture", 0);
@@ -46,8 +51,6 @@ namespace Fermion
 
     void Renderer2D::beginScene(const OrthographicCamera &camera)
     {
-        s_Data.FlatColorShader->bind();
-        s_Data.FlatColorShader->setMat4("u_ViewProjection", camera.getViewProjectionMatrix());
         s_Data.TextureShader->bind();
         s_Data.TextureShader->setMat4("u_ViewProjection", camera.getViewProjectionMatrix());
     }
@@ -63,11 +66,12 @@ namespace Fermion
 
     void Renderer2D::drawQuad(const glm::vec3 &position, const glm::vec2 &size, const glm::vec4 &color)
     {
-        s_Data.FlatColorShader->bind();
-        s_Data.FlatColorShader->setFloat4("u_Color", color);
+        s_Data.TextureShader->setFloat4("u_Color", color);
+        s_Data.WhiteTexture->bind();
 
         glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) * glm::scale(glm::mat4(1.0f), {size.x, size.y, 1.0f});
-        s_Data.FlatColorShader->setMat4("u_Transform", transform);
+        s_Data.TextureShader->setMat4("u_Transform", transform);
+
         s_Data.QuadVertexArray->bind();
         RenderCommand::drawIndexed(s_Data.QuadVertexArray);
     }
@@ -79,14 +83,15 @@ namespace Fermion
 
     void Renderer2D::drawQuad(const glm::vec3 &position, const glm::vec2 &size, const std::shared_ptr<Texture2D> &texture)
     {
-        s_Data.TextureShader->bind();
-
-        glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) * glm::scale(glm::mat4(1.0f), {size.x, size.y, 1.0f});
-        s_Data.FlatColorShader->setMat4("u_Transform", transform);
-
+        s_Data.TextureShader->setFloat4("u_Color", glm::vec4(1.0f));
         texture->bind();
+        
+        glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) * glm::scale(glm::mat4(1.0f), {size.x, size.y, 1.0f});
+        s_Data.TextureShader->setMat4("u_Transform", transform);
+
 
         s_Data.QuadVertexArray->bind();
         RenderCommand::drawIndexed(s_Data.QuadVertexArray);
+        
     }
 }

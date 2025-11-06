@@ -30,6 +30,7 @@ namespace Fermion {
 		static void drawIndexed(const std::shared_ptr<VertexArray>& vertexArray, uint32_t indexCount = 0)
 		{
 			s_rendererAPI->drawIndexed(vertexArray, indexCount);
+			
 		}
 
 		static void drawLines(const std::shared_ptr<VertexArray>& vertexArray, uint32_t vertexCount)

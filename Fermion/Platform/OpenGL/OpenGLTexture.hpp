@@ -11,11 +11,14 @@ namespace Fermion
 	{
 	public:
 		OpenGLTexture2D(const std::string &path);
+		OpenGLTexture2D(uint32_t width, uint32_t height);
 		virtual ~OpenGLTexture2D();
 
 		virtual void bind(uint32_t slot = 0) const override;
 		virtual uint32_t getWidth() const override { return m_width; }
 		virtual uint32_t getHeight() const override { return m_height; }
+
+		virtual void setData(void *data, uint32_t size) override;
 
 	private:
 		std::string m_path;
@@ -23,7 +26,6 @@ namespace Fermion
 		uint32_t m_rendererID;
 		GLenum m_internalFormat, m_dataFormat;
 		bool m_isLoaded = false;
-	
 	};
 
 }

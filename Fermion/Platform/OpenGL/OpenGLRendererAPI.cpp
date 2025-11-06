@@ -29,6 +29,7 @@ namespace Fermion
         vertexArray->bind();
         uint32_t count = indexCount ? indexCount : vertexArray->getIndexBuffer()->getCount();
         glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
     void OpenGLRendererAPI::drawLines(const std::shared_ptr<VertexArray> &vertexArray, uint32_t vertexCount)
