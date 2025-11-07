@@ -33,9 +33,9 @@ public:
         {
             FM_PROFILE_SCOPE("Renderer Draw");
             Fermion::Renderer2D::beginScene(m_cameraController.getCamera());
-            Fermion::Renderer2D::drawQuad(glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.8f, 0.8f), glm::vec4(0.8f, 0.2f, 0.3f, 1.0f));
+            Fermion::Renderer2D::drawRotatedQuad(glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.8f, 0.8f), glm::radians(45.0f), glm::vec4(0.8f, 0.2f, 0.3f, 1.0f));
             Fermion::Renderer2D::drawQuad(glm::vec3(0.5f, 0.5f, 0.0f), glm::vec2(0.5f, 0.75f), m_squareColor);
-            Fermion::Renderer2D::drawQuad(glm::vec3(0.0f, 0.0f, -0.1f), glm::vec2(10.0f, 10.0f), m_checkerboardTexture);
+            Fermion::Renderer2D::drawQuad(glm::vec3(0.0f, 0.0f, -0.1f), glm::vec2(10.0f, 10.0f), m_checkerboardTexture, 10, glm::vec4(1.0f, 0.9f, 0.9f, 1.0f));
             Fermion::Renderer2D::endScene();
         }
     }
