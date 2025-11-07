@@ -27,28 +27,36 @@ namespace Fermion {
 
 	OpenGLVertexArray::OpenGLVertexArray()
 	{
+        FM_PROFILE_FUNCTION();
 	
 		glCreateVertexArrays(1, &m_rendererID);
 	}
 
 	OpenGLVertexArray::~OpenGLVertexArray()
 	{
+        FM_PROFILE_FUNCTION();
 		
 		glDeleteVertexArrays(1, &m_rendererID);
 	}
 
 	void OpenGLVertexArray::bind() const
 	{
+        FM_PROFILE_FUNCTION();
+
 		glBindVertexArray(m_rendererID);
 	}
 
 	void OpenGLVertexArray::unbind() const
 	{
+        FM_PROFILE_FUNCTION();
+
 		glBindVertexArray(0);
 	}
 
 	void OpenGLVertexArray::addVertexBuffer(const std::shared_ptr<VertexBuffer>& vertexBuffer)
 	{
+        FM_PROFILE_FUNCTION();
+
 		glBindVertexArray(m_rendererID);
 		vertexBuffer->bind();
 
@@ -115,6 +123,8 @@ namespace Fermion {
 
 	void OpenGLVertexArray::setIndexBuffer(const std::shared_ptr<IndexBuffer>& indexBuffer)
 	{
+        FM_PROFILE_FUNCTION();
+
 		glBindVertexArray(m_rendererID);
 		indexBuffer->bind();
 

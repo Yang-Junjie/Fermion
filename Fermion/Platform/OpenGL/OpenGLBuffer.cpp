@@ -12,6 +12,7 @@ namespace Fermion
 
     OpenGLVertexBuffer::OpenGLVertexBuffer(uint32_t size)
     {
+        FM_PROFILE_FUNCTION();
 
         glCreateBuffers(1, &m_rendererID);
         glBindBuffer(GL_ARRAY_BUFFER, m_rendererID);
@@ -20,6 +21,7 @@ namespace Fermion
 
     OpenGLVertexBuffer::OpenGLVertexBuffer(float *vertices, uint32_t size)
     {
+        FM_PROFILE_FUNCTION();
 
         glCreateBuffers(1, &m_rendererID);
         glBindBuffer(GL_ARRAY_BUFFER, m_rendererID);
@@ -28,18 +30,21 @@ namespace Fermion
 
     OpenGLVertexBuffer::~OpenGLVertexBuffer()
     {
+        FM_PROFILE_FUNCTION();
 
         glDeleteBuffers(1, &m_rendererID);
     }
 
     void OpenGLVertexBuffer::bind() const
     {
+        FM_PROFILE_FUNCTION();
 
         glBindBuffer(GL_ARRAY_BUFFER, m_rendererID);
     }
 
     void OpenGLVertexBuffer::unbind() const
     {
+        FM_PROFILE_FUNCTION();
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
@@ -57,6 +62,7 @@ namespace Fermion
     OpenGLIndexBuffer::OpenGLIndexBuffer(uint32_t *indices, uint32_t count)
         : m_count(count)
     {
+        FM_PROFILE_FUNCTION();
 
         glCreateBuffers(1, &m_rendererID);
         glBindBuffer(GL_ARRAY_BUFFER, m_rendererID);
@@ -65,18 +71,21 @@ namespace Fermion
 
     OpenGLIndexBuffer::~OpenGLIndexBuffer()
     {
+        FM_PROFILE_FUNCTION();
 
         glDeleteBuffers(1, &m_rendererID);
     }
 
     void OpenGLIndexBuffer::bind() const
     {
+        FM_PROFILE_FUNCTION();
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_rendererID);
     }
 
     void OpenGLIndexBuffer::unbind() const
     {
+        FM_PROFILE_FUNCTION();
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     }

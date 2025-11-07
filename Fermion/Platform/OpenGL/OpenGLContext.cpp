@@ -14,6 +14,7 @@ namespace Fermion
 
     void OpenGLContext::init()
     {
+        FM_PROFILE_FUNCTION();
 
         glfwMakeContextCurrent(m_windowHandle);
         int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
@@ -32,6 +33,8 @@ namespace Fermion
 
     void OpenGLContext::swapBuffers()
     {
+        FM_PROFILE_FUNCTION();
+
         glfwSwapBuffers(m_windowHandle);
     }
 

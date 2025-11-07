@@ -12,6 +12,7 @@ namespace Fermion
 
     void ImGuiLayer::onAttach()
     {
+        FM_PROFILE_FUNCTION();
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
         ImGuiIO &io = ImGui::GetIO();
@@ -26,6 +27,7 @@ namespace Fermion
 
     void ImGuiLayer::onDetach()
     {
+        FM_PROFILE_FUNCTION();
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
@@ -45,12 +47,14 @@ namespace Fermion
     }
     void ImGuiLayer::begin()
     {
+        FM_PROFILE_FUNCTION();
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
     }
     void ImGuiLayer::end()
     {
+        FM_PROFILE_FUNCTION();
         // 渲染
         ImGuiIO &io = ImGui::GetIO();
         ImGui::Render();

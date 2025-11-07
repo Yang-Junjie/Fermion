@@ -7,6 +7,7 @@ namespace Fermion
     Engine *Engine::s_instance = nullptr;
     Engine::Engine()
     {
+        FM_PROFILE_FUNCTION();
         s_instance = this;
         WindowProps windowProps;
         m_window = IWindow::create(windowProps);
@@ -21,23 +22,29 @@ namespace Fermion
 
     void Engine::run()
     {
+        FM_PROFILE_FUNCTION();
         Log::Info("Engine started!");
 
         while (m_running)
         {
-
+            FM_PROFILE_SCOPE("RunLoop");
             float time = static_cast<float>(glfwGetTime()); // TODO :GLFE TIMER
             Timestep timestep = time - m_lastFrameTime;
             m_lastFrameTime = time;
 
             if (!m_minimized)
             {
-                for (auto &layer : m_layerStack)
-                    layer->onUpdate(timestep);
-
+                {
+                    FM_PROFILE_SCOPE("LayerStack OnUpdate");
+                    for (auto &layer : m_layerStack)
+                        layer->onUpdate(timestep);
+                }
                 m_imGuiLayerRaw->begin();
-                for (auto &layer : m_layerStack)
-                    layer->onImGuiRender();
+                {
+                    FM_PROFILE_SCOPE("LayerStack OnImGuiRender");
+                    for (auto &layer : m_layerStack)
+                        layer->onImGuiRender();
+                }
                 m_imGuiLayerRaw->end();
             }
             m_window->OnUpdate();
@@ -46,18 +53,20 @@ namespace Fermion
 
     void Engine::pushLayer(std::unique_ptr<Layer> layer)
     {
-
+        FM_PROFILE_FUNCTION();
         layer->onAttach();
         m_layerStack.pushLayer(std::move(layer));
     }
     void Engine::pushOverlay(std::unique_ptr<Layer> overlay)
     {
+        FM_PROFILE_FUNCTION();
         overlay->onAttach();
         m_layerStack.pushOverlay(std::move(overlay));
     }
 
     void Engine::onEvent(IEvent &event)
     {
+        FM_PROFILE_FUNCTION();
         EventDispatcher dispatcher(event);
 
         dispatcher.dispatch<WindowResizeEvent>([this](WindowResizeEvent &e)
@@ -75,6 +84,7 @@ namespace Fermion
 
     bool Engine::onWindowResize(WindowResizeEvent &event)
     {
+        FM_PROFILE_FUNCTION();
         if (event.getWidth() == 0 || event.getHeight() == 0)
         {
             m_minimized = true;

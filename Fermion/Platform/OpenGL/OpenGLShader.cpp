@@ -25,11 +25,15 @@ namespace Fermion
     OpenGLShader::OpenGLShader(const std::string &name, const std::string &vertexSrc, const std::string &fragmentSrc)
         : m_name(name)
     {
+        FM_PROFILE_FUNCTION();
+
         compile(vertexSrc, fragmentSrc);
     }
 
     OpenGLShader::OpenGLShader(const std::string &filepath)
     {
+        FM_PROFILE_FUNCTION();
+
         std::string source = readFile(filepath);
         auto shaderSources = preProcess(source);
 
@@ -50,6 +54,8 @@ namespace Fermion
 
     OpenGLShader::~OpenGLShader()
     {
+        FM_PROFILE_FUNCTION();
+
         if (m_rendererID != 0)
         {
             glDeleteProgram(m_rendererID);
@@ -58,6 +64,8 @@ namespace Fermion
 
     void OpenGLShader::compile(const std::string &vertexSrc, const std::string &fragmentSrc)
     {
+        FM_PROFILE_FUNCTION();
+
         // 创建着色器
         uint32_t vertexShader = glCreateShader(GL_VERTEX_SHADER);
         const char *vertexSource = vertexSrc.c_str();
@@ -140,6 +148,7 @@ namespace Fermion
 
     std::string OpenGLShader::readFile(const std::string &filepath)
     {
+        FM_PROFILE_FUNCTION();
 
         std::string result;
         std::ifstream in(filepath, std::ios::in | std::ios::binary); // ifstream closes itself due to RAII
@@ -167,6 +176,7 @@ namespace Fermion
     }
     std::unordered_map<uint32_t, std::string> OpenGLShader::preProcess(const std::string &source)
     {
+        FM_PROFILE_FUNCTION();
 
         std::unordered_map<GLenum, std::string> shaderSources;
 
@@ -193,16 +203,22 @@ namespace Fermion
     }
     void OpenGLShader::bind() const
     {
+        FM_PROFILE_FUNCTION();
+
         glUseProgram(m_rendererID);
     }
 
     void OpenGLShader::unbind() const
     {
+        FM_PROFILE_FUNCTION();
+
         glUseProgram(0);
     }
 
     int OpenGLShader::getUniformLocation(const std::string &name) const
     {
+        FM_PROFILE_FUNCTION();
+
         // 先在缓存中查找
         if (m_UniformLocationCache.find(name) != m_UniformLocationCache.end())
         {
@@ -222,30 +238,44 @@ namespace Fermion
 
     void OpenGLShader::setInt(const std::string &name, int value)
     {
+        FM_PROFILE_FUNCTION();
+
         uploadInt(name, value);
     }
     void OpenGLShader::setFloat(const std::string &name, float value)
     {
+        FM_PROFILE_FUNCTION();
+
         uploadFloat(name, value);
     }
     void OpenGLShader::setFloat3(const std::string &name, float v0, float v1, float v2)
     {
+        FM_PROFILE_FUNCTION();
+
         uploadFloat3(name, v0, v1, v2);
     }
     void OpenGLShader::setFloat4(const std::string &name, float v0, float v1, float v2, float v3)
     {
+        FM_PROFILE_FUNCTION();
+
         uploadFloat4(name, v0, v1, v2, v3);
     }
     void OpenGLShader::setFloat3(const std::string &name, const glm::vec3 &value)
     {
+        FM_PROFILE_FUNCTION();
+
         uploadFloat3(name, value);
     }
     void OpenGLShader::setFloat4(const std::string &name, const glm::vec4 &value)
     {
+        FM_PROFILE_FUNCTION();
+
         uploadFloat4(name, value);
     }
     void OpenGLShader::setMat4(const std::string &name, const glm::mat4 &matrix)
     {
+        FM_PROFILE_FUNCTION();
+
         uploadMat4(name, matrix);
     }
     void OpenGLShader::uploadInt(const std::string &name, int value)

@@ -19,3 +19,4 @@
 #include <cstdint>
 
 #include "Core/Log.hpp"
+#include "Debug/Instrumentor.hpp"

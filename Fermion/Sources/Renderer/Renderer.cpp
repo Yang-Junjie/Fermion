@@ -7,6 +7,8 @@ namespace Fermion
     std::unique_ptr<Renderer::SceneData> Renderer::s_sceneData = std::make_unique<Renderer::SceneData>();
     void Renderer::init()
     {
+        FM_PROFILE_FUNCTION();
+
         RenderCommand::init();
         Renderer2D::init();
     }

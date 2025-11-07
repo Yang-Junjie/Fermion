@@ -14,6 +14,8 @@ namespace Fermion
 
 	void OrthographicCameraController::onUpdate(Timestep ts)
 	{
+		FM_PROFILE_FUNCTION();
+
 		if (Input::IsKeyPressed(KeyCode::A))
 		{
 			m_cameraPosition.x -= cos(glm::radians(m_cameraRotation)) * m_cameraTranslationSpeed * ts;
@@ -58,6 +60,7 @@ namespace Fermion
 
 	void OrthographicCameraController::onEvent(IEvent &e)
 	{
+		FM_PROFILE_FUNCTION();
 
 		EventDispatcher dispatcher(e);
 		dispatcher.dispatch<MouseScrolledEvent>([this](MouseScrolledEvent &e)
@@ -75,6 +78,7 @@ namespace Fermion
 
 	bool OrthographicCameraController::onMouseScrolled(MouseScrolledEvent &e)
 	{
+        FM_PROFILE_FUNCTION();
 
 		m_zoomLevel -= e.getYOffset() * 0.25f;
 		m_zoomLevel = std::max(m_zoomLevel, 0.25f);
@@ -84,6 +88,7 @@ namespace Fermion
 
 	bool OrthographicCameraController::onWindowResized(WindowResizeEvent &e)
 	{
+        FM_PROFILE_FUNCTION();
 
 		onResize((float)e.getWidth(), (float)e.getHeight());
 		return false;

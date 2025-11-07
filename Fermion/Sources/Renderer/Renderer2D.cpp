@@ -18,6 +18,8 @@ namespace Fermion
 
     void Renderer2D::init()
     {
+        FM_PROFILE_FUNCTION();
+
         s_Data.QuadVertexArray = VertexArray::create();
 
         float squareVertices[5 * 4] = {
@@ -47,16 +49,22 @@ namespace Fermion
 
     void Renderer2D::shutdown()
     {
+        FM_PROFILE_FUNCTION();
+
     }
 
     void Renderer2D::beginScene(const OrthographicCamera &camera)
     {
+        FM_PROFILE_FUNCTION();
+
         s_Data.TextureShader->bind();
         s_Data.TextureShader->setMat4("u_ViewProjection", camera.getViewProjectionMatrix());
     }
 
     void Renderer2D::endScene()
     {
+        FM_PROFILE_FUNCTION();
+
     }
 
     void Renderer2D::drawQuad(const glm::vec2 &position, const glm::vec2 &size, const glm::vec4 &color)
@@ -66,6 +74,8 @@ namespace Fermion
 
     void Renderer2D::drawQuad(const glm::vec3 &position, const glm::vec2 &size, const glm::vec4 &color)
     {
+        FM_PROFILE_FUNCTION();
+
         s_Data.TextureShader->setFloat4("u_Color", color);
         s_Data.WhiteTexture->bind();
 
@@ -83,6 +93,8 @@ namespace Fermion
 
     void Renderer2D::drawQuad(const glm::vec3 &position, const glm::vec2 &size, const std::shared_ptr<Texture2D> &texture)
     {
+        FM_PROFILE_FUNCTION();
+
         s_Data.TextureShader->setFloat4("u_Color", glm::vec4(1.0f));
         texture->bind();
         

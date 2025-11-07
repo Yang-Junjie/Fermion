@@ -21,18 +21,21 @@ namespace Fermion
 
     GLFWWindow::GLFWWindow(const WindowProps &props)
     {
+        FM_PROFILE_FUNCTION();
 
         Init(props);
     }
 
     GLFWWindow::~GLFWWindow()
     {
+        FM_PROFILE_FUNCTION();
 
         Shutdown();
     }
 
     void GLFWWindow::Init(const WindowProps &props)
     {
+        FM_PROFILE_FUNCTION();
 
         m_data.title = props.title;
         m_data.width = props.width;
@@ -154,6 +157,7 @@ namespace Fermion
 
     void GLFWWindow::Shutdown()
     {
+        FM_PROFILE_FUNCTION();
 
         glfwDestroyWindow(m_window);
         --s_GLFWWindowCount;
@@ -167,6 +171,8 @@ namespace Fermion
 
     void GLFWWindow::OnUpdate()
     {
+        FM_PROFILE_FUNCTION();
+
         m_context->swapBuffers();
 
         glfwPollEvents();
@@ -174,6 +180,7 @@ namespace Fermion
 
     void GLFWWindow::setVSync(bool enabled)
     {
+        FM_PROFILE_FUNCTION();
 
         if (enabled)
             glfwSwapInterval(1);
