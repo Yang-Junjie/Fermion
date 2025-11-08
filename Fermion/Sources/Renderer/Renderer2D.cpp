@@ -13,12 +13,14 @@ namespace Fermion
         glm::vec3 position;
         glm::vec4 color;
         glm::vec2 txCoord;
+        float texIndex;
     };
     struct Renderer2DData
     {
         uint32_t MaxQuads = 10000;
         uint32_t MaxVertices = MaxQuads * 4;
         uint32_t MaxIndices = MaxQuads * 6;
+        static const uint32_t MaxTextureSlots = 32;
 
         std::shared_ptr<VertexArray> QuadVertexArray;
         std::shared_ptr<VertexBuffer> QuadVertexBuffer;
@@ -28,6 +30,9 @@ namespace Fermion
         uint32_t QuadIndexCount = 0;
         QuadVertices *QuadVertexBufferBase = nullptr;
         QuadVertices *QuadVertexBufferPtr = nullptr;
+
+        std::array<std::shared_ptr<Texture2D>, MaxTextureSlots> TextureSlots;
+        uint32_t TextureSlotIndex = 1; // 0 = white texture
     };
 
     static Renderer2DData s_Data;
@@ -41,14 +46,15 @@ namespace Fermion
         s_Data.QuadVertexBuffer = VertexBuffer::create(s_Data.MaxVertices * sizeof(QuadVertices));
         s_Data.QuadVertexBuffer->setLayout({{ShaderDataType::Float3, "a_Position"},
                                             {ShaderDataType::Float4, "a_Color"},
-                                            {ShaderDataType::Float2, "a_TexCoord"}});
+                                            {ShaderDataType::Float2, "a_TexCoord"},
+                                            {ShaderDataType::Float, "a_TexIndex"}});
         s_Data.QuadVertexArray->addVertexBuffer(s_Data.QuadVertexBuffer);
 
         s_Data.QuadVertexBufferBase = new QuadVertices[s_Data.MaxVertices];
 
         uint32_t *quadIndeices = new uint32_t[s_Data.MaxIndices];
         uint32_t offset = 0;
-        for (uint32_t i = 0; i < s_Data.MaxVertices; i += 6)
+        for (uint32_t i = 0; i < s_Data.MaxIndices; i += 6)
         {
             quadIndeices[i + 0] = offset + 0;
             quadIndeices[i + 1] = offset + 1;
@@ -70,7 +76,12 @@ namespace Fermion
 
         s_Data.TextureShader = Shader::create("../game/assets/shaders/Texture.glsl");
         s_Data.TextureShader->bind();
-        s_Data.TextureShader->setInt("u_Texture", 0);
+        int samplers[s_Data.MaxTextureSlots];
+        for (uint32_t i = 0; i < s_Data.MaxTextureSlots; i++)
+            samplers[i] = i;
+        s_Data.TextureShader->setIntArray("u_Textures", samplers, s_Data.MaxTextureSlots);
+
+        s_Data.TextureSlots[0] = s_Data.WhiteTexture;
     }
 
     void Renderer2D::shutdown()
@@ -86,6 +97,8 @@ namespace Fermion
         s_Data.TextureShader->setMat4("u_ViewProjection", camera.getViewProjectionMatrix());
         s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
         s_Data.QuadIndexCount = 0;
+
+        s_Data.TextureSlotIndex = 1;
     }
 
     void Renderer2D::endScene()
@@ -99,6 +112,10 @@ namespace Fermion
     void Renderer2D::flush()
     {
         FM_PROFILE_FUNCTION();
+        for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
+        {
+            s_Data.TextureSlots[i]->bind(i);
+        }
         RenderCommand::drawIndexed(s_Data.QuadVertexArray);
     }
 
@@ -110,25 +127,29 @@ namespace Fermion
     void Renderer2D::drawQuad(const glm::vec3 &position, const glm::vec2 &size, const glm::vec4 &color)
     {
         FM_PROFILE_FUNCTION();
-
-        s_Data.QuadVertexBufferPtr->position = position; 
+        const float textureIndex = 0.0f;
+        s_Data.QuadVertexBufferPtr->position = position;
         s_Data.QuadVertexBufferPtr->color = color;
         s_Data.QuadVertexBufferPtr->txCoord = {0.0f, 0.0f};
+        s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
         s_Data.QuadVertexBufferPtr++;
 
-        s_Data.QuadVertexBufferPtr->position = {position.x + size.x, position.y, position.z}; 
+        s_Data.QuadVertexBufferPtr->position = {position.x + size.x, position.y, position.z};
         s_Data.QuadVertexBufferPtr->color = color;
         s_Data.QuadVertexBufferPtr->txCoord = {1.0f, 0.0f};
+        s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
         s_Data.QuadVertexBufferPtr++;
 
-        s_Data.QuadVertexBufferPtr->position = {position.x + size.x, position.y + size.y, position.z}; 
+        s_Data.QuadVertexBufferPtr->position = {position.x + size.x, position.y + size.y, position.z};
         s_Data.QuadVertexBufferPtr->color = color;
         s_Data.QuadVertexBufferPtr->txCoord = {1.0f, 1.0f};
+        s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
         s_Data.QuadVertexBufferPtr++;
 
-        s_Data.QuadVertexBufferPtr->position = {position.x, position.y + size.y, position.z}; 
+        s_Data.QuadVertexBufferPtr->position = {position.x, position.y + size.y, position.z};
         s_Data.QuadVertexBufferPtr->color = color;
         s_Data.QuadVertexBufferPtr->txCoord = {0.0f, 1.0f};
+        s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
         s_Data.QuadVertexBufferPtr++;
 
         s_Data.QuadIndexCount += 6;
@@ -153,15 +174,60 @@ namespace Fermion
     {
         FM_PROFILE_FUNCTION();
 
-        s_Data.TextureShader->setFloat4("u_Color", tintColor);
-        s_Data.TextureShader->setFloat("u_TilingFactor", tilingFactor);
-        texture->bind();
+        constexpr glm::vec4 color = glm::vec4(1.0f);
 
-        glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) * glm::scale(glm::mat4(1.0f), {size.x, size.y, 1.0f});
-        s_Data.TextureShader->setMat4("u_Transform", transform);
+        float textureIndex = 0.0f;
 
-        s_Data.QuadVertexArray->bind();
-        RenderCommand::drawIndexed(s_Data.QuadVertexArray);
+        for (uint32_t i = 1; i < s_Data.TextureSlotIndex; i++)
+        {
+            if (*s_Data.TextureSlots[i].get() == *texture.get())
+            {
+                textureIndex = (float)i;
+                break;
+            }
+        }
+        if (textureIndex == 0.0f)
+        {
+            textureIndex = (float)s_Data.TextureSlotIndex;
+            s_Data.TextureSlots[s_Data.TextureSlotIndex] = texture;
+            s_Data.TextureSlotIndex++;
+        }
+
+        s_Data.QuadVertexBufferPtr->position = position;
+        s_Data.QuadVertexBufferPtr->color = color;
+        s_Data.QuadVertexBufferPtr->txCoord = {0.0f, 0.0f};
+        s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
+        s_Data.QuadVertexBufferPtr++;
+
+        s_Data.QuadVertexBufferPtr->position = {position.x + size.x, position.y, position.z};
+        s_Data.QuadVertexBufferPtr->color = color;
+        s_Data.QuadVertexBufferPtr->txCoord = {1.0f, 0.0f};
+        s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
+        s_Data.QuadVertexBufferPtr++;
+
+        s_Data.QuadVertexBufferPtr->position = {position.x + size.x, position.y + size.y, position.z};
+        s_Data.QuadVertexBufferPtr->color = color;
+        s_Data.QuadVertexBufferPtr->txCoord = {1.0f, 1.0f};
+        s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
+        s_Data.QuadVertexBufferPtr++;
+
+        s_Data.QuadVertexBufferPtr->position = {position.x, position.y + size.y, position.z};
+        s_Data.QuadVertexBufferPtr->color = color;
+        s_Data.QuadVertexBufferPtr->txCoord = {0.0f, 1.0f};
+        s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
+        s_Data.QuadVertexBufferPtr++;
+
+        s_Data.QuadIndexCount += 6;
+
+        // s_Data.TextureShader->setFloat4("u_Color", tintColor);
+        // s_Data.TextureShader->setFloat("u_TilingFactor", tilingFactor);
+        // texture->bind();
+
+        // glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) * glm::scale(glm::mat4(1.0f), {size.x, size.y, 1.0f});
+        // s_Data.TextureShader->setMat4("u_Transform", transform);
+
+        // s_Data.QuadVertexArray->bind();
+        // RenderCommand::drawIndexed(s_Data.QuadVertexArray);
     }
     void Renderer2D::drawRotatedQuad(const glm::vec2 &position, const glm::vec2 &size, float radian, const glm::vec4 &color)
     {

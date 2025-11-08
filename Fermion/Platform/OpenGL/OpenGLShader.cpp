@@ -242,6 +242,10 @@ namespace Fermion
 
         uploadInt(name, value);
     }
+    void OpenGLShader::setIntArray(const std::string &name, int *values, uint32_t count)
+    {
+        uploadIntArray(name, values, count);
+    }
     void OpenGLShader::setFloat(const std::string &name, float value)
     {
         FM_PROFILE_FUNCTION();
@@ -281,6 +285,12 @@ namespace Fermion
     void OpenGLShader::uploadInt(const std::string &name, int value)
     {
         glUniform1i(getUniformLocation(name), value);
+    }
+
+    void OpenGLShader::uploadIntArray(const std::string &name, int *values, uint32_t count)
+    {
+        GLint location = glGetUniformLocation(m_rendererID, name.c_str());
+        glUniform1iv(location, count, values);
     }
 
     void OpenGLShader::uploadFloat(const std::string &name, float value)
