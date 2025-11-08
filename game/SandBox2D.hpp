@@ -17,7 +17,7 @@ public:
     {
         FM_PROFILE_FUNCTION();
 
-        m_checkerboardTexture = Fermion::Texture2D::create("../assets/textures/Checkerboard.png");
+        m_checkerboardTexture = Fermion::Texture2D::create("../game/assets/textures/Checkerboard.png");
     }
     virtual void onDetach() override
     {

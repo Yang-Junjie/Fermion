@@ -97,8 +97,8 @@ public:
 
         auto textureShader = m_shaderLibrary.load("../game/assets/shaders/Texture.glsl");
 
-        m_Texture = Fermion::Texture2D::create("../assets/textures/Checkerboard.png");
-        m_logoTexture = Fermion::Texture2D::create("../assets/textures/pslogo.png");
+        m_Texture = Fermion::Texture2D::create("../game/assets/textures/Checkerboard.png");
+        m_logoTexture = Fermion::Texture2D::create("../game/assets/textures/pslogo.png");
 
         textureShader->bind();
         textureShader->setInt("u_Texture", 0);
@@ -167,6 +167,5 @@ private:
 
     std::shared_ptr<Fermion::Texture2D> m_Texture, m_logoTexture;
 
-    // Fermion::OrthographicCamera m_camera;
     Fermion::OrthographicCameraController m_cameraController;
 };

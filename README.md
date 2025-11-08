@@ -28,6 +28,7 @@ Fermion 是一款基于 C++20 开发的轻量级游戏引擎。引擎采用模�
   - [spdlog](https://github.com/gabime/spdlog) - 快速日志库
   - [entt](https://github.com/skypjack/entt) - 高性能实体组件系统
   - [glm](https://github.com/g-truc/glm) - 数学库
+  - [stb](https://github.com/nothings/stb) - 图片加载库
 
 ## 项目结构
 
@@ -38,6 +39,7 @@ Fermion 是一款基于 C++20 开发的轻量级游戏引擎。引擎采用模�
 │   │   └── Window/   # 窗口系统实现
 │   └── Sources/      # 源代码目录
 │       ├── Core/     # 核心系统
+│       ├── Debug/    # 调试系统
 │       ├── Engine/   # 引擎主要功能
 │       ├── Events/   # 事件系统
 │       ├── ImGui/    # ImGui 集成
@@ -86,9 +88,6 @@ Fermion 是一款基于 C++20 开发的轻量级游戏引擎。引擎采用模�
    ```bash
    # Windows (Visual Studio)
    cmake --build . --config Release
-   
-   # Linux/macOS
-   cmake --build . -j$(nproc)
    ```
 
 4. **运行示例**
