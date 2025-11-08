@@ -14,6 +14,7 @@ namespace Fermion
         glm::vec4 color;
         glm::vec2 txCoord;
         float texIndex;
+        float tilingFactor;
     };
     struct Renderer2DData
     {
@@ -47,7 +48,8 @@ namespace Fermion
         s_Data.QuadVertexBuffer->setLayout({{ShaderDataType::Float3, "a_Position"},
                                             {ShaderDataType::Float4, "a_Color"},
                                             {ShaderDataType::Float2, "a_TexCoord"},
-                                            {ShaderDataType::Float, "a_TexIndex"}});
+                                            {ShaderDataType::Float, "a_TexIndex"},
+                                            {ShaderDataType::Float, "a_TilingFactor"}});
         s_Data.QuadVertexArray->addVertexBuffer(s_Data.QuadVertexBuffer);
 
         s_Data.QuadVertexBufferBase = new QuadVertices[s_Data.MaxVertices];
@@ -128,28 +130,34 @@ namespace Fermion
     {
         FM_PROFILE_FUNCTION();
         const float textureIndex = 0.0f;
+        const float tilingFactor = 1.0f;
+
         s_Data.QuadVertexBufferPtr->position = position;
         s_Data.QuadVertexBufferPtr->color = color;
         s_Data.QuadVertexBufferPtr->txCoord = {0.0f, 0.0f};
         s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
+        s_Data.QuadVertexBufferPtr->tilingFactor = tilingFactor;
         s_Data.QuadVertexBufferPtr++;
 
         s_Data.QuadVertexBufferPtr->position = {position.x + size.x, position.y, position.z};
         s_Data.QuadVertexBufferPtr->color = color;
         s_Data.QuadVertexBufferPtr->txCoord = {1.0f, 0.0f};
         s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
+        s_Data.QuadVertexBufferPtr->tilingFactor = tilingFactor;
         s_Data.QuadVertexBufferPtr++;
 
         s_Data.QuadVertexBufferPtr->position = {position.x + size.x, position.y + size.y, position.z};
         s_Data.QuadVertexBufferPtr->color = color;
         s_Data.QuadVertexBufferPtr->txCoord = {1.0f, 1.0f};
         s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
+        s_Data.QuadVertexBufferPtr->tilingFactor = tilingFactor;
         s_Data.QuadVertexBufferPtr++;
 
         s_Data.QuadVertexBufferPtr->position = {position.x, position.y + size.y, position.z};
         s_Data.QuadVertexBufferPtr->color = color;
         s_Data.QuadVertexBufferPtr->txCoord = {0.0f, 1.0f};
         s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
+        s_Data.QuadVertexBufferPtr->tilingFactor = tilingFactor;
         s_Data.QuadVertexBufferPtr++;
 
         s_Data.QuadIndexCount += 6;
@@ -197,24 +205,28 @@ namespace Fermion
         s_Data.QuadVertexBufferPtr->color = color;
         s_Data.QuadVertexBufferPtr->txCoord = {0.0f, 0.0f};
         s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
+        s_Data.QuadVertexBufferPtr->tilingFactor = tilingFactor;
         s_Data.QuadVertexBufferPtr++;
 
         s_Data.QuadVertexBufferPtr->position = {position.x + size.x, position.y, position.z};
         s_Data.QuadVertexBufferPtr->color = color;
         s_Data.QuadVertexBufferPtr->txCoord = {1.0f, 0.0f};
         s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
+        s_Data.QuadVertexBufferPtr->tilingFactor = tilingFactor;
         s_Data.QuadVertexBufferPtr++;
 
         s_Data.QuadVertexBufferPtr->position = {position.x + size.x, position.y + size.y, position.z};
         s_Data.QuadVertexBufferPtr->color = color;
         s_Data.QuadVertexBufferPtr->txCoord = {1.0f, 1.0f};
         s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
+        s_Data.QuadVertexBufferPtr->tilingFactor = tilingFactor;
         s_Data.QuadVertexBufferPtr++;
 
         s_Data.QuadVertexBufferPtr->position = {position.x, position.y + size.y, position.z};
         s_Data.QuadVertexBufferPtr->color = color;
         s_Data.QuadVertexBufferPtr->txCoord = {0.0f, 1.0f};
         s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
+        s_Data.QuadVertexBufferPtr->tilingFactor = tilingFactor;
         s_Data.QuadVertexBufferPtr++;
 
         s_Data.QuadIndexCount += 6;
