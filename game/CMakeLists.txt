@@ -1,4 +1,4 @@
-﻿add_executable(game GameApp.cpp)
+﻿add_executable(game GameApp.cpp ParticleSystem.cpp)
 
 # 指定输出目录
 set_target_properties(game PROPERTIES

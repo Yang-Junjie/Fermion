@@ -199,6 +199,8 @@ namespace Fermion
     {
         FM_PROFILE_FUNCTION();
 
+        
+
         if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
         {
             flushAndReset();
@@ -257,11 +259,11 @@ namespace Fermion
 
         s_Data.stats.quadCount++;
     }
-    void Renderer2D::drawRotatedQuad(const glm::vec2 &position, const glm::vec2 &size, float angle, const glm::vec4 &color)
+    void Renderer2D::drawRotatedQuad(const glm::vec2 &position, const glm::vec2 &size, float radians, const glm::vec4 &color)
     {
-        drawRotatedQuad(glm::vec3(position, 0.0f), size, angle, color);
+        drawRotatedQuad(glm::vec3(position, 0.0f), size, radians, color);
     }
-    void Renderer2D::drawRotatedQuad(const glm::vec3 &position, const glm::vec2 &size, float angle, const glm::vec4 &color)
+    void Renderer2D::drawRotatedQuad(const glm::vec3 &position, const glm::vec2 &size, float radians, const glm::vec4 &color)
     {
         FM_PROFILE_FUNCTION();
 
@@ -273,7 +275,7 @@ namespace Fermion
         const float tilingFactor = 1.0f;
 
         glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) *
-                              glm::rotate(glm::mat4(1.0f), glm::radians(angle), {0.0f, 0.0f, 1.0f}) *
+                              glm::rotate(glm::mat4(1.0f), radians, {0.0f, 0.0f, 1.0f}) *
                               glm::scale(glm::mat4(1.0f), {size.x, size.y, 1.0f});
 
         s_Data.QuadVertexBufferPtr->position = transform * s_Data.QuadVertexPositions[0];
@@ -308,12 +310,12 @@ namespace Fermion
 
         s_Data.stats.quadCount++;
     }
-    void Renderer2D::drawRotatedQuad(const glm::vec2 &position, const glm::vec2 &size, float angle,
+    void Renderer2D::drawRotatedQuad(const glm::vec2 &position, const glm::vec2 &size, float radians,
                                      const std::shared_ptr<Texture2D> &texture, float tilingFactor, glm::vec4 tintColor)
     {
-        drawRotatedQuad(glm::vec3(position, 0.0f), size, angle, texture, tilingFactor, tintColor);
+        drawRotatedQuad(glm::vec3(position, 0.0f), size, radians, texture, tilingFactor, tintColor);
     }
-    void Renderer2D::drawRotatedQuad(const glm::vec3 &position, const glm::vec2 &size, float angle,
+    void Renderer2D::drawRotatedQuad(const glm::vec3 &position, const glm::vec2 &size, float radians,
                                      const std::shared_ptr<Texture2D> &texture, float tilingFactor, glm::vec4 tintColor)
     {
         FM_PROFILE_FUNCTION();
@@ -341,7 +343,7 @@ namespace Fermion
         }
 
         glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) *
-                              glm::rotate(glm::mat4(1.0f), glm::radians(angle), {0.0f, 0.0f, 1.0f}) *
+                              glm::rotate(glm::mat4(1.0f), radians, {0.0f, 0.0f, 1.0f}) *
                               glm::scale(glm::mat4(1.0f), {size.x, size.y, 1.0f});
 
         s_Data.QuadVertexBufferPtr->position = transform * s_Data.QuadVertexPositions[0];
