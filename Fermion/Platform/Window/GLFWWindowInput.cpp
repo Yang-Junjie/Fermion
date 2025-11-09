@@ -7,21 +7,21 @@
 #include "GLFWMouseCodes.hpp"
 namespace Fermion {
 
-	bool Input::IsKeyPressed(const KeyCode key)
+	bool Input::isKeyPressed(const KeyCode key)
 	{
 		auto* window = static_cast<GLFWwindow*>(Engine::get().getWindow().getNativeWindow());
 		auto state = glfwGetKey(window, FMKeyCodeToGLFWKeyCode(key));
 		return state == GLFW_PRESS;
 	}
 
-	bool Input::IsMouseButtonPressed(const MouseCode button)
+	bool Input::isMouseButtonPressed(const MouseCode button)
 	{
 		auto* window = static_cast<GLFWwindow*>(Engine::get().getWindow().getNativeWindow());
 		auto state = glfwGetMouseButton(window, FMMouseCodeToGLFWMouseCode(button));
 		return state == GLFW_PRESS;
 	}
 
-	glm::vec2 Input::GetMousePosition()
+	glm::vec2 Input::getMousePosition()
 	{
 		auto* window = static_cast<GLFWwindow*>(Engine::get().getWindow().getNativeWindow());
 		double xpos, ypos;
@@ -30,14 +30,14 @@ namespace Fermion {
 		return { (float)xpos, (float)ypos };
 	}
 
-	float Input::GetMouseX()
+	float Input::getMouseX()
 	{
-		return GetMousePosition().x;
+		return getMousePosition().x;
 	}
 
-	float Input::GetMouseY()
+	float Input::getMouseY()
 	{
-		return GetMousePosition().y;
+		return getMousePosition().y;
 	}
 
 }

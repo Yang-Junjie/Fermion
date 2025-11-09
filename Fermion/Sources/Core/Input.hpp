@@ -10,11 +10,11 @@ namespace Fermion
     class Input
     {
     public:
-        static bool IsKeyPressed(KeyCode key);
+        static bool isKeyPressed(KeyCode key);
 
-        static bool IsMouseButtonPressed(MouseCode button);
-        static glm::vec2 GetMousePosition();
-        static float GetMouseX();
-        static float GetMouseY();
+        static bool isMouseButtonPressed(MouseCode button);
+        static glm::vec2 getMousePosition();
+        static float getMouseX();
+        static float getMouseY();
     };
 }

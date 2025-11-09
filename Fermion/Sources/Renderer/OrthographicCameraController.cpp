@@ -17,23 +17,23 @@ namespace Fermion
 	{
 		FM_PROFILE_FUNCTION();
 
-		if (Input::IsKeyPressed(KeyCode::A))
+		if (Input::isKeyPressed(KeyCode::A))
 		{
 			m_cameraPosition.x -= cos(glm::radians(m_cameraRotation)) * m_cameraTranslationSpeed * ts;
 			m_cameraPosition.y -= sin(glm::radians(m_cameraRotation)) * m_cameraTranslationSpeed * ts;
 		}
-		else if (Input::IsKeyPressed(KeyCode::D))
+		else if (Input::isKeyPressed(KeyCode::D))
 		{
 			m_cameraPosition.x += cos(glm::radians(m_cameraRotation)) * m_cameraTranslationSpeed * ts;
 			m_cameraPosition.y += sin(glm::radians(m_cameraRotation)) * m_cameraTranslationSpeed * ts;
 		}
 
-		if (Input::IsKeyPressed(KeyCode::W))
+		if (Input::isKeyPressed(KeyCode::W))
 		{
 			m_cameraPosition.x += -sin(glm::radians(m_cameraRotation)) * m_cameraTranslationSpeed * ts;
 			m_cameraPosition.y += cos(glm::radians(m_cameraRotation)) * m_cameraTranslationSpeed * ts;
 		}
-		else if (Input::IsKeyPressed(KeyCode::S))
+		else if (Input::isKeyPressed(KeyCode::S))
 		{
 			m_cameraPosition.x -= -sin(glm::radians(m_cameraRotation)) * m_cameraTranslationSpeed * ts;
 			m_cameraPosition.y -= cos(glm::radians(m_cameraRotation)) * m_cameraTranslationSpeed * ts;
@@ -41,9 +41,9 @@ namespace Fermion
 
 		if (m_rotation)
 		{
-			if (Input::IsKeyPressed(KeyCode::Q))
+			if (Input::isKeyPressed(KeyCode::Q))
 				m_cameraRotation += m_cameraRotationSpeed * ts;
-			if (Input::IsKeyPressed(KeyCode::E))
+			if (Input::isKeyPressed(KeyCode::E))
 				m_cameraRotation -= m_cameraRotationSpeed * ts;
 
 			if (m_cameraRotation > 180.0f)
