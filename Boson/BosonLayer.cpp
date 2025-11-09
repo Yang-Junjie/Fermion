@@ -29,7 +29,8 @@ void BosonLayer::onDetach()
 void BosonLayer::onUpdate(Fermion::Timestep dt)
 {
     FM_PROFILE_FUNCTION();
-    m_cameraController.onUpdate(dt);
+    if (m_viewportFocused)
+        m_cameraController.onUpdate(dt);
 
     // Ensure framebuffer matches current viewport size before rendering
     if (m_framebuffer)
@@ -157,13 +158,18 @@ void BosonLayer::onImGuiRender()
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{0, 0});
         ImGui::Begin("Viewport");
+
+        m_viewportFocused = ImGui::IsWindowFocused();
+        m_viewportHovered = ImGui::IsWindowHovered();
+        Fermion::Engine::get().getImGuiLayer()->blockEvents(!m_viewportFocused || !m_viewportHovered);
+
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
         if (m_viewportSize.x != viewportPanelSize.x || m_viewportSize.y != viewportPanelSize.y)
         {
             m_viewportSize = {viewportPanelSize.x, viewportPanelSize.y};
             m_cameraController.onResize(m_viewportSize.x, m_viewportSize.y);
-        } 
-        
+        }
+
         // Fermion::Log::Info(std::format("viewportPanelSize: ({0}, {1})", viewportPanelSize.x, viewportPanelSize.y));
         uint32_t textureID = m_framebuffer->getColorAttachmentRendererID();
         ImGui::Image(reinterpret_cast<void *>(static_cast<intptr_t>(textureID)), ImVec2(m_viewportSize.x, m_viewportSize.y), ImVec2(0, 1), ImVec2(1, 0));

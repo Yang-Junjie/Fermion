@@ -29,7 +29,7 @@ namespace Fermion
         void blockEvents(bool block) { m_blockEvents = block; }
 
     private:
-        bool m_blockEvents = false;
+        bool m_blockEvents = true;
         GLFWwindow *m_window;
     };
 }

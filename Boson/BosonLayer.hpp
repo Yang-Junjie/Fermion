@@ -34,4 +34,6 @@ private:
     std::shared_ptr<Fermion::Framebuffer> m_framebuffer;
 
     glm::vec2 m_viewportSize { 0.0f, 0.0f };
+    bool m_viewportFocused = false;
+    bool m_viewportHovered = false;
 };
