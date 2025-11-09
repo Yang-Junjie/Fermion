@@ -36,6 +36,8 @@ namespace Fermion
         IWindow &getWindow() { return *m_window; }
         ImGuiLayer *getImGuiLayer() { return m_imGuiLayerRaw; }
 
+        void close() { m_running = false; }
+
         void run();
         static Engine &get() { return *s_instance; }
 
