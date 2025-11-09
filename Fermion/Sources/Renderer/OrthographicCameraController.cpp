@@ -71,12 +71,16 @@ namespace Fermion
 											   { return this->onWindowResized(e); });
 	}
 
-	void OrthographicCameraController::onResize(float width, float height)
-	{
-		m_aspectRatio = width / height;
-		m_camera.setProjection(-m_aspectRatio * m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel);
-		
-	}
+void OrthographicCameraController::onResize(float width, float height)
+{
+    if (height <= 0.0f)
+        return;
+    m_aspectRatio = width / height;
+	Log::Info("Window Resized: " + std::to_string(width) + "x" + std::to_string(height));
+	Log::Info("Aspect Ratio: " + std::to_string(m_aspectRatio));
+    m_camera.setProjection(-m_aspectRatio * m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel);
+    
+}
 
 	bool OrthographicCameraController::onMouseScrolled(MouseScrolledEvent &e)
 	{
@@ -84,6 +88,7 @@ namespace Fermion
 
 		m_zoomLevel -= e.getYOffset() * 0.25f;
 		m_zoomLevel = std::max(m_zoomLevel, 0.25f);
+		
 		m_camera.setProjection(-m_aspectRatio * m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel);
 
 		return false;

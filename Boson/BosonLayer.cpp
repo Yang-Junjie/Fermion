@@ -6,7 +6,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-BosonLayer::BosonLayer(const std::string &name) : Layer(name), m_cameraController(1290.0f / 720.0f)
+BosonLayer::BosonLayer(const std::string &name) : Layer(name), m_cameraController(1280.0f / 720.0f)
 {
 }
 void BosonLayer::onAttach()
@@ -32,7 +32,6 @@ void BosonLayer::onUpdate(Fermion::Timestep dt)
     if (m_viewportFocused)
         m_cameraController.onUpdate(dt);
 
-    // Ensure framebuffer matches current viewport size before rendering
     if (m_framebuffer)
     {
         const auto &spec = m_framebuffer->getSpecification();
@@ -78,7 +77,12 @@ void BosonLayer::onUpdate(Fermion::Timestep dt)
 
 void BosonLayer::onEvent(Fermion::IEvent &event)
 {
-    m_cameraController.onEvent(event);
+    Fermion::EventDispatcher dispatcher(event);
+    dispatcher.dispatch<Fermion::WindowResizeEvent>([](Fermion::WindowResizeEvent &e) {
+        return true;
+    });
+    if (!event.handled)
+        m_cameraController.onEvent(event);
 }
 
 void BosonLayer::onImGuiRender()
@@ -164,13 +168,14 @@ void BosonLayer::onImGuiRender()
         Fermion::Engine::get().getImGuiLayer()->blockEvents(!m_viewportFocused || !m_viewportHovered);
 
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-        if (m_viewportSize.x != viewportPanelSize.x || m_viewportSize.y != viewportPanelSize.y)
+        if ((m_viewportSize.x != viewportPanelSize.x || m_viewportSize.y != viewportPanelSize.y) && viewportPanelSize.x > 0.0f && viewportPanelSize.y > 0.0f)
         {
+
             m_viewportSize = {viewportPanelSize.x, viewportPanelSize.y};
+            Fermion::Log::Info(std::format("viewportPanelSize: ({0}, {1})", m_viewportSize.x, m_viewportSize.y));
             m_cameraController.onResize(m_viewportSize.x, m_viewportSize.y);
         }
 
-        // Fermion::Log::Info(std::format("viewportPanelSize: ({0}, {1})", viewportPanelSize.x, viewportPanelSize.y));
         uint32_t textureID = m_framebuffer->getColorAttachmentRendererID();
         ImGui::Image(reinterpret_cast<void *>(static_cast<intptr_t>(textureID)), ImVec2(m_viewportSize.x, m_viewportSize.y), ImVec2(0, 1), ImVec2(1, 0));
         ImGui::End();
