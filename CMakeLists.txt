@@ -7,6 +7,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # option(USE_SFML "Use SFML as rendering backend" OFF)
 option(USE_GLFW "Use GLFW as rendering backend" ON)
 
+# build boson
+option(BUILD_BOSON "Build Boson" ON)
+# option(BUILD_GAME "Build Fermion" OFF)
+
+# build game
+# option(BUILD_BOSON "Build Boson" OFF)
+option(BUILD_GAME "Build Fermion" ON)
+
+
 # 输出目录
 set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
 
@@ -33,6 +42,16 @@ add_subdirectory(external/spdlog)
 add_subdirectory(external/entt)
 add_subdirectory(external/glm)
 
+
+
 # Fermion 
 add_subdirectory(Fermion)
+
+if(BUILD_GAME)
 add_subdirectory(game)
+endif()
+
+# Boson
+if(BUILD_BOSON)
+add_subdirectory(Boson)
+endif()

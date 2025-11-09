@@ -8,7 +8,7 @@ namespace Fermion
     class GameApp : public Engine
     {
     public:
-        GameApp()
+        GameApp(): Engine("SandBox")
         {
             Log::Info("GameApp constructor called");
             // pushLayer(std::make_unique<GameLayer>());

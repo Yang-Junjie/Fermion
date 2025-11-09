@@ -5,11 +5,13 @@
 namespace Fermion
 {
     Engine *Engine::s_instance = nullptr;
-    Engine::Engine()
+    Engine::Engine(const std::string& name)
     {
         FM_PROFILE_FUNCTION();
         s_instance = this;
         WindowProps windowProps;
+        
+        windowProps.title = name;
         m_window = IWindow::create(windowProps);
         m_window->setEventCallback([this](IEvent &event)
                                    { this->onEvent(event); });

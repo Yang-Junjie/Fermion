@@ -27,7 +27,7 @@ namespace Fermion
     class Engine
     {
     public:
-        Engine();
+        Engine(const std::string& name = "Fermion Engine");
         virtual ~Engine() = default;
 
         void pushLayer(std::unique_ptr<Layer> layer);

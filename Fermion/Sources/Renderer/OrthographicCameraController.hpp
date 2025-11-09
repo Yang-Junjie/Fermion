@@ -8,15 +8,6 @@
 
 namespace Fermion
 {
-	// temp
-	struct OrthographicCameraBounds
-	{
-		float left, right;
-		float bottom, top;
-
-		float getWidth() { return right - left; }
-		float getHeight() { return top - bottom; }
-	};
 	class OrthographicCameraController
 	{
 	public:
@@ -33,7 +24,7 @@ namespace Fermion
 		float getZoomLevel() const { return m_zoomLevel; }
 		void setZoomLevel(float level) { m_zoomLevel = level; }
 
-		OrthographicCameraBounds getBounds() const { return m_bounds; }
+		
 	private:
 		bool onMouseScrolled(MouseScrolledEvent &e);
 		bool onWindowResized(WindowResizeEvent &e);
@@ -41,7 +32,7 @@ namespace Fermion
 	private:
 		float m_aspectRatio;
 		float m_zoomLevel = 1.0f;
-		OrthographicCameraBounds m_bounds;
+		
 		OrthographicCamera m_camera;
 
 		bool m_rotation;
