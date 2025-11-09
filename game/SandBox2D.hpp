@@ -28,16 +28,23 @@ public:
         FM_PROFILE_FUNCTION();
         m_cameraController.onUpdate(dt);
 
+
+        Fermion::Renderer2D::resetStatistics();
         Fermion::RenderCommand::setClearColor({0.2f, 0.3f, 0.3f, 1.0f});
         Fermion::RenderCommand::clear();
+
         {
             FM_PROFILE_SCOPE("Renderer Draw");
+            static float rotation = 0.0f;
+            rotation += dt * 10.0f;
+
             Fermion::Renderer2D::beginScene(m_cameraController.getCamera());
             Fermion::Renderer2D::drawQuad(glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.8f, 0.8f), glm::vec4(0.8f, 0.2f, 0.3f, 1.0f));
+            Fermion::Renderer2D::drawRotatedQuad(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.8f, 0.8f), 15.0f, glm::vec4(0.2f, 0.3f, 0.8f, 1.0f));
             Fermion::Renderer2D::drawQuad(glm::vec3(0.5f, 0.5f, 0.0f), glm::vec2(0.5f, 0.75f), m_squareColor);
-            Fermion::Renderer2D::drawQuad(glm::vec3(-5.0f, -5.0f, -0.1f), glm::vec2(10.0f, 10.0f), m_checkerboardTexture, 10);
-            Fermion::Renderer2D::drawQuad(glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec2(1.0f, 1.0f), m_checkerboardTexture, 20);
-            
+            Fermion::Renderer2D::drawQuad(glm::vec3(0.0f, 0.0f, -0.1f), glm::vec2(10.0f, 10.0f), m_checkerboardTexture, 10);
+            Fermion::Renderer2D::drawRotatedQuad(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec2(1.0f, 1.0f), rotation, m_checkerboardTexture, 20);
+
             Fermion::Renderer2D::endScene();
         }
     }
@@ -50,6 +57,14 @@ public:
         FM_PROFILE_FUNCTION();
 
         ImGui::Begin("Settings");
+        ImGui::Text("Statistics");
+        Fermion::Renderer2D::Satistics stats = Fermion::Renderer2D::getStatistics();
+        ImGui::Text("Draw Calls: %d", stats.drawCalls);
+        ImGui::Text("Quads: %d", stats.quadCount);
+        ImGui::Text("Vertices: %d", stats.getTotalVertexCount());
+        ImGui::Text("Indices: %d", stats.getTotalIndexCount());
+
+
         ImGui::ColorEdit4("Square Color", glm::value_ptr(m_squareColor));
         ImGui::End();
     }
