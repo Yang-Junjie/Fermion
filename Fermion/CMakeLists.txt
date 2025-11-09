@@ -27,6 +27,7 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Renderer/OrthographicCameraController.cpp
     ${FERMION_DIR}/Renderer/Shader.cpp
     ${FERMION_DIR}/Renderer/Texture.cpp
+    ${FERMION_DIR}/Renderer/SubTexture2D.cpp
 
 
 )
