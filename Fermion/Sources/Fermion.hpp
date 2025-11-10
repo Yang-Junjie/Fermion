@@ -23,6 +23,7 @@
 // Scene
 #include "Scene/Scene.hpp"
 #include "Scene/Components.hpp"
+#include "Scene/Entity.hpp"
 
 // Renderer
 #include "Renderer/Buffer.hpp"

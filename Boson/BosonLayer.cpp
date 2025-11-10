@@ -24,10 +24,9 @@ namespace Fermion
         m_framebuffer = Framebuffer::create(fbSpec);
 
         m_activeScene = std::make_shared<Scene>();
-        auto squre = m_activeScene->createEntity();
-        m_squareEntity = squre;
-        m_activeScene->getRegistry().emplace<TransformComponent>(squre);
-        m_activeScene->getRegistry().emplace<SpriteRendererComponent>(squre, m_squareColor);
+        m_squareEntity = m_activeScene->createEntity("square");
+        m_squareEntity.addComponent<SpriteRendererComponent>(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+      
     }
     void BosonLayer::onDetach()
     {
@@ -136,8 +135,11 @@ namespace Fermion
             ImGui::Text("Vertices: %d", stats.getTotalVertexCount());
             ImGui::Text("Indices: %d", stats.getTotalIndexCount());
 
-            auto& m_squareColor = m_activeScene->getRegistry().get<SpriteRendererComponent>(m_squareEntity).color;
-            ImGui::ColorEdit4("Square Color", glm::value_ptr(m_squareColor));
+            if (static_cast<bool>(m_squareEntity))
+            {
+                auto &colorRef = m_squareEntity.getComponent<SpriteRendererComponent>().color;
+                ImGui::ColorEdit4("Square Color", glm::value_ptr(colorRef));
+            }
 
             ImGui::End();
 

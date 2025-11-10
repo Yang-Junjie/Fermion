@@ -115,19 +115,24 @@ namespace Fermion
     void Renderer2D::endScene()
     {
         FM_PROFILE_FUNCTION();
+        if (s_Data.QuadIndexCount == 0)
+            return;
         uint32_t dataSize = (uint32_t)((uint8_t *)s_Data.QuadVertexBufferPtr - (uint8_t *)s_Data.QuadVertexBufferBase);
-        s_Data.QuadVertexBuffer->setData(s_Data.QuadVertexBufferBase, dataSize);
+        if (dataSize > 0)
+            s_Data.QuadVertexBuffer->setData(s_Data.QuadVertexBufferBase, dataSize);
         flush();
     }
 
     void Renderer2D::flush()
     {
         FM_PROFILE_FUNCTION();
+        if (s_Data.QuadIndexCount == 0)
+            return;
         for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
         {
             s_Data.TextureSlots[i]->bind(i);
         }
-        RenderCommand::drawIndexed(s_Data.QuadVertexArray);
+        RenderCommand::drawIndexed(s_Data.QuadVertexArray, s_Data.QuadIndexCount);
         s_Data.stats.drawCalls++;
     }
 

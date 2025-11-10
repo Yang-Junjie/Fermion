@@ -1,5 +1,6 @@
 ﻿#include "fmpch.hpp"
 #include "Scene/Scene.hpp"
+#include "Scene/Entity.hpp"
 #include "Scene/Components.hpp"
 #include "Renderer/Renderer2D.hpp"
 #include <glm/glm.hpp>
@@ -24,8 +25,12 @@ namespace Fermion
         }
     }
 
-    entt::entity Scene::createEntity()
+    Entity Scene::createEntity(std::string name)
     {
-        return m_registry.create();
+        Entity entity{ m_registry.create(), this };
+        entity.addComponent<TransformComponent>();
+        // Add tag component with name (or default)
+        entity.addComponent<TagComponent>(name.empty() ? std::string("unknown") : name);
+        return entity;
     }
 }

@@ -45,6 +45,6 @@ namespace Fermion
         bool m_viewportHovered = false;
 
         std::shared_ptr<Scene> m_activeScene;
-        entt::entity m_squareEntity;
+        Entity m_squareEntity;
     };
 }

@@ -2,7 +2,14 @@
 #include <glm/glm.hpp>
 namespace Fermion
 {
-
+    struct TagComponent
+    {
+        std::string tag;
+        TagComponent() = default;
+        TagComponent(const std::string &tag) : tag(tag) {}
+        TagComponent(const TagComponent &tag) = default;
+    };
+    
     struct TransformComponent
     {
         glm::mat4 transform{1.0f};
@@ -25,6 +32,7 @@ namespace Fermion
         glm::vec4 color{1.0f, 1.0f, 1.0f, 1.0f};
         SpriteRendererComponent() = default;
         SpriteRendererComponent(const glm::vec4 &color) : color(color) {}
-        SpriteRendererComponent(const SpriteRendererComponent& ) = default;
+        SpriteRendererComponent(const SpriteRendererComponent &) = default;
     };
+
 }

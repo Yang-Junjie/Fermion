@@ -4,6 +4,7 @@
 
 namespace Fermion
 {
+    class Entity;
     class Scene
     {
     public:
@@ -11,12 +12,11 @@ namespace Fermion
         ~Scene();
         void onUpdate(Timestep ts);
 
-        entt::entity createEntity();
-
-        // temp
-        entt::registry &getRegistry() { return m_registry; }
+        Entity createEntity(std::string name = std::string());
 
     private:
         entt::registry m_registry;
+
+        friend class Entity;
     };
 }

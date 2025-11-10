@@ -31,6 +31,7 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Renderer/SubTexture2D.cpp
 
     ${FERMION_DIR}/Scene/Scene.cpp
+    ${FERMION_DIR}/Scene/Entity.cpp
 
 
 )
