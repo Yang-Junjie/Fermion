@@ -5,180 +5,189 @@
 #include <imgui.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
-BosonLayer::BosonLayer(const std::string &name) : Layer(name), m_cameraController(1280.0f / 720.0f)
+namespace Fermion
 {
-}
-void BosonLayer::onAttach()
-{
-    FM_PROFILE_FUNCTION();
-
-    m_checkerboardTexture = Fermion::Texture2D::create("../game/assets/textures/Checkerboard.png");
-    m_spriteSheet = Fermion::Texture2D::create("../game/assets/game/RPGpack_sheet_2X.png");
-
-    Fermion::FramebufferSpecification fbSpec;
-    fbSpec.width = 1280;
-    fbSpec.height = 720;
-    fbSpec.attachments = {Fermion::FramebufferTextureFormat::RGBA8, Fermion::FramebufferTextureFormat::DEPTH24STENCIL8};
-    m_framebuffer = Fermion::Framebuffer::create(fbSpec);
-}
-void BosonLayer::onDetach()
-{
-    FM_PROFILE_FUNCTION();
-}
-void BosonLayer::onUpdate(Fermion::Timestep dt)
-{
-    FM_PROFILE_FUNCTION();
-    if (m_viewportFocused)
-        m_cameraController.onUpdate(dt);
-
-    if (m_framebuffer)
+    BosonLayer::BosonLayer(const std::string &name) : Layer(name), m_cameraController(1280.0f / 720.0f)
     {
-        const auto &spec = m_framebuffer->getSpecification();
-        if (m_viewportSize.x > 0.0f && m_viewportSize.y > 0.0f &&
-            (spec.width != static_cast<uint32_t>(m_viewportSize.x) || spec.height != static_cast<uint32_t>(m_viewportSize.y)))
-        {
-            m_framebuffer->resize(static_cast<uint32_t>(m_viewportSize.x), static_cast<uint32_t>(m_viewportSize.y));
-            m_cameraController.onResize(m_viewportSize.x, m_viewportSize.y);
-        }
+    }
+    void BosonLayer::onAttach()
+    {
+        FM_PROFILE_FUNCTION();
+
+        m_checkerboardTexture = Texture2D::create("../game/assets/textures/Checkerboard.png");
+        m_spriteSheet = Texture2D::create("../game/assets/game/RPGpack_sheet_2X.png");
+
+        FramebufferSpecification fbSpec;
+        fbSpec.width = 1280;
+        fbSpec.height = 720;
+        fbSpec.attachments = {FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::DEPTH24STENCIL8};
+        m_framebuffer = Framebuffer::create(fbSpec);
+
+        m_activeScene = std::make_shared<Scene>();
+        auto squre = m_activeScene->createEntity();
+        m_squareEntity = squre;
+        m_activeScene->getRegistry().emplace<TransformComponent>(squre);
+        m_activeScene->getRegistry().emplace<SpriteRendererComponent>(squre, m_squareColor);
+    }
+    void BosonLayer::onDetach()
+    {
+        FM_PROFILE_FUNCTION();
+    }
+    void BosonLayer::onUpdate(Timestep dt)
+    {
+        FM_PROFILE_FUNCTION();
+        applyPendingViewportResize();
+
+        if (m_viewportFocused)
+            m_cameraController.onUpdate(dt);
+
+        Renderer2D::resetStatistics();
+        m_framebuffer->bind();
+        RenderCommand::setClearColor({0.2f, 0.3f, 0.3f, 1.0f});
+        RenderCommand::clear();
+
+        Renderer2D::beginScene(m_cameraController.getCamera());
+
+        m_activeScene->onUpdate(dt);
+
+        Renderer2D::endScene();
+
+        m_framebuffer->unbind();
     }
 
-    Fermion::Renderer2D::resetStatistics();
-    m_framebuffer->bind();
-    Fermion::RenderCommand::setClearColor({0.2f, 0.3f, 0.3f, 1.0f});
-    Fermion::RenderCommand::clear();
-
+    void BosonLayer::onEvent(IEvent &event)
     {
-        FM_PROFILE_SCOPE("Renderer Draw");
-        static float rotation = 0.0f;
-        rotation += dt * 10.0f;
+        EventDispatcher dispatcher(event);
+        dispatcher.dispatch<WindowResizeEvent>([](WindowResizeEvent &e)
+                                               { return true; });
+        if (!event.handled)
+            m_cameraController.onEvent(event);
+    }
 
-        Fermion::Renderer2D::beginScene(m_cameraController.getCamera());
-        Fermion::Renderer2D::drawQuad(glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec2(0.8f, 0.8f), glm::vec4(0.8f, 0.2f, 0.3f, 1.0f));
-        Fermion::Renderer2D::drawRotatedQuad(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec2(0.8f, 0.8f), glm::radians(45.0f), glm::vec4(0.2f, 0.3f, 0.8f, 1.0f));
-        Fermion::Renderer2D::drawQuad(glm::vec3(0.5f, 0.5f, 0.0f), glm::vec2(0.5f, 0.75f), m_squareColor);
-        Fermion::Renderer2D::drawQuad(glm::vec3(0.0f, 0.0f, -0.1f), glm::vec2(20.0f, 20.0f), m_checkerboardTexture, 10);
-        Fermion::Renderer2D::drawRotatedQuad(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec2(1.0f, 1.0f), glm::radians(rotation), m_checkerboardTexture, 20);
-        Fermion::Renderer2D::endScene();
-
-        Fermion::Renderer2D::beginScene(m_cameraController.getCamera());
-        for (float y = -5.0f; y < 5.0f; y += 0.5f)
+    void BosonLayer::onImGuiRender()
+    {
+        FM_PROFILE_FUNCTION();
+        static bool dockspaceOpen = true;
+        if (dockspaceOpen)
         {
-            for (float x = -5.0f; x < 5.0f; x += 0.5f)
+            static bool opt_fullscreen = true;
+            static bool opt_padding = false;
+            static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+
+            // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
+            // because it would be confusing to have two docking targets within each others.
+            ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+            if (opt_fullscreen)
             {
-                glm::vec4 color = {(x + 5.0f) / 10.0f, 0.4f, (y + 5.0f) / 10.0f, 0.7f};
-                Fermion::Renderer2D::drawQuad({x + 0.25f, y + 0.25f}, glm::vec2(0.45f, 0.45f), color);
+                const ImGuiViewport *viewport = ImGui::GetMainViewport();
+                ImGui::SetNextWindowPos(viewport->WorkPos);
+                ImGui::SetNextWindowSize(viewport->WorkSize);
+                ImGui::SetNextWindowViewport(viewport->ID);
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+                window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+                window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
             }
-        }
-        Fermion::Renderer2D::endScene();
-    }
-    m_framebuffer->unbind();
-}
+            else
+            {
+                dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
+            }
+            if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+                window_flags |= ImGuiWindowFlags_NoBackground;
 
-void BosonLayer::onEvent(Fermion::IEvent &event)
-{
-    Fermion::EventDispatcher dispatcher(event);
-    dispatcher.dispatch<Fermion::WindowResizeEvent>([](Fermion::WindowResizeEvent &e) {
-        return true;
-    });
-    if (!event.handled)
-        m_cameraController.onEvent(event);
-}
+            if (!opt_padding)
+                ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+            ImGui::Begin("DockSpace Demo", &dockspaceOpen, window_flags);
+            if (!opt_padding)
+                ImGui::PopStyleVar();
 
-void BosonLayer::onImGuiRender()
-{
-    FM_PROFILE_FUNCTION();
-    static bool dockspaceOpen = true;
-    if (dockspaceOpen)
-    {
-        static bool opt_fullscreen = true;
-        static bool opt_padding = false;
-        static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+            if (opt_fullscreen)
+                ImGui::PopStyleVar(2);
 
-        // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
-        // because it would be confusing to have two docking targets within each others.
-        ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-        if (opt_fullscreen)
-        {
-            const ImGuiViewport *viewport = ImGui::GetMainViewport();
-            ImGui::SetNextWindowPos(viewport->WorkPos);
-            ImGui::SetNextWindowSize(viewport->WorkSize);
-            ImGui::SetNextWindowViewport(viewport->ID);
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-            window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-            window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-        }
-        else
-        {
-            dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
-        }
-        if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
-            window_flags |= ImGuiWindowFlags_NoBackground;
+            ImGuiIO &io = ImGui::GetIO();
+            if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+            {
+                ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+                ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+            }
 
-        if (!opt_padding)
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-        ImGui::Begin("DockSpace Demo", &dockspaceOpen, window_flags);
-        if (!opt_padding)
+            // Show demo options and help
+            if (ImGui::BeginMenuBar())
+            {
+                if (ImGui::BeginMenu("File"))
+                {
+                    if (ImGui::MenuItem("Exit"))
+                        Engine::get().close();
+
+                    ImGui::EndMenu();
+                }
+
+                ImGui::EndMenuBar();
+            }
+
+            ImGui::End();
+
+            ImGui::ShowDemoWindow();
+            ImGui::Begin("Settings");
+            ImGui::Text("Statistics");
+            Renderer2D::Satistics stats = Renderer2D::getStatistics();
+            ImGui::Text("Draw Calls: %d", stats.drawCalls);
+            ImGui::Text("Quads: %d", stats.quadCount);
+            ImGui::Text("Vertices: %d", stats.getTotalVertexCount());
+            ImGui::Text("Indices: %d", stats.getTotalIndexCount());
+
+            auto& m_squareColor = m_activeScene->getRegistry().get<SpriteRendererComponent>(m_squareEntity).color;
+            ImGui::ColorEdit4("Square Color", glm::value_ptr(m_squareColor));
+
+            ImGui::End();
+
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{0, 0});
+            ImGui::Begin("Viewport");
+
+            m_viewportFocused = ImGui::IsWindowFocused();
+            m_viewportHovered = ImGui::IsWindowHovered();
+            Engine::get().getImGuiLayer()->blockEvents(!m_viewportFocused || !m_viewportHovered);
+
+            ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+            setViewportSize({viewportPanelSize.x, viewportPanelSize.y});
+
+            uint32_t textureID = m_framebuffer->getColorAttachmentRendererID();
+            ImGui::Image(reinterpret_cast<void *>(static_cast<intptr_t>(textureID)), ImVec2(viewportPanelSize.x, viewportPanelSize.y), ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::End();
             ImGui::PopStyleVar();
-
-        if (opt_fullscreen)
-            ImGui::PopStyleVar(2);
-
-        ImGuiIO &io = ImGui::GetIO();
-        if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
-        {
-            ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-            ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
         }
+    }
 
-        // Show demo options and help
-        if (ImGui::BeginMenuBar())
+    void BosonLayer::setViewportSize(const glm::vec2 &newSize)
+    {
+        if (newSize.x <= 0.0f || newSize.y <= 0.0f)
+            return;
+        // Defer real resize to beginning of next onUpdate
+        if (m_viewportSize == newSize && !m_hasPendingViewportResize)
+            return;
+
+        m_pendingViewportSize = newSize;
+        m_hasPendingViewportResize = true;
+    }
+
+    void BosonLayer::applyPendingViewportResize()
+    {
+        if (!m_hasPendingViewportResize)
+            return;
+
+        m_viewportSize = m_pendingViewportSize;
+
+        if (m_framebuffer)
         {
-            if (ImGui::BeginMenu("File"))
+            const auto &spec = m_framebuffer->getSpecification();
+            if (spec.width != static_cast<uint32_t>(m_viewportSize.x) ||
+                spec.height != static_cast<uint32_t>(m_viewportSize.y))
             {
-                if (ImGui::MenuItem("Exit"))
-                    Fermion::Engine::get().close();
-
-                ImGui::EndMenu();
+                m_framebuffer->resize(static_cast<uint32_t>(m_viewportSize.x),
+                                      static_cast<uint32_t>(m_viewportSize.y));
             }
-
-            ImGui::EndMenuBar();
         }
-
-        ImGui::End();
-
-        ImGui::ShowDemoWindow();
-        ImGui::Begin("Settings");
-        ImGui::Text("Statistics");
-        Fermion::Renderer2D::Satistics stats = Fermion::Renderer2D::getStatistics();
-        ImGui::Text("Draw Calls: %d", stats.drawCalls);
-        ImGui::Text("Quads: %d", stats.quadCount);
-        ImGui::Text("Vertices: %d", stats.getTotalVertexCount());
-        ImGui::Text("Indices: %d", stats.getTotalIndexCount());
-        ImGui::ColorEdit4("Square Color", glm::value_ptr(m_squareColor));
-
-        ImGui::End();
-
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{0, 0});
-        ImGui::Begin("Viewport");
-
-        m_viewportFocused = ImGui::IsWindowFocused();
-        m_viewportHovered = ImGui::IsWindowHovered();
-        Fermion::Engine::get().getImGuiLayer()->blockEvents(!m_viewportFocused || !m_viewportHovered);
-
-        ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-        if ((m_viewportSize.x != viewportPanelSize.x || m_viewportSize.y != viewportPanelSize.y) && viewportPanelSize.x > 0.0f && viewportPanelSize.y > 0.0f)
-        {
-
-            m_viewportSize = {viewportPanelSize.x, viewportPanelSize.y};
-            Fermion::Log::Info(std::format("viewportPanelSize: ({0}, {1})", m_viewportSize.x, m_viewportSize.y));
-            m_cameraController.onResize(m_viewportSize.x, m_viewportSize.y);
-        }
-
-        uint32_t textureID = m_framebuffer->getColorAttachmentRendererID();
-        ImGui::Image(reinterpret_cast<void *>(static_cast<intptr_t>(textureID)), ImVec2(m_viewportSize.x, m_viewportSize.y), ImVec2(0, 1), ImVec2(1, 0));
-        ImGui::End();
-        ImGui::PopStyleVar();
+        m_cameraController.onResize(m_viewportSize.x, m_viewportSize.y);
+        m_hasPendingViewportResize = false;
     }
 }

@@ -20,6 +20,10 @@
 // ImGui
 #include "ImGui/ImGuiLayer.hpp"
 
+// Scene
+#include "Scene/Scene.hpp"
+#include "Scene/Components.hpp"
+
 // Renderer
 #include "Renderer/Buffer.hpp"
 #include "Renderer/GraphicsContext.hpp"

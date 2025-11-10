@@ -30,6 +30,8 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Renderer/Texture.cpp
     ${FERMION_DIR}/Renderer/SubTexture2D.cpp
 
+    ${FERMION_DIR}/Scene/Scene.cpp
+
 
 )
 

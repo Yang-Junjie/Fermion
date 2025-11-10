@@ -76,8 +76,6 @@ void OrthographicCameraController::onResize(float width, float height)
     if (height <= 0.0f)
         return;
     m_aspectRatio = width / height;
-	Log::Info("Window Resized: " + std::to_string(width) + "x" + std::to_string(height));
-	Log::Info("Aspect Ratio: " + std::to_string(m_aspectRatio));
     m_camera.setProjection(-m_aspectRatio * m_zoomLevel, m_aspectRatio * m_zoomLevel, -m_zoomLevel, m_zoomLevel);
     
 }
