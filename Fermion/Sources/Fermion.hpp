@@ -24,6 +24,7 @@
 #include "Scene/Scene.hpp"
 #include "Scene/Components.hpp"
 #include "Scene/Entity.hpp"
+#include "Scene/ScriptableEntity.hpp"
 
 // Renderer
 #include "Renderer/Buffer.hpp"

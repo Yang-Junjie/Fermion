@@ -8,6 +8,29 @@
 #include <glm/glm.hpp>
 namespace Fermion
 {
+    class CameraController : public ScriptableEntity
+    {
+    public:
+        void onCreate()
+        {
+        }
+        void onDestroy()
+        {
+        }
+        void onUpdate(Timestep ts)
+        {
+            auto &transform = getComponent<TransformComponent>().transform;
+            float speed = 5.0f;
+            if (Input::isKeyPressed(KeyCode::A))
+                transform[3][0] -= speed * ts;
+            if (Input::isKeyPressed(KeyCode::D))
+                transform[3][0] += speed * ts;
+            if (Input::isKeyPressed(KeyCode::W))
+                transform[3][1] += speed * ts;
+            if (Input::isKeyPressed(KeyCode::S))
+                transform[3][1] -= speed * ts;
+        }
+    };
     BosonLayer::BosonLayer(const std::string &name) : Layer(name), m_cameraController(1280.0f / 720.0f)
     {
     }
@@ -22,7 +45,6 @@ namespace Fermion
 
         m_framebuffer = Framebuffer::create(fbSpec);
 
-        
         m_activeScene = std::make_shared<Scene>();
         m_squareEntity = m_activeScene->createEntity("square");
         m_squareEntity.addComponent<SpriteRendererComponent>(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
@@ -34,7 +56,7 @@ namespace Fermion
         auto &cc = m_secondCameraEntity.addComponent<CameraComponent>();
         cc.primary = false;
 
-        m_activeScene->onViewportResize(fbSpec.width, fbSpec.height);
+        m_cameraEntity.addComponent<NativeScriptComponent>().bind<CameraController>();
     }
     void BosonLayer::onDetach()
     {

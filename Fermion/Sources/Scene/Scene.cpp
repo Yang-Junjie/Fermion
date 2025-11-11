@@ -18,6 +18,21 @@ namespace Fermion
 
     void Scene::onUpdate(Timestep ts)
     {
+
+        m_registry.view<NativeScriptComponent>().each(
+            [=](auto entity, auto &nsc)
+            {
+                if (!nsc.instance)
+                {
+                    nsc.instantiateFunction();
+                    nsc.instance->m_entity = Entity{entity, this};
+                    if (nsc.onCreateFunction)
+                        nsc.onCreateFunction(nsc.instance);
+                }
+                if (nsc.onUpdateFunction)
+                    nsc.onUpdateFunction(nsc.instance, ts);
+            });
+
         Camera *mainCamera = nullptr;
         glm::mat4 *cameraTransform = nullptr;
 
@@ -59,12 +74,13 @@ namespace Fermion
         m_viewportHeight = height;
 
         auto view = m_registry.view<CameraComponent>();
-        for (auto entity : view){
+        for (auto entity : view)
+        {
             auto &cameraComponent = view.get<CameraComponent>(entity);
-            if(!cameraComponent.fixedAspectRatio){
-                 cameraComponent.camera.setViewportSize(width, height);
+            if (!cameraComponent.fixedAspectRatio)
+            {
+                cameraComponent.camera.setViewportSize(width, height);
             }
-
         }
     }
     Entity Scene::createEntity(std::string name)
