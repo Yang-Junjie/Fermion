@@ -24,13 +24,11 @@ namespace Fermion
             {
                 if (!nsc.instance)
                 {
-                    nsc.instantiateFunction();
+                    nsc.instance = nsc.instantiateScript();
                     nsc.instance->m_entity = Entity{entity, this};
-                    if (nsc.onCreateFunction)
-                        nsc.onCreateFunction(nsc.instance);
+                    nsc.instance->onCreate();
                 }
-                if (nsc.onUpdateFunction)
-                    nsc.onUpdateFunction(nsc.instance, ts);
+                nsc.instance->onUpdate(ts);
             });
 
         Camera *mainCamera = nullptr;
@@ -87,7 +85,6 @@ namespace Fermion
     {
         Entity entity{m_registry.create(), this};
         entity.addComponent<TransformComponent>();
-        // Add tag component with name (or default)
         entity.addComponent<TagComponent>(name.empty() ? std::string("unknown") : name);
         return entity;
     }

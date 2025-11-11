@@ -53,27 +53,21 @@ namespace Fermion
     {
         ScriptableEntity *instance = nullptr;
 
-        std::function<void()> instantiateFunction;
-        std::function<void()> destroyInstanceFunction;
-
-        std::function<void(ScriptableEntity *instance)> onCreateFunction;
-        std::function<void(ScriptableEntity *instance)> onDestroyFunction;
-        std::function<void(ScriptableEntity *instance, Timestep ts)> onUpdateFunction;
+        ScriptableEntity *(*instantiateScript)();
+        void (*destroyScript)(NativeScriptComponent *);
 
         template <typename T>
         void bind()
         {
-            instantiateFunction = [this]()
-            { instance = new T(); };
-            destroyInstanceFunction = [this]()
-            { delete static_cast<T*>(instance);instance = nullptr; };
-
-            onCreateFunction = [this](ScriptableEntity *instance)
-            { static_cast<T *>(instance)->onCreate(); };
-            onDestroyFunction = [this](ScriptableEntity *instance)
-            { static_cast<T *>(instance)->onDestroy(); };
-            onUpdateFunction = [this](ScriptableEntity *instance, Timestep ts)
-            { static_cast<T *>(instance)->onUpdate(ts); };
+            instantiateScript = []()
+            {
+                return static_cast<ScriptableEntity *>(new T());
+            };
+            destroyScript = [](NativeScriptComponent *nsc)
+            {
+                delete nsc->instance;
+                nsc->instance = nullptr;
+            };
         }
     };
 

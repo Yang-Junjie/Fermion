@@ -57,6 +57,7 @@ namespace Fermion
         cc.primary = false;
 
         m_cameraEntity.addComponent<NativeScriptComponent>().bind<CameraController>();
+        m_secondCameraEntity.addComponent<NativeScriptComponent>().bind<CameraController>();
     }
     void BosonLayer::onDetach()
     {

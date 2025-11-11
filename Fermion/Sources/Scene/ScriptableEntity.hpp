@@ -6,11 +6,16 @@ namespace Fermion
     class ScriptableEntity
     {
     public:
+        virtual ~ScriptableEntity() = default;
         template <typename T>
         T &getComponent()
         {
             return m_entity.getComponent<T>();
         }
+
+        virtual void onCreate() {}
+        virtual void onDestroy() {}
+        virtual void onUpdate(Timestep ts) {}
 
     private:
         Entity m_entity;
