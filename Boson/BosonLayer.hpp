@@ -21,30 +21,25 @@ namespace Fermion
         virtual void onImGuiRender() override;
 
     private:
-        void setViewportSize(const glm::vec2 &newSize);
-        void applyPendingViewportResize();
-
-        std::shared_ptr<VertexArray> m_squareVA;
-        std::shared_ptr<Shader> m_flatColorShader;
+       
         glm::vec4 m_squareColor = {0.2, 0.3, 0.8, 1.0};
-
-        std::shared_ptr<Texture2D> m_checkerboardTexture;
-        std::shared_ptr<Texture2D> m_spriteSheet;
-        std::shared_ptr<SubTexture2D> m_textureStairs;
-        std::shared_ptr<SubTexture2D> m_textureBarrel;
-        std::shared_ptr<SubTexture2D> m_textureTree;
-
         OrthographicCameraController m_cameraController;
 
         std::shared_ptr<Framebuffer> m_framebuffer;
 
         glm::vec2 m_viewportSize{0.0f, 0.0f};
-        glm::vec2 m_pendingViewportSize{0.0f, 0.0f};
-        bool m_hasPendingViewportResize = false;
+       
+       
         bool m_viewportFocused = false;
         bool m_viewportHovered = false;
 
         std::shared_ptr<Scene> m_activeScene;
         Entity m_squareEntity;
+
+        Entity m_cameraEntity; 
+        Entity m_secondCameraEntity;
+
+        bool m_primaryCamera = true;
+
     };
 }

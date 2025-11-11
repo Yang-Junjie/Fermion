@@ -2,6 +2,8 @@
 #include "Renderer/OrthographicCameraController.hpp"
 #include "Renderer/Texture.hpp"
 #include "Renderer/SubTexture2D.hpp"
+#include "Renderer/Camera.hpp"
+
 namespace Fermion
 {
     class Renderer2D
@@ -11,6 +13,8 @@ namespace Fermion
         static void shutdown();
 
         static void beginScene(const OrthographicCamera &camera);
+        static void beginScene(const Camera &camera,const glm::mat4& Transform);
+
         static void endScene();
 
         static void flush();

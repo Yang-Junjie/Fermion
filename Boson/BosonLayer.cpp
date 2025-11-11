@@ -5,6 +5,7 @@
 #include <imgui.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/glm.hpp>
 namespace Fermion
 {
     BosonLayer::BosonLayer(const std::string &name) : Layer(name), m_cameraController(1280.0f / 720.0f)
@@ -14,19 +15,26 @@ namespace Fermion
     {
         FM_PROFILE_FUNCTION();
 
-        m_checkerboardTexture = Texture2D::create("../game/assets/textures/Checkerboard.png");
-        m_spriteSheet = Texture2D::create("../game/assets/game/RPGpack_sheet_2X.png");
-
         FramebufferSpecification fbSpec;
         fbSpec.width = 1280;
         fbSpec.height = 720;
         fbSpec.attachments = {FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::DEPTH24STENCIL8};
+
         m_framebuffer = Framebuffer::create(fbSpec);
 
+        
         m_activeScene = std::make_shared<Scene>();
         m_squareEntity = m_activeScene->createEntity("square");
         m_squareEntity.addComponent<SpriteRendererComponent>(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-      
+
+        m_cameraEntity = m_activeScene->createEntity("camera");
+        m_cameraEntity.addComponent<CameraComponent>();
+
+        m_secondCameraEntity = m_activeScene->createEntity("camera2");
+        auto &cc = m_secondCameraEntity.addComponent<CameraComponent>();
+        cc.primary = false;
+
+        m_activeScene->onViewportResize(fbSpec.width, fbSpec.height);
     }
     void BosonLayer::onDetach()
     {
@@ -35,7 +43,15 @@ namespace Fermion
     void BosonLayer::onUpdate(Timestep dt)
     {
         FM_PROFILE_FUNCTION();
-        applyPendingViewportResize();
+
+        // Resize
+        if (FramebufferSpecification spec = m_framebuffer->getSpecification();
+            m_viewportSize.x > 0 && m_viewportSize.y > 0 && (spec.width != m_viewportSize.x || spec.height != m_viewportSize.y))
+        {
+            m_framebuffer->resize(m_viewportSize.x, m_viewportSize.y);
+            m_cameraController.onResize(m_viewportSize.x, m_viewportSize.y);
+            m_activeScene->onViewportResize(m_viewportSize.x, m_viewportSize.y);
+        }
 
         if (m_viewportFocused)
             m_cameraController.onUpdate(dt);
@@ -45,11 +61,11 @@ namespace Fermion
         RenderCommand::setClearColor({0.2f, 0.3f, 0.3f, 1.0f});
         RenderCommand::clear();
 
-        Renderer2D::beginScene(m_cameraController.getCamera());
+        // Renderer2D::beginScene(m_cameraController.getCamera());
 
         m_activeScene->onUpdate(dt);
 
-        Renderer2D::endScene();
+        // Renderer2D::endScene();
 
         m_framebuffer->unbind();
     }
@@ -137,9 +153,30 @@ namespace Fermion
 
             if (static_cast<bool>(m_squareEntity))
             {
+                ImGui::Separator();
+                ImGui::Text("%s", m_squareEntity.getComponent<TagComponent>().tag.c_str());
                 auto &colorRef = m_squareEntity.getComponent<SpriteRendererComponent>().color;
                 ImGui::ColorEdit4("Square Color", glm::value_ptr(colorRef));
+                ImGui::Separator();
             }
+
+            ImGui::Separator();
+            ImGui::Text("Camera");
+            ImGui::DragFloat3("Camera Position", glm::value_ptr(m_cameraEntity.getComponent<TransformComponent>().transform[3]));
+
+            if (ImGui::Checkbox("Camera Rotation", &m_primaryCamera))
+            {
+                m_secondCameraEntity.getComponent<CameraComponent>().primary = !m_primaryCamera;
+                m_cameraEntity.getComponent<CameraComponent>().primary = m_primaryCamera;
+            }
+
+            {
+                auto &camera = m_secondCameraEntity.getComponent<CameraComponent>().camera;
+                float orthoSize = camera.getOrthographicSize();
+                if (ImGui::DragFloat("Orthographic Size", &orthoSize))
+                    camera.setOrthographicSize(orthoSize);
+            }
+            ImGui::Separator();
 
             ImGui::End();
 
@@ -151,7 +188,8 @@ namespace Fermion
             Engine::get().getImGuiLayer()->blockEvents(!m_viewportFocused || !m_viewportHovered);
 
             ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-            setViewportSize({viewportPanelSize.x, viewportPanelSize.y});
+
+            m_viewportSize = {viewportPanelSize.x, viewportPanelSize.y};
 
             uint32_t textureID = m_framebuffer->getColorAttachmentRendererID();
             ImGui::Image(reinterpret_cast<void *>(static_cast<intptr_t>(textureID)), ImVec2(viewportPanelSize.x, viewportPanelSize.y), ImVec2(0, 1), ImVec2(1, 0));
@@ -160,36 +198,4 @@ namespace Fermion
         }
     }
 
-    void BosonLayer::setViewportSize(const glm::vec2 &newSize)
-    {
-        if (newSize.x <= 0.0f || newSize.y <= 0.0f)
-            return;
-        // Defer real resize to beginning of next onUpdate
-        if (m_viewportSize == newSize && !m_hasPendingViewportResize)
-            return;
-
-        m_pendingViewportSize = newSize;
-        m_hasPendingViewportResize = true;
-    }
-
-    void BosonLayer::applyPendingViewportResize()
-    {
-        if (!m_hasPendingViewportResize)
-            return;
-
-        m_viewportSize = m_pendingViewportSize;
-
-        if (m_framebuffer)
-        {
-            const auto &spec = m_framebuffer->getSpecification();
-            if (spec.width != static_cast<uint32_t>(m_viewportSize.x) ||
-                spec.height != static_cast<uint32_t>(m_viewportSize.y))
-            {
-                m_framebuffer->resize(static_cast<uint32_t>(m_viewportSize.x),
-                                      static_cast<uint32_t>(m_viewportSize.y));
-            }
-        }
-        m_cameraController.onResize(m_viewportSize.x, m_viewportSize.y);
-        m_hasPendingViewportResize = false;
-    }
 }
