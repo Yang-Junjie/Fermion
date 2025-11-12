@@ -140,6 +140,7 @@ namespace Fermion
             if (!opt_padding)
                 ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 
+            // DockSpace
             {
                 ImGui::Begin("DockSpace Demo", &dockspaceOpen, window_flags);
                 if (!opt_padding)
@@ -170,60 +171,41 @@ namespace Fermion
                 }
                 ImGui::End();
             }
+            // Scene Hierarchy
             m_sceneHierarchyPanel.onImGuiRender();
 
-            ImGui::Begin("Settings");
-            ImGui::Text("Statistics");
-            Renderer2D::Satistics stats = Renderer2D::getStatistics();
-            ImGui::Text("Draw Calls: %d", stats.drawCalls);
-            ImGui::Text("Quads: %d", stats.quadCount);
-            ImGui::Text("Vertices: %d", stats.getTotalVertexCount());
-            ImGui::Text("Indices: %d", stats.getTotalIndexCount());
-
-            if (static_cast<bool>(m_squareEntity))
+            // Statistics
             {
-                ImGui::Separator();
-                ImGui::Text("%s", m_squareEntity.getComponent<TagComponent>().tag.c_str());
-                auto &colorRef = m_squareEntity.getComponent<SpriteRendererComponent>().color;
-                ImGui::ColorEdit4("Square Color", glm::value_ptr(colorRef));
-                ImGui::Separator();
+                ImGui::Begin("Settings");
+                ImGui::Text("Statistics");
+                Renderer2D::Satistics stats = Renderer2D::getStatistics();
+                ImGui::Text("Draw Calls: %d", stats.drawCalls);
+                ImGui::Text("Quads: %d", stats.quadCount);
+                ImGui::Text("Vertices: %d", stats.getTotalVertexCount());
+                ImGui::Text("Indices: %d", stats.getTotalIndexCount());
+
+                ImGui::End();
             }
-
-            ImGui::Separator();
-            ImGui::Text("Camera");
-            ImGui::DragFloat3("Camera Position", glm::value_ptr(m_cameraEntity.getComponent<TransformComponent>().transform[3]));
-
-            if (ImGui::Checkbox("Camera Rotation", &m_primaryCamera))
-            {
-                m_secondCameraEntity.getComponent<CameraComponent>().primary = !m_primaryCamera;
-                m_cameraEntity.getComponent<CameraComponent>().primary = m_primaryCamera;
-            }
-
-            {
-                auto &camera = m_secondCameraEntity.getComponent<CameraComponent>().camera;
-                float orthoSize = camera.getOrthographicSize();
-                if (ImGui::DragFloat("Orthographic Size", &orthoSize))
-                    camera.setOrthographicSize(orthoSize);
-            }
-            ImGui::Separator();
-
-            ImGui::End();
 
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{0, 0});
-            ImGui::Begin("Viewport");
 
-            m_viewportFocused = ImGui::IsWindowFocused();
-            m_viewportHovered = ImGui::IsWindowHovered();
-            Engine::get().getImGuiLayer()->blockEvents(!m_viewportFocused || !m_viewportHovered);
+            // Viewport
+            {
+                ImGui::Begin("Viewport");
 
-            ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+                m_viewportFocused = ImGui::IsWindowFocused();
+                m_viewportHovered = ImGui::IsWindowHovered();
+                Engine::get().getImGuiLayer()->blockEvents(!m_viewportFocused || !m_viewportHovered);
 
-            m_viewportSize = {viewportPanelSize.x, viewportPanelSize.y};
+                ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 
-            uint32_t textureID = m_framebuffer->getColorAttachmentRendererID();
-            ImGui::Image(reinterpret_cast<void *>(static_cast<intptr_t>(textureID)), ImVec2(viewportPanelSize.x, viewportPanelSize.y), ImVec2(0, 1), ImVec2(1, 0));
-            ImGui::End();
-            ImGui::PopStyleVar();
+                m_viewportSize = {viewportPanelSize.x, viewportPanelSize.y};
+
+                uint32_t textureID = m_framebuffer->getColorAttachmentRendererID();
+                ImGui::Image(reinterpret_cast<void *>(static_cast<intptr_t>(textureID)), ImVec2(viewportPanelSize.x, viewportPanelSize.y), ImVec2(0, 1), ImVec2(1, 0));
+                ImGui::End();
+                ImGui::PopStyleVar();
+            }
         }
     }
 

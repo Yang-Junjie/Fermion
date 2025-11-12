@@ -120,7 +120,7 @@ namespace Fermion
 
 				if (camera.getProjectionType() == SceneCamera::ProjectionType::Perspective)
 				{
-					
+
 					float perspectiveFOV = glm::degrees(camera.getPerspectiveFOV());
 					if (ImGui::DragFloat("FOV", &perspectiveFOV))
 					{
@@ -137,7 +137,6 @@ namespace Fermion
 					{
 						camera.setPerspectiveFarClip(perspectiveFar);
 					}
-
 				}
 				if (camera.getProjectionType() == SceneCamera::ProjectionType::Orthographic)
 				{
@@ -146,7 +145,7 @@ namespace Fermion
 					{
 						camera.setOrthographicSize(orthoSize);
 					}
-					
+
 					float orthoNear = camera.getOrthographicNearClip();
 					if (ImGui::DragFloat("Near", &orthoNear))
 					{
@@ -160,6 +159,17 @@ namespace Fermion
 
 					ImGui::Checkbox("Fixed Aspect Ratio", &cameraComponent.fixedAspectRatio);
 				}
+				ImGui::TreePop();
+			}
+		}
+		if (entity.hasComponent<SpriteRendererComponent>())
+		{
+			if (ImGui::TreeNodeEx((void *)typeid(SpriteRendererComponent).hash_code(),
+								  ImGuiTreeNodeFlags_DefaultOpen,
+								  "Sprite Renderer"))
+			{
+				auto &spriteRendererComponent = entity.getComponent<SpriteRendererComponent>();
+				ImGui::ColorEdit4("Color", glm::value_ptr(spriteRendererComponent.color));
 				ImGui::TreePop();
 			}
 		}
