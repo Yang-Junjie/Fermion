@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include "BosonLayer.hpp"
 #include "Fermion.hpp"
-
 #include <imgui.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -22,13 +21,13 @@ namespace Fermion
             auto &transform = getComponent<TransformComponent>().transform;
             float speed = 5.0f;
             if (Input::isKeyPressed(KeyCode::A))
-                transform[3][0] -= speed * ts;
-            if (Input::isKeyPressed(KeyCode::D))
                 transform[3][0] += speed * ts;
+            if (Input::isKeyPressed(KeyCode::D))
+                transform[3][0] -= speed * ts;
             if (Input::isKeyPressed(KeyCode::W))
-                transform[3][1] += speed * ts;
-            if (Input::isKeyPressed(KeyCode::S))
                 transform[3][1] -= speed * ts;
+            if (Input::isKeyPressed(KeyCode::S))
+                transform[3][1] += speed * ts;
         }
     };
     BosonLayer::BosonLayer(const std::string &name) : Layer(name), m_cameraController(1280.0f / 720.0f)
@@ -58,6 +57,8 @@ namespace Fermion
 
         m_cameraEntity.addComponent<NativeScriptComponent>().bind<CameraController>();
         m_secondCameraEntity.addComponent<NativeScriptComponent>().bind<CameraController>();
+
+        m_sceneHierarchyPanel.setContext(m_activeScene);
     }
     void BosonLayer::onDetach()
     {
@@ -135,37 +136,39 @@ namespace Fermion
 
             if (!opt_padding)
                 ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-            ImGui::Begin("DockSpace Demo", &dockspaceOpen, window_flags);
-            if (!opt_padding)
-                ImGui::PopStyleVar();
 
-            if (opt_fullscreen)
-                ImGui::PopStyleVar(2);
-
-            ImGuiIO &io = ImGui::GetIO();
-            if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
             {
-                ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-                ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-            }
+                ImGui::Begin("DockSpace Demo", &dockspaceOpen, window_flags);
+                if (!opt_padding)
+                    ImGui::PopStyleVar();
 
-            // Show demo options and help
-            if (ImGui::BeginMenuBar())
-            {
-                if (ImGui::BeginMenu("File"))
+                if (opt_fullscreen)
+                    ImGui::PopStyleVar(2);
+
+                ImGuiIO &io = ImGui::GetIO();
+                if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
                 {
-                    if (ImGui::MenuItem("Exit"))
-                        Engine::get().close();
-
-                    ImGui::EndMenu();
+                    ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+                    ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
                 }
 
-                ImGui::EndMenuBar();
+                // Show demo options and help
+                if (ImGui::BeginMenuBar())
+                {
+                    if (ImGui::BeginMenu("File"))
+                    {
+                        if (ImGui::MenuItem("Exit"))
+                            Engine::get().close();
+
+                        ImGui::EndMenu();
+                    }
+
+                    ImGui::EndMenuBar();
+                }
+                ImGui::End();
             }
+            m_sceneHierarchyPanel.onImGuiRender();
 
-            ImGui::End();
-
-            ImGui::ShowDemoWindow();
             ImGui::Begin("Settings");
             ImGui::Text("Statistics");
             Renderer2D::Satistics stats = Renderer2D::getStatistics();

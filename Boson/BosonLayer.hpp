@@ -2,6 +2,8 @@
 #include "Fermion.hpp"
 
 #include <imgui.h>
+
+#include "Panels/SceneHierarchyPanel.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 namespace Fermion
@@ -41,5 +43,6 @@ namespace Fermion
 
         bool m_primaryCamera = true;
 
+        SceneHierarchyPanel m_sceneHierarchyPanel;
     };
 }

@@ -3,7 +3,7 @@
 #include "Renderer/SceneCamera.hpp"
 #include "Scene/ScriptableEntity.hpp"
 #include "fmpch.hpp"
-#include "Core/TimeStep.hpp"
+#include "Core/Timestep.hpp"
 namespace Fermion
 {
     struct TagComponent
