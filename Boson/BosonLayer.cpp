@@ -45,8 +45,11 @@ namespace Fermion
         m_framebuffer = Framebuffer::create(fbSpec);
 
         m_activeScene = std::make_shared<Scene>();
-        m_squareEntity = m_activeScene->createEntity("square");
-        m_squareEntity.addComponent<SpriteRendererComponent>(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+        auto greenSquare = m_activeScene->createEntity("green square");
+        greenSquare.addComponent<SpriteRendererComponent>(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+
+        auto redSquare = m_activeScene->createEntity("red square");
+        redSquare.addComponent<SpriteRendererComponent>(glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 
         m_cameraEntity = m_activeScene->createEntity("camera");
         m_cameraEntity.addComponent<CameraComponent>();

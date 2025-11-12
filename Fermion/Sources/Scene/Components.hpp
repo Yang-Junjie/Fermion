@@ -47,6 +47,7 @@ namespace Fermion
         CameraComponent() = default;
         CameraComponent(const glm::mat4 &projection) : camera(projection) {}
         CameraComponent(const CameraComponent &camera) = default;
+      
     };
 
     struct NativeScriptComponent

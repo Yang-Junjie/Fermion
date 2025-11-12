@@ -10,7 +10,7 @@ namespace Fermion
         void setProjection(const glm::mat4 &m_projection) { this->m_projection = m_projection; }
 
         const glm::mat4 &getProjection() const { return m_projection; }
-    private:
+    protected:
         glm::mat4 m_projection;
     };
 
