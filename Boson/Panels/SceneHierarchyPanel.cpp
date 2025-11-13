@@ -5,6 +5,7 @@
 
 #include <entt/entt.hpp>
 #include "Scene/Components.hpp"
+#include "Scene/Scene.hpp"
 #include <glm/gtc/type_ptr.hpp>
 
 namespace Fermion
@@ -34,12 +35,40 @@ namespace Fermion
 		{
 			m_selectedEntity = {};
 		}
+		if (ImGui::BeginPopupContextWindow("WindowContextMenu", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
+		{
+			if (ImGui::MenuItem("Create Empty Entity"))
+			{
+				m_context->createEntity("Empty Entity");
+			}
+			ImGui::EndPopup();
+		}
+
 		ImGui::End();
 
 		ImGui::Begin("Properties");
 		if (m_selectedEntity)
 		{
 			drawComponents(m_selectedEntity);
+			if (ImGui::Button("Add Component"))
+			{
+				ImGui::OpenPopup("Add Component");
+			}
+			if (ImGui::BeginPopup("Add Component"))
+			{
+				if (ImGui::MenuItem("Sprite Renderer"))
+				{
+					m_selectedEntity.addComponent<SpriteRendererComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+				if (ImGui::MenuItem("Camera"))
+				{
+					m_selectedEntity.addComponent<CameraComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+
+				ImGui::EndPopup();
+			}
 		}
 		ImGui::End();
 	}
@@ -55,9 +84,27 @@ namespace Fermion
 			m_selectedEntity = entity;
 		}
 
+		bool enetityDeleted = false;
+		if (ImGui::BeginPopupContextItem())
+		{
+			if (ImGui::MenuItem("Delete Entity"))
+			{
+				enetityDeleted = true;
+			}
+			ImGui::EndPopup();
+		}
 		if (opend)
 		{
 			ImGui::TreePop();
+		}
+
+		if (enetityDeleted)
+		{
+			m_context->destroyEntity(entity);
+			if (m_selectedEntity == entity)
+			{
+				m_selectedEntity = {};
+			}
 		}
 	}
 
@@ -135,11 +182,13 @@ namespace Fermion
 				tag = std::string(buffer);
 			}
 		}
+		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowOverlap;
 		if (entity.hasComponent<TransformComponent>())
 		{
-			if (ImGui::TreeNodeEx((void *)typeid(TransformComponent).hash_code(),
-								  ImGuiTreeNodeFlags_DefaultOpen,
-								  "Transform"))
+			bool open = ImGui::TreeNodeEx((void *)typeid(TransformComponent).hash_code(),
+										  treeNodeFlags,
+										  "Transform");
+			if (open)
 			{
 				auto &tc = entity.getComponent<TransformComponent>();
 				drawVec3Control("Translation", tc.translation);
@@ -231,13 +280,36 @@ namespace Fermion
 		}
 		if (entity.hasComponent<SpriteRendererComponent>())
 		{
-			if (ImGui::TreeNodeEx((void *)typeid(SpriteRendererComponent).hash_code(),
-								  ImGuiTreeNodeFlags_DefaultOpen,
-								  "Sprite Renderer"))
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{4, 4});
+			bool open = ImGui::TreeNodeEx((void *)typeid(SpriteRendererComponent).hash_code(),
+										  treeNodeFlags,
+										  "Sprite Renderer");
+			ImGui::PopStyleVar();
+
+			ImGui::SameLine(ImGui::GetWindowWidth() - 25.0f);
+			if (ImGui::Button("+"))
+			{
+				ImGui::OpenPopup("ComponentSettings");
+			}
+			bool removeComponent = false;
+			if (ImGui::BeginPopup("ComponentSettings"))
+			{
+				if (ImGui::MenuItem("Remove Component"))
+				{
+					removeComponent = true;
+					ImGui::CloseCurrentPopup();
+				}
+				ImGui::EndPopup();
+			}
+			if (open)
 			{
 				auto &spriteRendererComponent = entity.getComponent<SpriteRendererComponent>();
 				ImGui::ColorEdit4("Color", glm::value_ptr(spriteRendererComponent.color));
 				ImGui::TreePop();
+			}
+			if (removeComponent)
+			{
+				entity.removeComponent<SpriteRendererComponent>();
 			}
 		}
 	}

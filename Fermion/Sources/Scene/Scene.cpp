@@ -32,7 +32,7 @@ namespace Fermion
             });
 
         Camera *mainCamera = nullptr;
-        glm::mat4 cameraTransform ;
+        glm::mat4 cameraTransform;
 
         {
             auto view = m_registry.view<CameraComponent, TransformComponent>();
@@ -88,4 +88,11 @@ namespace Fermion
         entity.addComponent<TagComponent>(name.empty() ? std::string("unknown") : name);
         return entity;
     }
+    void Scene::destroyEntity(Entity entity)
+    {
+        m_registry.destroy(entity);
+    }
+
+ 
+
 }

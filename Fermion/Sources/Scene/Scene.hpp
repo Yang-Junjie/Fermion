@@ -4,6 +4,7 @@
 
 namespace Fermion
 {
+
     class Entity;
     class Scene
     {
@@ -14,6 +15,9 @@ namespace Fermion
         void onViewportResize(uint32_t width, uint32_t height);
 
         Entity createEntity(std::string name = std::string());
+        void destroyEntity(Entity entity);
+
+      
 
     private:
         entt::registry m_registry;
@@ -22,4 +26,5 @@ namespace Fermion
         friend class Entity;
         friend class SceneHierarchyPanel;
     };
+
 }
