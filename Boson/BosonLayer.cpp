@@ -12,22 +12,24 @@ namespace Fermion
     public:
         void onCreate()
         {
+            auto &translation = getComponent<TransformComponent>().translation;
+            translation.x = rand() % 10 - 5.0f;
         }
         void onDestroy()
         {
         }
         void onUpdate(Timestep ts)
         {
-            auto &transform = getComponent<TransformComponent>().transform;
+            auto &translation = getComponent<TransformComponent>().translation;
             float speed = 5.0f;
             if (Input::isKeyPressed(KeyCode::A))
-                transform[3][0] += speed * ts;
+                translation.x += speed * ts;
             if (Input::isKeyPressed(KeyCode::D))
-                transform[3][0] -= speed * ts;
+                translation.x -= speed * ts;
             if (Input::isKeyPressed(KeyCode::W))
-                transform[3][1] -= speed * ts;
+                translation.y -= speed * ts;
             if (Input::isKeyPressed(KeyCode::S))
-                transform[3][1] += speed * ts;
+                translation.y += speed * ts;
         }
     };
     BosonLayer::BosonLayer(const std::string &name) : Layer(name), m_cameraController(1280.0f / 720.0f)

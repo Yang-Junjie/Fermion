@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include "Renderer/SceneCamera.hpp"
 #include "Scene/ScriptableEntity.hpp"
 #include "fmpch.hpp"
@@ -16,18 +17,20 @@ namespace Fermion
 
     struct TransformComponent
     {
-        glm::mat4 transform{1.0f};
+        glm::vec3 translation{0.0f, 0.0f, 0.0f};
+        glm::vec3 rotation{0.0f, 0.0f, 0.0f};
+        glm::vec3 scale{1.0f, 1.0f, 1.0f};
+
         TransformComponent() = default;
-        TransformComponent(const glm::mat4 &transform) : transform(transform) {}
+        TransformComponent(const glm::vec3 &translation) : translation(translation) {}
         TransformComponent(const TransformComponent &transform) = default;
 
-        operator glm::mat4 &()
+        glm::mat4 getTransform() const
         {
-            return transform;
-        }
-        operator const glm::mat4 &() const
-        {
-            return transform;
+            glm::mat4 Rotation = glm::rotate(glm::mat4(1.0f), rotation.x, {1.0f, 0.0f, 0.0f});
+            Rotation = glm::rotate(Rotation, rotation.y, {0.0f, 1.0f, 0.0f});
+            Rotation = glm::rotate(Rotation, rotation.z, {0.0f, 0.0f, 1.0f});
+            return glm::translate(glm::mat4(1.0f), translation) * Rotation * glm::scale(glm::mat4(1.0f), scale);
         }
     };
 
@@ -47,7 +50,6 @@ namespace Fermion
         CameraComponent() = default;
         CameraComponent(const glm::mat4 &projection) : camera(projection) {}
         CameraComponent(const CameraComponent &camera) = default;
-      
     };
 
     struct NativeScriptComponent

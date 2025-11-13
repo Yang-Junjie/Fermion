@@ -32,7 +32,7 @@ namespace Fermion
             });
 
         Camera *mainCamera = nullptr;
-        glm::mat4 *cameraTransform = nullptr;
+        glm::mat4 cameraTransform ;
 
         {
             auto view = m_registry.view<CameraComponent, TransformComponent>();
@@ -43,7 +43,7 @@ namespace Fermion
                 if (camera.primary)
                 {
                     mainCamera = &camera.camera;
-                    cameraTransform = &transform.transform;
+                    cameraTransform = transform.getTransform();
                     break;
                 }
             }
@@ -51,7 +51,7 @@ namespace Fermion
 
         if (mainCamera)
         {
-            Renderer2D::beginScene(mainCamera->getProjection(), *cameraTransform);
+            Renderer2D::beginScene(mainCamera->getProjection(), cameraTransform);
 
             // non-owning group
             auto group = m_registry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
@@ -59,7 +59,7 @@ namespace Fermion
             {
                 auto &transform = group.get<TransformComponent>(entity);
                 auto &sprite = group.get<SpriteRendererComponent>(entity);
-                Renderer2D::drawQuad(transform, sprite.color);
+                Renderer2D::drawQuad(transform.getTransform(), sprite.color);
             }
 
             Renderer2D::endScene();
