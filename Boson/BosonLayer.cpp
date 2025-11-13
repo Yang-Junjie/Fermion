@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "BosonLayer.hpp"
 #include "Fermion.hpp"
+#include "Scene/SceneSerializer.hpp"
 #include <imgui.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -47,23 +48,25 @@ namespace Fermion
         m_framebuffer = Framebuffer::create(fbSpec);
 
         m_activeScene = std::make_shared<Scene>();
-        auto greenSquare = m_activeScene->createEntity("green square");
-        greenSquare.addComponent<SpriteRendererComponent>(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+        // auto greenSquare = m_activeScene->createEntity("green square");
+        // greenSquare.addComponent<SpriteRendererComponent>(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 
-        auto redSquare = m_activeScene->createEntity("red square");
-        redSquare.addComponent<SpriteRendererComponent>(glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+        // auto redSquare = m_activeScene->createEntity("red square");
+        // redSquare.addComponent<SpriteRendererComponent>(glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 
-        m_cameraEntity = m_activeScene->createEntity("camera");
-        m_cameraEntity.addComponent<CameraComponent>();
+        // m_cameraEntity = m_activeScene->createEntity("camera");
+        // m_cameraEntity.addComponent<CameraComponent>();
 
-        m_secondCameraEntity = m_activeScene->createEntity("camera2");
-        auto &cc = m_secondCameraEntity.addComponent<CameraComponent>();
-        cc.primary = false;
+        // m_secondCameraEntity = m_activeScene->createEntity("camera2");
+        // auto &cc = m_secondCameraEntity.addComponent<CameraComponent>();
+        // cc.primary = false;
 
-        m_cameraEntity.addComponent<NativeScriptComponent>().bind<CameraController>();
-        m_secondCameraEntity.addComponent<NativeScriptComponent>().bind<CameraController>();
+        // m_cameraEntity.addComponent<NativeScriptComponent>().bind<CameraController>();
+        // m_secondCameraEntity.addComponent<NativeScriptComponent>().bind<CameraController>();
 
         m_sceneHierarchyPanel.setContext(m_activeScene);
+
+       
     }
     void BosonLayer::onDetach()
     {
@@ -166,6 +169,16 @@ namespace Fermion
                 {
                     if (ImGui::BeginMenu("File"))
                     {
+                        if (ImGui::MenuItem("Save"))
+                        {
+                            SceneSerializer serializer(m_activeScene);
+                            serializer.serialize("../Boson/assets/scenes/example.fermion");
+                        }
+                        if (ImGui::MenuItem("Load"))
+                        {
+                            SceneSerializer serializer(m_activeScene);
+                            serializer.deserialize("../Boson/assets/scenes/example.fermion");
+                        }
                         if (ImGui::MenuItem("Exit"))
                             Engine::get().close();
 

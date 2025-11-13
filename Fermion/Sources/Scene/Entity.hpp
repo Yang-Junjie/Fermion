@@ -2,9 +2,12 @@
 #include "Scene/Scene.hpp"
 #include <entt/entt.hpp>
 #include "fmpch.hpp"
+#include <type_traits>
 
 namespace Fermion
 {
+    // Forward declaration for compile-time checks in addComponent
+    struct CameraComponent;
 
     class Entity
     {
@@ -28,17 +31,28 @@ namespace Fermion
             return m_scene->m_registry.all_of<T>(m_entityHandle);
         }
 
-        // TODO: 在添加组件的时候执行一些函数操作
         template <typename T, typename... Args>
         T &addComponent(Args &&...args)
         {
             FMAssert::Assert(m_scene != nullptr, "Entity is null (no owning scene)", __FILE__, __LINE__);
             FMAssert::Assert(m_entityHandle != entt::null, "Entity handle is null", __FILE__, __LINE__);
             FMAssert::Assert(!hasComponent<T>(), "Entity already has this component", __FILE__, __LINE__);
-            return m_scene->m_registry.emplace<T>(m_entityHandle, std::forward<Args>(args)...);;
+
+            T &component = m_scene->m_registry.emplace<T>(m_entityHandle, std::forward<Args>(args)...);
+
+            if constexpr (std::is_same_v<T, CameraComponent>)
+            {
+                const uint32_t vw = m_scene->getViewportWidth();
+                const uint32_t vh = m_scene->getViewportHeight();
+                if (vw > 0 && vh > 0)
+                {
+                    component.camera.setViewportSize(vw, vh);
+                }
+            }
+
+            return component;
         }
 
-      
         template <typename T>
         T &getComponent()
         {
