@@ -45,7 +45,7 @@ set(PLATFORM_SOURCES
     ${PLATFORM_DIR}/OpenGL/OpenGLTexture.cpp
     ${PLATFORM_DIR}/OpenGL/OpenGLShader.cpp
     ${PLATFORM_DIR}/OpenGL/OpenGLFrameBuffer.cpp
-    
+
     ${PLATFORM_DIR}/Window/GLFWWindow.cpp
     ${PLATFORM_DIR}/Window/GLFWWindowInput.cpp
 
@@ -63,12 +63,15 @@ set(THIRD_PARTY_SOURCES
     ${EXTERNAL_DIR}/imgui/backends/imgui_impl_opengl3.cpp
 
     ${EXTERNAL_DIR}/stb/stb_image.cpp
+
 )
 
+file(GLOB YAML_CPP_SOURCES "${EXTERNAL_DIR}/yaml-cpp/src/*.cpp")
 set(ENGINE_SOURCES
     ${CORE_SOURCES}
     ${PLATFORM_SOURCES}
     ${THIRD_PARTY_SOURCES}
+    ${YAML_CPP_SOURCES}
 )
 
 
@@ -80,7 +83,7 @@ target_include_directories(engine PUBLIC
 
     ${PLATFORM_DIR}/OpenGL
     ${PLATFORM_DIR}/Window
-    
+
     ${EXTERNAL_DIR}/spdlog/include
     ${EXTERNAL_DIR}/entt/single_include
     ${EXTERNAL_DIR}/glm
@@ -89,6 +92,7 @@ target_include_directories(engine PUBLIC
     ${EXTERNAL_DIR}/GLAD/include
     ${EXTERNAL_DIR}/GLFW/include
     ${EXTERNAL_DIR}/stb
+    ${EXTERNAL_DIR}/yaml-cpp/include
 )
 
 

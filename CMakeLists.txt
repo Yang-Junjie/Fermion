@@ -14,7 +14,11 @@ option(BUILD_BOSON "Build Boson" ON)
 # build game
 # option(BUILD_BOSON "Build Boson" OFF)
 option(BUILD_GAME "Build Fermion" ON)
+set(YAML_BUILD_SHARED_LIBS OFF CACHE BOOL "Build yaml-cpp as static library" FORCE)
+add_subdirectory(external/yaml-cpp)
 
+# 添加这一行来解决yaml-cpp的dllimport问题
+add_compile_definitions(YAML_CPP_STATIC_DEFINE)
 
 # 输出目录
 set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
@@ -29,7 +33,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${BIN_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${BIN_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${BIN_DIR})
 
-
 if(USE_GLFW)
     set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
     set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -41,8 +44,6 @@ endif()
 add_subdirectory(external/spdlog)
 add_subdirectory(external/entt)
 add_subdirectory(external/glm)
-
-
 
 # Fermion 
 add_subdirectory(Fermion)
