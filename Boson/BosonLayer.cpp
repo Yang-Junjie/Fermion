@@ -2,6 +2,7 @@
 #include "BosonLayer.hpp"
 #include "Fermion.hpp"
 #include "Scene/SceneSerializer.hpp"
+#include "Utils/PlatformUtils.hpp"
 #include <imgui.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -65,8 +66,6 @@ namespace Fermion
         // m_secondCameraEntity.addComponent<NativeScriptComponent>().bind<CameraController>();
 
         m_sceneHierarchyPanel.setContext(m_activeScene);
-
-       
     }
     void BosonLayer::onDetach()
     {
@@ -100,15 +99,6 @@ namespace Fermion
         // Renderer2D::endScene();
 
         m_framebuffer->unbind();
-    }
-
-    void BosonLayer::onEvent(IEvent &event)
-    {
-        EventDispatcher dispatcher(event);
-        dispatcher.dispatch<WindowResizeEvent>([](WindowResizeEvent &e)
-                                               { return true; });
-        if (!event.handled)
-            m_cameraController.onEvent(event);
     }
 
     void BosonLayer::onImGuiRender()
@@ -169,15 +159,18 @@ namespace Fermion
                 {
                     if (ImGui::BeginMenu("File"))
                     {
-                        if (ImGui::MenuItem("Save"))
+                        if (ImGui::MenuItem("New", "Ctrl+N"))
                         {
-                            SceneSerializer serializer(m_activeScene);
-                            serializer.serialize("../Boson/assets/scenes/example.fermion");
+                            newScene();
                         }
-                        if (ImGui::MenuItem("Load"))
+
+                        if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S"))
                         {
-                            SceneSerializer serializer(m_activeScene);
-                            serializer.deserialize("../Boson/assets/scenes/example.fermion");
+                            saveScene();
+                        }
+                        if (ImGui::MenuItem("Open...", "Ctrl+O"))
+                        {
+                            openScene();
                         }
                         if (ImGui::MenuItem("Exit"))
                             Engine::get().close();
@@ -226,5 +219,83 @@ namespace Fermion
             }
         }
     }
+    void BosonLayer::onEvent(IEvent &event)
+    {
+        EventDispatcher dispatcher(event);
+        dispatcher.dispatch<WindowResizeEvent>([](WindowResizeEvent &e)
+                                               {
+                                                   // 处理窗口大小调整事件
+                                                   return false; // 允许其他处理器处理此事件
+                                               });
+        dispatcher.dispatch<KeyPressedEvent>([this](KeyPressedEvent &e)
+                                             { return this->onKeyPressedEvent(e); });
+        m_cameraController.onEvent(event);
+    }
 
+    bool BosonLayer::onKeyPressedEvent(KeyPressedEvent &e)
+    {
+        if (e.isRepeat())
+        {
+            return false;
+        }
+
+        bool control = Input::isKeyPressed(KeyCode::LeftControl) || Input::isKeyPressed(KeyCode::RightControl);
+        bool shift = Input::isKeyPressed(KeyCode::LeftShift) || Input::isKeyPressed(KeyCode::RightShift);
+
+        switch (e.getKeyCode())
+        {
+        case KeyCode::S:
+            if (control && shift)
+            {
+                saveScene();
+                return true; 
+            }
+            break;
+        case KeyCode::N:
+            if (control)
+            {
+                newScene();
+                return true;
+            }
+            break;
+        case KeyCode::O:
+            if (control)
+            {
+                openScene();
+                return true;
+            }
+            break;
+        }
+
+        return false; 
+    }
+    void BosonLayer::newScene()
+    {
+        m_activeScene = std::make_shared<Scene>();
+        m_activeScene->onViewportResize(static_cast<uint32_t>(m_viewportSize.x), static_cast<uint32_t>(m_viewportSize.y));
+        m_sceneHierarchyPanel.setContext(m_activeScene);
+    }
+    void BosonLayer::saveScene()
+    {
+        std::string path = FileDialogs::saveFile("Scene (*.fermion)\0*.fermion\0", "../Boson/assets/scenes/");
+        if (!path.empty())
+        {
+
+            SceneSerializer serializer(m_activeScene);
+            serializer.serialize(path);
+        }
+    }
+    void BosonLayer::openScene()
+    {
+        std::string path = FileDialogs::openFile("Scene (*.fermion)\0*.fermion\0", "../Boson/assets/scenes/");
+        if (!path.empty())
+        {
+            m_activeScene = std::make_shared<Scene>();
+            m_activeScene->onViewportResize(static_cast<uint32_t>(m_viewportSize.x), static_cast<uint32_t>(m_viewportSize.y));
+            m_sceneHierarchyPanel.setContext(m_activeScene);
+
+            SceneSerializer serializer(m_activeScene);
+            serializer.deserialize(path);
+        }
+    }
 }

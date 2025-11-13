@@ -49,6 +49,7 @@ set(PLATFORM_SOURCES
 
     ${PLATFORM_DIR}/Window/GLFWWindow.cpp
     ${PLATFORM_DIR}/Window/GLFWWindowInput.cpp
+    ${PLATFORM_DIR}/Window/WindowsPlatformUtils.cpp
 
 )
 
