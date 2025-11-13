@@ -17,6 +17,18 @@ namespace Fermion
         Entity createEntity(std::string name = std::string());
         void destroyEntity(Entity entity);
 
+        uint32_t getViewportWidth() const 
+        {
+            return m_viewportWidth;
+        }
+
+        uint32_t getViewportHeight()const
+        {
+            return m_viewportHeight;
+        }
+
+    private:
+       
       
 
     private:

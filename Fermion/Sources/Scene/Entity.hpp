@@ -2,6 +2,7 @@
 #include "Scene/Scene.hpp"
 #include <entt/entt.hpp>
 #include "fmpch.hpp"
+
 namespace Fermion
 {
 
@@ -27,15 +28,17 @@ namespace Fermion
             return m_scene->m_registry.all_of<T>(m_entityHandle);
         }
 
+        // TODO: 在添加组件的时候执行一些函数操作
         template <typename T, typename... Args>
         T &addComponent(Args &&...args)
         {
             FMAssert::Assert(m_scene != nullptr, "Entity is null (no owning scene)", __FILE__, __LINE__);
             FMAssert::Assert(m_entityHandle != entt::null, "Entity handle is null", __FILE__, __LINE__);
             FMAssert::Assert(!hasComponent<T>(), "Entity already has this component", __FILE__, __LINE__);
-            return m_scene->m_registry.emplace<T>(m_entityHandle, std::forward<Args>(args)...);
+            return m_scene->m_registry.emplace<T>(m_entityHandle, std::forward<Args>(args)...);;
         }
 
+      
         template <typename T>
         T &getComponent()
         {

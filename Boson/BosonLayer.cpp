@@ -87,7 +87,7 @@ namespace Fermion
 
         Renderer2D::resetStatistics();
         m_framebuffer->bind();
-        RenderCommand::setClearColor({0.2f, 0.3f, 0.3f, 1.0f});
+        RenderCommand::setClearColor({0.1f, 0.1f, 0.1f, 1.0f});
         RenderCommand::clear();
 
         // Renderer2D::beginScene(m_cameraController.getCamera());
@@ -152,12 +152,15 @@ namespace Fermion
                     ImGui::PopStyleVar(2);
 
                 ImGuiIO &io = ImGui::GetIO();
+                ImGuiStyle &style = ImGui::GetStyle();
+                float minWinSizeX = style.WindowMinSize.x;
+                style.WindowMinSize.x = 370.0f;
                 if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
                 {
                     ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
                     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
                 }
-
+                style.WindowMinSize.x = minWinSizeX;
                 // Show demo options and help
                 if (ImGui::BeginMenuBar())
                 {

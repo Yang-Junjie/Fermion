@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include "Scene/Scene.hpp"
 #include "Scene/Entity.hpp"
 namespace Fermion
 {

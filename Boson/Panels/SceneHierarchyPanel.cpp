@@ -78,6 +78,7 @@ namespace Fermion
 		auto &tag = entity.getComponent<TagComponent>().tag;
 
 		ImGuiTreeNodeFlags flags = ((m_selectedEntity == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
+		flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 		bool opend = ImGui::TreeNodeEx((void *)(uint64_t)(uint32_t)entity, flags, tag.c_str());
 		if (ImGui::IsItemClicked())
 		{
@@ -110,6 +111,9 @@ namespace Fermion
 
 	static void drawVec3Control(const std::string &label, glm::vec3 &values, float resetValue = 0.0f, float columnWidth = 100.0f)
 	{
+		ImGuiIO &io = ImGui::GetIO();
+		auto boldFont = io.Fonts->Fonts[0];
+
 		ImGui::PushID(label.c_str());
 		ImGui::Columns(2);
 		ImGui::SetColumnWidth(0, columnWidth);
@@ -124,10 +128,12 @@ namespace Fermion
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.8f, 0.1f, 0.15f, 1.0f});
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.9f, 0.2f, 0.2f, 1.0f});
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.8f, 0.1f, 0.15f, 1.0f});
+		ImGui::PushFont(boldFont);
 		if (ImGui::Button("X", buttonSize))
 		{
 			values.x = resetValue;
 		}
+		ImGui::PopFont();
 		ImGui::PopStyleColor(3);
 
 		ImGui::SameLine();
@@ -138,10 +144,12 @@ namespace Fermion
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.2f, 0.7f, 0.2f, 1.0f});
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.3f, 0.8f, 0.3f, 1.0f});
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.2f, 0.7f, 0.2f, 1.0f});
+		ImGui::PushFont(boldFont);
 		if (ImGui::Button("Y", buttonSize))
 		{
 			values.y = resetValue;
 		}
+		ImGui::PopFont();
 		ImGui::PopStyleColor(3);
 
 		ImGui::SameLine();
@@ -152,10 +160,12 @@ namespace Fermion
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.1f, 0.25f, 0.8f, 1.0f});
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.2f, 0.35f, 0.9f, 1.0f});
 		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.1f, 0.25f, 0.8f, 1.0f});
+		ImGui::PushFont(boldFont);
 		if (ImGui::Button("Z", buttonSize))
 		{
 			values.z = resetValue;
 		}
+		ImGui::PopFont();
 		ImGui::PopStyleColor(3);
 
 		ImGui::SameLine();
@@ -165,6 +175,46 @@ namespace Fermion
 
 		ImGui::Columns(1);
 		ImGui::PopID();
+	}
+
+	template <typename T, typename UIFunction>
+	static void drawComponent(const std::string &name, Entity entity, UIFunction uiFunction)
+	{
+		if (!entity.hasComponent<T>())
+			return;
+
+		auto &component = entity.getComponent<T>();
+
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{4, 4});
+		ImGui::Separator();
+
+		const ImGuiTreeNodeFlags treeNodeFlags =
+			ImGuiTreeNodeFlags_DefaultOpen |
+			ImGuiTreeNodeFlags_Framed |
+			ImGuiTreeNodeFlags_FramePadding;
+
+		bool open = ImGui::TreeNodeEx((void *)typeid(T).hash_code(), treeNodeFlags, name.c_str());
+		ImGui::PopStyleVar();
+
+	
+		bool removeComponent = false;
+		if (ImGui::BeginPopupContextItem("ComponentSettings"))
+		{
+			if (ImGui::MenuItem("Remove component"))
+				removeComponent = true;
+			ImGui::EndPopup();
+		}
+
+
+		if (open)
+		{
+			uiFunction(component);
+			ImGui::TreePop();
+		}
+
+		
+		if (removeComponent)
+			entity.removeComponent<T>();
 	}
 
 	void SceneHierarchyPanel::drawComponents(Entity entity)
@@ -182,36 +232,22 @@ namespace Fermion
 				tag = std::string(buffer);
 			}
 		}
-		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowOverlap;
-		if (entity.hasComponent<TransformComponent>())
-		{
-			bool open = ImGui::TreeNodeEx((void *)typeid(TransformComponent).hash_code(),
-										  treeNodeFlags,
-										  "Transform");
-			if (open)
-			{
-				auto &tc = entity.getComponent<TransformComponent>();
-				drawVec3Control("Translation", tc.translation);
 
-				glm::vec3 rotation = glm::degrees(tc.rotation);
+		drawComponent<TransformComponent>("Transform", entity, [](auto &component)
+										  {
+			drawVec3Control("Translation", component.translation);
+
+				glm::vec3 rotation = glm::degrees(component.rotation);
 				drawVec3Control("Rotation", rotation);
-				tc.rotation = glm::radians(rotation);
+				component.rotation = glm::radians(rotation);
 
-				drawVec3Control("Scale", tc.scale, 1.0f);
+				drawVec3Control("Scale", component.scale, 1.0f); });
 
-				ImGui::TreePop();
-			}
-		}
-		if (entity.hasComponent<CameraComponent>())
-		{
-			if (ImGui::TreeNodeEx((void *)typeid(CameraComponent).hash_code(),
-								  ImGuiTreeNodeFlags_DefaultOpen,
-								  "Camera"))
-			{
-				auto &cameraComponent = entity.getComponent<CameraComponent>();
-				auto &camera = cameraComponent.camera;
+		drawComponent<CameraComponent>("Camera", entity, [](auto &component)
+									   {
+			auto &camera = component.camera;
 
-				ImGui::Checkbox("Primary", &cameraComponent.primary);
+				ImGui::Checkbox("Primary", &component.primary);
 
 				// Match enum order: Orthographic = 0, Perspective = 1
 				const char *projectionTypeStrings[] = {"Orthographic", "Perspective"};
@@ -273,44 +309,9 @@ namespace Fermion
 						camera.setOrthographicFarClip(orthoFar);
 					}
 
-					ImGui::Checkbox("Fixed Aspect Ratio", &cameraComponent.fixedAspectRatio);
-				}
-				ImGui::TreePop();
-			}
-		}
-		if (entity.hasComponent<SpriteRendererComponent>())
-		{
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{4, 4});
-			bool open = ImGui::TreeNodeEx((void *)typeid(SpriteRendererComponent).hash_code(),
-										  treeNodeFlags,
-										  "Sprite Renderer");
-			ImGui::PopStyleVar();
-
-			ImGui::SameLine(ImGui::GetWindowWidth() - 25.0f);
-			if (ImGui::Button("+"))
-			{
-				ImGui::OpenPopup("ComponentSettings");
-			}
-			bool removeComponent = false;
-			if (ImGui::BeginPopup("ComponentSettings"))
-			{
-				if (ImGui::MenuItem("Remove Component"))
-				{
-					removeComponent = true;
-					ImGui::CloseCurrentPopup();
-				}
-				ImGui::EndPopup();
-			}
-			if (open)
-			{
-				auto &spriteRendererComponent = entity.getComponent<SpriteRendererComponent>();
-				ImGui::ColorEdit4("Color", glm::value_ptr(spriteRendererComponent.color));
-				ImGui::TreePop();
-			}
-			if (removeComponent)
-			{
-				entity.removeComponent<SpriteRendererComponent>();
-			}
-		}
+					ImGui::Checkbox("Fixed Aspect Ratio", &component.fixedAspectRatio);
+				} });
+		drawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [](auto &component)
+											   { ImGui::ColorEdit4("Color", glm::value_ptr(component.color)); });
 	}
 }
