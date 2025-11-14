@@ -50,7 +50,7 @@ namespace Fermion
 
         fbSpec.width = 1280;
         fbSpec.height = 720;
-        fbSpec.attachments = {FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::DEPTH24STENCIL8};
+        fbSpec.attachments = {FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER,FramebufferTextureFormat::DEPTH24STENCIL8};
 
         m_framebuffer = Framebuffer::create(fbSpec);
 
@@ -103,12 +103,23 @@ namespace Fermion
         m_framebuffer->bind();
         RenderCommand::setClearColor({0.1f, 0.1f, 0.1f, 1.0f});
         RenderCommand::clear();
-
-        // Renderer2D::beginScene(m_cameraController.getCamera());
+        m_framebuffer->clearAttachment(1, -1);
 
         m_activeScene->onUpdateEditor(dt, m_editorCamera);
 
-        // Renderer2D::endScene();
+        auto [mx, my] = ImGui::GetMousePos();
+        mx -= (float)m_viewportBounds[0].x;
+        my -= (float)m_viewportBounds[0].y;
+        glm::vec2 viewportSize = m_viewportBounds[1] - m_viewportBounds[0];
+        my = viewportSize.y - my;
+        int mouseX = (int)mx;
+        int mouseY = (int)my;
+        if (mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y)
+        {
+            int pixelData = m_framebuffer->readPixel(1, mouseX, mouseY);
+            Log::Warn(std::format("pixel data: {0}", pixelData));
+            // m_hoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_activeScene.get());
+        }
 
         m_framebuffer->unbind();
     }
@@ -123,8 +134,6 @@ namespace Fermion
             static bool opt_padding = false;
             static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
-            // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
-            // because it would be confusing to have two docking targets within each others.
             ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
             if (opt_fullscreen)
             {
@@ -215,6 +224,7 @@ namespace Fermion
             // Viewport
             {
                 ImGui::Begin("Viewport");
+                auto viewportOffset = ImGui::GetCursorPos(); // include tab bar (local to window)
 
                 m_viewportFocused = ImGui::IsWindowFocused();
                 m_viewportHovered = ImGui::IsWindowHovered();
@@ -224,10 +234,17 @@ namespace Fermion
 
                 m_viewportSize = {viewportPanelSize.x, viewportPanelSize.y};
 
-                uint32_t textureID = m_framebuffer->getColorAttachmentRendererID();
+                uint32_t textureID = m_framebuffer->getColorAttachmentRendererID(0);
                 ImGui::Image(reinterpret_cast<void *>(static_cast<intptr_t>(textureID)),
                              ImVec2(viewportPanelSize.x, viewportPanelSize.y),
                              ImVec2(0, 1), ImVec2(1, 0));
+
+                ImVec2 minBound = ImGui::GetWindowPos();
+                minBound.x += viewportOffset.x;
+                minBound.y += viewportOffset.y;
+                ImVec2 maxBound = ImVec2(minBound.x + viewportPanelSize.x, minBound.y + viewportPanelSize.y);
+                m_viewportBounds[0] = {minBound.x, minBound.y};
+                m_viewportBounds[1] = {maxBound.x, maxBound.y};
 
                 // ImGuiZmo
                 Entity selectedEntity = m_sceneHierarchyPanel.getSelectedEntity();
