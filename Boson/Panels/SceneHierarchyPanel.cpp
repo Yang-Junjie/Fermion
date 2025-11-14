@@ -74,6 +74,11 @@ namespace Fermion
 		ImGui::End();
 	}
 
+	void SceneHierarchyPanel::setSelectedEntity(Entity entity)
+	{
+		m_selectedEntity = entity;
+	}
+
 	void SceneHierarchyPanel::drawEntityNode(Entity entity)
 	{
 		auto &tag = entity.getComponent<TagComponent>().tag;

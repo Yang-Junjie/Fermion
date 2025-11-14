@@ -26,7 +26,8 @@ namespace Fermion
         {
             auto &transform = group.get<TransformComponent>(entity);
             auto &sprite = group.get<SpriteRendererComponent>(entity);
-            Renderer2D::drawQuad(transform.getTransform(), sprite.color);
+            // Renderer2D::drawQuad(transform.getTransform(), sprite.color);
+            Renderer2D::drawSprite(transform.getTransform(), sprite,(int)entity);
         }
 
         Renderer2D::endScene();

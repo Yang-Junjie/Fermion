@@ -81,11 +81,11 @@ namespace Fermion
             glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &maxLength);
 
             std::vector<char> infoLog(maxLength);
-            glGetShaderInfoLog(vertexShader, maxLength, &maxLength, &infoLog[0]);
+            glGetShaderInfoLog(vertexShader, maxLength, &maxLength, infoLog.data());
 
             glDeleteShader(vertexShader);
 
-            Log::Error("Vertex Shader compilation error");
+            Log::Error(std::format("Vertex Shader compilation error:\n{}", infoLog.data()));
             return;
         }
 
@@ -103,12 +103,12 @@ namespace Fermion
             glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &maxLength);
 
             std::vector<char> infoLog(maxLength);
-            glGetShaderInfoLog(fragmentShader, maxLength, &maxLength, &infoLog[0]);
+            glGetShaderInfoLog(fragmentShader, maxLength, &maxLength, infoLog.data());
 
             glDeleteShader(vertexShader);
             glDeleteShader(fragmentShader);
 
-            Log::Error("Fragment Shader compilation error");
+            Log::Error(std::format("Fragment Shader compilation error:\n{}", infoLog.data()));
             return;
         }
 
@@ -127,13 +127,13 @@ namespace Fermion
             glGetProgramiv(m_rendererID, GL_INFO_LOG_LENGTH, &maxLength);
 
             std::vector<char> infoLog(maxLength);
-            glGetProgramInfoLog(m_rendererID, maxLength, &maxLength, &infoLog[0]);
+            glGetProgramInfoLog(m_rendererID, maxLength, &maxLength, infoLog.data());
 
             glDeleteProgram(m_rendererID);
             glDeleteShader(vertexShader);
             glDeleteShader(fragmentShader);
 
-            Log::Error("Shader program linking error");
+            Log::Error(std::format("Shader program linking error:\n{}", infoLog.data()));
             return;
         }
 

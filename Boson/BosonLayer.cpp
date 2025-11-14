@@ -50,7 +50,7 @@ namespace Fermion
 
         fbSpec.width = 1280;
         fbSpec.height = 720;
-        fbSpec.attachments = {FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER,FramebufferTextureFormat::DEPTH24STENCIL8};
+        fbSpec.attachments = {FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::DEPTH24STENCIL8};
 
         m_framebuffer = Framebuffer::create(fbSpec);
 
@@ -117,8 +117,8 @@ namespace Fermion
         if (mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y)
         {
             int pixelData = m_framebuffer->readPixel(1, mouseX, mouseY);
-            Log::Warn(std::format("pixel data: {0}", pixelData));
-            // m_hoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_activeScene.get());
+            // Log::Warn(std::format("pixel data: {0}", pixelData));
+            m_hoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_activeScene.get());
         }
 
         m_framebuffer->unbind();
@@ -208,7 +208,14 @@ namespace Fermion
 
             // Statistics
             {
+                std::string name = "None";
+                if (m_hoveredEntity)
+                {
+                    name = m_hoveredEntity.getComponent<TagComponent>().tag;
+                }
+
                 ImGui::Begin("Settings");
+                ImGui::Text("hoverd entity: %s", name.c_str());
                 ImGui::Text("Statistics");
                 Renderer2D::Satistics stats = Renderer2D::getStatistics();
                 ImGui::Text("Draw Calls: %d", stats.drawCalls);
@@ -314,6 +321,8 @@ namespace Fermion
                                                { return false; });
         dispatcher.dispatch<KeyPressedEvent>([this](KeyPressedEvent &e)
                                              { return this->onKeyPressedEvent(e); });
+        dispatcher.dispatch<MouseButtonPressedEvent>([this](MouseButtonPressedEvent &e)
+                                                     { return this->onMouseButtonPressedEvent(e); });
         m_cameraController.onEvent(event);
         m_editorCamera.onEvent(event);
     }
@@ -365,6 +374,15 @@ namespace Fermion
             break;
         }
 
+        return false;
+    }
+    bool BosonLayer::onMouseButtonPressedEvent(MouseButtonPressedEvent &e)
+    {
+        if (e.getMouseButton() == MouseCode::Left)
+        {
+            if (m_viewportHovered&&!ImGuizmo::IsOver())
+                m_sceneHierarchyPanel.setSelectedEntity(m_hoveredEntity);
+        }
         return false;
     }
     void BosonLayer::newScene()

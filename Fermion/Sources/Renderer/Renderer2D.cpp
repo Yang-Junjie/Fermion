@@ -6,6 +6,7 @@
 
 #include "glm/gtc/matrix_transform.hpp"
 #include "Renderer2D.hpp"
+
 namespace Fermion
 {
     struct QuadVertices
@@ -15,6 +16,9 @@ namespace Fermion
         glm::vec2 txCoord;
         float texIndex;
         float tilingFactor;
+
+        // editor only
+        int entityID;
     };
     struct Renderer2DData
     {
@@ -49,11 +53,14 @@ namespace Fermion
         s_Data.QuadVertexArray = VertexArray::create();
 
         s_Data.QuadVertexBuffer = VertexBuffer::create(s_Data.MaxVertices * sizeof(QuadVertices));
-        s_Data.QuadVertexBuffer->setLayout({{ShaderDataType::Float3, "a_Position"},
-                                            {ShaderDataType::Float4, "a_Color"},
-                                            {ShaderDataType::Float2, "a_TexCoord"},
-                                            {ShaderDataType::Float, "a_TexIndex"},
-                                            {ShaderDataType::Float, "a_TilingFactor"}});
+        s_Data.QuadVertexBuffer->setLayout({
+            { ShaderDataType::Float3, "a_Position"      },
+            { ShaderDataType::Float4, "a_Color"         },
+            { ShaderDataType::Float2, "a_TexCoord"      },
+            { ShaderDataType::Float,  "a_TexIndex"      },
+            { ShaderDataType::Float,  "a_TilingFactor"  },
+            { ShaderDataType::Int,    "a_EntityID"      }
+        });
         s_Data.QuadVertexArray->addVertexBuffer(s_Data.QuadVertexBuffer);
 
         s_Data.QuadVertexBufferBase = new QuadVertices[s_Data.MaxVertices];
@@ -248,13 +255,14 @@ namespace Fermion
             s_Data.QuadVertexBufferPtr->txCoord = txCoord[i];
             s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
             s_Data.QuadVertexBufferPtr->tilingFactor = tilingFactor;
+            s_Data.QuadVertexBufferPtr->entityID = -1;
             s_Data.QuadVertexBufferPtr++;
         }
         s_Data.QuadIndexCount += 6;
 
         s_Data.stats.quadCount++;
     }
-    void Renderer2D::drawQuad(const glm::mat4 &transform, const glm::vec4 &color)
+    void Renderer2D::drawQuad(const glm::mat4 &transform, const glm::vec4 &color,int entityID)
     {
         FM_PROFILE_FUNCTION();
 
@@ -275,6 +283,7 @@ namespace Fermion
             s_Data.QuadVertexBufferPtr->txCoord = txCoord[i];
             s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
             s_Data.QuadVertexBufferPtr->tilingFactor = tilingFactor;
+            s_Data.QuadVertexBufferPtr->entityID = entityID;
             s_Data.QuadVertexBufferPtr++;
         }
 
@@ -283,7 +292,7 @@ namespace Fermion
         s_Data.stats.quadCount++;
     }
 
-    void Renderer2D::drawQuad(const glm::mat4 &transform, const std::shared_ptr<Texture2D> &texture, float tilingFactor, glm::vec4 tintColor)
+    void Renderer2D::drawQuad(const glm::mat4 &transform, const std::shared_ptr<Texture2D> &texture, float tilingFactor, glm::vec4 tintColor,int entityID)
     {
         FM_PROFILE_FUNCTION();
 
@@ -325,6 +334,7 @@ namespace Fermion
             s_Data.QuadVertexBufferPtr->txCoord = txCoord[i];
             s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
             s_Data.QuadVertexBufferPtr->tilingFactor = tilingFactor;
+            s_Data.QuadVertexBufferPtr->entityID = entityID;
             s_Data.QuadVertexBufferPtr++;
         }
 
@@ -370,6 +380,7 @@ namespace Fermion
             s_Data.QuadVertexBufferPtr->txCoord = txCoord[i];
             s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
             s_Data.QuadVertexBufferPtr->tilingFactor = tilingFactor;
+            s_Data.QuadVertexBufferPtr->entityID = -1;
             s_Data.QuadVertexBufferPtr++;
         }
 
@@ -409,6 +420,7 @@ namespace Fermion
             s_Data.QuadVertexBufferPtr->txCoord = txCoord[i];
             s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
             s_Data.QuadVertexBufferPtr->tilingFactor = tilingFactor;
+            s_Data.QuadVertexBufferPtr->entityID = -1;
             s_Data.QuadVertexBufferPtr++;
         }
 
@@ -465,6 +477,7 @@ namespace Fermion
             s_Data.QuadVertexBufferPtr->txCoord = txCoord[i];
             s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
             s_Data.QuadVertexBufferPtr->tilingFactor = tilingFactor;
+            s_Data.QuadVertexBufferPtr->entityID = -1;
             s_Data.QuadVertexBufferPtr++;
         }
 
@@ -518,12 +531,17 @@ namespace Fermion
             s_Data.QuadVertexBufferPtr->txCoord = txCoord[i];
             s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
             s_Data.QuadVertexBufferPtr->tilingFactor = tilingFactor;
+            s_Data.QuadVertexBufferPtr->entityID = -1;
             s_Data.QuadVertexBufferPtr++;
         }
 
         s_Data.QuadIndexCount += 6;
 
         s_Data.stats.quadCount++;
+    }
+    void Renderer2D::drawSprite(const glm::mat4 &transform, SpriteRendererComponent &src, int entityID)
+    {
+        drawQuad(transform, src.color,entityID);
     }
     void Renderer2D::resetStatistics()
     {

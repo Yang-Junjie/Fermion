@@ -23,6 +23,7 @@ namespace Fermion
 
     private:
         bool onKeyPressedEvent(KeyPressedEvent &e);
+        bool onMouseButtonPressedEvent(MouseButtonPressedEvent &e);
         void newScene();
         void saveScene();
         void openScene();
@@ -35,7 +36,6 @@ namespace Fermion
 
         glm::vec2 m_viewportSize{0.0f, 0.0f};
         glm::vec2 m_viewportBounds[2];
-
         bool m_viewportFocused = false;
         bool m_viewportHovered = false;
 
@@ -44,6 +44,7 @@ namespace Fermion
 
         Entity m_cameraEntity;
         Entity m_secondCameraEntity;
+        Entity m_hoveredEntity;
 
         bool m_primaryCamera = true;
 
