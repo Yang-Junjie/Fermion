@@ -47,6 +47,7 @@ namespace Fermion
         FM_PROFILE_FUNCTION();
 
         FramebufferSpecification fbSpec;
+
         fbSpec.width = 1280;
         fbSpec.height = 720;
         fbSpec.attachments = {FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::DEPTH24STENCIL8};
