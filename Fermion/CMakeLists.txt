@@ -32,6 +32,7 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Renderer/Shader.cpp
     ${FERMION_DIR}/Renderer/Texture.cpp
     ${FERMION_DIR}/Renderer/SubTexture2D.cpp
+    ${FERMION_DIR}/Renderer/EditorCamera.cpp
 
     ${FERMION_DIR}/Scene/Scene.cpp
     ${FERMION_DIR}/Scene/Entity.cpp
