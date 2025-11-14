@@ -47,5 +47,7 @@ namespace Fermion
         bool m_primaryCamera = true;
 
         SceneHierarchyPanel m_sceneHierarchyPanel;
+
+        int m_gizmoType = -1;
     };
 }

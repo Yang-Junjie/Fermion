@@ -109,6 +109,7 @@ namespace Fermion
 			out << YAML::Key << "TagComponent";
 			out << YAML::BeginMap;
 			out << YAML::Key << "Tag" << YAML::Value << entity.getComponent<TagComponent>().tag;
+			out << YAML::EndMap;
 		}
 
 		if (entity.hasComponent<TransformComponent>())
@@ -117,7 +118,7 @@ namespace Fermion
 			out << YAML::BeginMap;
 			auto &tc = entity.getComponent<TransformComponent>();
 			out << YAML::Key << "Translation" << YAML::Value << tc.translation;
-			out << YAML::Key << "Rotation" << YAML::Value << tc.rotation;
+			out << YAML::Key << "Rotation" << YAML::Value << tc.getRotationEuler();
 			out << YAML::Key << "Scale" << YAML::Value << tc.scale;
 			out << YAML::EndMap;
 		}
@@ -224,7 +225,7 @@ namespace Fermion
 					if (auto n = transformComponent["Translation"]; n)
 						tc.translation = n.as<glm::vec3>();
 					if (auto n = transformComponent["Rotation"]; n)
-						tc.rotation = n.as<glm::vec3>();
+						tc.setRotationEuler(n.as<glm::vec3>());
 					if (auto n = transformComponent["Scale"]; n)
 						tc.scale = n.as<glm::vec3>();
 				}

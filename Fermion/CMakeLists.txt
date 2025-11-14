@@ -16,6 +16,8 @@ set(CORE_SOURCES
 
     ${FERMION_DIR}/ImGui/ImGuiLayer.cpp
 
+    ${FERMION_DIR}/Math/Math.cpp
+
     ${FERMION_DIR}/Renderer/Renderer.cpp
     ${FERMION_DIR}/Renderer/RendererAPI.cpp
     ${FERMION_DIR}/Renderer/RenderCommand.cpp

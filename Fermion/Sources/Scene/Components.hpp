@@ -1,6 +1,10 @@
 ﻿#pragma once
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
+
 #include "Renderer/SceneCamera.hpp"
 #include "Scene/ScriptableEntity.hpp"
 #include "fmpch.hpp"
@@ -18,6 +22,7 @@ namespace Fermion
     struct TransformComponent
     {
         glm::vec3 translation{0.0f, 0.0f, 0.0f};
+        // Euler angles in radians (pitch = x, yaw = y, roll = z)
         glm::vec3 rotation{0.0f, 0.0f, 0.0f};
         glm::vec3 scale{1.0f, 1.0f, 1.0f};
 
@@ -25,12 +30,20 @@ namespace Fermion
         TransformComponent(const glm::vec3 &translation) : translation(translation) {}
         TransformComponent(const TransformComponent &transform) = default;
 
+        glm::vec3 getRotationEuler() const
+        {
+            return rotation;
+        }
+
+        void setRotationEuler(const glm::vec3 &eulerRadians)
+        {
+            rotation = eulerRadians;
+        }
+
         glm::mat4 getTransform() const
         {
-            glm::mat4 Rotation = glm::rotate(glm::mat4(1.0f), rotation.x, {1.0f, 0.0f, 0.0f});
-            Rotation = glm::rotate(Rotation, rotation.y, {0.0f, 1.0f, 0.0f});
-            Rotation = glm::rotate(Rotation, rotation.z, {0.0f, 0.0f, 1.0f});
-            return glm::translate(glm::mat4(1.0f), translation) * Rotation * glm::scale(glm::mat4(1.0f), scale);
+            glm::mat4 rotationMatrix = glm::toMat4(glm::quat(rotation));
+            return glm::translate(glm::mat4(1.0f), translation) * rotationMatrix * glm::scale(glm::mat4(1.0f), scale);
         }
     };
 

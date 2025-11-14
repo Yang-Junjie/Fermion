@@ -93,6 +93,17 @@ namespace Fermion
         m_registry.destroy(entity);
     }
 
- 
-
+    Entity Scene::getPrimaryCameraEntity()
+    {
+        auto view = m_registry.view<CameraComponent>();
+        for (auto entity : view)
+        {
+            auto &camera = view.get<CameraComponent>(entity);
+            if (camera.primary)
+            {
+                return Entity{entity, this};
+            }
+        }
+        return {};
+    }
 }

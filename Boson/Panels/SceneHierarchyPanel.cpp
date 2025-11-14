@@ -197,7 +197,6 @@ namespace Fermion
 		bool open = ImGui::TreeNodeEx((void *)typeid(T).hash_code(), treeNodeFlags, name.c_str());
 		ImGui::PopStyleVar();
 
-	
 		bool removeComponent = false;
 		if (ImGui::BeginPopupContextItem("ComponentSettings"))
 		{
@@ -206,14 +205,12 @@ namespace Fermion
 			ImGui::EndPopup();
 		}
 
-
 		if (open)
 		{
 			uiFunction(component);
 			ImGui::TreePop();
 		}
 
-		
 		if (removeComponent)
 			entity.removeComponent<T>();
 	}
@@ -238,11 +235,12 @@ namespace Fermion
 										  {
 			drawVec3Control("Translation", component.translation);
 
-				glm::vec3 rotation = glm::degrees(component.rotation);
-				drawVec3Control("Rotation", rotation);
-				component.rotation = glm::radians(rotation);
 
-				drawVec3Control("Scale", component.scale, 1.0f); });
+			glm::vec3 rotationDeg = glm::degrees(component.getRotationEuler());
+    		drawVec3Control("Rotation", rotationDeg);          
+    		component.setRotationEuler(glm::radians(rotationDeg)); 
+
+			drawVec3Control("Scale", component.scale, 1.0f); });
 
 		drawComponent<CameraComponent>("Camera", entity, [](auto &component)
 									   {

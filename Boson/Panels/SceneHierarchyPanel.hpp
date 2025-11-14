@@ -14,8 +14,8 @@ namespace Fermion
 		void setContext(const std::shared_ptr<Scene> &scene);
 
 		void onImGuiRender();
-
-
+		
+		Entity getSelectedEntity() const { return m_selectedEntity; }
 	private:
 		void drawEntityNode(Entity entity);
 		void drawComponents(Entity entity);

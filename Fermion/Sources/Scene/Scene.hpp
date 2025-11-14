@@ -27,6 +27,7 @@ namespace Fermion
             return m_viewportHeight;
         }
 
+        Entity getPrimaryCameraEntity();
     private:
        
       

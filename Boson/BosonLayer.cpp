@@ -3,7 +3,12 @@
 #include "Fermion.hpp"
 #include "Scene/SceneSerializer.hpp"
 #include "Utils/PlatformUtils.hpp"
+
+#include "Math/Math.hpp"
+
 #include <imgui.h>
+#include <ImGuizmo.h>
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/glm.hpp>
@@ -206,14 +211,69 @@ namespace Fermion
 
                 m_viewportFocused = ImGui::IsWindowFocused();
                 m_viewportHovered = ImGui::IsWindowHovered();
-                Engine::get().getImGuiLayer()->blockEvents(!m_viewportFocused || !m_viewportHovered);
+                Engine::get().getImGuiLayer()->blockEvents(!m_viewportFocused && !m_viewportHovered);
 
                 ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 
                 m_viewportSize = {viewportPanelSize.x, viewportPanelSize.y};
 
                 uint32_t textureID = m_framebuffer->getColorAttachmentRendererID();
-                ImGui::Image(reinterpret_cast<void *>(static_cast<intptr_t>(textureID)), ImVec2(viewportPanelSize.x, viewportPanelSize.y), ImVec2(0, 1), ImVec2(1, 0));
+                ImGui::Image(reinterpret_cast<void *>(static_cast<intptr_t>(textureID)),
+                             ImVec2(viewportPanelSize.x, viewportPanelSize.y),
+                             ImVec2(0, 1), ImVec2(1, 0));
+
+                // ImGuiZmo
+                Entity selectedEntity = m_sceneHierarchyPanel.getSelectedEntity();
+                if (selectedEntity && m_gizmoType != -1)
+                {
+                    ImGuizmo::SetOrthographic(false);
+                    ImGuizmo::SetDrawlist();
+                    ImGuizmo::SetRect(ImGui::GetWindowPos().x,
+                                      ImGui::GetWindowPos().y,
+                                      viewportPanelSize.x,
+                                      viewportPanelSize.y);
+
+                    // Camera
+                    auto cameraEntity = m_activeScene->getPrimaryCameraEntity();
+                    const auto &camera = cameraEntity.getComponent<CameraComponent>().camera;
+                    const glm::mat4 &cameraProjection = camera.getProjection();
+                    const glm::mat4 &cameraView = glm::inverse(cameraEntity.getComponent<TransformComponent>().getTransform());
+
+                    // Entity
+                    auto &transformComponent = selectedEntity.getComponent<TransformComponent>();
+                    glm::mat4 transform = transformComponent.getTransform();
+
+                    bool snap = Input::isKeyPressed(KeyCode::LeftAlt);
+                    float snapValue = 0.5f;
+                    if (m_gizmoType == ImGuizmo::OPERATION::ROTATE)
+                        snapValue = 45.0f;
+
+                    float snapValues[3] = {snapValue, snapValue, snapValue};
+                    ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
+                                         (ImGuizmo::OPERATION)m_gizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform), nullptr, snap ? snapValues : nullptr);
+
+                    if (ImGuizmo::IsUsing())
+                    {
+                        glm::vec3 translation, rotation, scale;
+                        Math::decomposeTransform(transform, translation, rotation, scale);
+
+                        switch ((ImGuizmo::OPERATION)m_gizmoType)
+                        {
+                        case ImGuizmo::TRANSLATE:
+                            transformComponent.translation = translation;
+                            break;
+                        case ImGuizmo::ROTATE:
+                            transformComponent.setRotationEuler(rotation);
+                            break;
+                        case ImGuizmo::SCALE:
+                            transformComponent.scale = scale;
+                            break;
+                        default:
+                            break;
+                        }
+                    }
+                }
+
                 ImGui::End();
                 ImGui::PopStyleVar();
             }
@@ -223,10 +283,7 @@ namespace Fermion
     {
         EventDispatcher dispatcher(event);
         dispatcher.dispatch<WindowResizeEvent>([](WindowResizeEvent &e)
-                                               {
-                                                   // 处理窗口大小调整事件
-                                                   return false; // 允许其他处理器处理此事件
-                                               });
+                                               { return false; });
         dispatcher.dispatch<KeyPressedEvent>([this](KeyPressedEvent &e)
                                              { return this->onKeyPressedEvent(e); });
         m_cameraController.onEvent(event);
@@ -248,7 +305,7 @@ namespace Fermion
             if (control && shift)
             {
                 saveScene();
-                return true; 
+                return true;
             }
             break;
         case KeyCode::N:
@@ -265,9 +322,21 @@ namespace Fermion
                 return true;
             }
             break;
+        case KeyCode::Q:
+            m_gizmoType = -1;
+            break;
+        case KeyCode::W:
+            m_gizmoType = ImGuizmo::OPERATION::TRANSLATE;
+            break;
+        case KeyCode::E:
+            m_gizmoType = ImGuizmo::OPERATION::ROTATE;
+            break;
+        case KeyCode::R:
+            m_gizmoType = ImGuizmo::OPERATION::SCALE;
+            break;
         }
 
-        return false; 
+        return false;
     }
     void BosonLayer::newScene()
     {
