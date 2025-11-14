@@ -54,6 +54,8 @@ namespace Fermion
         m_framebuffer = Framebuffer::create(fbSpec);
 
         m_activeScene = std::make_shared<Scene>();
+
+        m_editorCamera = EditorCamera(45.0f, (float)fbSpec.width / (float)fbSpec.height, 0.1f, 1000.0f);
         // auto greenSquare = m_activeScene->createEntity("green square");
         // greenSquare.addComponent<SpriteRendererComponent>(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 
@@ -86,11 +88,15 @@ namespace Fermion
         {
             m_framebuffer->resize(m_viewportSize.x, m_viewportSize.y);
             m_cameraController.onResize(m_viewportSize.x, m_viewportSize.y);
+            m_editorCamera.setViewportSize(m_viewportSize.x, m_viewportSize.y);
             m_activeScene->onViewportResize(m_viewportSize.x, m_viewportSize.y);
         }
 
         if (m_viewportFocused)
+        {
             m_cameraController.onUpdate(dt);
+        }
+        m_editorCamera.onUpdate(dt);
 
         Renderer2D::resetStatistics();
         m_framebuffer->bind();
@@ -99,7 +105,7 @@ namespace Fermion
 
         // Renderer2D::beginScene(m_cameraController.getCamera());
 
-        m_activeScene->onUpdate(dt);
+        m_activeScene->onUpdateEditor(dt, m_editorCamera);
 
         // Renderer2D::endScene();
 
@@ -233,11 +239,15 @@ namespace Fermion
                                       viewportPanelSize.x,
                                       viewportPanelSize.y);
 
-                    // Camera
-                    auto cameraEntity = m_activeScene->getPrimaryCameraEntity();
-                    const auto &camera = cameraEntity.getComponent<CameraComponent>().camera;
-                    const glm::mat4 &cameraProjection = camera.getProjection();
-                    const glm::mat4 &cameraView = glm::inverse(cameraEntity.getComponent<TransformComponent>().getTransform());
+                    // Camera entity
+                    // auto cameraEntity = m_activeScene->getPrimaryCameraEntity();
+                    // const auto &camera = cameraEntity.getComponent<CameraComponent>().camera;
+                    // const glm::mat4 &cameraProjection = camera.getProjection();
+                    // const glm::mat4 &cameraView = glm::inverse(cameraEntity.getComponent<TransformComponent>().getTransform());
+
+                    // editorCamera
+                    const glm::mat4 &cameraProjection = m_editorCamera.getProjection();
+                    const glm::mat4 &cameraView = m_editorCamera.getViewMatrix();
 
                     // Entity
                     auto &transformComponent = selectedEntity.getComponent<TransformComponent>();
@@ -287,6 +297,7 @@ namespace Fermion
         dispatcher.dispatch<KeyPressedEvent>([this](KeyPressedEvent &e)
                                              { return this->onKeyPressedEvent(e); });
         m_cameraController.onEvent(event);
+        m_editorCamera.onEvent(event);
     }
 
     bool BosonLayer::onKeyPressedEvent(KeyPressedEvent &e)

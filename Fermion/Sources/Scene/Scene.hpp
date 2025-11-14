@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <entt/entt.hpp>
 #include "Core/Timestep.hpp"
+#include "Renderer/EditorCamera.hpp"
 
 namespace Fermion
 {
@@ -11,7 +12,9 @@ namespace Fermion
     public:
         Scene();
         ~Scene();
-        void onUpdate(Timestep ts);
+        
+        void onUpdateEditor(Timestep ts, EditorCamera &camera);
+        void onUpdateRuntime(Timestep ts);
         void onViewportResize(uint32_t width, uint32_t height);
 
         Entity createEntity(std::string name = std::string());

@@ -112,6 +112,21 @@ namespace Fermion
         s_Data.TextureSlotIndex = 1;
     }
 
+    void Renderer2D::beginScene(const EditorCamera &camera)
+    {
+
+        FM_PROFILE_FUNCTION();
+
+        glm::mat4 viewProj = camera.getViewProjection();
+
+        s_Data.TextureShader->bind();
+        s_Data.TextureShader->setMat4("u_ViewProjection", viewProj);
+        s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
+        s_Data.QuadIndexCount = 0;
+
+        s_Data.TextureSlotIndex = 1;
+    }
+
     void Renderer2D::beginScene(const Camera &camera, const glm::mat4 &Transform)
     {
 

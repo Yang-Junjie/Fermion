@@ -16,7 +16,23 @@ namespace Fermion
     {
     }
 
-    void Scene::onUpdate(Timestep ts)
+    void Scene::onUpdateEditor(Timestep ts, EditorCamera &camera)
+    {
+        Renderer2D::beginScene(camera);
+
+        // non-owning group
+        auto group = m_registry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
+        for (auto entity : group)
+        {
+            auto &transform = group.get<TransformComponent>(entity);
+            auto &sprite = group.get<SpriteRendererComponent>(entity);
+            Renderer2D::drawQuad(transform.getTransform(), sprite.color);
+        }
+
+        Renderer2D::endScene();
+    }
+
+    void Scene::onUpdateRuntime(Timestep ts)
     {
 
         m_registry.view<NativeScriptComponent>().each(
@@ -51,7 +67,7 @@ namespace Fermion
 
         if (mainCamera)
         {
-            Renderer2D::beginScene(mainCamera->getProjection(), cameraTransform);
+            Renderer2D::beginScene(*mainCamera, cameraTransform);
 
             // non-owning group
             auto group = m_registry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);

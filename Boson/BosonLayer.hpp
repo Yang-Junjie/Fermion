@@ -2,7 +2,7 @@
 #include "Fermion.hpp"
 
 #include <imgui.h>
-
+#include "Renderer/EditorCamera.hpp"
 #include "Panels/SceneHierarchyPanel.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -45,6 +45,8 @@ namespace Fermion
         Entity m_secondCameraEntity;
 
         bool m_primaryCamera = true;
+
+        EditorCamera m_editorCamera;
 
         SceneHierarchyPanel m_sceneHierarchyPanel;
 
