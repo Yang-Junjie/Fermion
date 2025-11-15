@@ -13,6 +13,7 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Core/EntryPoint.cpp
     ${FERMION_DIR}/Core/LayerStack.cpp
     ${FERMION_DIR}/Core/Window.cpp
+    ${FERMION_DIR}/Core/UUID.cpp
 
     ${FERMION_DIR}/ImGui/ImGuiLayer.cpp
 

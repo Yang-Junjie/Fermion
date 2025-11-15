@@ -1,16 +1,24 @@
 ﻿#pragma once
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/quaternion.hpp>
+#include "fmpch.hpp"
+#include "Core/UUID.hpp"
+// #include "Scene/ScriptableEntity.hpp"
 #include "Renderer/Texture.hpp"
 #include "Renderer/SceneCamera.hpp"
-#include "Scene/ScriptableEntity.hpp"
-#include "fmpch.hpp"
-#include "Core/Timestep.hpp"
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
 namespace Fermion
 {
+    struct IDComponent
+    {
+        UUID ID;
+
+        IDComponent() = default;
+        IDComponent(const IDComponent &) = default;
+        IDComponent(const UUID &id) : ID(id) {}
+    };
     struct TagComponent
     {
         std::string tag;
@@ -47,6 +55,7 @@ namespace Fermion
         }
     };
 
+
     struct SpriteRendererComponent
     {
         glm::vec4 color{1.0f, 1.0f, 1.0f, 1.0f};
@@ -68,6 +77,7 @@ namespace Fermion
         CameraComponent(const CameraComponent &camera) = default;
     };
 
+    class ScriptableEntity;
     struct NativeScriptComponent
     {
         ScriptableEntity *instance = nullptr;

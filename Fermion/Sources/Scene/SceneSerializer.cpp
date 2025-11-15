@@ -108,8 +108,9 @@ namespace Fermion
 	}
 	static void serializeEntity(YAML::Emitter &out, Entity entity)
 	{
+		FMAssert::Assert(entity.hasComponent<IDComponent>(), "Entity must have an IDComponent", __FILE__, __LINE__);
 		out << YAML::BeginMap;
-		out << YAML::Key << "Entity" << YAML::Value << "1231313131"; // TODO：Entity ID here
+		out << YAML::Key << "Entity" << YAML::Value << entity.getUUID(); 
 		if (entity.hasComponent<TagComponent>())
 		{
 			out << YAML::Key << "TagComponent";
@@ -248,7 +249,7 @@ namespace Fermion
 					name = tagComponent["Tag"].as<std::string>();
 				}
 				Log::Info(std::format("Deserialized entity with ID = {0}, name = {1}", uuid, name));
-				Entity deserializedEntity = m_scene->createEntity(name);
+				Entity deserializedEntity = m_scene->createEntityWithUUID(uuid, name);
 
 				auto transformComponent = entity["TransformComponent"];
 				if (transformComponent && transformComponent.IsMap())

@@ -2,6 +2,7 @@
 #include "Scene/Scene.hpp"
 #include "Scene/Entity.hpp"
 #include "Scene/Components.hpp"
+#include "Scene/ScriptableEntity.hpp"
 #include "Renderer/Renderer2D.hpp"
 #include "Physics/Physics2D.hpp"
 #include <glm/glm.hpp>
@@ -132,11 +133,10 @@ namespace Fermion
 
                 b2Transform xf = b2Body_GetTransform(bodyId);
 
-               
                 transform.translation.x = xf.p.x;
                 transform.translation.y = xf.p.y;
-                
-                float angle = atan2f(xf.q.s, xf.q.c); 
+
+                float angle = atan2f(xf.q.s, xf.q.c);
                 transform.rotation.z = angle;
             }
         }
@@ -193,7 +193,12 @@ namespace Fermion
     }
     Entity Scene::createEntity(std::string name)
     {
+        return createEntityWithUUID(UUID(), name);
+    }
+    Entity Scene::createEntityWithUUID(UUID uuid, std::string name)
+    {
         Entity entity{m_registry.create(), this};
+        entity.addComponent<IDComponent>(uuid);
         entity.addComponent<TransformComponent>();
         entity.addComponent<TagComponent>(name.empty() ? std::string("unknown") : name);
         return entity;

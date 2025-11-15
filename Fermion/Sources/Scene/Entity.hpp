@@ -3,6 +3,8 @@
 #include <entt/entt.hpp>
 #include "fmpch.hpp"
 #include <type_traits>
+#include "Core/UUID.hpp"
+#include "Components.hpp"
 
 namespace Fermion
 {
@@ -70,7 +72,8 @@ namespace Fermion
             FMAssert::Assert(hasComponent<T>(), "Entity does not have this component", __FILE__, __LINE__);
             m_scene->m_registry.remove<T>(m_entityHandle);
         }
-
+        UUID getUUID() { return getComponent<IDComponent>().ID; }
+ 
     private:
         entt::entity m_entityHandle{entt::null};
         Scene *m_scene{nullptr};
