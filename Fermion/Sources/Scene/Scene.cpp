@@ -19,6 +19,52 @@ namespace Fermion
     {
     }
 
+    template <typename... Component>
+    static void copyComponent(entt::registry &dst, entt::registry &src, const std::unordered_map<UUID, entt::entity> &enttMap)
+    {
+        ([&]()
+         {
+			auto view = src.view<Component>();
+			for (auto srcEntity : view)
+			{
+				entt::entity dstEntity = enttMap.at(src.get<IDComponent>(srcEntity).ID);
+
+				auto& srcComponent = src.get<Component>(srcEntity);
+				dst.emplace_or_replace<Component>(dstEntity, srcComponent);
+			} }(), ...);
+    }
+
+    template <typename... Component>
+    static void copyComponent(ComponentGroup<Component...>, entt::registry &dst, entt::registry &src, const std::unordered_map<UUID, entt::entity> &enttMap)
+    {
+        copyComponent<Component...>(dst, src, enttMap);
+    }
+
+    std::shared_ptr<Scene> Scene::copy(std::shared_ptr<Scene> other)
+    {
+        std::shared_ptr<Scene> newScene = std::make_shared<Scene>();
+
+        newScene->m_viewportWidth = other->m_viewportWidth;
+        newScene->m_viewportHeight = other->m_viewportHeight;
+
+        auto &srcSceneRegistry = other->m_registry;
+        auto &dstSceneRegistry = newScene->m_registry;
+        std::unordered_map<UUID, entt::entity> enttMap;
+
+        auto idView = srcSceneRegistry.view<IDComponent>();
+        for (auto e : idView)
+        {
+            UUID uuid = srcSceneRegistry.get<IDComponent>(e).ID;
+            const auto &name = srcSceneRegistry.get<TagComponent>(e).tag;
+            Entity newEntity = newScene->createEntityWithUUID(uuid, name);
+            enttMap[uuid] = (entt::entity)newEntity;
+        }
+
+        copyComponent(AllComponents{}, dstSceneRegistry, srcSceneRegistry, enttMap);
+
+        return newScene;
+    }
+
     void Scene::onRuntimeStart()
     {
         // Create Box2D world

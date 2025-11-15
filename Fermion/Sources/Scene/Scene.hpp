@@ -14,6 +14,8 @@ namespace Fermion
         Scene();
         ~Scene();
         
+
+        static std::shared_ptr<Scene> copy(std::shared_ptr<Scene> other);
         void onRuntimeStart();
         void onRuntimeStop();
 

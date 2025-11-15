@@ -47,6 +47,7 @@ namespace Fermion
         bool m_viewportHovered = false;
 
         std::shared_ptr<Scene> m_activeScene;
+        std::shared_ptr<Scene> m_editorScene,m_runtimeScene;
         Entity m_squareEntity;
 
         Entity m_cameraEntity;

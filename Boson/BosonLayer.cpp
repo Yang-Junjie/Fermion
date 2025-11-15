@@ -33,6 +33,7 @@ namespace Fermion
         m_framebuffer = Framebuffer::create(fbSpec);
 
         m_activeScene = std::make_shared<Scene>();
+        m_editorScene = m_activeScene;
 
         m_editorCamera = EditorCamera(45.0f, (float)fbSpec.width / (float)fbSpec.height, 0.1f, 1000.0f);
         m_sceneHierarchyPanel.setContext(m_activeScene);
@@ -343,18 +344,7 @@ namespace Fermion
         ImGui::PopStyleColor(3);
         ImGui::End();
     }
-    void BosonLayer::onScenePlay()
-    {
-        m_sceneState = SceneState::Play;
-        m_sceneHierarchyPanel.setEditingEnabled(false);
-        m_activeScene->onRuntimeStart();
-    }
-    void BosonLayer::onSceneStop()
-    {
-        m_sceneState = SceneState::Edit;
-        m_sceneHierarchyPanel.setEditingEnabled(true);
-        m_activeScene->onRuntimeStop();     
-    }
+
     void BosonLayer::onEvent(IEvent &event)
     {
         EventDispatcher dispatcher(event);
@@ -430,6 +420,7 @@ namespace Fermion
     {
         m_activeScene = std::make_shared<Scene>();
         m_activeScene->onViewportResize(static_cast<uint32_t>(m_viewportSize.x), static_cast<uint32_t>(m_viewportSize.y));
+        m_editorScene = m_activeScene;
         m_sceneHierarchyPanel.setContext(m_activeScene);
     }
     void BosonLayer::saveScene()
@@ -451,12 +442,36 @@ namespace Fermion
     }
     void BosonLayer::openScene(const std::string &path)
     {
-        m_activeScene = std::make_shared<Scene>();
-        m_activeScene->onViewportResize(static_cast<uint32_t>(m_viewportSize.x), static_cast<uint32_t>(m_viewportSize.y));
-        m_sceneHierarchyPanel.setContext(m_activeScene);
+        if (m_sceneState != SceneState::Edit)
+        {
+            onSceneStop();
+        }
 
-        SceneSerializer serializer(m_activeScene);
-        serializer.deserialize(path);
+        std::shared_ptr<Scene> newScene = std::make_shared<Scene>();
+        SceneSerializer serializer(newScene);
+        if (serializer.deserialize(path))
+        {
+            m_editorScene = newScene;
+            m_editorScene->onViewportResize(static_cast<uint32_t>(m_viewportSize.x), static_cast<uint32_t>(m_viewportSize.y));
+            m_activeScene = m_editorScene;
+            m_sceneHierarchyPanel.setContext(m_activeScene);
+        }
     }
+    void BosonLayer::onScenePlay()
+    {
+        m_sceneState = SceneState::Play;
 
+        m_activeScene = Scene::copy(m_editorScene);
+        m_activeScene->onRuntimeStart();
+        m_sceneHierarchyPanel.setEditingEnabled(false);
+
+    }
+    void BosonLayer::onSceneStop()
+    {
+        m_sceneState = SceneState::Edit;
+        
+        m_activeScene->onRuntimeStop();
+        m_activeScene = m_editorScene;
+        m_sceneHierarchyPanel.setEditingEnabled(true);
+    }
 }

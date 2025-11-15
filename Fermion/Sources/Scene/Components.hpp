@@ -55,7 +55,6 @@ namespace Fermion
         }
     };
 
-
     struct SpriteRendererComponent
     {
         glm::vec4 color{1.0f, 1.0f, 1.0f, 1.0f};
@@ -137,5 +136,12 @@ namespace Fermion
         BoxCollider2DComponent() = default;
         BoxCollider2DComponent(const BoxCollider2DComponent &) = default;
     };
-
+    template <typename... Component>
+    struct ComponentGroup
+    {
+    };
+    using AllComponents =
+        ComponentGroup<TransformComponent, SpriteRendererComponent,
+                        CameraComponent, 
+                       NativeScriptComponent, Rigidbody2DComponent, BoxCollider2DComponent>;
 }
