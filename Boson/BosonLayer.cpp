@@ -158,7 +158,7 @@ namespace Fermion
 
                         if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S"))
                         {
-                            saveScene();
+                            saveSceneAs();
                         }
                         if (ImGui::MenuItem("Open...", "Ctrl+O"))
                         {
@@ -301,6 +301,18 @@ namespace Fermion
             }
         }
     }
+    void BosonLayer::onDuplicateEntity()
+    {
+        if (m_sceneState != SceneState::Edit)
+            return;
+
+        Entity selectedEntity = m_sceneHierarchyPanel.getSelectedEntity();
+        if (selectedEntity)
+        {
+            Entity newEntity = m_editorScene->duplicateEntity(selectedEntity);
+            m_sceneHierarchyPanel.setSelectedEntity(newEntity);
+        }
+    }
     void BosonLayer::UIToolbar()
     {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
@@ -373,6 +385,11 @@ namespace Fermion
         case KeyCode::S:
             if (control && shift)
             {
+                saveSceneAs();
+                return true;
+            }
+            else if (control)
+            {
                 saveScene();
                 return true;
             }
@@ -391,6 +408,11 @@ namespace Fermion
                 return true;
             }
             break;
+        case KeyCode::D:
+            if (control)
+                m_activeScene->destroyEntity(m_sceneHierarchyPanel.getSelectedEntity());
+            break;
+
         case KeyCode::Q:
             m_gizmoType = -1;
             break;
@@ -401,6 +423,8 @@ namespace Fermion
             m_gizmoType = ImGuizmo::OPERATION::ROTATE;
             break;
         case KeyCode::R:
+            if (control)
+                onDuplicateEntity();
             m_gizmoType = ImGuizmo::OPERATION::SCALE;
             break;
         }
@@ -421,26 +445,40 @@ namespace Fermion
         m_activeScene = std::make_shared<Scene>();
         m_activeScene->onViewportResize(static_cast<uint32_t>(m_viewportSize.x), static_cast<uint32_t>(m_viewportSize.y));
         m_editorScene = m_activeScene;
+        m_editorScenePath.clear();
         m_sceneHierarchyPanel.setContext(m_activeScene);
+    }
+    void BosonLayer::saveSceneAs()
+    {
+        std::filesystem::path path = FileDialogs::saveFile("Scene (*.fermion)\0*.fermion\0", "../Boson/assets/scenes/");
+        if (!path.empty())
+        {
+            SceneSerializer serializer(m_editorScene);
+            serializer.serialize(path);
+            m_editorScenePath = path;
+        }
     }
     void BosonLayer::saveScene()
     {
-        std::string path = FileDialogs::saveFile("Scene (*.fermion)\0*.fermion\0", "../Boson/assets/scenes/");
-        if (!path.empty())
+        if (!m_editorScenePath.empty())
         {
-            SceneSerializer serializer(m_activeScene);
-            serializer.serialize(path);
+            SceneSerializer serializer(m_editorScene);
+            serializer.serialize(m_editorScenePath);
+        }
+        else
+        {
+            saveSceneAs();
         }
     }
     void BosonLayer::openScene()
     {
-        std::string path = FileDialogs::openFile("Scene (*.fermion)\0*.fermion\0", "../Boson/assets/scenes/");
+        std::filesystem::path path = FileDialogs::openFile("Scene (*.fermion)\0*.fermion\0", "../Boson/assets/scenes/");
         if (!path.empty())
         {
             openScene(path);
         }
     }
-    void BosonLayer::openScene(const std::string &path)
+    void BosonLayer::openScene(const std::filesystem::path &path)
     {
         if (m_sceneState != SceneState::Edit)
         {
@@ -454,6 +492,7 @@ namespace Fermion
             m_editorScene = newScene;
             m_editorScene->onViewportResize(static_cast<uint32_t>(m_viewportSize.x), static_cast<uint32_t>(m_viewportSize.y));
             m_activeScene = m_editorScene;
+            m_editorScenePath = path;
             m_sceneHierarchyPanel.setContext(m_activeScene);
         }
     }
@@ -464,12 +503,11 @@ namespace Fermion
         m_activeScene = Scene::copy(m_editorScene);
         m_activeScene->onRuntimeStart();
         m_sceneHierarchyPanel.setEditingEnabled(false);
-
     }
     void BosonLayer::onSceneStop()
     {
         m_sceneState = SceneState::Edit;
-        
+
         m_activeScene->onRuntimeStop();
         m_activeScene = m_editorScene;
         m_sceneHierarchyPanel.setEditingEnabled(true);

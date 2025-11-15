@@ -188,7 +188,7 @@ namespace Fermion
 		out << YAML::EndMap;
 	}
 
-	void SceneSerializer::serialize(const std::string &filepath)
+	void SceneSerializer::serialize(const std::filesystem::path &filepath)
 	{
 		YAML::Emitter out;
 		out << YAML::BeginMap;
@@ -209,10 +209,10 @@ namespace Fermion
 		fout << out.c_str();
 	}
 
-	void SceneSerializer::serializeRuntime(const std::string &filepath)
+	void SceneSerializer::serializeRuntime(const std::filesystem::path &filepath)
 	{
 	}
-	bool SceneSerializer::deserialize(const std::string &filepath)
+	bool SceneSerializer::deserialize(const std::filesystem::path &filepath)
 	{
 		std::ifstream stream(filepath);
 		std::stringstream strStream;
@@ -331,7 +331,7 @@ namespace Fermion
 		}
 		return true;
 	}
-	bool SceneSerializer::deserializeRuntime(const std::string &filepath)
+	bool SceneSerializer::deserializeRuntime(const std::filesystem::path &filepath)
 	{
 		return false;
 	}

@@ -40,6 +40,19 @@ namespace Fermion
         copyComponent<Component...>(dst, src, enttMap);
     }
 
+    template <typename... Component>
+    static void copyComponentIfExists(Entity dst, Entity src)
+    {
+        ([&]()
+         {
+			if (src.hasComponent<Component>())
+				dst.addOrReplaceComponent<Component>(src.getComponent<Component>()); }(), ...);
+    }
+    template <typename... Component>
+    static void copyComponentIfExists(ComponentGroup<Component...>, Entity dst, Entity src)
+    {
+        copyComponentIfExists<Component...>(dst, src);
+    }
     std::shared_ptr<Scene> Scene::copy(std::shared_ptr<Scene> other)
     {
         std::shared_ptr<Scene> newScene = std::make_shared<Scene>();
@@ -252,6 +265,14 @@ namespace Fermion
     void Scene::destroyEntity(Entity entity)
     {
         m_registry.destroy(entity);
+    }
+
+    Entity Scene::duplicateEntity(Entity entity)
+    {
+        std::string name = entity.getName();
+        Entity newEntity = createEntity(name);
+        copyComponentIfExists(AllComponents{}, newEntity, entity);
+        return newEntity;
     }
 
     Entity Scene::getPrimaryCameraEntity()

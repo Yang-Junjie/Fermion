@@ -25,7 +25,7 @@ namespace Fermion
 		void drawComponents(Entity entity);
 
 	private:
-		std::shared_ptr<Scene> m_context;
+		std::shared_ptr<Scene> m_contextScene;
 		Entity m_selectedEntity;
 		bool m_editingEnabled = true;
 	};

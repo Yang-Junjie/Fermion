@@ -27,6 +27,8 @@ namespace Fermion
         Entity createEntityWithUUID(UUID uuid, std::string name = std::string());
         void destroyEntity(Entity entity);
 
+        Entity duplicateEntity(Entity entity);
+
         uint32_t getViewportWidth() const 
         {
             return m_viewportWidth;

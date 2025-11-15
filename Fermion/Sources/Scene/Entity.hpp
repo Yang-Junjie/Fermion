@@ -72,8 +72,25 @@ namespace Fermion
             FMAssert::Assert(hasComponent<T>(), "Entity does not have this component", __FILE__, __LINE__);
             m_scene->m_registry.remove<T>(m_entityHandle);
         }
+
+        template <typename T, typename... Args>
+        T &addOrReplaceComponent(Args &&...args)
+        {
+            T &component = m_scene->m_registry.emplace_or_replace<T>(m_entityHandle, std::forward<Args>(args)...);
+            if constexpr (std::is_same_v<T, CameraComponent>)
+            {
+                const uint32_t vw = m_scene->getViewportWidth();
+                const uint32_t vh = m_scene->getViewportHeight();
+                if (vw > 0 && vh > 0)
+                {
+                    component.camera.setViewportSize(vw, vh);
+                }
+            }
+            return component;
+        }
         UUID getUUID() { return getComponent<IDComponent>().ID; }
- 
+        std::string getName() { return getComponent<TagComponent>().tag; }
+
     private:
         entt::entity m_entityHandle{entt::null};
         Scene *m_scene{nullptr};

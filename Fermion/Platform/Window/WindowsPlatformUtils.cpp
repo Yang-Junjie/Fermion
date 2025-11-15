@@ -16,52 +16,50 @@ namespace Fermion
 		return glfwGetTime();
 	}
 
-	std::string FileDialogs::openFile(const char *filter, std::string defaultPath)
+
+	std::filesystem::path FileDialogs::openFile(const char *filter, std::string defaultPath)
 	{
 		OPENFILENAMEA ofn;
 		CHAR szFile[260] = {0};
-		CHAR currentDir[256] = {0};
 		ZeroMemory(&ofn, sizeof(OPENFILENAME));
 		ofn.lStructSize = sizeof(OPENFILENAME);
-		ofn.hwndOwner = glfwGetWin32Window((GLFWwindow *)Engine::get().getWindow().getNativeWindow());
+		ofn.hwndOwner = glfwGetWin32Window(
+			(GLFWwindow *)Engine::get().getWindow().getNativeWindow());
 		ofn.lpstrFile = szFile;
 		ofn.nMaxFile = sizeof(szFile);
-		// if (GetCurrentDirectoryA(256, currentDir))
 		ofn.lpstrInitialDir = defaultPath.c_str();
-
 		ofn.lpstrFilter = filter;
 		ofn.nFilterIndex = 1;
 		ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 
 		if (GetOpenFileNameA(&ofn) == TRUE)
-			return ofn.lpstrFile;
+			return std::filesystem::path(ofn.lpstrFile);
 
-		return std::string();
+		return {};
 	}
 
-	std::string FileDialogs::saveFile(const char *filter, std::string defaultPath)
+	std::filesystem::path FileDialogs::saveFile(const char *filter, std::string defaultPath)
 	{
 		OPENFILENAMEA ofn;
 		CHAR szFile[260] = {0};
-		CHAR currentDir[256] = {0};
 		ZeroMemory(&ofn, sizeof(OPENFILENAME));
 		ofn.lStructSize = sizeof(OPENFILENAME);
-		ofn.hwndOwner = glfwGetWin32Window((GLFWwindow *)Engine::get().getWindow().getNativeWindow());
+		ofn.hwndOwner = glfwGetWin32Window(
+			(GLFWwindow *)Engine::get().getWindow().getNativeWindow());
 		ofn.lpstrFile = szFile;
 		ofn.nMaxFile = sizeof(szFile);
-		// if (GetCurrentDirectoryA(256, currentDir))
 		ofn.lpstrInitialDir = defaultPath.c_str();
 		ofn.lpstrFilter = filter;
 		ofn.nFilterIndex = 1;
 		ofn.Flags = OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR;
 
-		// Sets the default extension by extracting it from the filter
+		// Set default extension (comes from filter)
 		ofn.lpstrDefExt = strchr(filter, '\0') + 1;
 
 		if (GetSaveFileNameA(&ofn) == TRUE)
-			return ofn.lpstrFile;
+			return std::filesystem::path(ofn.lpstrFile);
 
-		return std::string();
+		return {};
 	}
 
 }

@@ -36,24 +36,24 @@ namespace Fermion
 	// 			translation.y += speed * ts;
 	// 	}
 	// };
-	SceneHierarchyPanel::SceneHierarchyPanel(const std::shared_ptr<Scene> &scene) : m_context(scene)
+	SceneHierarchyPanel::SceneHierarchyPanel(const std::shared_ptr<Scene> &scene) : m_contextScene(scene)
 	{
 	}
 	void SceneHierarchyPanel::setContext(const std::shared_ptr<Scene> &scene)
 	{
-		m_context = scene;
+		m_contextScene = scene;
 		m_selectedEntity = {};
 	}
 	void SceneHierarchyPanel::onImGuiRender()
 	{
 		ImGui::Begin("Scene Hierarchy");
 
-		if (m_context)
+		if (m_contextScene)
 		{
-			auto view = m_context->m_registry.view<TagComponent>();
+			auto view = m_contextScene->m_registry.view<TagComponent>();
 			for (auto entityID : view)
 			{
-				Entity entity{entityID, m_context.get()};
+				Entity entity{entityID, m_contextScene.get()};
 				drawEntityNode(entity);
 			}
 		}
@@ -66,7 +66,7 @@ namespace Fermion
 		{
 			if (ImGui::MenuItem("Create Empty Entity"))
 			{
-				m_context->createEntity("Empty Entity");
+				m_contextScene->createEntity("Empty Entity");
 			}
 			ImGui::EndPopup();
 		}
@@ -121,7 +121,7 @@ namespace Fermion
 
 		if (enetityDeleted)
 		{
-			m_context->destroyEntity(entity);
+			m_contextScene->destroyEntity(entity);
 			if (m_selectedEntity == entity)
 			{
 				m_selectedEntity = {};
