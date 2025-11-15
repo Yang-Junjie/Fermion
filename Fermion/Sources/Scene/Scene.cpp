@@ -129,6 +129,23 @@ namespace Fermion
                 b2ShapeId shapeId = b2CreatePolygonShape(bodyId, &shapeDef, &box);
                 bc2d.runtimeFixture = (void *)(uintptr_t)b2StoreShapeId(shapeId);
             }
+
+            if (entity.hasComponent<CircleCollider2DComponent>())
+            {
+                auto &cc2d = entity.getComponent<CircleCollider2DComponent>();
+
+                b2ShapeDef shapeDef = b2DefaultShapeDef();
+                shapeDef.density = cc2d.density;
+                shapeDef.material.friction = cc2d.friction;
+                shapeDef.material.restitution = cc2d.restitution;
+
+                b2Circle circle;
+                circle.center = b2Vec2{cc2d.offset.x, cc2d.offset.y};
+                circle.radius = cc2d.radius * transform.scale.x;
+
+                b2ShapeId shapeId = b2CreateCircleShape(bodyId, &shapeDef, &circle);
+                cc2d.runtimeFixture = (void *)(uintptr_t)b2StoreShapeId(shapeId);
+            }
         }
     }
 

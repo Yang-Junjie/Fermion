@@ -171,6 +171,19 @@ namespace Fermion
 
 			out << YAML::EndMap;
 		}
+		if (entity.hasComponent<CircleCollider2DComponent>())
+		{
+			out << YAML::Key << "CircleCollider2DComponent";
+			out << YAML::BeginMap;
+			auto &cc = entity.getComponent<CircleCollider2DComponent>();
+			out << YAML::Key << "Offset" << YAML::Value << cc.offset;
+			out << YAML::Key << "Radius" << YAML::Value << cc.radius;
+			out << YAML::Key << "Density" << YAML::Value << cc.density;
+			out << YAML::Key << "Friction" << YAML::Value << cc.friction;
+			out << YAML::Key << "Restitution" << YAML::Value << cc.restitution;
+			out << YAML::Key << "RestitutionThreshold" << YAML::Value << cc.restitutionThreshold;
+			out << YAML::EndMap;
+		}
 		if (entity.hasComponent<CameraComponent>())
 		{
 			out << YAML::Key << "CameraComponent";
@@ -317,6 +330,23 @@ namespace Fermion
 						bc.restitution = n.as<float>();
 					if (auto n = boxCollider2DComponent["RestitutionThreshold"]; n)
 						bc.restitutionThreshold = n.as<float>();
+				}
+				auto circleCollider2DComponent = entity["CircleCollider2DComponent"];
+				if (circleCollider2DComponent && circleCollider2DComponent.IsMap())
+				{
+					auto &cc = deserializedEntity.addComponent<CircleCollider2DComponent>();
+					if (auto n = circleCollider2DComponent["Offset"]; n)
+						cc.offset = n.as<glm::vec2>();
+					if (auto n = circleCollider2DComponent["Radius"]; n)
+						cc.radius = n.as<float>();
+					if (auto n = circleCollider2DComponent["Density"]; n)
+						cc.density = n.as<float>();
+					if (auto n = circleCollider2DComponent["Friction"]; n)
+						cc.friction = n.as<float>();
+					if (auto n = circleCollider2DComponent["Restitution"]; n)
+						cc.restitution = n.as<float>();
+					if (auto n = circleCollider2DComponent["RestitutionThreshold"]; n)
+						cc.restitutionThreshold = n.as<float>();
 				}
 
 				auto cameraComponent = entity["CameraComponent"];

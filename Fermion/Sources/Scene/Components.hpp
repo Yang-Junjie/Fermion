@@ -66,16 +66,15 @@ namespace Fermion
         SpriteRendererComponent(const SpriteRendererComponent &) = default;
     };
 
-    
-	struct CircleRendererComponent
-	{
-		glm::vec4 color{ 1.0f, 1.0f, 1.0f, 1.0f };
-		float thickness = 1.0f;
-		float fade = 0.005f;
+    struct CircleRendererComponent
+    {
+        glm::vec4 color{1.0f, 1.0f, 1.0f, 1.0f};
+        float thickness = 1.0f;
+        float fade = 0.005f;
 
-		CircleRendererComponent() = default;
-		CircleRendererComponent(const CircleRendererComponent&) = default;
-	};
+        CircleRendererComponent() = default;
+        CircleRendererComponent(const CircleRendererComponent &) = default;
+    };
     struct CameraComponent
     {
         SceneCamera camera;
@@ -146,6 +145,24 @@ namespace Fermion
         BoxCollider2DComponent() = default;
         BoxCollider2DComponent(const BoxCollider2DComponent &) = default;
     };
+
+    struct CircleCollider2DComponent
+    {
+        glm::vec2 offset = {0.0f, 0.0f};
+        float radius = 0.5f;
+
+        // TODO(Yan): move into physics material in the future maybe
+        float density = 1.0f;
+        float friction = 0.5f;
+        float restitution = 0.0f;
+        float restitutionThreshold = 0.5f;
+
+        // Storage for runtime
+        void *runtimeFixture = nullptr;
+
+        CircleCollider2DComponent() = default;
+        CircleCollider2DComponent(const CircleCollider2DComponent &) = default;
+    };
     template <typename... Component>
     struct ComponentGroup
     {
@@ -154,5 +171,5 @@ namespace Fermion
         ComponentGroup<TransformComponent, SpriteRendererComponent,
                        CircleRendererComponent,
                        CameraComponent,
-                       NativeScriptComponent, Rigidbody2DComponent, BoxCollider2DComponent>;
+                       NativeScriptComponent, Rigidbody2DComponent, BoxCollider2DComponent,CircleCollider2DComponent>;
 }
