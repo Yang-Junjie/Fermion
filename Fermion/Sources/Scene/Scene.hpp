@@ -13,7 +13,6 @@ namespace Fermion
     public:
         Scene();
         ~Scene();
-        
 
         static std::shared_ptr<Scene> copy(std::shared_ptr<Scene> other);
         void onRuntimeStart();
@@ -29,21 +28,24 @@ namespace Fermion
 
         Entity duplicateEntity(Entity entity);
 
-        uint32_t getViewportWidth() const 
+        uint32_t getViewportWidth() const
         {
             return m_viewportWidth;
         }
 
-        uint32_t getViewportHeight()const
+        uint32_t getViewportHeight() const
         {
             return m_viewportHeight;
         }
 
         Entity getPrimaryCameraEntity();
-    private:
-       
-      
+        template <typename... Components>
+        auto getAllEntitiesWith()
+        {
+            return m_registry.view<Components...>();
+        }
 
+    private:
     private:
         entt::registry m_registry;
         uint32_t m_viewportWidth = 0, m_viewportHeight = 0;

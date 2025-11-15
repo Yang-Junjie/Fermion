@@ -28,6 +28,8 @@ namespace Fermion
         bool onKeyPressedEvent(KeyPressedEvent &e);
         bool onMouseButtonPressedEvent(MouseButtonPressedEvent &e);
 
+        void onOverlayRender();
+
         void newScene();
         void saveSceneAs();
         void saveScene();
@@ -36,11 +38,14 @@ namespace Fermion
         void openScene(const std::filesystem::path &path);
 
         void onScenePlay();
-        void onSceneStop(); 
+        void onSceneStop();
 
         void onDuplicateEntity();
 
         void UIToolbar();
+
+      
+
     private:
         OrthographicCameraController m_cameraController;
         std::filesystem::path m_editorScenePath;
@@ -55,8 +60,8 @@ namespace Fermion
         bool m_viewportHovered = false;
 
         std::shared_ptr<Scene> m_activeScene;
-        std::shared_ptr<Scene> m_editorScene,m_runtimeScene;
-       
+        std::shared_ptr<Scene> m_editorScene, m_runtimeScene;
+
         Entity m_hoveredEntity;
 
         bool m_primaryCamera = true;
@@ -74,5 +79,6 @@ namespace Fermion
             Play = 1
         };
         SceneState m_sceneState = SceneState::Edit;
+        bool m_showPhysicsColliders = false;
     };
 }

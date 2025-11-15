@@ -91,7 +91,7 @@ namespace Fermion
             // Log::Warn(std::format("pixel data: {0}", pixelData));
             m_hoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_activeScene.get());
         }
-
+        onOverlayRender();
         m_framebuffer->unbind();
     }
 
@@ -197,6 +197,11 @@ namespace Fermion
                 ImGui::Text("Vertices: %d", stats.getTotalVertexCount());
                 ImGui::Text("Indices: %d", stats.getTotalIndexCount());
 
+                ImGui::End();
+            }
+            {
+                ImGui::Begin("settings");
+                ImGui::Checkbox("showPhysicsColliders", &m_showPhysicsColliders);
                 ImGui::End();
             }
 
@@ -439,6 +444,70 @@ namespace Fermion
                 m_sceneHierarchyPanel.setSelectedEntity(m_hoveredEntity);
         }
         return false;
+    }
+    void BosonLayer::onOverlayRender()
+    {
+        if (m_sceneState == SceneState::Play)
+        {
+            Entity camera = m_activeScene->getPrimaryCameraEntity();
+            if (!camera)
+                return;
+
+            Renderer2D::beginScene(camera.getComponent<CameraComponent>().camera, camera.getComponent<TransformComponent>().getTransform());
+        }
+        else
+        {
+            Renderer2D::beginScene(m_editorCamera);
+        }
+
+        if (m_showPhysicsColliders)
+        {
+            // Box Colliders
+            {
+                auto view = m_activeScene->getAllEntitiesWith<TransformComponent, BoxCollider2DComponent>();
+                for (auto entity : view)
+                {
+                    auto [tc, bc2d] = view.get<TransformComponent, BoxCollider2DComponent>(entity);
+
+                    glm::vec3 translation = tc.translation + glm::vec3(bc2d.offset, 0.001f);
+                    glm::vec3 scale = tc.scale * glm::vec3(bc2d.size * 2.0f, 1.0f);
+
+                    glm::mat4 transform = glm::translate(glm::mat4(1.0f), tc.translation) * glm::rotate(glm::mat4(1.0f), tc.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(bc2d.offset, 0.001f)) * glm::scale(glm::mat4(1.0f), scale);
+
+                    Renderer2D::drawRect(transform, glm::vec4(0, 1, 0, 1));
+                }
+            }
+
+            // Circle Colliders
+            {
+                auto view = m_activeScene->getAllEntitiesWith<TransformComponent, CircleCollider2DComponent>();
+                for (auto entity : view)
+                {
+                    auto [tc, cc2d] = view.get<TransformComponent, CircleCollider2DComponent>(entity);
+
+                    // 半径和 Box2D 一样：单位 quad 半径 0.5 * scale.x = cc2d.radius * tc.scale.x
+                    glm::vec3 scale = tc.scale * glm::vec3(cc2d.radius * 2.0f, cc2d.radius * 2.0f, 1.0f);
+
+                    // 和 BoxCollider 一样：先平移到实体，再旋转，再平移 offset，再缩放
+                    glm::mat4 transform =
+                        glm::translate(glm::mat4(1.0f), tc.translation) *
+                        glm::rotate(glm::mat4(1.0f), tc.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) *
+                        glm::translate(glm::mat4(1.0f), glm::vec3(cc2d.offset, 0.001f)) *
+                        glm::scale(glm::mat4(1.0f), scale);
+
+                    Renderer2D::drawCircle(transform, glm::vec4(0, 1, 0, 1), 0.1f);
+                }
+            }
+        }
+
+        // Draw selected entity outline
+        if (Entity selectedEntity = m_sceneHierarchyPanel.getSelectedEntity())
+        {
+            const TransformComponent &transform = selectedEntity.getComponent<TransformComponent>();
+            Renderer2D::drawRect(transform.getTransform(), glm::vec4(1.0f, 0.5f, 0.0f, 1.0f));
+        }
+
+        Renderer2D::endScene();
     }
     void BosonLayer::newScene()
     {

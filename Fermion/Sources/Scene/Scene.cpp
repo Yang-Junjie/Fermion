@@ -130,6 +130,7 @@ namespace Fermion
                 bc2d.runtimeFixture = (void *)(uintptr_t)b2StoreShapeId(shapeId);
             }
 
+          
             if (entity.hasComponent<CircleCollider2DComponent>())
             {
                 auto &cc2d = entity.getComponent<CircleCollider2DComponent>();
@@ -140,8 +141,12 @@ namespace Fermion
                 shapeDef.material.restitution = cc2d.restitution;
 
                 b2Circle circle;
-                circle.center = b2Vec2{cc2d.offset.x, cc2d.offset.y};
-                circle.radius = cc2d.radius * transform.scale.x;
+                // offset 也按缩放来算，和可视 Transform 一致
+                circle.center = b2Vec2{
+                    cc2d.offset.x * transform.scale.x,
+                    cc2d.offset.y * transform.scale.y};
+
+                circle.radius = cc2d.radius * transform.scale.x; // 或者用 max(scale.x, scale.y)
 
                 b2ShapeId shapeId = b2CreateCircleShape(bodyId, &shapeDef, &circle);
                 cc2d.runtimeFixture = (void *)(uintptr_t)b2StoreShapeId(shapeId);
