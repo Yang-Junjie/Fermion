@@ -1,0 +1,92 @@
+#include "fmpch.hpp"
+#include "ContentBrowserPanel.hpp"
+
+#include <imgui.h>
+
+namespace Fermion
+{
+    // 相对于可执行文件所在的 bin 目录
+    constexpr const char *s_assetDirectory = "../Boson/assets";
+
+    ContentBrowserPanel::ContentBrowserPanel()
+        : m_baseDirectory(std::filesystem::path(s_assetDirectory)),
+          m_currentDirectory(m_baseDirectory)
+    {
+        m_directoryIcon = Texture2D::create("../Boson/Resources/Icons/ContentBrowser/DirectoryIcon.png");
+        m_fileIcon = Texture2D::create("../Boson/Resources/Icons/ContentBrowser/FileIcon.png");
+    }
+
+    void ContentBrowserPanel::onImGuiRender()
+    {
+        ImGui::Begin("Content Browser");
+
+        if (!std::filesystem::exists(m_currentDirectory))
+        {
+            ImGui::Text("Directory not found: %s", m_currentDirectory.string().c_str());
+            ImGui::End();
+            return;
+        }
+
+        if (m_currentDirectory != m_baseDirectory)
+        {
+            if (ImGui::Button("<-"))
+            {
+                m_currentDirectory = m_currentDirectory.parent_path();
+            }
+        }
+
+        static float padding = 16.0f;
+        static float thumbnailSize = 80.0f;
+        float cellSize = thumbnailSize + padding;
+
+        float panelWidth = ImGui::GetContentRegionAvail().x;
+        int columnCount = static_cast<int>(panelWidth / cellSize);
+        if (columnCount < 1)
+        {
+            columnCount = 1;
+        }
+
+        ImGui::Columns(columnCount, nullptr, false);
+
+        for (auto &entry : std::filesystem::directory_iterator(m_currentDirectory))
+        {
+            const auto &path = entry.path();
+            std::string filename = path.filename().string();
+
+            ImGui::PushID(filename.c_str());
+
+            std::shared_ptr<Texture2D> icon = entry.is_directory() ? m_directoryIcon : m_fileIcon;
+            if (icon && icon->isLoaded())
+            {
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0, 0, 0, 0});
+                ImGui::ImageButton(
+                    filename.c_str(),
+                    ImTextureRef(static_cast<ImTextureID>(icon->getRendererID())),
+                    ImVec2{thumbnailSize, thumbnailSize},
+                    ImVec2{0, 1}, ImVec2{1, 0});
+                ImGui::PopStyleColor();
+            }
+            else
+            {
+                ImGui::Button(filename.c_str(), ImVec2{thumbnailSize, thumbnailSize});
+            }
+
+            if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+            {
+                if (entry.is_directory())
+                {
+                    m_currentDirectory /= path.filename();
+                }
+            }
+
+            ImGui::TextWrapped("%s", filename.c_str());
+
+            ImGui::NextColumn();
+            ImGui::PopID();
+        }
+
+        ImGui::Columns(1);
+
+        ImGui::End();
+    }
+}

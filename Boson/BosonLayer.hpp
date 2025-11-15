@@ -4,6 +4,7 @@
 #include <imgui.h>
 #include "Renderer/EditorCamera.hpp"
 #include "Panels/SceneHierarchyPanel.hpp"
+#include "Panels/ContentBrowserPanel.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 namespace Fermion
@@ -51,6 +52,7 @@ namespace Fermion
         EditorCamera m_editorCamera;
 
         SceneHierarchyPanel m_sceneHierarchyPanel;
+        ContentBrowserPanel m_contentBrowserPanel;
 
         int m_gizmoType = -1;
     };

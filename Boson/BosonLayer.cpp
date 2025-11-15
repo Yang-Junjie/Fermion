@@ -206,6 +206,8 @@ namespace Fermion
             // Scene Hierarchy
             m_sceneHierarchyPanel.onImGuiRender();
 
+            m_contentBrowserPanel.onImGuiRender();
+
             // Statistics
             {
                 std::string name = "None";
