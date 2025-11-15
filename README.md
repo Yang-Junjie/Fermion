@@ -1,192 +1,204 @@
-﻿# Fermion
+# Fermion
 
-Fermion 是一款基于 C++20 开发的轻量级游戏引擎。引擎采用模块化设计，支持多渲染后端，提供简洁的 API 以简化游戏开发流程。
+Fermion 是一款基于 C++20 的轻量级 2D 游戏引擎，同时配套提供基于 ImGui 的场景编辑器 **Boson** 和示例游戏工程。引擎采用模块化设计，围绕组件化场景系统、2D 渲染管线和 Box2D 物理进行构建，适合作为学习引擎架构、搭建小型游戏/工具的基础。
 
-## 设计哲学
+## 命名与愿景
 
-致力于打造一款简单易用且自定义程度高的游戏引擎，支持多平台、多渲染后端，重视扩展性。你可以根据需求编写插件扩展引擎，将其变成你的自定义引擎，而不仅仅局限于游戏引擎。
+- **Fermion（费米子）**：对应引擎核心。费米子构成物质世界中的“实体”，象征核心运行时负责承载游戏世界中的一切对象与逻辑。
+- **Boson（玻色子）**：对应编辑器。玻色子是相互作用的媒介粒子，象征编辑器作为开发者与引擎之间的“交互媒介”，用于搭建场景、调整参数、驱动物体。
+- **Higgs（希格斯粒子）**：对应物理模块。希格斯场赋予粒子质量，物理系统则为引擎中的对象带来“重量”“惯性”和真实的运动行为。
 
-## 命名由来
+项目目标是在保持 **简单、清晰、易扩展** 的前提下，提供一个可以自由定制和二次开发的个人引擎内核。
 
-### 内核命名为"费米子"
-费米子是构成物质的基本单元，如电子、夸克等，它们遵循泡利不相容原理，赋予物质结构与稳定性。将引擎的核心系统命名为"费米子"，象征着它是整个引擎的基础架构，承载着游戏世界中一切实体的存在与运行，正如费米子构成了现实世界中的物质一样。它传递出一种坚实、不可替代的感觉，非常契合"内核"的定位。
+## 核心特性
 
-### 编辑器命名为"玻色子"
-玻色子是传递相互作用的媒介粒子，如光子传递电磁力、W/Z玻色子传递弱力。编辑器正是开发者与引擎之间的"交互媒介"，你通过它来施加"力"——创建场景、调整参数、触发逻辑。玻色子允许多个粒子处于同一状态，象征着协同与叠加，正如多个开发者可以在编辑器中共同构建复杂系统。这个名字赋予了工具以动态和连接的意义。
+- **C++20 / 模块化架构**
+  - 基于 `Engine` + `Layer` 的应用框架和图层系统
+  - 自定义事件系统（窗口、键盘、鼠标、应用生命周期）
+  - 时间与帧步进管理（`Timestep`、`Timer`）
 
-### 物理引擎模块命名为"希格斯粒子"
-这是一个极具诗意和深度的选择。在标准模型中，希格斯粒子是希格斯场的激发，基本粒子通过与希格斯场耦合而获得质量，从而让宇宙从无质量的对称状态"破缺"出有质量的现实结构。将物理引擎称为"希格斯粒子"，意味着它赋予游戏世界中的对象以"质量"、"惯性"和"存在感"——让虚拟物体真正"落地"，产生碰撞、运动和响应。没有它，一切将如光子般无质量地飞逝；有了它，虚拟世界才有了重量与真实。
+- **2D 渲染管线（OpenGL）**
+  - 通过 `RendererAPI` / `RenderCommand` 抽象渲染后端，目前实现为 OpenGL + GLAD
+  - `Renderer2D` 支持批量绘制：
+    - 纯色/纹理矩形、旋转矩形
+    - 基于纹理图集的 `SubTexture2D`
+    - 圆形、线段与矩形轮廓（用于调试或 Gizmo）
+  - 帧缓冲（`Framebuffer`）用于 Boson 视口渲染与离屏绘制
+  - 多种相机类型：`OrthographicCamera`、`SceneCamera`、`EditorCamera`
 
-## 特性
+- **实体组件系统（ECS）**
+  - 基于 [entt](https://github.com/skypjack/entt) 的 `entt::registry`
+  - 常用内置组件：
+    - `IDComponent`、`TagComponent`
+    - `TransformComponent`（平移、欧拉旋转、缩放）
+    - `SpriteRendererComponent`、`CircleRendererComponent`
+    - `CameraComponent`
+    - `NativeScriptComponent`（C++ 行为脚本）
+    - `Rigidbody2DComponent`、`BoxCollider2DComponent`、`CircleCollider2DComponent`
+  - `Entity` 封装组件增删查；`ScriptableEntity` 提供脚本访问实体组件的入口
 
-- **跨平台支持**：通过抽象层支持多种渲染后端
-- **模块化架构**：清晰的代码组织和分层设计
-- **事件系统**：灵活的事件处理机制
-- **图层系统**：基于 Layer 的场景管理
-- **渲染功能**：基于 OpenGL 的图形渲染
-- **日志系统**：集成 spdlog 提供详细日志
-- **实体组件系统**：基于 entt 实现
-- **ImGui 集成**：内置 ImGui 用于调试和界面开发
-- **窗口管理**：基于 GLFW 的跨平台窗口系统
+- **2D 物理（Box2D 集成）**
+  - 使用新版 [box2d](https://github.com/erincatto/box2d) API
+  - 在 `Scene::onRuntimeStart` 中构建物理世界，按组件自动生成刚体与碰撞体
+  - 在 `Scene::onUpdateRuntime` 中同步 Box2D 世界状态到实体 Transform
+  - 支持刚体类型（静态/动态/运动学）、固定旋转、矩形/圆形碰撞体及物理材质参数
 
-## 技术栈与依赖
+- **场景与序列化**
+  - `Scene` 支持 Editor/Runtime 两种更新模式
+  - 通过 [yaml-cpp](https://github.com/jbeder/yaml-cpp) 将场景序列化为可读的 `.fermion` YAML 文件
+  - `SceneSerializer` 负责读写实体及其组件（Transform、渲染、相机、物理等）
 
-- **编程语言**：C++20
-- **构建系统**：CMake 3.16+
-- **主要依赖**：
-  - [OpenGL](https://www.opengl.org/) - 图形渲染 API
-  - [GLFW](https://www.glfw.org/) - 跨平台窗口和输入处理
-  - glad - OpenGL 加载库
-  - [ImGui](https://github.com/ocornut/imgui) - 即时模式图形界面库
-  - [spdlog](https://github.com/gabime/spdlog) - 快速日志库
-  - [entt](https://github.com/skypjack/entt) - 高性能实体组件系统
-  - [glm](https://github.com/g-truc/glm) - 数学库
-  - [stb](https://github.com/nothings/stb) - 图片加载库
+- **ImGui 工具与调试**
+  - `ImGuiLayer` 集成 Dear ImGui + docking + 多视口
+  - 使用 [ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo) 实现编辑器中的变换 Gizmo
+  - 示例层（如 `SandBox2D`）提供绘制统计面板、参数调节等调试 UI
 
-## 项目结构
+- **Boson 编辑器**
+  - 使用 Fermion 引擎实现的独立可执行程序 `BosonEditor`
+  - 核心功能：
+    - 视口窗口：使用 `EditorCamera` 查看/编辑场景
+    - 场景层级面板（`SceneHierarchyPanel`）：编辑实体、添加/删除组件、修改组件属性
+    - 资源浏览器（`ContentBrowserPanel`）：浏览 `assets` 目录中的资源
+    - 播放/停止按钮切换编辑模式与运行时模拟
+    - 显示或隐藏物理碰撞体轮廓
+  - 场景文件示例位于 `Boson/assets/scenes/*.fermion`
 
+- **示例游戏（game）**
+  - `game` 目录包含基于 Fermion 的示例应用：
+    - `SandBox2D` 展示 2D 渲染、相机控制、纹理/图集绘制以及渲染统计
+    - `GameLayer` 示例如何在自定义图层中使用引擎 API
+
+- **日志与性能分析**
+  - 日志系统基于 [spdlog](https://github.com/gabime/spdlog)，由 `Core/Log` 封装
+  - `Instrumentor` / `InstrumentationTimer` 支持将性能数据导出为 Chrome Trace 格式 JSON 文件（可选启用）
+
+## 目录结构概览
+
+```text
+Fermion/
+├── Fermion/                 # 引擎核心
+│   ├── Sources/
+│   │   ├── Core/            # Engine、Layer、Window、日志、时间
+│   │   ├── Events/          # 事件系统
+│   │   ├── Renderer/        # Renderer2D、Shader、Texture、Camera 等
+│   │   ├── Scene/           # Scene、Entity、组件、场景序列化
+│   │   ├── Physics/         # Box2D 2D 物理封装
+│   │   ├── ImGui/           # ImGui 层与主题
+│   │   ├── Math/            # 变换分解等数学工具
+│   │   ├── Time/            # 计时器
+│   │   └── Utils/           # 平台工具（文件对话框、时间）
+│   └── Platform/
+│       ├── OpenGL/          # OpenGL 渲染后端实现
+│       └── Window/          # 基于 GLFW 的窗口与输入适配
+├── Boson/                   # Boson 编辑器
+│   ├── Panels/              # 场景层级面板、内容浏览器面板
+│   ├── assets/              # 编辑器资源与示例场景
+│   └── Resources/           # 图标等资源
+├── game/                    # 示例游戏工程
+│   └── assets/              # 示例用贴图与着色器
+├── external/                # 第三方依赖（通过 submodule 或源码集成）
+└── CMakeLists.txt           # 顶层 CMake 配置
 ```
-├── Fermion/          # 引擎核心代码
-│   ├── Platform/     # 平台抽象层
-│   │   ├── OpenGL/   # OpenGL 渲染实现
-│   │   └── Window/   # 窗口系统实现
-│   └── Sources/      # 源代码目录
-│       ├── Core/     # 核心系统
-│       ├── Debug/    # 调试系统
-│       ├── Engine/   # 引擎主要功能
-│       ├── Events/   # 事件系统
-│       ├── ImGui/    # ImGui 集成
-│       ├── Renderer/ # 渲染器组件
-│       └── Time/     # 时间管理
-├── external/         # 第三方依赖
-│   ├── GLAD/         # OpenGL 加载库
-│   ├── GLFW/         # 窗口和输入处理
-│   ├── entt/         # 实体组件系统
-│   ├── glm/          # 数学库
-│   ├── imgui/        # ImGui 界面库
-│   └── spdlog/       # 日志库
-├── game/             # 示例游戏应用
-├── assets/           # 游戏资源
-│   └── textures/     # 纹理资源
-├── doc/              # 文档
-└── CMakeLists.txt    # 主构建文件
-```
+
+## 第三方依赖
+
+项目依赖的库均以源码形式引入，便于跨平台编译与调试：
+
+- [spdlog](https://github.com/gabime/spdlog) – 高性能日志库
+- [entt](https://github.com/skypjack/entt) – 实体组件系统（ECS）
+- [glm](https://github.com/g-truc/glm) – 数学库（向量、矩阵、变换）
+- [Dear ImGui](https://github.com/ocornut/imgui) – 即时模式图形界面
+- [ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo) – 编辑器中的变换 Gizmo
+- [GLFW](https://github.com/glfw/glfw) – 跨平台窗口与输入管理
+- [GLAD](https://glad.dav1d.de/) – OpenGL 函数加载器
+- [stb](https://github.com/nothings/stb) – 使用 `stb_image` 进行纹理加载
+- [yaml-cpp](https://github.com/jbeder/yaml-cpp) – YAML 序列化（场景保存/加载）
+- [box2d](https://github.com/erincatto/box2d) – 2D 刚体物理引擎
 
 ## 构建说明
 
-### 前提条件
+### 环境要求
 
-- CMake 3.16 或更高版本
+- CMake ≥ 3.16
 - 支持 C++20 的编译器
-  - Windows: Visual Studio 2019+
-  - Linux: GCC 10+ 或 Clang 10+
-  - macOS: Clang 11+
+  - Windows：Visual Studio 2019 或更新版本
+  - 其他平台：GCC / Clang（需自行提供 `PlatformUtils` 等平台适配实现，当前工程主要在 Windows 下开发与测试）
+- 已安装 Git（用于克隆子模块）
 
-### 构建步骤
+### 获取源码
 
-1. **克隆仓库**
-   ```bash
-   git clone https://github.com/Yang-Junjie/Fermion.git
-   cd Fermion
-   ```
+```bash
+git clone https://github.com/Yang-Junjie/Fermion.git
+cd Fermion
+git submodule update --init --recursive
+```
 
-2. **配置构建**
-   ```bash
-   mkdir build
-   cd build
-   cmake ..
-   ```
+### 配置与编译
 
-3. **编译项目**
-   ```bash
-   # Windows (Visual Studio)
-   cmake --build . --config Release
-   ```
+```bash
+mkdir build
+cd build
+cmake .. -DUSE_GLFW=ON -DBUILD_GAME=ON -DBUILD_BOSON=ON
+cmake --build . --config Release
+```
 
-4. **运行示例**
-   编译后的可执行文件将位于 `bin/` 目录下
+构建完成后，可执行文件默认输出到根目录下的 `bin/` 目录：
 
-## 自定义构建选项
+- `bin/BosonEditor[.exe]` – 场景编辑器
+- `bin/game[.exe]` – 示例游戏
 
-- `USE_OPENGL` - 是否使用 OpenGL 作为渲染后端（默认 ON）
-  ```bash
-  cmake .. -DUSE_OPENGL=OFF  
-  ```
-- `BUILD_EXAMPLES` - 是否构建示例应用（默认 ON）
-  ```bash
-  cmake .. -DBUILD_EXAMPLES=OFF  
-  ```
+### 运行
 
-## 使用示例
+在项目根目录或 `bin/` 目录下运行：
 
-### 创建基本游戏应用
+```bash
+# 编辑器
+./bin/BosonEditor
+
+# 示例游戏
+./bin/game
+```
+
+请确保运行时工作目录能正确访问 `Boson/assets` 与 `game/assets`，否则字体/纹理等资源可能无法加载。
+
+## 快速上手示例
+
+使用 Fermion 编写一个最小示例应用：
 
 ```cpp
-#include "Engine/Engine.hpp"
-#include "GameLayer.hpp"
+#include "Fermion.hpp"
 
-namespace Fermion {
-    class GameApp : public Engine {
-    public:
-        GameApp() {
-            Log::Info("GameApp constructor called");
-            pushLayer(std::make_unique<GameLayer>());
-        }
-        
-        ~GameApp() = default;
-    };
-    
-    // 引擎入口点 - 必须实现此函数
-    Engine* createEngine() {
-        Log::Info("start preparing to create the engine");
-        return new Fermion::GameApp();
+class ExampleLayer : public Fermion::Layer {
+public:
+    ExampleLayer() : Layer("ExampleLayer") {}
+
+    void onUpdate(Fermion::Timestep dt) override {
+        Fermion::RenderCommand::setClearColor({0.1f, 0.1f, 0.1f, 1.0f});
+        Fermion::RenderCommand::clear();
+
+        Fermion::Renderer2D::beginScene(m_camera);
+        Fermion::Renderer2D::drawQuad({0.0f, 0.0f}, {1.0f, 1.0f}, {0.2f, 0.8f, 0.3f, 1.0f});
+        Fermion::Renderer2D::endScene();
     }
+
+private:
+    Fermion::OrthographicCamera m_camera{-1.6f, 1.6f, -0.9f, 0.9f};
+};
+
+class ExampleApp : public Fermion::Engine {
+public:
+    ExampleApp() : Engine("Example") {
+        pushLayer(std::make_unique<ExampleLayer>());
+    }
+};
+
+// 应用入口：必须在客户端实现
+Fermion::Engine* Fermion::createEngine() {
+    return new ExampleApp();
 }
 ```
 
-### 创建游戏图层
+## 许可证
 
-```cpp
-#include "Core/Layer.hpp"
-#include "Core/Log.hpp"
-#include "imgui.h"
+本项目基于 MIT License 开源，详情请见 `LICENSE` 文件。
 
-namespace Fermion {
-    class GameLayer : public Layer {
-    public:
-        GameLayer(const std::string& name = "GameLayer") : Layer(name) {
-            // 图层初始化
-        }
-        
-        virtual ~GameLayer() = default;
-        
-        // 当图层被添加到引擎时调用
-        virtual void onAttach() override {
-            // 初始化资源、设置
-        }
-        
-        // 当图层从引擎移除时调用
-        virtual void onDetach() override {
-            // 清理资源
-        }
-        
-        // 每帧更新逻辑
-        virtual void onUpdate(Timestep dt) override {
-            Log::Trace("GameLayer onUpdate called");
-            // 游戏逻辑更新，dt为帧时间间隔
-        }
-        
-        // 事件处理
-        virtual void onEvent(IEvent& event) override {
-            Log::Trace("GameLayer onEvent called: " + event.toString());
-            // 处理键盘、鼠标等事件
-        }
-        
-        // ImGui渲染
-        virtual void onImGuiRender() override {
-            ImGui::ShowDemoWindow();
-            // 自定义ImGui界面
-        }
-    };
-}
-```
