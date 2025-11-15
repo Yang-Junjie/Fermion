@@ -45,6 +45,7 @@ add_subdirectory(external/spdlog)
 add_subdirectory(external/entt)
 add_subdirectory(external/glm)
 add_subdirectory(external/yaml-cpp)
+add_subdirectory(external/box2d)
 
 
 # Fermion 

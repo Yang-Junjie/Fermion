@@ -73,6 +73,7 @@ set(THIRD_PARTY_SOURCES
 
 file(GLOB YAML_CPP_SOURCES "${EXTERNAL_DIR}/yaml-cpp/src/*.cpp")
 file(GLOB IMGUIZMO_CPP_SOURCES "${EXTERNAL_DIR}/ImGuizmo/*.cpp")
+file(GLOB BOX2D_CPP_SOURCES "${EXTERNAL_DIR}/box2d/src/*.c")
 set(ENGINE_SOURCES
     ${CORE_SOURCES}
     ${PLATFORM_SOURCES}
@@ -101,6 +102,7 @@ target_include_directories(engine PUBLIC
     ${EXTERNAL_DIR}/stb
     ${EXTERNAL_DIR}/yaml-cpp/include
     ${EXTERNAL_DIR}/ImGuizmo
+    ${EXTERNAL_DIR}/box2d/include
 )
 
 
