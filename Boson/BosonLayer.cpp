@@ -59,22 +59,7 @@ namespace Fermion
         m_activeScene = std::make_shared<Scene>();
 
         m_editorCamera = EditorCamera(45.0f, (float)fbSpec.width / (float)fbSpec.height, 0.1f, 1000.0f);
-        // auto greenSquare = m_activeScene->createEntity("green square");
-        // greenSquare.addComponent<SpriteRendererComponent>(glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-
-        // auto redSquare = m_activeScene->createEntity("red square");
-        // redSquare.addComponent<SpriteRendererComponent>(glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
-
-        // m_cameraEntity = m_activeScene->createEntity("camera");
-        // m_cameraEntity.addComponent<CameraComponent>();
-
-        // m_secondCameraEntity = m_activeScene->createEntity("camera2");
-        // auto &cc = m_secondCameraEntity.addComponent<CameraComponent>();
-        // cc.primary = false;
-
-        // m_cameraEntity.addComponent<NativeScriptComponent>().bind<CameraController>();
-        // m_secondCameraEntity.addComponent<NativeScriptComponent>().bind<CameraController>();
-
+        
         m_sceneHierarchyPanel.setContext(m_activeScene);
     }
     void BosonLayer::onDetach()

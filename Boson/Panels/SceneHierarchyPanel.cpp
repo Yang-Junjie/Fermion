@@ -51,25 +51,6 @@ namespace Fermion
 		if (m_selectedEntity)
 		{
 			drawComponents(m_selectedEntity);
-			if (ImGui::Button("Add Component"))
-			{
-				ImGui::OpenPopup("Add Component");
-			}
-			if (ImGui::BeginPopup("Add Component"))
-			{
-				if (ImGui::MenuItem("Sprite Renderer"))
-				{
-					m_selectedEntity.addComponent<SpriteRendererComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-				if (ImGui::MenuItem("Camera"))
-				{
-					m_selectedEntity.addComponent<CameraComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-
-				ImGui::EndPopup();
-			}
 		}
 		ImGui::End();
 	}
@@ -230,10 +211,30 @@ namespace Fermion
 			memset(buffer, 0, sizeof(buffer));
 			strncpy_s(buffer, tag.c_str(), sizeof(buffer));
 
-			if (ImGui::InputText("Tag", buffer, sizeof(buffer)))
+			if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
 			{
 				tag = std::string(buffer);
 			}
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Add Component"))
+		{
+			ImGui::OpenPopup("Add Component");
+		}
+		if (ImGui::BeginPopup("Add Component"))
+		{
+			if (ImGui::MenuItem("Sprite Renderer"))
+			{
+				m_selectedEntity.addComponent<SpriteRendererComponent>();
+				ImGui::CloseCurrentPopup();
+			}
+			if (ImGui::MenuItem("Camera"))
+			{
+				m_selectedEntity.addComponent<CameraComponent>();
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
 		}
 
 		drawComponent<TransformComponent>("Transform", entity, [](auto &component)
