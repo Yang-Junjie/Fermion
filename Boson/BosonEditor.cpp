@@ -6,7 +6,7 @@ namespace Fermion
     class Bonson : public Engine
     {
     public:
-        Bonson() : Engine("Boson")
+        Bonson() : Engine("Fermion - Boson")
         {
             Log::Info("Boson Editor constructor called");
             pushLayer(std::make_unique<BosonLayer>());

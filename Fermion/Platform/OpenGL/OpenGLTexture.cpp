@@ -68,7 +68,7 @@ namespace Fermion
 		glTextureStorage2D(m_rendererID, 1, m_internalFormat, m_width, m_height);
 
 		glTextureParameteri(m_rendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -113,7 +113,7 @@ namespace Fermion
 			glTextureStorage2D(m_rendererID, 1, internalFormat, m_width, m_height);
 
 			glTextureParameteri(m_rendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 			glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
 			glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);

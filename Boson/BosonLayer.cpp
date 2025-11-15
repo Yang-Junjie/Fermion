@@ -46,6 +46,8 @@ namespace Fermion
     {
         FM_PROFILE_FUNCTION();
 
+        m_iconPlay = Texture2D::create("../Boson/Resources/Icons/PlayButton.png");
+        m_iconStop = Texture2D::create("../Boson/Resources/Icons/StopButton.png");
         FramebufferSpecification fbSpec;
 
         fbSpec.width = 1280;
@@ -93,19 +95,27 @@ namespace Fermion
             m_activeScene->onViewportResize(m_viewportSize.x, m_viewportSize.y);
         }
 
-        if (m_viewportFocused)
-        {
-            m_cameraController.onUpdate(dt);
-        }
-        m_editorCamera.onUpdate(dt);
-
         Renderer2D::resetStatistics();
         m_framebuffer->bind();
         RenderCommand::setClearColor({0.1f, 0.1f, 0.1f, 1.0f});
         RenderCommand::clear();
         m_framebuffer->clearAttachment(1, -1);
 
-        m_activeScene->onUpdateEditor(dt, m_editorCamera);
+        if (m_sceneState == SceneState::Play)
+        {
+            m_sceneHierarchyPanel.setSelectedEntity({});
+            m_activeScene->onUpdateRuntime(dt);
+        }
+        else
+        {
+            if (m_viewportFocused)
+            {
+                m_cameraController.onUpdate(dt);
+            }
+            m_editorCamera.onUpdate(dt);
+
+            m_activeScene->onUpdateEditor(dt, m_editorCamera);
+        }
 
         auto [mx, my] = ImGui::GetMousePos();
         mx -= (float)m_viewportBounds[0].x;
@@ -207,7 +217,7 @@ namespace Fermion
             m_sceneHierarchyPanel.onImGuiRender();
 
             m_contentBrowserPanel.onImGuiRender();
-
+            UIToolbar();
             // Statistics
             {
                 std::string name = "None";
@@ -329,6 +339,57 @@ namespace Fermion
             }
         }
     }
+    void BosonLayer::UIToolbar()
+    {
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+        auto &colors = ImGui::GetStyle().Colors;
+        const auto &buttonHovered = colors[ImGuiCol_ButtonHovered];
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(buttonHovered.x, buttonHovered.y, buttonHovered.z, 0.5f));
+        const auto &buttonActive = colors[ImGuiCol_ButtonActive];
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(buttonActive.x, buttonActive.y, buttonActive.z, 0.5f));
+
+        ImGui::Begin("toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+        std::shared_ptr<Texture2D> icon = m_sceneState == SceneState::Edit ? m_iconPlay : m_iconStop;
+        bool toolbarEnabled = (bool)m_activeScene;
+
+        ImVec4 tintColor = ImVec4(1, 1, 1, 1);
+        if (!toolbarEnabled)
+            tintColor.w = 0.5f;
+
+        float size = ImGui::GetWindowHeight() - 5.0f;
+        ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
+
+        if (!toolbarEnabled)
+            ImGui::BeginDisabled();
+
+        if (ImGui::ImageButton("##toolbar_btn",
+                               ImTextureRef(static_cast<ImTextureID>(icon->getRendererID())),
+                               ImVec2(size, size),
+                               ImVec2(0, 1), ImVec2(1, 0),
+                               ImVec4(0, 0, 0, 0), tintColor))
+        {
+            if (m_sceneState == SceneState::Edit)
+                onScenePlay();
+            else if (m_sceneState == SceneState::Play)
+                onSceneStop();
+        }
+
+        if (!toolbarEnabled)
+            ImGui::EndDisabled();
+        ImGui::PopStyleVar(2);
+        ImGui::PopStyleColor(3);
+        ImGui::End();
+    }
+    void BosonLayer::onScenePlay()
+    {
+        m_sceneState = SceneState::Play;
+    }
+    void BosonLayer::onSceneStop()
+    {
+        m_sceneState = SceneState::Edit;
+    }
     void BosonLayer::onEvent(IEvent &event)
     {
         EventDispatcher dispatcher(event);
@@ -395,7 +456,7 @@ namespace Fermion
     {
         if (e.getMouseButton() == MouseCode::Left)
         {
-            if (m_viewportHovered&&!ImGuizmo::IsOver())
+            if (m_viewportHovered && !ImGuizmo::IsOver())
                 m_sceneHierarchyPanel.setSelectedEntity(m_hoveredEntity);
         }
         return false;
@@ -432,4 +493,5 @@ namespace Fermion
         SceneSerializer serializer(m_activeScene);
         serializer.deserialize(path);
     }
+
 }

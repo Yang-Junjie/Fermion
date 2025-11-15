@@ -30,10 +30,15 @@ namespace Fermion
         void openScene();
         void openScene(const std::string& path);
 
+        void onScenePlay();
+        void onSceneStop(); 
+        void UIToolbar();
     private:
         glm::vec4 m_squareColor = {0.2, 0.3, 0.8, 1.0};
         OrthographicCameraController m_cameraController;
 
+        std::shared_ptr<Texture2D> m_iconStop;
+        std::shared_ptr<Texture2D> m_iconPlay;
         std::shared_ptr<Framebuffer> m_framebuffer;
 
         glm::vec2 m_viewportSize{0.0f, 0.0f};
@@ -56,5 +61,12 @@ namespace Fermion
         ContentBrowserPanel m_contentBrowserPanel;
 
         int m_gizmoType = -1;
+
+        enum class SceneState
+        {
+            Edit = 0,
+            Play = 1
+        };
+        SceneState m_sceneState = SceneState::Edit;
     };
 }
