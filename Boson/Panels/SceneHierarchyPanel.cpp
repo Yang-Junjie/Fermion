@@ -316,6 +316,25 @@ namespace Fermion
 					ImGui::Checkbox("Fixed Aspect Ratio", &component.fixedAspectRatio);
 				} });
 		drawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [](auto &component)
-											   { ImGui::ColorEdit4("Color", glm::value_ptr(component.color)); });
+											   { 
+												
+			ImGui::ColorEdit4("Color", glm::value_ptr(component.color)); 
+
+			//Texture
+			ImGui::Button("Texture", ImVec2(100.0f, 0.0f));
+			if (ImGui::BeginDragDropTarget())
+                {
+                    if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_TEXTURE"))
+                    {
+                        const char *path = static_cast<const char *>(payload->Data);
+                        if (path && path[0])
+                        {
+							component.texture = Texture2D::create(std::string(path));
+                            
+                        }
+                    }
+                 ImGui::EndDragDropTarget();
+            }
+			ImGui::DragFloat("Tiling Factor",&component.tilingFactor,0.1f,0.0f,100.0f); });
 	}
 }

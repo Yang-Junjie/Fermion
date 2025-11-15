@@ -28,6 +28,7 @@ namespace Fermion
         void newScene();
         void saveScene();
         void openScene();
+        void openScene(const std::string& path);
 
     private:
         glm::vec4 m_squareColor = {0.2, 0.3, 0.8, 1.0};

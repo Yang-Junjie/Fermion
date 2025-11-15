@@ -247,6 +247,19 @@ namespace Fermion
                 ImGui::Image(reinterpret_cast<void *>(static_cast<intptr_t>(textureID)),
                              ImVec2(viewportPanelSize.x, viewportPanelSize.y),
                              ImVec2(0, 1), ImVec2(1, 0));
+                // 接收 .fermion 拖放
+                if (ImGui::BeginDragDropTarget())
+                {
+                    if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_SCENE"))
+                    {
+                        const char *path = static_cast<const char *>(payload->Data);
+                        if (path && path[0])
+                        {
+                            openScene(std::string(path));
+                        }
+                    }
+                    ImGui::EndDragDropTarget();
+                }
 
                 ImVec2 minBound = ImGui::GetWindowPos();
                 minBound.x += viewportOffset.x;
@@ -398,7 +411,6 @@ namespace Fermion
         std::string path = FileDialogs::saveFile("Scene (*.fermion)\0*.fermion\0", "../Boson/assets/scenes/");
         if (!path.empty())
         {
-
             SceneSerializer serializer(m_activeScene);
             serializer.serialize(path);
         }
@@ -408,12 +420,16 @@ namespace Fermion
         std::string path = FileDialogs::openFile("Scene (*.fermion)\0*.fermion\0", "../Boson/assets/scenes/");
         if (!path.empty())
         {
-            m_activeScene = std::make_shared<Scene>();
-            m_activeScene->onViewportResize(static_cast<uint32_t>(m_viewportSize.x), static_cast<uint32_t>(m_viewportSize.y));
-            m_sceneHierarchyPanel.setContext(m_activeScene);
-
-            SceneSerializer serializer(m_activeScene);
-            serializer.deserialize(path);
+            openScene(path);
         }
+    }
+    void BosonLayer::openScene(const std::string &path)
+    {
+        m_activeScene = std::make_shared<Scene>();
+        m_activeScene->onViewportResize(static_cast<uint32_t>(m_viewportSize.x), static_cast<uint32_t>(m_viewportSize.y));
+        m_sceneHierarchyPanel.setContext(m_activeScene);
+
+        SceneSerializer serializer(m_activeScene);
+        serializer.deserialize(path);
     }
 }

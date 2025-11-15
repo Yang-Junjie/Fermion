@@ -53,14 +53,12 @@ namespace Fermion
         s_Data.QuadVertexArray = VertexArray::create();
 
         s_Data.QuadVertexBuffer = VertexBuffer::create(s_Data.MaxVertices * sizeof(QuadVertices));
-        s_Data.QuadVertexBuffer->setLayout({
-            { ShaderDataType::Float3, "a_Position"      },
-            { ShaderDataType::Float4, "a_Color"         },
-            { ShaderDataType::Float2, "a_TexCoord"      },
-            { ShaderDataType::Float,  "a_TexIndex"      },
-            { ShaderDataType::Float,  "a_TilingFactor"  },
-            { ShaderDataType::Int,    "a_EntityID"      }
-        });
+        s_Data.QuadVertexBuffer->setLayout({{ShaderDataType::Float3, "a_Position"},
+                                            {ShaderDataType::Float4, "a_Color"},
+                                            {ShaderDataType::Float2, "a_TexCoord"},
+                                            {ShaderDataType::Float, "a_TexIndex"},
+                                            {ShaderDataType::Float, "a_TilingFactor"},
+                                            {ShaderDataType::Int, "a_EntityID"}});
         s_Data.QuadVertexArray->addVertexBuffer(s_Data.QuadVertexBuffer);
 
         s_Data.QuadVertexBufferBase = new QuadVertices[s_Data.MaxVertices];
@@ -262,7 +260,7 @@ namespace Fermion
 
         s_Data.stats.quadCount++;
     }
-    void Renderer2D::drawQuad(const glm::mat4 &transform, const glm::vec4 &color,int entityID)
+    void Renderer2D::drawQuad(const glm::mat4 &transform, const glm::vec4 &color, int entityID)
     {
         FM_PROFILE_FUNCTION();
 
@@ -292,7 +290,7 @@ namespace Fermion
         s_Data.stats.quadCount++;
     }
 
-    void Renderer2D::drawQuad(const glm::mat4 &transform, const std::shared_ptr<Texture2D> &texture, float tilingFactor, glm::vec4 tintColor,int entityID)
+    void Renderer2D::drawQuad(const glm::mat4 &transform, const std::shared_ptr<Texture2D> &texture, float tilingFactor, glm::vec4 tintColor, int entityID)
     {
         FM_PROFILE_FUNCTION();
 
@@ -541,7 +539,14 @@ namespace Fermion
     }
     void Renderer2D::drawSprite(const glm::mat4 &transform, SpriteRendererComponent &src, int entityID)
     {
-        drawQuad(transform, src.color,entityID);
+        if (src.texture)
+        {
+            drawQuad(transform, src.texture, src.tilingFactor, src.color, entityID);
+        }
+        else
+        {
+            drawQuad(transform, src.color, entityID);
+        }
     }
     void Renderer2D::resetStatistics()
     {
