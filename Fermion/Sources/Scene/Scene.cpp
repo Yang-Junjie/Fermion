@@ -152,6 +152,7 @@ namespace Fermion
                 auto &sprite = group.get<SpriteRendererComponent>(entity);
                 // Renderer2D::drawQuad(transform.getTransform(), sprite.color);
                 Renderer2D::drawSprite(transform.getTransform(), sprite, (int)entity);
+                // Renderer2D::drawRect(transform.getTransform(), glm::vec4{1.0f, 0.0f, 0.0f, 1.0f},(int)entity);
             }
         }
         {
@@ -161,9 +162,12 @@ namespace Fermion
                 auto &transform = group.get<TransformComponent>(entity);
                 auto &circle = group.get<CircleRendererComponent>(entity);
                 // Renderer2D::drawQuad(transform.getTransform(), sprite.color);
+
                 Renderer2D::drawCircle(transform.getTransform(), circle.color, circle.thickness, circle.fade, (int)entity);
             }
         }
+
+        // Renderer2D::drawRect(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec2{10.0f, 10.0f}, glm::vec4{0.0f, 1.0f, 0.0f, 1.0f});
         Renderer2D::endScene();
     }
 
