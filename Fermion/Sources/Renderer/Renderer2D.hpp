@@ -44,6 +44,9 @@ namespace Fermion
         
         static void drawSprite(const glm::mat4& transform, SpriteRendererComponent& src, int entityID);
 
+
+        static void drawCircle(const glm::mat4& transform, const glm::vec4& color, float thickness = 1.0f, float fade = 0.005f, int entityID = -1);
+		
         struct Satistics
         {
             uint32_t drawCalls = 0;

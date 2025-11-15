@@ -144,16 +144,26 @@ namespace Fermion
     void Scene::onUpdateEditor(Timestep ts, EditorCamera &camera)
     {
         Renderer2D::beginScene(camera);
-
-        auto group = m_registry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
-        for (auto entity : group)
         {
-            auto &transform = group.get<TransformComponent>(entity);
-            auto &sprite = group.get<SpriteRendererComponent>(entity);
-            // Renderer2D::drawQuad(transform.getTransform(), sprite.color);
-            Renderer2D::drawSprite(transform.getTransform(), sprite, (int)entity);
+            auto group = m_registry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
+            for (auto entity : group)
+            {
+                auto &transform = group.get<TransformComponent>(entity);
+                auto &sprite = group.get<SpriteRendererComponent>(entity);
+                // Renderer2D::drawQuad(transform.getTransform(), sprite.color);
+                Renderer2D::drawSprite(transform.getTransform(), sprite, (int)entity);
+            }
         }
-
+        {
+            auto group = m_registry.group<>(entt::get<TransformComponent, CircleRendererComponent>);
+            for (auto entity : group)
+            {
+                auto &transform = group.get<TransformComponent>(entity);
+                auto &circle = group.get<CircleRendererComponent>(entity);
+                // Renderer2D::drawQuad(transform.getTransform(), sprite.color);
+                Renderer2D::drawCircle(transform.getTransform(), circle.color, circle.thickness, circle.fade, (int)entity);
+            }
+        }
         Renderer2D::endScene();
     }
 
@@ -219,16 +229,27 @@ namespace Fermion
 
         if (mainCamera)
         {
-            Renderer2D::beginScene(*mainCamera, cameraTransform);
 
-            // non-owning group
-            auto group = m_registry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
-            for (auto entity : group)
+            Renderer2D::beginScene(*mainCamera, cameraTransform);
             {
-                auto &transform = group.get<TransformComponent>(entity);
-                auto &sprite = group.get<SpriteRendererComponent>(entity);
-                // Renderer2D::drawQuad(transform.getTransform(), sprite.color);
-                Renderer2D::drawSprite(transform.getTransform(), sprite, (int)entity);
+                auto group = m_registry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
+                for (auto entity : group)
+                {
+                    auto &transform = group.get<TransformComponent>(entity);
+                    auto &sprite = group.get<SpriteRendererComponent>(entity);
+                    // Renderer2D::drawQuad(transform.getTransform(), sprite.color);
+                    Renderer2D::drawSprite(transform.getTransform(), sprite, (int)entity);
+                }
+            }
+            {
+                auto group = m_registry.group<>(entt::get<TransformComponent, CircleRendererComponent>);
+                for (auto entity : group)
+                {
+                    auto &transform = group.get<TransformComponent>(entity);
+                    auto &circle = group.get<CircleRendererComponent>(entity);
+                    // Renderer2D::drawQuad(transform.getTransform(), sprite.color);
+                    Renderer2D::drawCircle(transform.getTransform(), circle.color, circle.thickness, circle.fade, (int)entity);
+                }
             }
 
             Renderer2D::endScene();

@@ -66,6 +66,16 @@ namespace Fermion
         SpriteRendererComponent(const SpriteRendererComponent &) = default;
     };
 
+    
+	struct CircleRendererComponent
+	{
+		glm::vec4 color{ 1.0f, 1.0f, 1.0f, 1.0f };
+		float thickness = 1.0f;
+		float fade = 0.005f;
+
+		CircleRendererComponent() = default;
+		CircleRendererComponent(const CircleRendererComponent&) = default;
+	};
     struct CameraComponent
     {
         SceneCamera camera;
@@ -142,6 +152,7 @@ namespace Fermion
     };
     using AllComponents =
         ComponentGroup<TransformComponent, SpriteRendererComponent,
-                        CameraComponent, 
+                       CircleRendererComponent,
+                       CameraComponent,
                        NativeScriptComponent, Rigidbody2DComponent, BoxCollider2DComponent>;
 }

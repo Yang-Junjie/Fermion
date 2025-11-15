@@ -265,6 +265,14 @@ namespace Fermion
 					ImGui::CloseCurrentPopup();
 				}
 			}
+			if (!m_selectedEntity.hasComponent<CircleRendererComponent>())
+			{
+				if (ImGui::MenuItem("Circle Renderer"))
+				{
+					m_selectedEntity.addComponent<CircleRendererComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+			}
 			if (!m_selectedEntity.hasComponent<CameraComponent>())
 			{
 				if (ImGui::MenuItem("Camera"))
@@ -380,8 +388,7 @@ namespace Fermion
 					ImGui::Checkbox("Fixed Aspect Ratio", &component.fixedAspectRatio);
 				} });
 		drawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [](auto &component)
-											   { 
-												
+											   { 								
 			ImGui::ColorEdit4("Color", glm::value_ptr(component.color)); 
 
 			//Texture
@@ -400,6 +407,12 @@ namespace Fermion
                  ImGui::EndDragDropTarget();
             }
 			ImGui::DragFloat("Tiling Factor",&component.tilingFactor,0.1f,0.0f,100.0f); });
+
+		drawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto &component)
+											   {
+			ImGui::ColorEdit4("Color", glm::value_ptr(component.color)); 
+			ImGui::DragFloat("Thickness", &component.thickness, 0.025f, 0.0f, 1.0f);
+			ImGui::DragFloat("Fade", &component.fade, 0.00025f, 0.0f, 1.0f); });
 		drawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [](auto &component)
 											{
 			const char* bodyTypeStrings[] = { "Static", "Dynamic", "Kinematic"};

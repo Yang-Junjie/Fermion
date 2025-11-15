@@ -110,7 +110,7 @@ namespace Fermion
 	{
 		FMAssert::Assert(entity.hasComponent<IDComponent>(), "Entity must have an IDComponent", __FILE__, __LINE__);
 		out << YAML::BeginMap;
-		out << YAML::Key << "Entity" << YAML::Value << entity.getUUID(); 
+		out << YAML::Key << "Entity" << YAML::Value << entity.getUUID();
 		if (entity.hasComponent<TagComponent>())
 		{
 			out << YAML::Key << "TagComponent";
@@ -134,6 +134,15 @@ namespace Fermion
 			out << YAML::Key << "SpriteRendererComponent";
 			out << YAML::BeginMap;
 			out << YAML::Key << "Color" << YAML::Value << entity.getComponent<SpriteRendererComponent>().color;
+			out << YAML::EndMap;
+		}
+		if (entity.hasComponent<CircleRendererComponent>())
+		{
+			out << YAML::Key << "CircleRendererComponent";
+			out << YAML::BeginMap;
+			out << YAML::Key << "Color" << YAML::Value << entity.getComponent<CircleRendererComponent>().color;
+			out << YAML::Key << "Thickness" << YAML::Value << entity.getComponent<CircleRendererComponent>().thickness;
+			out << YAML::Key << "Fade" << YAML::Value << entity.getComponent<CircleRendererComponent>().fade;
 			out << YAML::EndMap;
 		}
 		if (entity.hasComponent<Rigidbody2DComponent>())
@@ -269,6 +278,17 @@ namespace Fermion
 					auto &src = deserializedEntity.addComponent<SpriteRendererComponent>();
 					if (auto n = spriteRendererComponent["Color"]; n)
 						src.color = n.as<glm::vec4>();
+				}
+				auto circleRendererComponent = entity["CircleRendererComponent"];
+				if (circleRendererComponent && circleRendererComponent.IsMap())
+				{
+					auto &cr = deserializedEntity.addComponent<CircleRendererComponent>();
+					if (auto n = circleRendererComponent["Color"]; n)
+						cr.color = n.as<glm::vec4>();
+					if (auto n = circleRendererComponent["Thickness"]; n)
+						cr.thickness = n.as<float>();
+					if (auto n = circleRendererComponent["Fade"]; n)
+						cr.fade = n.as<float>();
 				}
 
 				auto rigidbody2DComponent = entity["Rigidbody2DComponent"];
