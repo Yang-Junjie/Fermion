@@ -2,6 +2,7 @@
 #include "Scene/Scene.hpp"
 #include "Scene/Entity.hpp"
 #include <memory>
+#include "Renderer/Texture.hpp"
 
 namespace Fermion
 {
@@ -17,6 +18,7 @@ namespace Fermion
 
 		Entity getSelectedEntity() const { return m_selectedEntity; }
 		void setSelectedEntity(Entity entity);
+		void setEditingEnabled(bool enabled);
 
 	private:
 		void drawEntityNode(Entity entity);
@@ -25,6 +27,7 @@ namespace Fermion
 	private:
 		std::shared_ptr<Scene> m_context;
 		Entity m_selectedEntity;
+		bool m_editingEnabled = true;
 	};
 
 }

@@ -20,14 +20,13 @@ namespace Fermion
     {
         Renderer2D::beginScene(camera);
 
-        // non-owning group
         auto group = m_registry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
         for (auto entity : group)
         {
             auto &transform = group.get<TransformComponent>(entity);
             auto &sprite = group.get<SpriteRendererComponent>(entity);
             // Renderer2D::drawQuad(transform.getTransform(), sprite.color);
-            Renderer2D::drawSprite(transform.getTransform(), sprite,(int)entity);
+            Renderer2D::drawSprite(transform.getTransform(), sprite, (int)entity);
         }
 
         Renderer2D::endScene();
@@ -76,7 +75,8 @@ namespace Fermion
             {
                 auto &transform = group.get<TransformComponent>(entity);
                 auto &sprite = group.get<SpriteRendererComponent>(entity);
-                Renderer2D::drawQuad(transform.getTransform(), sprite.color);
+                // Renderer2D::drawQuad(transform.getTransform(), sprite.color);
+                Renderer2D::drawSprite(transform.getTransform(), sprite, (int)entity);
             }
 
             Renderer2D::endScene();

@@ -50,9 +50,9 @@ namespace Fermion
     struct SpriteRendererComponent
     {
         glm::vec4 color{1.0f, 1.0f, 1.0f, 1.0f};
-        std::shared_ptr<Texture2D> texture;
+        std::shared_ptr<Texture2D> texture = nullptr;
         float tilingFactor = 1.0f;
-       
+
         SpriteRendererComponent() = default;
         SpriteRendererComponent(const glm::vec4 &color) : color(color) {}
         SpriteRendererComponent(const SpriteRendererComponent &) = default;

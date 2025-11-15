@@ -2,6 +2,7 @@
 #include "SceneHierarchyPanel.hpp"
 #include <imgui.h>
 #include <imgui_internal.h>
+#include "Core/Input.hpp"
 
 #include <entt/entt.hpp>
 #include "Scene/Components.hpp"
@@ -10,6 +11,31 @@
 
 namespace Fermion
 {
+	// class CameraController : public ScriptableEntity
+	// {
+	// public:
+	// 	void onCreate()
+	// 	{
+	// 		auto &translation = getComponent<TransformComponent>().translation;
+	// 		translation.x = rand() % 10 - 5.0f;
+	// 	}
+	// 	void onDestroy()
+	// 	{
+	// 	}
+	// 	void onUpdate(Timestep ts)
+	// 	{
+	// 		auto &translation = getComponent<TransformComponent>().translation;
+	// 		float speed = 5.0f;
+	// 		if (Input::isKeyPressed(KeyCode::A))
+	// 			translation.x += speed * ts;
+	// 		if (Input::isKeyPressed(KeyCode::D))
+	// 			translation.x -= speed * ts;
+	// 		if (Input::isKeyPressed(KeyCode::W))
+	// 			translation.y -= speed * ts;
+	// 		if (Input::isKeyPressed(KeyCode::S))
+	// 			translation.y += speed * ts;
+	// 	}
+	// };
 	SceneHierarchyPanel::SceneHierarchyPanel(const std::shared_ptr<Scene> &scene) : m_context(scene)
 	{
 	}
@@ -59,6 +85,12 @@ namespace Fermion
 	{
 		m_selectedEntity = entity;
 	}
+	void SceneHierarchyPanel::setEditingEnabled(bool enabled)
+	{
+		m_editingEnabled = enabled;
+		if (!m_editingEnabled)
+			m_selectedEntity = {};
+	}
 
 	void SceneHierarchyPanel::drawEntityNode(Entity entity)
 	{
@@ -67,13 +99,14 @@ namespace Fermion
 		ImGuiTreeNodeFlags flags = ((m_selectedEntity == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
 		flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 		bool opend = ImGui::TreeNodeEx((void *)(uint64_t)(uint32_t)entity, flags, tag.c_str());
-		if (ImGui::IsItemClicked())
+		if (m_editingEnabled && ImGui::IsItemClicked())
 		{
 			m_selectedEntity = entity;
+
 		}
 
 		bool enetityDeleted = false;
-		if (ImGui::BeginPopupContextItem())
+		if (m_editingEnabled && ImGui::BeginPopupContextItem())
 		{
 			if (ImGui::MenuItem("Delete Entity"))
 			{
@@ -83,6 +116,7 @@ namespace Fermion
 		}
 		if (opend)
 		{
+			
 			ImGui::TreePop();
 		}
 
@@ -223,16 +257,28 @@ namespace Fermion
 		}
 		if (ImGui::BeginPopup("Add Component"))
 		{
-			if (ImGui::MenuItem("Sprite Renderer"))
+			if (!m_selectedEntity.hasComponent<SpriteRendererComponent>())
 			{
-				m_selectedEntity.addComponent<SpriteRendererComponent>();
-				ImGui::CloseCurrentPopup();
+				if (ImGui::MenuItem("Sprite Renderer"))
+				{
+
+					m_selectedEntity.addComponent<SpriteRendererComponent>();
+					ImGui::CloseCurrentPopup();
+				}
 			}
-			if (ImGui::MenuItem("Camera"))
+			if (!m_selectedEntity.hasComponent<CameraComponent>())
 			{
-				m_selectedEntity.addComponent<CameraComponent>();
-				ImGui::CloseCurrentPopup();
+				if (ImGui::MenuItem("Camera"))
+				{
+					m_selectedEntity.addComponent<CameraComponent>();
+					ImGui::CloseCurrentPopup();
+				}
 			}
+			// if (ImGui::MenuItem("Native Script"))
+			// {
+			// 	m_selectedEntity.addComponent<NativeScriptComponent>().bind<CameraController>();
+			// 	ImGui::CloseCurrentPopup();
+			// }
 
 			ImGui::EndPopup();
 		}

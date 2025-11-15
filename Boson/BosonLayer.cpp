@@ -14,31 +14,7 @@
 #include <glm/glm.hpp>
 namespace Fermion
 {
-    class CameraController : public ScriptableEntity
-    {
-    public:
-        void onCreate()
-        {
-            auto &translation = getComponent<TransformComponent>().translation;
-            translation.x = rand() % 10 - 5.0f;
-        }
-        void onDestroy()
-        {
-        }
-        void onUpdate(Timestep ts)
-        {
-            auto &translation = getComponent<TransformComponent>().translation;
-            float speed = 5.0f;
-            if (Input::isKeyPressed(KeyCode::A))
-                translation.x += speed * ts;
-            if (Input::isKeyPressed(KeyCode::D))
-                translation.x -= speed * ts;
-            if (Input::isKeyPressed(KeyCode::W))
-                translation.y -= speed * ts;
-            if (Input::isKeyPressed(KeyCode::S))
-                translation.y += speed * ts;
-        }
-    };
+
     BosonLayer::BosonLayer(const std::string &name) : Layer(name), m_cameraController(1280.0f / 720.0f)
     {
     }
@@ -59,7 +35,6 @@ namespace Fermion
         m_activeScene = std::make_shared<Scene>();
 
         m_editorCamera = EditorCamera(45.0f, (float)fbSpec.width / (float)fbSpec.height, 0.1f, 1000.0f);
-        
         m_sceneHierarchyPanel.setContext(m_activeScene);
     }
     void BosonLayer::onDetach()
@@ -88,8 +63,8 @@ namespace Fermion
 
         if (m_sceneState == SceneState::Play)
         {
-            m_sceneHierarchyPanel.setSelectedEntity({});
             m_activeScene->onUpdateRuntime(dt);
+            m_sceneHierarchyPanel.setSelectedEntity({});
         }
         else
         {
@@ -199,6 +174,7 @@ namespace Fermion
                 ImGui::End();
             }
             // Scene Hierarchy
+
             m_sceneHierarchyPanel.onImGuiRender();
 
             m_contentBrowserPanel.onImGuiRender();
@@ -370,10 +346,12 @@ namespace Fermion
     void BosonLayer::onScenePlay()
     {
         m_sceneState = SceneState::Play;
+        m_sceneHierarchyPanel.setEditingEnabled(false);
     }
     void BosonLayer::onSceneStop()
     {
         m_sceneState = SceneState::Edit;
+        m_sceneHierarchyPanel.setEditingEnabled(true);
     }
     void BosonLayer::onEvent(IEvent &event)
     {
