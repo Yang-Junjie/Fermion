@@ -347,11 +347,13 @@ namespace Fermion
     {
         m_sceneState = SceneState::Play;
         m_sceneHierarchyPanel.setEditingEnabled(false);
+        m_activeScene->onRuntimeStart();
     }
     void BosonLayer::onSceneStop()
     {
         m_sceneState = SceneState::Edit;
         m_sceneHierarchyPanel.setEditingEnabled(true);
+        m_activeScene->onRuntimeStop();     
     }
     void BosonLayer::onEvent(IEvent &event)
     {

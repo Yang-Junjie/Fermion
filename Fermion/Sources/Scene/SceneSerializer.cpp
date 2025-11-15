@@ -81,6 +81,12 @@ namespace YAML
 			return true;
 		}
 	};
+	YAML::Emitter &operator<<(YAML::Emitter &out, const glm::vec2 &v)
+	{
+		out << YAML::Flow;
+		out << YAML::BeginSeq << v.x << v.y << YAML::EndSeq;
+		return out;
+	}
 	YAML::Emitter &operator<<(YAML::Emitter &out, const glm::vec3 &v)
 	{
 		out << YAML::Flow;
@@ -127,6 +133,32 @@ namespace Fermion
 			out << YAML::Key << "SpriteRendererComponent";
 			out << YAML::BeginMap;
 			out << YAML::Key << "Color" << YAML::Value << entity.getComponent<SpriteRendererComponent>().color;
+			out << YAML::EndMap;
+		}
+		if (entity.hasComponent<Rigidbody2DComponent>())
+		{
+			out << YAML::Key << "Rigidbody2DComponent";
+			out << YAML::BeginMap;
+
+			auto &rb = entity.getComponent<Rigidbody2DComponent>();
+			out << YAML::Key << "BodyType" << YAML::Value << static_cast<int>(rb.type);
+			out << YAML::Key << "FixedRotation" << YAML::Value << rb.fixedRotation;
+
+			out << YAML::EndMap;
+		}
+		if (entity.hasComponent<BoxCollider2DComponent>())
+		{
+			out << YAML::Key << "BoxCollider2DComponent";
+			out << YAML::BeginMap;
+
+			auto &bc = entity.getComponent<BoxCollider2DComponent>();
+			out << YAML::Key << "Offset" << YAML::Value << bc.offset;
+			out << YAML::Key << "Size" << YAML::Value << bc.size;
+			out << YAML::Key << "Density" << YAML::Value << bc.density;
+			out << YAML::Key << "Friction" << YAML::Value << bc.friction;
+			out << YAML::Key << "Restitution" << YAML::Value << bc.restitution;
+			out << YAML::Key << "RestitutionThreshold" << YAML::Value << bc.restitutionThreshold;
+
 			out << YAML::EndMap;
 		}
 		if (entity.hasComponent<CameraComponent>())
@@ -236,6 +268,34 @@ namespace Fermion
 					auto &src = deserializedEntity.addComponent<SpriteRendererComponent>();
 					if (auto n = spriteRendererComponent["Color"]; n)
 						src.color = n.as<glm::vec4>();
+				}
+
+				auto rigidbody2DComponent = entity["Rigidbody2DComponent"];
+				if (rigidbody2DComponent && rigidbody2DComponent.IsMap())
+				{
+					auto &rb = deserializedEntity.addComponent<Rigidbody2DComponent>();
+					if (auto n = rigidbody2DComponent["BodyType"]; n)
+						rb.type = static_cast<Rigidbody2DComponent::BodyType>(n.as<int>());
+					if (auto n = rigidbody2DComponent["FixedRotation"]; n)
+						rb.fixedRotation = n.as<bool>();
+				}
+
+				auto boxCollider2DComponent = entity["BoxCollider2DComponent"];
+				if (boxCollider2DComponent && boxCollider2DComponent.IsMap())
+				{
+					auto &bc = deserializedEntity.addComponent<BoxCollider2DComponent>();
+					if (auto n = boxCollider2DComponent["Offset"]; n)
+						bc.offset = n.as<glm::vec2>();
+					if (auto n = boxCollider2DComponent["Size"]; n)
+						bc.size = n.as<glm::vec2>();
+					if (auto n = boxCollider2DComponent["Density"]; n)
+						bc.density = n.as<float>();
+					if (auto n = boxCollider2DComponent["Friction"]; n)
+						bc.friction = n.as<float>();
+					if (auto n = boxCollider2DComponent["Restitution"]; n)
+						bc.restitution = n.as<float>();
+					if (auto n = boxCollider2DComponent["RestitutionThreshold"]; n)
+						bc.restitutionThreshold = n.as<float>();
 				}
 
 				auto cameraComponent = entity["CameraComponent"];

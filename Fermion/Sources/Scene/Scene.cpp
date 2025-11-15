@@ -3,9 +3,11 @@
 #include "Scene/Entity.hpp"
 #include "Scene/Components.hpp"
 #include "Renderer/Renderer2D.hpp"
+#include "Physics/Physics2D.hpp"
 #include <glm/glm.hpp>
 #include "Scene.hpp"
 #include "Core/Log.hpp"
+
 namespace Fermion
 {
     Scene::Scene()
@@ -14,6 +16,69 @@ namespace Fermion
 
     Scene::~Scene()
     {
+    }
+
+    void Scene::onRuntimeStart()
+    {
+        // Create Box2D world
+        b2WorldDef worldDef = b2DefaultWorldDef();
+        worldDef.gravity = {0.0f, -9.8f};
+        m_physicsWorld = b2CreateWorld(&worldDef);
+
+        // Create bodies and shapes for all rigidbodies
+        auto view = m_registry.view<Rigidbody2DComponent>();
+        for (auto e : view)
+        {
+            Entity entity{e, this};
+            auto &transform = entity.getComponent<TransformComponent>();
+            auto &rb2d = entity.getComponent<Rigidbody2DComponent>();
+
+            b2BodyDef bodyDef = b2DefaultBodyDef();
+            bodyDef.type = Utils::Rigidbody2DTypeToBox2DBody(rb2d.type);
+            bodyDef.position = {transform.translation.x, transform.translation.y};
+            bodyDef.rotation = b2MakeRot(transform.rotation.z);
+
+            b2BodyId bodyId = b2CreateBody(m_physicsWorld, &bodyDef);
+
+            if (rb2d.fixedRotation)
+            {
+                b2MotionLocks locks = {false, false, true};
+                b2Body_SetMotionLocks(bodyId, locks);
+            }
+
+            // Store runtime handle (serialized as uint64_t)
+            rb2d.runtimeBody = (void *)(uintptr_t)b2StoreBodyId(bodyId);
+
+            if (entity.hasComponent<BoxCollider2DComponent>())
+            {
+                auto &bc2d = entity.getComponent<BoxCollider2DComponent>();
+
+                float halfWidth = bc2d.size.x * transform.scale.x;
+                float halfHeight = bc2d.size.y * transform.scale.y;
+
+                b2ShapeDef shapeDef = b2DefaultShapeDef();
+                shapeDef.density = bc2d.density;
+                shapeDef.material.friction = bc2d.friction;
+                shapeDef.material.restitution = bc2d.restitution;
+
+                b2Polygon box = b2MakeOffsetBox(
+                    halfWidth, halfHeight,
+                    b2Vec2{bc2d.offset.x, bc2d.offset.y},
+                    b2Rot_identity);
+
+                b2ShapeId shapeId = b2CreatePolygonShape(bodyId, &shapeDef, &box);
+                bc2d.runtimeFixture = (void *)(uintptr_t)b2StoreShapeId(shapeId);
+            }
+        }
+    }
+
+    void Scene::onRuntimeStop()
+    {
+        if (B2_IS_NON_NULL(m_physicsWorld))
+        {
+            b2DestroyWorld(m_physicsWorld);
+            m_physicsWorld = b2_nullWorldId;
+        }
     }
 
     void Scene::onUpdateEditor(Timestep ts, EditorCamera &camera)
@@ -46,7 +111,35 @@ namespace Fermion
                 }
                 nsc.instance->onUpdate(ts);
             });
+        if (B2_IS_NON_NULL(m_physicsWorld))
+        {
+            b2World_Step(m_physicsWorld, ts.getSeconds(), 4);
 
+            auto view = m_registry.view<Rigidbody2DComponent>();
+            for (auto e : view)
+            {
+                Entity entity{e, this};
+                auto &transform = entity.getComponent<TransformComponent>();
+                auto &rb2d = entity.getComponent<Rigidbody2DComponent>();
+
+                if (!rb2d.runtimeBody)
+                    continue;
+
+                uint64_t storedId = (uint64_t)(uintptr_t)rb2d.runtimeBody;
+                b2BodyId bodyId = b2LoadBodyId(storedId);
+                if (!b2Body_IsValid(bodyId))
+                    continue;
+
+                b2Transform xf = b2Body_GetTransform(bodyId);
+
+               
+                transform.translation.x = xf.p.x;
+                transform.translation.y = xf.p.y;
+                
+                float angle = atan2f(xf.q.s, xf.q.c); 
+                transform.rotation.z = angle;
+            }
+        }
         Camera *mainCamera = nullptr;
         glm::mat4 cameraTransform;
 

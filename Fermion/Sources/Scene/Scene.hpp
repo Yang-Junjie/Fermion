@@ -2,7 +2,7 @@
 #include <entt/entt.hpp>
 #include "Core/Timestep.hpp"
 #include "Renderer/EditorCamera.hpp"
-
+#include <box2d/box2d.h>
 namespace Fermion
 {
 
@@ -13,6 +13,9 @@ namespace Fermion
         Scene();
         ~Scene();
         
+        void onRuntimeStart();
+        void onRuntimeStop();
+
         void onUpdateEditor(Timestep ts, EditorCamera &camera);
         void onUpdateRuntime(Timestep ts);
         void onViewportResize(uint32_t width, uint32_t height);
@@ -39,6 +42,7 @@ namespace Fermion
         entt::registry m_registry;
         uint32_t m_viewportWidth = 0, m_viewportHeight = 0;
 
+        b2WorldId m_physicsWorld = b2_nullWorldId;
         friend class Entity;
         friend class SceneSerializer;
         friend class SceneHierarchyPanel;
