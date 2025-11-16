@@ -32,7 +32,6 @@ namespace Fermion
         static void drawQuad(const glm::mat4 &transform, const glm::vec4 &color, int objectId = -1);
         static void drawQuad(const glm::mat4 &transform, const std::shared_ptr<Texture2D> &texture, float tilingFactor = 1.0f, glm::vec4 tintColor = glm::vec4(1.0f), int objectId = -1);
         static void drawQuad(const glm::mat4 &transform, const std::shared_ptr<SubTexture2D> &subTexture, float tilingFactor = 1.0f, glm::vec4 tintColor = glm::vec4(1.0f));
-
         static void drawRotatedQuad(const glm::vec2 &position, const glm::vec2 &size, float radians, const glm::vec4 &color);
         static void drawRotatedQuad(const glm::vec3 &position, const glm::vec2 &size, float radians, const glm::vec4 &color);
         static void drawRotatedQuad(const glm::vec2 &position, const glm::vec2 &size, float radians, const std::shared_ptr<Texture2D> &texture, float tilingFactor = 1.0f, glm::vec4 tintColor = glm::vec4(1.0f));

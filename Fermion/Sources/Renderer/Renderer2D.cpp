@@ -526,6 +526,7 @@ namespace Fermion
 
         s_Data.stats.quadCount++;
     }
+
     void Renderer2D::drawRotatedQuad(const glm::vec2 &position, const glm::vec2 &size, float radians, const glm::vec4 &color)
     {
         drawRotatedQuad(glm::vec3(position, 0.0f), size, radians, color);

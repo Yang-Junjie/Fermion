@@ -113,3 +113,6 @@ target_link_libraries(engine PUBLIC spdlog::spdlog box2d::box2d)
 if(USE_GLFW)
     target_link_libraries(engine PRIVATE glfw opengl32)
 endif()
+
+# Link msdf-atlas-gen for future text rendering
+target_link_libraries(engine PUBLIC msdf-atlas-gen::msdf-atlas-gen)

@@ -47,6 +47,22 @@ add_subdirectory(external/glm)
 add_subdirectory(external/yaml-cpp)
 add_subdirectory(external/box2d)
 
+# freetype as internal dependency (for msdfgen/msdf-atlas-gen)
+add_subdirectory(external/freetype)
+if(TARGET freetype AND NOT TARGET Freetype::Freetype)
+    add_library(Freetype::Freetype ALIAS freetype)
+endif()
+
+# msdf-atlas-gen (MSDF font atlas generator)
+set(MSDF_ATLAS_BUILD_STANDALONE OFF CACHE BOOL "" FORCE)
+set(MSDF_ATLAS_USE_VCPKG OFF CACHE BOOL "" FORCE)
+set(MSDF_ATLAS_USE_SKIA OFF CACHE BOOL "" FORCE)
+set(MSDF_ATLAS_NO_ARTERY_FONT ON CACHE BOOL "" FORCE)
+set(MSDF_ATLAS_MSDFGEN_EXTERNAL OFF CACHE BOOL "" FORCE)
+set(MSDF_ATLAS_INSTALL OFF CACHE BOOL "" FORCE)
+set(MSDFGEN_DISABLE_PNG ON CACHE BOOL "Disable PNG dependency for msdfgen" FORCE)
+add_subdirectory(external/msdf-atlas-gen)
+
 
 # Fermion 
 add_subdirectory(Fermion)

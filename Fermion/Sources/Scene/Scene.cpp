@@ -205,6 +205,7 @@ namespace Fermion
             }
         }
 
+
         renderer->endScene();
     }
 
@@ -336,6 +337,7 @@ namespace Fermion
                         renderer->drawCircle(transform.getTransform(), circle.color, circle.thickness, circle.fade, (int)entity);
                     }
                 }
+
 
                 renderer->endScene();
             }

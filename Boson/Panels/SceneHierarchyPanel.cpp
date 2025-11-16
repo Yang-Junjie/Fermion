@@ -433,6 +433,7 @@ namespace Fermion
 			ImGui::ColorEdit4("Color", glm::value_ptr(component.color)); 
 			ImGui::DragFloat("Thickness", &component.thickness, 0.025f, 0.0f, 1.0f);
 			ImGui::DragFloat("Fade", &component.fade, 0.00025f, 0.0f, 1.0f); });
+
 		drawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [](auto &component)
 											{
 			const char* bodyTypeStrings[] = { "Static", "Dynamic", "Kinematic"};
