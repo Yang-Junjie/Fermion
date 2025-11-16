@@ -426,7 +426,7 @@ namespace Fermion
 
         bool hasPlayButton = m_sceneState == SceneState::Edit || m_sceneState == SceneState::Play;
         bool hasSimulateButton = m_sceneState == SceneState::Edit || m_sceneState == SceneState::Simulate;
-        bool hasPauseButton = m_sceneState != SceneState::Edit;
+        bool hasPauseButton = m_sceneState != SceneState::Edit && m_sceneState != SceneState::Play;
 
         if (hasPlayButton)
         {
