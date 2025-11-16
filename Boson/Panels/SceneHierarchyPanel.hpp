@@ -10,7 +10,7 @@ namespace Fermion
 	class SceneHierarchyPanel
 	{
 	public:
-		SceneHierarchyPanel() = default;
+		SceneHierarchyPanel();
 		SceneHierarchyPanel(const std::shared_ptr<Scene> &scene);
 		void setContext(const std::shared_ptr<Scene> &scene);
 
@@ -29,6 +29,8 @@ namespace Fermion
 		std::shared_ptr<Scene> m_contextScene;
 		Entity m_selectedEntity;
 		bool m_editingEnabled = true;
+
+		std::shared_ptr<Texture2D> m_spriteComponentDefaultTexture;
 	};
 
 }

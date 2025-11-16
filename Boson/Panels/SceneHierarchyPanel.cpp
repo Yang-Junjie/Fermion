@@ -11,40 +11,24 @@
 
 namespace Fermion
 {
-	// class CameraController : public ScriptableEntity
-	// {
-	// public:
-	// 	void onCreate()
-	// 	{
-	// 		auto &translation = getComponent<TransformComponent>().translation;
-	// 		translation.x = rand() % 10 - 5.0f;
-	// 	}
-	// 	void onDestroy()
-	// 	{
-	// 	}
-	// 	void onUpdate(Timestep ts)
-	// 	{
-	// 		auto &translation = getComponent<TransformComponent>().translation;
-	// 		float speed = 5.0f;
-	// 		if (Input::isKeyPressed(KeyCode::A))
-	// 			translation.x += speed * ts;
-	// 		if (Input::isKeyPressed(KeyCode::D))
-	// 			translation.x -= speed * ts;
-	// 		if (Input::isKeyPressed(KeyCode::W))
-	// 			translation.y -= speed * ts;
-	// 		if (Input::isKeyPressed(KeyCode::S))
-	// 			translation.y += speed * ts;
-	// 	}
-	// };
+	SceneHierarchyPanel::SceneHierarchyPanel()
+	{
+		m_spriteComponentDefaultTexture = Texture2D::create(1, 1);
+		uint32_t white = 0xffffffff;
+		m_spriteComponentDefaultTexture->setData(&white, sizeof(uint32_t));
+	}
+
 	SceneHierarchyPanel::SceneHierarchyPanel(const std::shared_ptr<Scene> &scene) : m_contextScene(scene)
 	{
+		m_spriteComponentDefaultTexture = Texture2D::create(1, 1);
+		uint32_t white = 0xffffffff;
+		m_spriteComponentDefaultTexture->setData(&white, sizeof(uint32_t));
 	}
 	void SceneHierarchyPanel::setContext(const std::shared_ptr<Scene> &scene)
 	{
 		m_contextScene = scene;
 		m_selectedEntity = {};
 	}
-	
 	void SceneHierarchyPanel::onImGuiRender()
 	{
 		ImGui::Begin("Scene Hierarchy");
@@ -396,26 +380,53 @@ namespace Fermion
 
 					ImGui::Checkbox("Fixed Aspect Ratio", &component.fixedAspectRatio);
 				} });
-		drawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [](auto &component)
-											   { 								
-			ImGui::ColorEdit4("Color", glm::value_ptr(component.color)); 
+		drawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [this](auto &component)
+											   {
+			ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
 
-			//Texture
-			ImGui::Button("Texture", ImVec2(100.0f, 0.0f));
+
+			ImTextureID textureID =  (ImTextureID)(uintptr_t)m_spriteComponentDefaultTexture->getRendererID();
+			ImVec2 imageSize = ImVec2(64.0f, 64.0f);
+
+			ImGui::Text("Texture");
+			if (component.texture && component.texture->isLoaded())
+			{
+				textureID = (ImTextureID)(uintptr_t)component.texture->getRendererID();
+
+				float texW = (float)component.texture->getWidth();
+				float texH = (float)component.texture->getHeight();
+				if (texW > 0.0f && texH > 0.0f)
+				{
+					float maxSize = 64.0f;
+					float scale = std::min(maxSize / texW, maxSize / texH);
+					imageSize = ImVec2(texW * scale, texH * scale);
+				}
+			}
+			else if (m_spriteComponentDefaultTexture && m_spriteComponentDefaultTexture->isLoaded())
+			{
+				textureID = (ImTextureID)(uintptr_t)m_spriteComponentDefaultTexture->getRendererID();
+			}
+
+			
+			ImGui::SameLine();
+			if (textureID)
+				ImGui::Image(textureID, imageSize, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
+
+			// Drag & drop to assign texture
 			if (ImGui::BeginDragDropTarget())
-                {
-                    if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_TEXTURE"))
-                    {
-                        const char *path = static_cast<const char *>(payload->Data);
-                        if (path && path[0])
-                        {
-							component.texture = Texture2D::create(std::string(path));
-                            
-                        }
-                    }
-                 ImGui::EndDragDropTarget();
-            }
-			ImGui::DragFloat("Tiling Factor",&component.tilingFactor,0.1f,0.0f,100.0f); });
+			{
+				if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_TEXTURE"))
+				{
+					const char *path = static_cast<const char *>(payload->Data);
+					if (path && path[0])
+					{
+						component.texture = Texture2D::create(std::string(path));
+					}
+				}
+				ImGui::EndDragDropTarget();
+			}
+
+			ImGui::DragFloat("Tiling Factor", &component.tilingFactor, 0.1f, 0.0f, 100.0f); });
 
 		drawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto &component)
 											   {

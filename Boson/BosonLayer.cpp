@@ -530,7 +530,6 @@ namespace Fermion
 
                     glm::mat4 transform = glm::translate(glm::mat4(1.0f), tc.translation) * glm::rotate(glm::mat4(1.0f), tc.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(bc2d.offset, 0.001f)) * glm::scale(glm::mat4(1.0f), scale);
 
-                    // Renderer2D::drawRect(transform, glm::vec4(0, 1, 0, 1));
                     m_viewportRenderer->drawRect(transform, glm::vec4(0, 1, 0, 1));
                 }
             }
@@ -552,7 +551,6 @@ namespace Fermion
                         glm::translate(glm::mat4(1.0f), glm::vec3(cc2d.offset, 0.001f)) *
                         glm::scale(glm::mat4(1.0f), scale);
 
-                    // Renderer2D::drawCircle(transform, glm::vec4(0, 1, 0, 1), 0.1f);
                     m_viewportRenderer->drawCircle(transform, glm::vec4(0, 1, 0, 1), 0.1f);
                 }
             }
@@ -562,7 +560,6 @@ namespace Fermion
         if (Entity selectedEntity = m_sceneHierarchyPanel.getSelectedEntity())
         {
             const TransformComponent &transform = selectedEntity.getComponent<TransformComponent>();
-            // Renderer2D::drawRect(transform.getTransform(), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
             m_viewportRenderer->drawRect(transform.getTransform(), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
         }
 
