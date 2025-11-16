@@ -36,6 +36,9 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Renderer/SubTexture2D.cpp
     ${FERMION_DIR}/Renderer/EditorCamera.cpp
 
+    ${FERMION_DIR}/Project/ProJect.cpp
+    ${FERMION_DIR}/Project/ProjectSerializer.cpp
+
     ${FERMION_DIR}/Scene/Scene.cpp
     ${FERMION_DIR}/Scene/Entity.cpp
     ${FERMION_DIR}/Scene/SceneSerializer.cpp
@@ -92,6 +95,7 @@ target_include_directories(engine PUBLIC
 
     ${PLATFORM_DIR}/OpenGL
     ${PLATFORM_DIR}/Window
+
 
     ${EXTERNAL_DIR}/spdlog/include
     ${EXTERNAL_DIR}/entt/single_include

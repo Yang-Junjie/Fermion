@@ -12,6 +12,8 @@ namespace Fermion {
 		ContentBrowserPanel();
 
 		void onImGuiRender();
+
+		void setBaseDirectory(const std::filesystem::path& directory);
 	private:
 		std::filesystem::path m_baseDirectory;
 		std::filesystem::path m_currentDirectory;

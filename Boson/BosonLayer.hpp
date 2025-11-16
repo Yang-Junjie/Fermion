@@ -31,6 +31,11 @@ namespace Fermion
 
         void onOverlayRender();
 
+        void newProject();
+        bool openProject();
+        void openProject(const std::filesystem::path &path);
+        void saveProject();
+
         void newScene();
         void saveSceneAs();
         void saveScene();
@@ -67,10 +72,9 @@ namespace Fermion
         std::filesystem::path m_editorScenePath;
 
         std::shared_ptr<SceneRenderer> m_viewportRenderer;
-        
 
         EditorCamera m_editorCamera;
-        
+
         Entity m_hoveredEntity;
 
         int m_gizmoType = -1;

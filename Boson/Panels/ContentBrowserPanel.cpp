@@ -113,4 +113,27 @@ namespace Fermion
 
 		ImGui::End();
 	}
+
+	void ContentBrowserPanel::setBaseDirectory(const std::filesystem::path& directory)
+	{
+		if (directory.empty())
+			return;
+
+		std::filesystem::path normalized = directory;
+		if (!std::filesystem::exists(normalized))
+		{
+			std::filesystem::create_directories(normalized);
+			if (!std::filesystem::exists(normalized))
+				return;
+		}
+
+		if (!std::filesystem::is_directory(normalized))
+			normalized = normalized.parent_path();
+
+		if (normalized.empty())
+			return;
+
+		m_baseDirectory = normalized;
+		m_currentDirectory = m_baseDirectory;
+	}
 }

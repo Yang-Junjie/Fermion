@@ -1,0 +1,18 @@
+#pragma once
+
+#include "Project.hpp"
+
+namespace Fermion {
+
+	class ProjectSerializer
+	{
+	public:
+		ProjectSerializer(std::shared_ptr<Project> project);
+
+		bool serialize(const std::filesystem::path& filepath);
+		bool deserialize(const std::filesystem::path& filepath);
+	private:
+		std::shared_ptr<Project> m_project;
+	};
+
+}
