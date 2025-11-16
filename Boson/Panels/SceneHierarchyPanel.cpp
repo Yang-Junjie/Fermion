@@ -44,6 +44,7 @@ namespace Fermion
 		m_contextScene = scene;
 		m_selectedEntity = {};
 	}
+	
 	void SceneHierarchyPanel::onImGuiRender()
 	{
 		ImGui::Begin("Scene Hierarchy");

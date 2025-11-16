@@ -3,3 +3,4 @@ build
 bin
 *.log
 *.ini
+.vs

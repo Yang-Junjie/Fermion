@@ -18,6 +18,7 @@ namespace Fermion
 
 		Entity getSelectedEntity() const { return m_selectedEntity; }
 		void setSelectedEntity(Entity entity);
+		
 		void setEditingEnabled(bool enabled);
 
 	private:

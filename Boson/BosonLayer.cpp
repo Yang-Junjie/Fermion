@@ -15,7 +15,7 @@
 namespace Fermion
 {
 
-    BosonLayer::BosonLayer(const std::string &name) : Layer(name), m_cameraController(1280.0f / 720.0f)
+    BosonLayer::BosonLayer(const std::string &name) : Layer(name)
     {
     }
     void BosonLayer::onAttach()
@@ -54,7 +54,6 @@ namespace Fermion
             m_viewportSize.x > 0 && m_viewportSize.y > 0 && (spec.width != m_viewportSize.x || spec.height != m_viewportSize.y))
         {
             m_framebuffer->resize(m_viewportSize.x, m_viewportSize.y);
-            m_cameraController.onResize(m_viewportSize.x, m_viewportSize.y);
             m_editorCamera.setViewportSize(m_viewportSize.x, m_viewportSize.y);
             m_activeScene->onViewportResize(m_viewportSize.x, m_viewportSize.y);
         }
@@ -72,21 +71,20 @@ namespace Fermion
         }
         else if (m_sceneState == SceneState::Simulate)
         {
-            if (m_viewportFocused)
-                m_cameraController.onUpdate(dt);
+            // if (m_viewportHovered)
             m_editorCamera.onUpdate(dt);
 
             m_activeScene->onUpdateSimulation(dt, m_editorCamera);
         }
         else // Edit
         {
-            if (m_viewportFocused)
-                m_cameraController.onUpdate(dt);
+            // if (m_viewportHovered)
             m_editorCamera.onUpdate(dt);
 
             m_activeScene->onUpdateEditor(dt, m_editorCamera);
         }
 
+        // mouse picking
         auto [mx, my] = ImGui::GetMousePos();
         mx -= (float)m_viewportBounds[0].x;
         my -= (float)m_viewportBounds[0].y;
@@ -223,16 +221,19 @@ namespace Fermion
 
                 m_viewportFocused = ImGui::IsWindowFocused();
                 m_viewportHovered = ImGui::IsWindowHovered();
-                Engine::get().getImGuiLayer()->blockEvents(!m_viewportFocused && !m_viewportHovered);
+
+                Engine::get().getImGuiLayer()->blockEvents(!m_viewportFocused || !m_viewportHovered);
 
                 ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 
                 m_viewportSize = {viewportPanelSize.x, viewportPanelSize.y};
 
+                // 接收framebuffer到imgui image进行渲染
                 uint32_t textureID = m_framebuffer->getColorAttachmentRendererID(0);
                 ImGui::Image(reinterpret_cast<void *>(static_cast<intptr_t>(textureID)),
                              ImVec2(viewportPanelSize.x, viewportPanelSize.y),
                              ImVec2(0, 1), ImVec2(1, 0));
+
                 // 接收 .fermion 拖放
                 if (ImGui::BeginDragDropTarget())
                 {
@@ -315,18 +316,92 @@ namespace Fermion
             }
         }
     }
-    void BosonLayer::onDuplicateEntity()
-    {
-        if (m_sceneState != SceneState::Edit)
-            return;
 
-        Entity selectedEntity = m_sceneHierarchyPanel.getSelectedEntity();
-        if (selectedEntity)
-        {
-            Entity newEntity = m_editorScene->duplicateEntity(selectedEntity);
-            m_sceneHierarchyPanel.setSelectedEntity(newEntity);
-        }
+    void BosonLayer::onEvent(IEvent &event)
+    {
+        EventDispatcher dispatcher(event);
+        dispatcher.dispatch<WindowResizeEvent>([](WindowResizeEvent &e)
+                                               { return false; });
+        dispatcher.dispatch<KeyPressedEvent>([this](KeyPressedEvent &e)
+                                             { return this->onKeyPressedEvent(e); });
+        dispatcher.dispatch<MouseButtonPressedEvent>([this](MouseButtonPressedEvent &e)
+                                                     { return this->onMouseButtonPressedEvent(e); });
+        // m_cameraController.onEvent(event);
+        m_editorCamera.onEvent(event);
     }
+
+    bool BosonLayer::onKeyPressedEvent(KeyPressedEvent &e)
+    {
+        if (e.isRepeat())
+        {
+            return false;
+        }
+
+        bool control = Input::isKeyPressed(KeyCode::LeftControl) || Input::isKeyPressed(KeyCode::RightControl);
+        bool shift = Input::isKeyPressed(KeyCode::LeftShift) || Input::isKeyPressed(KeyCode::RightShift);
+
+        switch (e.getKeyCode())
+        {
+        case KeyCode::S:
+            if (control && shift)
+            {
+                saveSceneAs();
+                return true;
+            }
+            else if (control)
+            {
+                saveScene();
+                return true;
+            }
+            break;
+        case KeyCode::N:
+            if (control)
+            {
+                newScene();
+                return true;
+            }
+            break;
+        case KeyCode::O:
+            if (control)
+            {
+                openScene();
+                return true;
+            }
+            break;
+        case KeyCode::D:
+            if (control)
+                m_activeScene->destroyEntity(m_sceneHierarchyPanel.getSelectedEntity());
+            break;
+
+        case KeyCode::Q:
+            m_gizmoType = -1;
+            break;
+        case KeyCode::W:
+            m_gizmoType = ImGuizmo::OPERATION::TRANSLATE;
+            break;
+        case KeyCode::E:
+            m_gizmoType = ImGuizmo::OPERATION::ROTATE;
+            break;
+        case KeyCode::R:
+            if (control)
+                onDuplicateEntity();
+            m_gizmoType = ImGuizmo::OPERATION::SCALE;
+            break;
+        }
+
+        return false;
+    }
+
+    bool BosonLayer::onMouseButtonPressedEvent(MouseButtonPressedEvent &e)
+    {
+        if (e.getMouseButton() == MouseCode::Left)
+        {
+            if (m_viewportHovered && !ImGuizmo::IsOver())
+                m_sceneHierarchyPanel.setSelectedEntity(m_hoveredEntity);
+        }
+        return false;
+    }
+
     void BosonLayer::UIToolbar()
     {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
@@ -426,89 +501,6 @@ namespace Fermion
         ImGui::End();
     }
 
-    void BosonLayer::onEvent(IEvent &event)
-    {
-        EventDispatcher dispatcher(event);
-        dispatcher.dispatch<WindowResizeEvent>([](WindowResizeEvent &e)
-                                               { return false; });
-        dispatcher.dispatch<KeyPressedEvent>([this](KeyPressedEvent &e)
-                                             { return this->onKeyPressedEvent(e); });
-        dispatcher.dispatch<MouseButtonPressedEvent>([this](MouseButtonPressedEvent &e)
-                                                     { return this->onMouseButtonPressedEvent(e); });
-        m_cameraController.onEvent(event);
-        m_editorCamera.onEvent(event);
-    }
-
-    bool BosonLayer::onKeyPressedEvent(KeyPressedEvent &e)
-    {
-        if (e.isRepeat())
-        {
-            return false;
-        }
-
-        bool control = Input::isKeyPressed(KeyCode::LeftControl) || Input::isKeyPressed(KeyCode::RightControl);
-        bool shift = Input::isKeyPressed(KeyCode::LeftShift) || Input::isKeyPressed(KeyCode::RightShift);
-
-        switch (e.getKeyCode())
-        {
-        case KeyCode::S:
-            if (control && shift)
-            {
-                saveSceneAs();
-                return true;
-            }
-            else if (control)
-            {
-                saveScene();
-                return true;
-            }
-            break;
-        case KeyCode::N:
-            if (control)
-            {
-                newScene();
-                return true;
-            }
-            break;
-        case KeyCode::O:
-            if (control)
-            {
-                openScene();
-                return true;
-            }
-            break;
-        case KeyCode::D:
-            if (control)
-                m_activeScene->destroyEntity(m_sceneHierarchyPanel.getSelectedEntity());
-            break;
-
-        case KeyCode::Q:
-            m_gizmoType = -1;
-            break;
-        case KeyCode::W:
-            m_gizmoType = ImGuizmo::OPERATION::TRANSLATE;
-            break;
-        case KeyCode::E:
-            m_gizmoType = ImGuizmo::OPERATION::ROTATE;
-            break;
-        case KeyCode::R:
-            if (control)
-                onDuplicateEntity();
-            m_gizmoType = ImGuizmo::OPERATION::SCALE;
-            break;
-        }
-
-        return false;
-    }
-    bool BosonLayer::onMouseButtonPressedEvent(MouseButtonPressedEvent &e)
-    {
-        if (e.getMouseButton() == MouseCode::Left)
-        {
-            if (m_viewportHovered && !ImGuizmo::IsOver())
-                m_sceneHierarchyPanel.setSelectedEntity(m_hoveredEntity);
-        }
-        return false;
-    }
     void BosonLayer::onOverlayRender()
     {
         if (m_sceneState == SceneState::Play)
@@ -549,10 +541,10 @@ namespace Fermion
                 {
                     auto [tc, cc2d] = view.get<TransformComponent, CircleCollider2DComponent>(entity);
 
-                    // 半径和 Box2D 一样：单位 quad 半径 0.5 * scale.x = cc2d.radius * tc.scale.x
+                    // 单位 quad 半径 0.5 * scale.x = cc2d.radius * tc.scale.x
                     glm::vec3 scale = tc.scale * glm::vec3(cc2d.radius * 2.0f, cc2d.radius * 2.0f, 1.0f);
 
-                    // 和 BoxCollider 一样：先平移到实体，再旋转，再平移 offset，再缩放
+                    // 先平移到实体，再旋转，再平移 offset，再缩放
                     glm::mat4 transform =
                         glm::translate(glm::mat4(1.0f), tc.translation) *
                         glm::rotate(glm::mat4(1.0f), tc.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) *
@@ -568,11 +560,26 @@ namespace Fermion
         if (Entity selectedEntity = m_sceneHierarchyPanel.getSelectedEntity())
         {
             const TransformComponent &transform = selectedEntity.getComponent<TransformComponent>();
-            Renderer2D::drawRect(transform.getTransform(), glm::vec4(1.0f, 0.5f, 0.0f, 1.0f));
+            Renderer2D::drawRect(transform.getTransform(), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
         }
 
         Renderer2D::endScene();
     }
+
+    void BosonLayer::onDuplicateEntity()
+    {
+        if (m_sceneState != SceneState::Edit)
+            return;
+
+        Entity selectedEntity = m_sceneHierarchyPanel.getSelectedEntity();
+        if (selectedEntity)
+        {
+            Entity newEntity = m_editorScene->duplicateEntity(selectedEntity);
+            m_sceneHierarchyPanel.setSelectedEntity(newEntity);
+        }
+    }
+
+    
     void BosonLayer::newScene()
     {
         m_activeScene = std::make_shared<Scene>();
@@ -581,6 +588,7 @@ namespace Fermion
         m_editorScenePath.clear();
         m_sceneHierarchyPanel.setContext(m_activeScene);
     }
+
     void BosonLayer::saveSceneAs()
     {
         std::filesystem::path path = FileDialogs::saveFile("Scene (*.fermion)\0*.fermion\0", "../Boson/assets/scenes/");
@@ -591,6 +599,7 @@ namespace Fermion
             m_editorScenePath = path;
         }
     }
+
     void BosonLayer::saveScene()
     {
         if (!m_editorScenePath.empty())
@@ -603,6 +612,7 @@ namespace Fermion
             saveSceneAs();
         }
     }
+
     void BosonLayer::openScene()
     {
         std::filesystem::path path = FileDialogs::openFile("Scene (*.fermion)\0*.fermion\0", "../Boson/assets/scenes/");
@@ -611,6 +621,7 @@ namespace Fermion
             openScene(path);
         }
     }
+
     void BosonLayer::openScene(const std::filesystem::path &path)
     {
         if (m_sceneState != SceneState::Edit)
@@ -629,6 +640,7 @@ namespace Fermion
             m_sceneHierarchyPanel.setContext(m_activeScene);
         }
     }
+
     void BosonLayer::onScenePlay()
     {
         if (m_sceneState == SceneState::Simulate)
@@ -640,6 +652,7 @@ namespace Fermion
         m_sceneHierarchyPanel.setEditingEnabled(false);
         m_sceneHierarchyPanel.setContext(m_activeScene);
     }
+
     void BosonLayer::onSceneSimulate()
     {
         if (m_sceneState == SceneState::Play)
@@ -650,6 +663,7 @@ namespace Fermion
         m_sceneHierarchyPanel.setEditingEnabled(false);
         m_sceneHierarchyPanel.setContext(m_activeScene);
     }
+
     void BosonLayer::onSceneStop()
     {
 
