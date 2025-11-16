@@ -33,25 +33,22 @@ namespace Fermion
         void newScene();
         void saveSceneAs();
         void saveScene();
-
         void openScene();
         void openScene(const std::filesystem::path &path);
 
         void onScenePlay();
+        void onSceneSimulate();
         void onSceneStop();
 
         void onDuplicateEntity();
 
         void UIToolbar();
 
-      
-
     private:
         OrthographicCameraController m_cameraController;
         std::filesystem::path m_editorScenePath;
 
-        std::shared_ptr<Texture2D> m_iconStop;
-        std::shared_ptr<Texture2D> m_iconPlay;
+        std::shared_ptr<Texture2D> m_iconStop, m_iconPlay, m_iconPause, m_iconStep, m_iconSimulate;
         std::shared_ptr<Framebuffer> m_framebuffer;
 
         glm::vec2 m_viewportSize{0.0f, 0.0f};
@@ -76,7 +73,8 @@ namespace Fermion
         enum class SceneState
         {
             Edit = 0,
-            Play = 1
+            Play = 1,
+            Simulate = 2
         };
         SceneState m_sceneState = SceneState::Edit;
         bool m_showPhysicsColliders = false;

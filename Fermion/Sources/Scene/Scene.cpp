@@ -80,6 +80,27 @@ namespace Fermion
 
     void Scene::onRuntimeStart()
     {
+        m_isRunning = true;
+        onPhysics2DStart();
+    }
+
+    void Scene::onRuntimeStop()
+    {
+        m_isRunning = false;
+        onPhysics2DStop();
+    }
+
+    void Scene::onSimulationStart()
+    {
+        onPhysics2DStart();
+    }
+
+    void Scene::onSimulationStop()
+    {
+        onPhysics2DStop();
+    }
+    void Scene::onPhysics2DStart()
+    {
         // Create Box2D world
         b2WorldDef worldDef = b2DefaultWorldDef();
         worldDef.gravity = {0.0f, -9.8f};
@@ -130,7 +151,6 @@ namespace Fermion
                 bc2d.runtimeFixture = (void *)(uintptr_t)b2StoreShapeId(shapeId);
             }
 
-          
             if (entity.hasComponent<CircleCollider2DComponent>())
             {
                 auto &cc2d = entity.getComponent<CircleCollider2DComponent>();
@@ -153,8 +173,7 @@ namespace Fermion
             }
         }
     }
-
-    void Scene::onRuntimeStop()
+    void Scene::onPhysics2DStop()
     {
         if (B2_IS_NON_NULL(m_physicsWorld))
         {
@@ -163,7 +182,7 @@ namespace Fermion
         }
     }
 
-    void Scene::onUpdateEditor(Timestep ts, EditorCamera &camera)
+    void Scene::renderScene(EditorCamera &camera)
     {
         Renderer2D::beginScene(camera);
         {
@@ -193,92 +212,139 @@ namespace Fermion
         Renderer2D::endScene();
     }
 
+    void Scene::onUpdateEditor(Timestep ts, EditorCamera &camera)
+    {
+        renderScene(camera);
+    }
+
+    void Scene::onUpdateSimulation(Timestep ts, EditorCamera &camera)
+    {
+        if (!m_isPaused || m_stepFrames-- > 0)
+            if (B2_IS_NON_NULL(m_physicsWorld))
+            {
+                b2World_Step(m_physicsWorld, ts.getSeconds(), 4);
+
+                auto view = m_registry.view<Rigidbody2DComponent>();
+                for (auto e : view)
+                {
+                    Entity entity{e, this};
+                    auto &transform = entity.getComponent<TransformComponent>();
+                    auto &rb2d = entity.getComponent<Rigidbody2DComponent>();
+
+                    if (!rb2d.runtimeBody)
+                        continue;
+
+                    uint64_t storedId = (uint64_t)(uintptr_t)rb2d.runtimeBody;
+                    b2BodyId bodyId = b2LoadBodyId(storedId);
+                    if (!b2Body_IsValid(bodyId))
+                        continue;
+
+                    b2Transform xf = b2Body_GetTransform(bodyId);
+
+                    transform.translation.x = xf.p.x;
+                    transform.translation.y = xf.p.y;
+
+                    float angle = atan2f(xf.q.s, xf.q.c);
+                    transform.rotation.z = angle;
+                }
+            }
+        renderScene(camera);
+    }
+
     void Scene::onUpdateRuntime(Timestep ts)
     {
-
-        m_registry.view<NativeScriptComponent>().each(
-            [=](auto entity, auto &nsc)
-            {
-                if (!nsc.instance)
-                {
-                    nsc.instance = nsc.instantiateScript();
-                    nsc.instance->m_entity = Entity{entity, this};
-                    nsc.instance->onCreate();
-                }
-                nsc.instance->onUpdate(ts);
-            });
-        if (B2_IS_NON_NULL(m_physicsWorld))
+        // Scripts
         {
-            b2World_Step(m_physicsWorld, ts.getSeconds(), 4);
-
-            auto view = m_registry.view<Rigidbody2DComponent>();
-            for (auto e : view)
-            {
-                Entity entity{e, this};
-                auto &transform = entity.getComponent<TransformComponent>();
-                auto &rb2d = entity.getComponent<Rigidbody2DComponent>();
-
-                if (!rb2d.runtimeBody)
-                    continue;
-
-                uint64_t storedId = (uint64_t)(uintptr_t)rb2d.runtimeBody;
-                b2BodyId bodyId = b2LoadBodyId(storedId);
-                if (!b2Body_IsValid(bodyId))
-                    continue;
-
-                b2Transform xf = b2Body_GetTransform(bodyId);
-
-                transform.translation.x = xf.p.x;
-                transform.translation.y = xf.p.y;
-
-                float angle = atan2f(xf.q.s, xf.q.c);
-                transform.rotation.z = angle;
-            }
+            m_registry.view<NativeScriptComponent>().each(
+                [=](auto entity, auto &nsc)
+                {
+                    if (!nsc.instance)
+                    {
+                        nsc.instance = nsc.instantiateScript();
+                        nsc.instance->m_entity = Entity{entity, this};
+                        nsc.instance->onCreate();
+                    }
+                    nsc.instance->onUpdate(ts);
+                });
         }
-        Camera *mainCamera = nullptr;
-        glm::mat4 cameraTransform;
-
+        // Physics2D
         {
-            auto view = m_registry.view<CameraComponent, TransformComponent>();
-            for (auto entity : view)
+            if (B2_IS_NON_NULL(m_physicsWorld))
             {
-                auto &camera = view.get<CameraComponent>(entity);
-                auto &transform = view.get<TransformComponent>(entity);
-                if (camera.primary)
+                b2World_Step(m_physicsWorld, ts.getSeconds(), 4);
+
+                auto view = m_registry.view<Rigidbody2DComponent>();
+                for (auto e : view)
                 {
-                    mainCamera = &camera.camera;
-                    cameraTransform = transform.getTransform();
-                    break;
+                    Entity entity{e, this};
+                    auto &transform = entity.getComponent<TransformComponent>();
+                    auto &rb2d = entity.getComponent<Rigidbody2DComponent>();
+
+                    if (!rb2d.runtimeBody)
+                        continue;
+
+                    uint64_t storedId = (uint64_t)(uintptr_t)rb2d.runtimeBody;
+                    b2BodyId bodyId = b2LoadBodyId(storedId);
+                    if (!b2Body_IsValid(bodyId))
+                        continue;
+
+                    b2Transform xf = b2Body_GetTransform(bodyId);
+
+                    transform.translation.x = xf.p.x;
+                    transform.translation.y = xf.p.y;
+
+                    float angle = atan2f(xf.q.s, xf.q.c);
+                    transform.rotation.z = angle;
                 }
             }
         }
-
-        if (mainCamera)
+        // Renderer2D
         {
+            Camera *mainCamera = nullptr;
+            glm::mat4 cameraTransform;
 
-            Renderer2D::beginScene(*mainCamera, cameraTransform);
             {
-                auto group = m_registry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
-                for (auto entity : group)
+                auto view = m_registry.view<CameraComponent, TransformComponent>();
+                for (auto entity : view)
                 {
-                    auto &transform = group.get<TransformComponent>(entity);
-                    auto &sprite = group.get<SpriteRendererComponent>(entity);
-                    // Renderer2D::drawQuad(transform.getTransform(), sprite.color);
-                    Renderer2D::drawSprite(transform.getTransform(), sprite, (int)entity);
-                }
-            }
-            {
-                auto group = m_registry.group<>(entt::get<TransformComponent, CircleRendererComponent>);
-                for (auto entity : group)
-                {
-                    auto &transform = group.get<TransformComponent>(entity);
-                    auto &circle = group.get<CircleRendererComponent>(entity);
-                    // Renderer2D::drawQuad(transform.getTransform(), sprite.color);
-                    Renderer2D::drawCircle(transform.getTransform(), circle.color, circle.thickness, circle.fade, (int)entity);
+                    auto &camera = view.get<CameraComponent>(entity);
+                    auto &transform = view.get<TransformComponent>(entity);
+                    if (camera.primary)
+                    {
+                        mainCamera = &camera.camera;
+                        cameraTransform = transform.getTransform();
+                        break;
+                    }
                 }
             }
 
-            Renderer2D::endScene();
+            if (mainCamera)
+            {
+
+                Renderer2D::beginScene(*mainCamera, cameraTransform);
+                {
+                    auto group = m_registry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
+                    for (auto entity : group)
+                    {
+                        auto &transform = group.get<TransformComponent>(entity);
+                        auto &sprite = group.get<SpriteRendererComponent>(entity);
+                        // Renderer2D::drawQuad(transform.getTransform(), sprite.color);
+                        Renderer2D::drawSprite(transform.getTransform(), sprite, (int)entity);
+                    }
+                }
+                {
+                    auto group = m_registry.group<>(entt::get<TransformComponent, CircleRendererComponent>);
+                    for (auto entity : group)
+                    {
+                        auto &transform = group.get<TransformComponent>(entity);
+                        auto &circle = group.get<CircleRendererComponent>(entity);
+                        // Renderer2D::drawQuad(transform.getTransform(), sprite.color);
+                        Renderer2D::drawCircle(transform.getTransform(), circle.color, circle.thickness, circle.fade, (int)entity);
+                    }
+                }
+
+                Renderer2D::endScene();
+            }
         }
     }
 
@@ -334,5 +400,10 @@ namespace Fermion
             }
         }
         return {};
+    }
+
+    void Scene::step(int frames)
+    {
+        m_stepFrames = frames;
     }
 }

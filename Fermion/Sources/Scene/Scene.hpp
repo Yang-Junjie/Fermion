@@ -18,8 +18,13 @@ namespace Fermion
         void onRuntimeStart();
         void onRuntimeStop();
 
+        void onSimulationStart();
+        void onSimulationStop();
+
         void onUpdateEditor(Timestep ts, EditorCamera &camera);
+        void onUpdateSimulation(Timestep ts, EditorCamera &camera);
         void onUpdateRuntime(Timestep ts);
+
         void onViewportResize(uint32_t width, uint32_t height);
 
         Entity createEntity(std::string name = std::string());
@@ -39,6 +44,12 @@ namespace Fermion
         }
 
         Entity getPrimaryCameraEntity();
+
+        bool isRunning() const { return m_isRunning; }
+        bool isPaused() const { return m_isPaused; }
+        void setPaused(bool paused) { m_isPaused = paused; }
+        void step(int frames = 1);
+
         template <typename... Components>
         auto getAllEntitiesWith()
         {
@@ -46,9 +57,17 @@ namespace Fermion
         }
 
     private:
+        void onPhysics2DStart();
+        void onPhysics2DStop();
+        void renderScene(EditorCamera &camera);
+
     private:
         entt::registry m_registry;
         uint32_t m_viewportWidth = 0, m_viewportHeight = 0;
+
+        bool m_isRunning = false;
+        bool m_isPaused = false;
+        int m_stepFrames = 0;
 
         b2WorldId m_physicsWorld = b2_nullWorldId;
         friend class Entity;

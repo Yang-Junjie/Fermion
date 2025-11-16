@@ -24,6 +24,9 @@ namespace Fermion
 
         m_iconPlay = Texture2D::create("../Boson/Resources/Icons/PlayButton.png");
         m_iconStop = Texture2D::create("../Boson/Resources/Icons/StopButton.png");
+        m_iconPause = Texture2D::create("../Boson/Resources/Icons/PauseButton.png");
+        m_iconSimulate = Texture2D::create("../Boson/Resources/Icons/SimulateButton.png");
+        m_iconStep = Texture2D::create("../Boson/Resources/Icons/StepButton.png");
         FramebufferSpecification fbSpec;
 
         fbSpec.width = 1280;
@@ -67,12 +70,18 @@ namespace Fermion
             m_activeScene->onUpdateRuntime(dt);
             m_sceneHierarchyPanel.setSelectedEntity({});
         }
-        else
+        else if (m_sceneState == SceneState::Simulate)
         {
             if (m_viewportFocused)
-            {
                 m_cameraController.onUpdate(dt);
-            }
+            m_editorCamera.onUpdate(dt);
+
+            m_activeScene->onUpdateSimulation(dt, m_editorCamera);
+        }
+        else // Edit
+        {
+            if (m_viewportFocused)
+                m_cameraController.onUpdate(dt);
             m_editorCamera.onUpdate(dt);
 
             m_activeScene->onUpdateEditor(dt, m_editorCamera);
@@ -340,23 +349,78 @@ namespace Fermion
         float size = ImGui::GetWindowHeight() - 5.0f;
         ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
 
-        if (!toolbarEnabled)
-            ImGui::BeginDisabled();
+        bool hasPlayButton = m_sceneState == SceneState::Edit || m_sceneState == SceneState::Play;
+        bool hasSimulateButton = m_sceneState == SceneState::Edit || m_sceneState == SceneState::Simulate;
+        bool hasPauseButton = m_sceneState != SceneState::Edit;
 
-        if (ImGui::ImageButton("##toolbar_btn",
-                               ImTextureRef(static_cast<ImTextureID>(icon->getRendererID())),
-                               ImVec2(size, size),
-                               ImVec2(0, 1), ImVec2(1, 0),
-                               ImVec4(0, 0, 0, 0), tintColor))
+        if (hasPlayButton)
         {
-            if (m_sceneState == SceneState::Edit)
-                onScenePlay();
-            else if (m_sceneState == SceneState::Play)
-                onSceneStop();
+            std::shared_ptr<Texture2D> icon = (m_sceneState == SceneState::Edit || m_sceneState == SceneState::Simulate) ? m_iconPlay : m_iconStop;
+            if (ImGui::ImageButton("##toolbar_playbtn",
+                                   (ImTextureID)(uint64_t)icon->getRendererID(),
+                                   ImVec2(size, size),
+                                   ImVec2(0, 0), ImVec2(1, 1),
+                                   ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor))
+            {
+                if (m_sceneState == SceneState::Edit || m_sceneState == SceneState::Simulate)
+                    onScenePlay();
+                else if (m_sceneState == SceneState::Play)
+                    onSceneStop();
+            }
         }
 
-        if (!toolbarEnabled)
-            ImGui::EndDisabled();
+        if (hasSimulateButton)
+        {
+            if (hasPlayButton)
+                ImGui::SameLine();
+
+            std::shared_ptr<Texture2D> icon = (m_sceneState == SceneState::Edit || m_sceneState == SceneState::Play) ? m_iconSimulate : m_iconStop;
+            if (ImGui::ImageButton("##toolbar_simulatebtn",
+                                   (ImTextureID)(uint64_t)icon->getRendererID(),
+                                   ImVec2(size, size),
+                                   ImVec2(0, 0), ImVec2(1, 1),
+                                   ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor))
+            {
+                if (m_sceneState == SceneState::Edit || m_sceneState == SceneState::Play)
+                    onSceneSimulate();
+                else if (m_sceneState == SceneState::Simulate)
+                    onSceneStop();
+            }
+        }
+        if (hasPauseButton)
+        {
+            bool isPaused = m_activeScene->isPaused();
+            ImGui::SameLine();
+            {
+                std::shared_ptr<Texture2D> icon = m_iconPause;
+                if (ImGui::ImageButton("##toolbar_pausebtn",
+                                       (ImTextureID)(uint64_t)icon->getRendererID(),
+                                       ImVec2(size, size),
+                                       ImVec2(0, 0), ImVec2(1, 1),
+                                       ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor))
+                {
+                    m_activeScene->setPaused(!isPaused);
+                }
+            }
+
+            // Step button
+            if (isPaused)
+            {
+                ImGui::SameLine();
+                {
+                    std::shared_ptr<Texture2D> icon = m_iconStep;
+                    bool isPaused = m_activeScene->isPaused();
+                    if (ImGui::ImageButton("##toolbar_stepbtn",
+                                           (ImTextureID)(uint64_t)icon->getRendererID(),
+                                           ImVec2(size, size),
+                                           ImVec2(0, 0), ImVec2(1, 1),
+                                           ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor))
+                    {
+                        m_activeScene->step();
+                    }
+                }
+            }
+        }
         ImGui::PopStyleVar(2);
         ImGui::PopStyleColor(3);
         ImGui::End();
@@ -567,18 +631,37 @@ namespace Fermion
     }
     void BosonLayer::onScenePlay()
     {
+        if (m_sceneState == SceneState::Simulate)
+            onSceneStop();
         m_sceneState = SceneState::Play;
 
         m_activeScene = Scene::copy(m_editorScene);
         m_activeScene->onRuntimeStart();
         m_sceneHierarchyPanel.setEditingEnabled(false);
+        m_sceneHierarchyPanel.setContext(m_activeScene);
+    }
+    void BosonLayer::onSceneSimulate()
+    {
+        if (m_sceneState == SceneState::Play)
+            onSceneStop();
+        m_sceneState = SceneState::Simulate;
+        m_activeScene = Scene::copy(m_editorScene);
+        m_activeScene->onSimulationStart();
+        m_sceneHierarchyPanel.setEditingEnabled(false);
+        m_sceneHierarchyPanel.setContext(m_activeScene);
     }
     void BosonLayer::onSceneStop()
     {
-        m_sceneState = SceneState::Edit;
 
-        m_activeScene->onRuntimeStop();
+        if (m_sceneState == SceneState::Play)
+            m_activeScene->onRuntimeStop();
+        else if (m_sceneState == SceneState::Simulate)
+            m_activeScene->onSimulationStop();
+
+        m_sceneState = SceneState::Edit;
         m_activeScene = m_editorScene;
+
         m_sceneHierarchyPanel.setEditingEnabled(true);
+        m_sceneHierarchyPanel.setContext(m_activeScene);
     }
 }
