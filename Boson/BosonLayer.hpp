@@ -4,6 +4,7 @@
 #include "Renderer/EditorCamera.hpp"
 #include "Panels/SceneHierarchyPanel.hpp"
 #include "Panels/ContentBrowserPanel.hpp"
+#include "Renderer/SceneRenderer.hpp"
 
 #include <filesystem>
 #include <imgui.h>
@@ -64,6 +65,9 @@ namespace Fermion
         std::shared_ptr<Scene> m_activeScene, m_editorScene, m_runtimeScene;
         std::shared_ptr<Texture2D> m_iconStop, m_iconPlay, m_iconPause, m_iconStep, m_iconSimulate;
         std::filesystem::path m_editorScenePath;
+
+        std::shared_ptr<SceneRenderer> m_viewportRenderer;
+        
 
         EditorCamera m_editorCamera;
         

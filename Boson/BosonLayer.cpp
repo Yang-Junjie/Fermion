@@ -36,10 +36,13 @@ namespace Fermion
         m_framebuffer = Framebuffer::create(fbSpec);
 
         m_activeScene = std::make_shared<Scene>();
-        m_editorScene = m_activeScene;
+        m_viewportRenderer = std::make_shared<SceneRenderer>();
 
+        m_editorScene = m_activeScene;
         m_editorCamera = EditorCamera(45.0f, (float)fbSpec.width / (float)fbSpec.height, 0.1f, 1000.0f);
+
         m_sceneHierarchyPanel.setContext(m_activeScene);
+        m_viewportRenderer->setScene(m_activeScene);
     }
     void BosonLayer::onDetach()
     {
@@ -66,7 +69,7 @@ namespace Fermion
 
         if (m_sceneState == SceneState::Play)
         {
-            m_activeScene->onUpdateRuntime(dt);
+            m_activeScene->onUpdateRuntime(m_viewportRenderer, dt);
             m_sceneHierarchyPanel.setSelectedEntity({});
         }
         else if (m_sceneState == SceneState::Simulate)
@@ -74,14 +77,14 @@ namespace Fermion
             // if (m_viewportHovered)
             m_editorCamera.onUpdate(dt);
 
-            m_activeScene->onUpdateSimulation(dt, m_editorCamera);
+            m_activeScene->onUpdateSimulation(m_viewportRenderer, dt, m_editorCamera);
         }
         else // Edit
         {
             // if (m_viewportHovered)
             m_editorCamera.onUpdate(dt);
 
-            m_activeScene->onUpdateEditor(dt, m_editorCamera);
+            m_activeScene->onUpdateEditor(m_viewportRenderer, dt, m_editorCamera);
         }
 
         // mouse picking
@@ -198,9 +201,12 @@ namespace Fermion
                 ImGui::Begin("Settings");
                 ImGui::Text("hoverd entity: %s", name.c_str());
                 ImGui::Text("Statistics");
-                Renderer2D::Satistics stats = Renderer2D::getStatistics();
+
+                SceneRenderer::Statistics stats = m_viewportRenderer ? m_viewportRenderer->getStatistics() : SceneRenderer::Statistics{};
                 ImGui::Text("Draw Calls: %d", stats.drawCalls);
                 ImGui::Text("Quads: %d", stats.quadCount);
+                ImGui::Text("Lines: %d", stats.lineCount);
+                ImGui::Text("Circles: %d", stats.circleCount);
                 ImGui::Text("Vertices: %d", stats.getTotalVertexCount());
                 ImGui::Text("Indices: %d", stats.getTotalIndexCount());
 
@@ -265,12 +271,6 @@ namespace Fermion
                                       ImGui::GetWindowPos().y,
                                       viewportPanelSize.x,
                                       viewportPanelSize.y);
-
-                    // Camera entity
-                    // auto cameraEntity = m_activeScene->getPrimaryCameraEntity();
-                    // const auto &camera = cameraEntity.getComponent<CameraComponent>().camera;
-                    // const glm::mat4 &cameraProjection = camera.getProjection();
-                    // const glm::mat4 &cameraView = glm::inverse(cameraEntity.getComponent<TransformComponent>().getTransform());
 
                     // editorCamera
                     const glm::mat4 &cameraProjection = m_editorCamera.getProjection();
@@ -509,11 +509,11 @@ namespace Fermion
             if (!camera)
                 return;
 
-            Renderer2D::beginScene(camera.getComponent<CameraComponent>().camera, camera.getComponent<TransformComponent>().getTransform());
+            m_viewportRenderer->beginScene(camera.getComponent<CameraComponent>().camera, camera.getComponent<TransformComponent>().getTransform());
         }
         else
         {
-            Renderer2D::beginScene(m_editorCamera);
+            m_viewportRenderer->beginScene(m_editorCamera);
         }
 
         if (m_showPhysicsColliders)
@@ -530,7 +530,8 @@ namespace Fermion
 
                     glm::mat4 transform = glm::translate(glm::mat4(1.0f), tc.translation) * glm::rotate(glm::mat4(1.0f), tc.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(bc2d.offset, 0.001f)) * glm::scale(glm::mat4(1.0f), scale);
 
-                    Renderer2D::drawRect(transform, glm::vec4(0, 1, 0, 1));
+                    // Renderer2D::drawRect(transform, glm::vec4(0, 1, 0, 1));
+                    m_viewportRenderer->drawRect(transform, glm::vec4(0, 1, 0, 1));
                 }
             }
 
@@ -551,7 +552,8 @@ namespace Fermion
                         glm::translate(glm::mat4(1.0f), glm::vec3(cc2d.offset, 0.001f)) *
                         glm::scale(glm::mat4(1.0f), scale);
 
-                    Renderer2D::drawCircle(transform, glm::vec4(0, 1, 0, 1), 0.1f);
+                    // Renderer2D::drawCircle(transform, glm::vec4(0, 1, 0, 1), 0.1f);
+                    m_viewportRenderer->drawCircle(transform, glm::vec4(0, 1, 0, 1), 0.1f);
                 }
             }
         }
@@ -560,10 +562,12 @@ namespace Fermion
         if (Entity selectedEntity = m_sceneHierarchyPanel.getSelectedEntity())
         {
             const TransformComponent &transform = selectedEntity.getComponent<TransformComponent>();
-            Renderer2D::drawRect(transform.getTransform(), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+            // Renderer2D::drawRect(transform.getTransform(), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+            m_viewportRenderer->drawRect(transform.getTransform(), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
         }
 
-        Renderer2D::endScene();
+        // Renderer2D::endScene();
+        m_viewportRenderer->endScene();
     }
 
     void BosonLayer::onDuplicateEntity()
@@ -579,7 +583,6 @@ namespace Fermion
         }
     }
 
-    
     void BosonLayer::newScene()
     {
         m_activeScene = std::make_shared<Scene>();
@@ -587,6 +590,7 @@ namespace Fermion
         m_editorScene = m_activeScene;
         m_editorScenePath.clear();
         m_sceneHierarchyPanel.setContext(m_activeScene);
+        m_viewportRenderer->setScene(m_activeScene);
     }
 
     void BosonLayer::saveSceneAs()
@@ -638,6 +642,7 @@ namespace Fermion
             m_activeScene = m_editorScene;
             m_editorScenePath = path;
             m_sceneHierarchyPanel.setContext(m_activeScene);
+            m_viewportRenderer->setScene(m_activeScene);
         }
     }
 
@@ -650,6 +655,7 @@ namespace Fermion
         m_activeScene = Scene::copy(m_editorScene);
         m_activeScene->onRuntimeStart();
         m_sceneHierarchyPanel.setEditingEnabled(false);
+        m_viewportRenderer->setScene(m_activeScene);
         m_sceneHierarchyPanel.setContext(m_activeScene);
     }
 
@@ -661,6 +667,7 @@ namespace Fermion
         m_activeScene = Scene::copy(m_editorScene);
         m_activeScene->onSimulationStart();
         m_sceneHierarchyPanel.setEditingEnabled(false);
+        m_viewportRenderer->setScene(m_activeScene);
         m_sceneHierarchyPanel.setContext(m_activeScene);
     }
 
@@ -674,7 +681,7 @@ namespace Fermion
 
         m_sceneState = SceneState::Edit;
         m_activeScene = m_editorScene;
-
+        m_viewportRenderer->setScene(m_activeScene);
         m_sceneHierarchyPanel.setEditingEnabled(true);
         m_sceneHierarchyPanel.setContext(m_activeScene);
     }

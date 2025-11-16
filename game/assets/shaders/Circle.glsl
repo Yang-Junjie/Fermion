@@ -7,7 +7,7 @@ layout(location = 1) in vec3 a_LocalPosition;
 layout(location = 2) in vec4 a_Color;
 layout(location = 3) in float a_Thickness;
 layout(location = 4) in float a_Fade;
-layout(location = 5) in int a_EntityID;
+layout(location = 5) in int a_ObjectID;
 
 uniform mat4 u_ViewProjection;
 
@@ -20,7 +20,7 @@ struct VertexOutput
 };
 
 layout (location = 0) out VertexOutput Output;
-layout (location = 4) out flat int v_EntityID;
+layout (location = 4) out flat int v_ObjectID;
 
 void main()
 {
@@ -29,7 +29,7 @@ void main()
 	Output.Thickness = a_Thickness;
 	Output.Fade = a_Fade;
 
-	v_EntityID = a_EntityID;
+	v_ObjectID = a_ObjectID;
 
 	gl_Position = u_ViewProjection * vec4(a_WorldPosition, 1.0);
 }
@@ -38,7 +38,7 @@ void main()
 #version 450 core
 
 layout(location = 0) out vec4 o_Color;
-layout(location = 1) out int o_EntityID;
+layout(location = 1) out int o_ObjectID;
 
 struct VertexOutput
 {
@@ -49,7 +49,7 @@ struct VertexOutput
 };
 
 layout (location = 0) in VertexOutput Input;
-layout (location = 4) in flat int v_EntityID;
+layout (location = 4) in flat int v_ObjectID;
 
 void main()
 {
@@ -65,5 +65,5 @@ void main()
     o_Color = Input.Color;
 	o_Color.a *= circle;
 
-	o_EntityID = v_EntityID;
+	o_ObjectID = v_ObjectID;
 }

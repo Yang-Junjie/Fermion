@@ -18,7 +18,7 @@ namespace Fermion
         float tilingFactor;
 
         // editor only
-        int entityID;
+        int objectID;
     };
 
     struct CircleVertices
@@ -30,7 +30,7 @@ namespace Fermion
         float fade;
 
         // Editor-only
-        int entityID;
+        int objectID;
     };
     struct LineVertex
     {
@@ -38,7 +38,7 @@ namespace Fermion
         glm::vec4 color;
 
         // Editor-only
-        int entityID;
+        int objectID;
     };
 
     struct Renderer2DData
@@ -96,7 +96,7 @@ namespace Fermion
                                             {ShaderDataType::Float2, "a_TexCoord"},
                                             {ShaderDataType::Float, "a_TexIndex"},
                                             {ShaderDataType::Float, "a_TilingFactor"},
-                                            {ShaderDataType::Int, "a_EntityID"}});
+                                            {ShaderDataType::Int, "a_ObjectID"}});
         s_Data.QuadVertexArray->addVertexBuffer(s_Data.QuadVertexBuffer);
 
         s_Data.QuadVertexBufferBase = new QuadVertices[s_Data.MaxVertices];
@@ -126,7 +126,7 @@ namespace Fermion
                                               {ShaderDataType::Float4, "a_Color"},
                                               {ShaderDataType::Float, "a_Thickness"},
                                               {ShaderDataType::Float, "a_Fade"},
-                                              {ShaderDataType::Int, "a_EntityID"}});
+                                              {ShaderDataType::Int, "a_ObjectID"}});
         s_Data.CircleVertexArray->addVertexBuffer(s_Data.CircleVertexBuffer);
         s_Data.CircleVertexArray->setIndexBuffer(quadIB);
         s_Data.CircleVertexBufferBase = new CircleVertices[s_Data.MaxVertices];
@@ -138,7 +138,7 @@ namespace Fermion
         s_Data.LineVertexBuffer = VertexBuffer::create(s_Data.MaxVertices * sizeof(LineVertex));
         s_Data.LineVertexBuffer->setLayout({{ShaderDataType::Float3, "a_Position"},
                                             {ShaderDataType::Float4, "a_Color"},
-                                            {ShaderDataType::Int, "a_EntityID"}});
+                                            {ShaderDataType::Int, "a_ObjectID"}});
         s_Data.LineVertexArray->addVertexBuffer(s_Data.LineVertexBuffer);
         s_Data.LineVertexBufferBase = new LineVertex[s_Data.MaxVertices];
 
@@ -251,6 +251,7 @@ namespace Fermion
 
         s_Data.TextureSlotIndex = 1;
     }
+
 
     void Renderer2D::endScene()
     {
@@ -393,14 +394,14 @@ namespace Fermion
             s_Data.QuadVertexBufferPtr->txCoord = txCoord[i];
             s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
             s_Data.QuadVertexBufferPtr->tilingFactor = tilingFactor;
-            s_Data.QuadVertexBufferPtr->entityID = -1;
+            s_Data.QuadVertexBufferPtr->objectID = -1;
             s_Data.QuadVertexBufferPtr++;
         }
         s_Data.QuadIndexCount += 6;
 
         s_Data.stats.quadCount++;
     }
-    void Renderer2D::drawQuad(const glm::mat4 &transform, const glm::vec4 &color, int entityID)
+    void Renderer2D::drawQuad(const glm::mat4 &transform, const glm::vec4 &color, int objectID)
     {
         FM_PROFILE_FUNCTION();
 
@@ -421,7 +422,7 @@ namespace Fermion
             s_Data.QuadVertexBufferPtr->txCoord = txCoord[i];
             s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
             s_Data.QuadVertexBufferPtr->tilingFactor = tilingFactor;
-            s_Data.QuadVertexBufferPtr->entityID = entityID;
+            s_Data.QuadVertexBufferPtr->objectID = objectID;
             s_Data.QuadVertexBufferPtr++;
         }
 
@@ -430,7 +431,7 @@ namespace Fermion
         s_Data.stats.quadCount++;
     }
 
-    void Renderer2D::drawQuad(const glm::mat4 &transform, const std::shared_ptr<Texture2D> &texture, float tilingFactor, glm::vec4 tintColor, int entityID)
+    void Renderer2D::drawQuad(const glm::mat4 &transform, const std::shared_ptr<Texture2D> &texture, float tilingFactor, glm::vec4 tintColor, int objectID)
     {
         FM_PROFILE_FUNCTION();
 
@@ -472,7 +473,7 @@ namespace Fermion
             s_Data.QuadVertexBufferPtr->txCoord = txCoord[i];
             s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
             s_Data.QuadVertexBufferPtr->tilingFactor = tilingFactor;
-            s_Data.QuadVertexBufferPtr->entityID = entityID;
+            s_Data.QuadVertexBufferPtr->objectID = objectID;
             s_Data.QuadVertexBufferPtr++;
         }
 
@@ -518,7 +519,7 @@ namespace Fermion
             s_Data.QuadVertexBufferPtr->txCoord = txCoord[i];
             s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
             s_Data.QuadVertexBufferPtr->tilingFactor = tilingFactor;
-            s_Data.QuadVertexBufferPtr->entityID = -1;
+            s_Data.QuadVertexBufferPtr->objectID = -1;
             s_Data.QuadVertexBufferPtr++;
         }
 
@@ -558,7 +559,7 @@ namespace Fermion
             s_Data.QuadVertexBufferPtr->txCoord = txCoord[i];
             s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
             s_Data.QuadVertexBufferPtr->tilingFactor = tilingFactor;
-            s_Data.QuadVertexBufferPtr->entityID = -1;
+            s_Data.QuadVertexBufferPtr->objectID = -1;
             s_Data.QuadVertexBufferPtr++;
         }
 
@@ -615,7 +616,7 @@ namespace Fermion
             s_Data.QuadVertexBufferPtr->txCoord = txCoord[i];
             s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
             s_Data.QuadVertexBufferPtr->tilingFactor = tilingFactor;
-            s_Data.QuadVertexBufferPtr->entityID = -1;
+            s_Data.QuadVertexBufferPtr->objectID = -1;
             s_Data.QuadVertexBufferPtr++;
         }
 
@@ -669,7 +670,7 @@ namespace Fermion
             s_Data.QuadVertexBufferPtr->txCoord = txCoord[i];
             s_Data.QuadVertexBufferPtr->texIndex = textureIndex;
             s_Data.QuadVertexBufferPtr->tilingFactor = tilingFactor;
-            s_Data.QuadVertexBufferPtr->entityID = -1;
+            s_Data.QuadVertexBufferPtr->objectID = -1;
             s_Data.QuadVertexBufferPtr++;
         }
 
@@ -677,18 +678,7 @@ namespace Fermion
 
         s_Data.stats.quadCount++;
     }
-    void Renderer2D::drawSprite(const glm::mat4 &transform, SpriteRendererComponent &src, int entityID)
-    {
-        if (src.texture)
-        {
-            drawQuad(transform, src.texture, src.tilingFactor, src.color, entityID);
-        }
-        else
-        {
-            drawQuad(transform, src.color, entityID);
-        }
-    }
-    void Renderer2D::drawCircle(const glm::mat4 &transform, const glm::vec4 &color, float thickness, float fade, int entityID)
+    void Renderer2D::drawCircle(const glm::mat4 &transform, const glm::vec4 &color, float thickness, float fade, int objectID)
     {
         FM_PROFILE_FUNCTION();
 
@@ -703,51 +693,52 @@ namespace Fermion
             s_Data.CircleVertexBufferPtr->color = color;
             s_Data.CircleVertexBufferPtr->thickness = thickness;
             s_Data.CircleVertexBufferPtr->fade = fade;
-            s_Data.CircleVertexBufferPtr->entityID = entityID;
+            s_Data.CircleVertexBufferPtr->objectID = objectID;
             s_Data.CircleVertexBufferPtr++;
         }
 
         s_Data.CircleIndexCount += 6;
 
-        s_Data.stats.quadCount++;
+        s_Data.stats.circleCount++;
     }
-    void Renderer2D::drawLine(const glm::vec3 &p0, const glm::vec3 &p1, const glm::vec4 &color, int entityID)
+    void Renderer2D::drawLine(const glm::vec3 &p0, const glm::vec3 &p1, const glm::vec4 &color, int objectID)
     {
         s_Data.LineVertexBufferPtr->position = p0;
         s_Data.LineVertexBufferPtr->color = color;
-        s_Data.LineVertexBufferPtr->entityID = entityID;
+        s_Data.LineVertexBufferPtr->objectID = objectID;
         s_Data.LineVertexBufferPtr++;
 
         s_Data.LineVertexBufferPtr->position = p1;
         s_Data.LineVertexBufferPtr->color = color;
-        s_Data.LineVertexBufferPtr->entityID = entityID;
+        s_Data.LineVertexBufferPtr->objectID = objectID;
         s_Data.LineVertexBufferPtr++;
 
         s_Data.LineVertexCount += 2;
+        s_Data.stats.lineCount++;
     }
-    void Renderer2D::drawRect(const glm::vec3 &position, const glm::vec2 &size, const glm::vec4 &color, int entityID)
+    void Renderer2D::drawRect(const glm::vec3 &position, const glm::vec2 &size, const glm::vec4 &color, int objectID)
     {
         glm::vec3 p0 = glm::vec3(position.x - size.x * 0.5f, position.y - size.y * 0.5f, position.z);
         glm::vec3 p1 = glm::vec3(position.x + size.x * 0.5f, position.y - size.y * 0.5f, position.z);
         glm::vec3 p2 = glm::vec3(position.x + size.x * 0.5f, position.y + size.y * 0.5f, position.z);
         glm::vec3 p3 = glm::vec3(position.x - size.x * 0.5f, position.y + size.y * 0.5f, position.z);
 
-        drawLine(p0, p1, color, entityID);
-        drawLine(p1, p2, color, entityID);
-        drawLine(p2, p3, color, entityID);
-        drawLine(p3, p0, color, entityID);
+        drawLine(p0, p1, color, objectID);
+        drawLine(p1, p2, color, objectID);
+        drawLine(p2, p3, color, objectID);
+        drawLine(p3, p0, color, objectID);
     }
 
-    void Renderer2D::drawRect(const glm::mat4 &transform, const glm::vec4 &color, int entityID)
+    void Renderer2D::drawRect(const glm::mat4 &transform, const glm::vec4 &color, int objectID)
     {
         glm::vec3 lineVertices[4];
         for (size_t i = 0; i < 4; i++)
             lineVertices[i] = transform * s_Data.QuadVertexPositions[i];
 
-        drawLine(lineVertices[0], lineVertices[1], color, entityID);
-        drawLine(lineVertices[1], lineVertices[2], color, entityID);
-        drawLine(lineVertices[2], lineVertices[3], color, entityID);
-        drawLine(lineVertices[3], lineVertices[0], color, entityID);
+        drawLine(lineVertices[0], lineVertices[1], color, objectID);
+        drawLine(lineVertices[1], lineVertices[2], color, objectID);
+        drawLine(lineVertices[2], lineVertices[3], color, objectID);
+        drawLine(lineVertices[3], lineVertices[0], color, objectID);
     }
 
     float Renderer2D::getLineWidth()

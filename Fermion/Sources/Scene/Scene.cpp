@@ -4,6 +4,7 @@
 #include "Scene/Components.hpp"
 #include "Scene/ScriptableEntity.hpp"
 #include "Renderer/Renderer2D.hpp"
+#include "Renderer/SceneRenderer.hpp"
 #include "Physics/Physics2D.hpp"
 #include <glm/glm.hpp>
 #include "Scene.hpp"
@@ -182,18 +183,16 @@ namespace Fermion
         }
     }
 
-    void Scene::renderScene(EditorCamera &camera)
+    void Scene::onRenderEditor(std::shared_ptr<SceneRenderer> renderer, EditorCamera &camera)
     {
-        Renderer2D::beginScene(camera);
+        renderer->beginScene(camera);
         {
             auto group = m_registry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
             for (auto entity : group)
             {
                 auto &transform = group.get<TransformComponent>(entity);
                 auto &sprite = group.get<SpriteRendererComponent>(entity);
-                // Renderer2D::drawQuad(transform.getTransform(), sprite.color);
-                Renderer2D::drawSprite(transform.getTransform(), sprite, (int)entity);
-                // Renderer2D::drawRect(transform.getTransform(), glm::vec4{1.0f, 0.0f, 0.0f, 1.0f},(int)entity);
+                renderer->drawSprite(transform.getTransform(), sprite, (int)entity);
             }
         }
         {
@@ -202,22 +201,19 @@ namespace Fermion
             {
                 auto &transform = group.get<TransformComponent>(entity);
                 auto &circle = group.get<CircleRendererComponent>(entity);
-                // Renderer2D::drawQuad(transform.getTransform(), sprite.color);
-
-                Renderer2D::drawCircle(transform.getTransform(), circle.color, circle.thickness, circle.fade, (int)entity);
+                renderer->drawCircle(transform.getTransform(), circle.color, circle.thickness, circle.fade, (int)entity);
             }
         }
 
-        // Renderer2D::drawRect(glm::vec3{0.0f, 0.0f, 0.0f}, glm::vec2{10.0f, 10.0f}, glm::vec4{0.0f, 1.0f, 0.0f, 1.0f});
-        Renderer2D::endScene();
+        renderer->endScene();
     }
 
-    void Scene::onUpdateEditor(Timestep ts, EditorCamera &camera)
+    void Scene::onUpdateEditor(std::shared_ptr<SceneRenderer> renderer, Timestep ts, EditorCamera &camera)
     {
-        renderScene(camera);
+        onRenderEditor(renderer, camera);
     }
 
-    void Scene::onUpdateSimulation(Timestep ts, EditorCamera &camera)
+    void Scene::onUpdateSimulation(std::shared_ptr<SceneRenderer> renderer, Timestep ts, EditorCamera &camera)
     {
         if (!m_isPaused || m_stepFrames-- > 0)
             if (B2_IS_NON_NULL(m_physicsWorld))
@@ -248,10 +244,10 @@ namespace Fermion
                     transform.rotation.z = angle;
                 }
             }
-        renderScene(camera);
+        onRenderEditor(renderer, camera);
     }
 
-    void Scene::onUpdateRuntime(Timestep ts)
+    void Scene::onUpdateRuntime(std::shared_ptr<SceneRenderer> renderer, Timestep ts)
     {
         // Scripts
         {
@@ -320,16 +316,15 @@ namespace Fermion
 
             if (mainCamera)
             {
-
-                Renderer2D::beginScene(*mainCamera, cameraTransform);
+                renderer->beginScene(*mainCamera, cameraTransform);
                 {
                     auto group = m_registry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
                     for (auto entity : group)
                     {
                         auto &transform = group.get<TransformComponent>(entity);
                         auto &sprite = group.get<SpriteRendererComponent>(entity);
-                        // Renderer2D::drawQuad(transform.getTransform(), sprite.color);
-                        Renderer2D::drawSprite(transform.getTransform(), sprite, (int)entity);
+
+                        renderer->drawSprite(transform.getTransform(), sprite, (int)entity);
                     }
                 }
                 {
@@ -338,12 +333,11 @@ namespace Fermion
                     {
                         auto &transform = group.get<TransformComponent>(entity);
                         auto &circle = group.get<CircleRendererComponent>(entity);
-                        // Renderer2D::drawQuad(transform.getTransform(), sprite.color);
-                        Renderer2D::drawCircle(transform.getTransform(), circle.color, circle.thickness, circle.fade, (int)entity);
+                        renderer->drawCircle(transform.getTransform(), circle.color, circle.thickness, circle.fade, (int)entity);
                     }
                 }
 
-                Renderer2D::endScene();
+                renderer->endScene();
             }
         }
     }
