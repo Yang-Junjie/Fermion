@@ -224,12 +224,12 @@ namespace Fermion
         s_Data.TextureSlotIndex = 1;
     }
 
-    void Renderer2D::beginScene(const Camera &camera, const glm::mat4 &Transform)
+    void Renderer2D::beginScene(const Camera &camera, const glm::mat4 &view)
     {
 
         FM_PROFILE_FUNCTION();
 
-        glm::mat4 viewProj = camera.getProjection() * glm::inverse(Transform);
+        glm::mat4 viewProj = camera.getProjection() * view;
 
         s_Data.QuadShader->bind();
         s_Data.QuadShader->setMat4("u_ViewProjection", viewProj);
@@ -251,7 +251,6 @@ namespace Fermion
 
         s_Data.TextureSlotIndex = 1;
     }
-
 
     void Renderer2D::endScene()
     {

@@ -8,13 +8,11 @@ namespace Fermion
 {
     class SceneRenderer
     {
-    public:
+  public:
         struct SceneRendererCamera
         {
             Camera camera;
-            glm::mat4 transform;
-            float near, far;
-            float fov;
+            glm::mat4 view;
         };
 
         struct Statistics
@@ -50,12 +48,14 @@ namespace Fermion
 
         Statistics getStatistics() const;
 
+  
     private:
         std::shared_ptr<Scene> m_scene;
 
         struct SceneInfo
         {
             SceneRendererCamera sceneCamera;
-        } m_sceneData;
+        } 
+        m_sceneData;
     };
 }

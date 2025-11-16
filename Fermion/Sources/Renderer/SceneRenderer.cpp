@@ -5,33 +5,19 @@ namespace Fermion
 {
     void SceneRenderer::beginScene(const Camera &camera, const glm::mat4 &transform)
     {
-        SceneRendererCamera camInfo{};
-        camInfo.camera = camera;
-        camInfo.transform = transform;
-        camInfo.near = 0.0f;
-        camInfo.far = 0.0f;
-        camInfo.fov = 0.0f;
-        m_sceneData.sceneCamera = camInfo;
-
-        Renderer2D::beginScene(camera, transform);
+        beginScene({camera, glm::inverse(transform)});
     }
 
     void SceneRenderer::beginScene(const EditorCamera &camera)
     {
-        SceneRendererCamera camInfo{};
-        camInfo.camera = camera;
-        camInfo.transform = glm::inverse(camera.getViewMatrix());
-        camInfo.near = 0.0f;
-        camInfo.far = 0.0f;
-        camInfo.fov = 0.0f;
-        m_sceneData.sceneCamera = camInfo;
-        Renderer2D::beginScene(camera);
+
+       beginScene({camera, camera.getViewMatrix()});
     }
 
     void SceneRenderer::beginScene(const SceneRendererCamera &camera)
     {
         m_sceneData.sceneCamera = camera;
-        Renderer2D::beginScene(camera.camera, camera.transform);
+        Renderer2D::beginScene(camera.camera, camera.view);
     }
 
     void SceneRenderer::endScene()
