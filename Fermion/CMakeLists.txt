@@ -35,6 +35,7 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Renderer/Texture.cpp
     ${FERMION_DIR}/Renderer/SubTexture2D.cpp
     ${FERMION_DIR}/Renderer/EditorCamera.cpp
+    ${FERMION_DIR}/Renderer/Font.cpp
 
     ${FERMION_DIR}/Project/ProJect.cpp
     ${FERMION_DIR}/Project/ProjectSerializer.cpp
@@ -108,6 +109,7 @@ target_include_directories(engine PUBLIC
     ${EXTERNAL_DIR}/yaml-cpp/include
     ${EXTERNAL_DIR}/ImGuizmo
     ${EXTERNAL_DIR}/box2d/include
+    ${EXTERNAL_DIR}/msdf-atlas-gen/msdf-atlas-gen
     # ${EXTERNAL_DIR}/box2d/src
 )
 

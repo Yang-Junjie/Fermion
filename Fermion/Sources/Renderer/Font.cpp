@@ -1,134 +1,153 @@
+#include "fmpch.hpp"
 #include "Font.hpp"
 
-#include <fstream>
-#include <sstream>
+#undef INFINITE
+#include <msdf-atlas-gen.h>
+#include <FontGeometry.h>
+#include <GlyphGeometry.h>
+
+#include "Renderer/MSDFData.hpp"
 
 namespace Fermion
 {
-    namespace
+
+    template <typename T, typename S, int N, msdf_atlas::GeneratorFunction<S, N> GenFunc>
+    static std::shared_ptr<Texture2D> createAndCacheAtlas(const std::string &fontName, float fontSize, const std::vector<msdf_atlas::GlyphGeometry> &glyphs,
+                                                          const msdf_atlas::FontGeometry &fontGeometry, uint32_t width, uint32_t height)
     {
-        bool startsWith(const std::string &line, const char *prefix)
+        msdf_atlas::GeneratorAttributes attributes;
+        attributes.config.overlapSupport = true;
+        attributes.scanlinePass = true;
+
+        msdf_atlas::ImmediateAtlasGenerator<S, N, GenFunc, msdf_atlas::BitmapAtlasStorage<T, N>> generator(width, height);
+        generator.setAttributes(attributes);
+        generator.setThreadCount(8);
+        generator.generate(glyphs.data(), (int)glyphs.size());
+
+        msdfgen::BitmapConstRef<T, N> bitmap = (msdfgen::BitmapConstRef<T, N>)generator.atlasStorage();
+
+        TextureSpecification spec;
+        spec.Width = bitmap.width;
+        spec.Height = bitmap.height;
+        spec.Format = ImageFormat::RGB8;
+        spec.GenerateMips = false;
+
+        std::shared_ptr<Texture2D> texture = Texture2D::create(spec);
+        texture->setData((void *)bitmap.pixels, bitmap.width * bitmap.height * 3);
+        return texture;
+    }
+
+    Font::Font(const std::filesystem::path &filepath)
+        : m_data(new MSDFData())
+    {
+        msdfgen::FreetypeHandle *ft = msdfgen::initializeFreetype();
+        FMAssert::Assert(ft, "Failed to initialize freetype", __FILE__, __LINE__);
+
+        std::string fileString = filepath.string();
+
+        // TODO(Yan): msdfgen::loadFontData loads from memory buffer which we'll need
+        msdfgen::FontHandle *font = msdfgen::loadFont(ft, fileString.c_str());
+        if (!font)
         {
-            return line.rfind(prefix, 0) == 0;
+            Log::Error(std::format("Failed to load font: {}", fileString));
+            return;
         }
 
-        bool parseKeyValue(const std::string &pair, std::string &key, std::string &value)
+        struct CharsetRange
         {
-            size_t eq = pair.find('=');
-            if (eq == std::string::npos)
-                return false;
-            key = pair.substr(0, eq);
-            value = pair.substr(eq + 1);
-            return true;
+            uint32_t Begin, End;
+        };
+
+        // From imgui_draw.cpp
+        static const CharsetRange charsetRanges[] =
+            {
+                {0x0020, 0x00FF}};
+
+        msdf_atlas::Charset charset;
+        for (CharsetRange range : charsetRanges)
+        {
+            for (uint32_t c = range.Begin; c <= range.End; c++)
+                charset.add(c);
         }
-    }
 
-    std::shared_ptr<Font> Font::create(const std::string &atlasPath, const std::string &metricsPath)
-    {
-        auto font = std::shared_ptr<Font>(new Font());
-        if (!font->load(atlasPath, metricsPath))
-            return nullptr;
-        return font;
-    }
+        double fontScale = 1.0;
+        m_data->fontGeometry = msdf_atlas::FontGeometry(&m_data->glyphs);
+        int glyphsLoaded = m_data->fontGeometry.loadCharset(font, fontScale, charset);
+        Log::Info(std::format("Loaded {} glyphs from font (out of {})", glyphsLoaded, charset.size()));
 
-    const FontGlyph *Font::getGlyph(uint32_t codepoint) const
-    {
-        auto it = m_glyphs.find(codepoint);
-        if (it == m_glyphs.end())
-            return nullptr;
-        return &it->second;
-    }
+        double emSize = 40.0;
 
-    bool Font::load(const std::string &atlasPath, const std::string &metricsPath)
-    {
-        m_atlasTexture = Texture2D::create(atlasPath);
-        if (!m_atlasTexture || !m_atlasTexture->isLoaded())
-            return false;
+        msdf_atlas::TightAtlasPacker atlasPacker;
+        atlasPacker.setPixelRange(2.0);
+        atlasPacker.setMiterLimit(1.0);
+        atlasPacker.setScale(emSize);
+        int remaining = atlasPacker.pack(m_data->glyphs.data(), (int)m_data->glyphs.size());
+        FMAssert::Assert(remaining == 0, "Failed to pack font", __FILE__, __LINE__);
 
-        std::ifstream in(metricsPath);
-        if (!in.is_open())
-            return false;
+        int width, height;
+        atlasPacker.getDimensions(width, height);
+        emSize = atlasPacker.getScale();
 
-        const float texW = static_cast<float>(m_atlasTexture->getWidth());
-        const float texH = static_cast<float>(m_atlasTexture->getHeight());
+#define DEFAULT_ANGLE_THRESHOLD 3.0
+#define LCG_MULTIPLIER 6364136223846793005ull
+#define LCG_INCREMENT 1442695040888963407ull
+#define THREAD_COUNT 8
+        // if MSDF || MTSDF
 
-        std::string line;
-        while (std::getline(in, line))
+        uint64_t coloringSeed = 0;
+        bool expensiveColoring = false;
+        if (expensiveColoring)
         {
-            if (line.empty())
-                continue;
-
-            if (startsWith(line, "common"))
+            msdf_atlas::Workload([&glyphs = m_data->glyphs, &coloringSeed](int i, int threadNo) -> bool
+                                 {
+				unsigned long long glyphSeed = (LCG_MULTIPLIER * (coloringSeed ^ i) + LCG_INCREMENT) * !!coloringSeed;
+				glyphs[i].edgeColoring(msdfgen::edgeColoringInkTrap, DEFAULT_ANGLE_THRESHOLD, glyphSeed);
+				return true; }, m_data->glyphs.size())
+                .finish(THREAD_COUNT);
+        }
+        else
+        {
+            unsigned long long glyphSeed = coloringSeed;
+            for (msdf_atlas::GlyphGeometry &glyph : m_data->glyphs)
             {
-                // Common line, e.g.:
-                // common lineHeight=32 base=26 scaleW=256 scaleH=256 pages=1 packed=0
-                std::istringstream ss(line);
-                std::string token;
-                while (ss >> token)
-                {
-                    std::string key, value;
-                    if (!parseKeyValue(token, key, value))
-                        continue;
-
-                    if (key == "lineHeight")
-                    {
-                        m_lineHeight = static_cast<float>(std::stof(value));
-                    }
-                }
-            }
-            else if (startsWith(line, "char "))
-            {
-                // Char line, BMFont text format, e.g.:
-                // char id=65 x=34 y=50 width=18 height=20 xoffset=1 yoffset=6 xadvance=19 ...
-                std::istringstream ss(line);
-                std::string token;
-
-                uint32_t id = 0;
-                float x = 0.0f;
-                float y = 0.0f;
-                float w = 0.0f;
-                float h = 0.0f;
-                float xAdvance = 0.0f;
-
-                // skip the initial "char"
-                ss >> token;
-                while (ss >> token)
-                {
-                    std::string key, value;
-                    if (!parseKeyValue(token, key, value))
-                        continue;
-
-                    if (key == "id")
-                        id = static_cast<uint32_t>(std::stoul(value));
-                    else if (key == "x")
-                        x = static_cast<float>(std::stof(value));
-                    else if (key == "y")
-                        y = static_cast<float>(std::stof(value));
-                    else if (key == "width")
-                        w = static_cast<float>(std::stof(value));
-                    else if (key == "height")
-                        h = static_cast<float>(std::stof(value));
-                    else if (key == "xadvance")
-                        xAdvance = static_cast<float>(std::stof(value));
-                }
-
-                if (w <= 0.0f || h <= 0.0f)
-                    continue;
-
-                FontGlyph glyph;
-                glyph.size = {w, h};
-                glyph.advance = xAdvance > 0.0f ? xAdvance : w;
-
-                // BMFont uses top-left origin for x,y
-                glm::vec2 uvMin{x / texW, y / texH};
-                glm::vec2 uvMax{(x + w) / texW, (y + h) / texH};
-                glyph.subTexture = std::make_shared<SubTexture2D>(m_atlasTexture, uvMin, uvMax);
-
-                m_glyphs[id] = std::move(glyph);
+                glyphSeed *= LCG_MULTIPLIER;
+                glyph.edgeColoring(msdfgen::edgeColoringInkTrap, DEFAULT_ANGLE_THRESHOLD, glyphSeed);
             }
         }
 
-        return !m_glyphs.empty();
+        m_atlasTexture = createAndCacheAtlas<uint8_t, float, 3, msdf_atlas::msdfGenerator>("Test", (float)emSize, m_data->glyphs, m_data->fontGeometry, width, height);
+
+#if 0
+		msdfgen::Shape shape;
+		if (msdfgen::loadGlyph(shape, font, 'C'))
+		{
+			shape.normalize();
+			//                      max. angle
+			msdfgen::edgeColoringSimple(shape, 3.0);
+			//           image width, height
+			msdfgen::Bitmap<float, 3> msdf(32, 32);
+			//                     range, scale, translation
+			msdfgen::generateMSDF(msdf, shape, 4.0, 1.0, msdfgen::Vector2(4.0, 4.0));
+			msdfgen::savePng(msdf, "output.png");
+		}
+#endif
+
+        msdfgen::destroyFont(font);
+        msdfgen::deinitializeFreetype(ft);
     }
+
+    Font::~Font()
+    {
+        delete m_data;
+    }
+
+    std::shared_ptr<Font> Font::getDefault()
+    {
+        static std::shared_ptr<Font> DefaultFont;
+        if (!DefaultFont)
+            DefaultFont = std::make_shared<Font>("assets/fonts/opensans/OpenSans-Regular.ttf");
+
+        return DefaultFont;
+    }
+
 }
-
