@@ -17,15 +17,34 @@ namespace Fermion
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
         ImGuiIO &io = ImGui::GetIO();
+
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-        io.Fonts->AddFontFromFileTTF("../Boson/assets/opensans/static/OpenSans-Bold.ttf", 18.0f);
-        io.FontDefault = io.Fonts->AddFontFromFileTTF("../Boson/assets/opensans/static/OpenSans-Regular.ttf", 18.0f);
-        ImGui::StyleColorsDark();
 
+        // 尝试加载 Bold 字体
+        ImFont *fontBold = io.Fonts->AddFontFromFileTTF(
+            "../Boson/Resources/assets/fonts/opensans/static/OpenSans-Bold.ttf",
+            18.0f);
+
+        // 尝试加载 Regular 主字体
+        ImFont *fontRegular = io.Fonts->AddFontFromFileTTF(
+            "../Boson/Resources/assets/fonts/opensans/static/OpenSans-Regular.ttf",
+            18.0f);
+
+        // 设置默认字体：如果 fontRegular 加载失败则使用系统默认字体
+        if (fontRegular != nullptr)
+            io.FontDefault = fontRegular;
+        else
+            io.FontDefault = io.Fonts->AddFontDefault(); // 加载内置默认字体
+
+        // 🌟 如果 Bold 字体加载失败，用默认字体代替
+        if (fontBold == nullptr)
+            fontBold = io.Fonts->AddFontDefault();
+
+        ImGui::StyleColorsDark();
         setDarkThemeColors();
-        
+
         ImGui_ImplGlfw_InitForOpenGL(m_window, true);
         ImGui_ImplOpenGL3_Init("#version 430");
     }

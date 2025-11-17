@@ -180,10 +180,10 @@ namespace Fermion
         uint32_t whiteTextureData = 0xffffffff;
         s_Data.WhiteTexture->setData(&whiteTextureData, sizeof(uint32_t));
 
-        s_Data.QuadShader = Shader::create("../game/assets/shaders/Quad.glsl");
-        s_Data.CircleShader = Shader::create("../game/assets/shaders/Circle.glsl");
-        s_Data.LineShader = Shader::create("../game/assets/shaders/Line.glsl");
-        s_Data.TextShader = Shader::create("../game/assets/shaders/Text.glsl");
+        s_Data.QuadShader = Shader::create("../Boson/Resources/shaders/Quad.glsl");
+        s_Data.CircleShader = Shader::create("../Boson/Resources/shaders/Circle.glsl");
+        s_Data.LineShader = Shader::create("../Boson/Resources/shaders/Line.glsl");
+        s_Data.TextShader = Shader::create("../Boson/Resources/shaders/Text.glsl");
 
         s_Data.QuadShader->bind();
         int samplers[s_Data.MaxTextureSlots];

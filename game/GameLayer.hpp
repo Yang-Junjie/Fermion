@@ -95,7 +95,7 @@ public:
 
         m_squareShader = Fermion::Shader::create("FlatShader", flatColorShaderVertexSrc, flatColorShaderFragmentSrc);
 
-        auto textureShader = m_shaderLibrary.load("../game/assets/shaders/Texture.glsl");
+        auto textureShader = m_shaderLibrary.load("../Boson/Resources/shaders/Texture.glsl");
 
         m_Texture = Fermion::Texture2D::create("../game/assets/textures/Checkerboard.png");
         m_logoTexture = Fermion::Texture2D::create("../game/assets/textures/pslogo.png");

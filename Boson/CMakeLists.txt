@@ -1,10 +1,10 @@
 ﻿
 
 set(BOSON_SOUCES
-    ${CMAKE_CURRENT_LIST_DIR}/BosonEditor.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/BosonLayer.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/Panels/SceneHierarchyPanel.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/Panels/ContentBrowserPanel.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/BosonEditor.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/BosonLayer.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/Panels/SceneHierarchyPanel.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/Panels/ContentBrowserPanel.cpp
 )
 
 add_executable(BosonEditor ${BOSON_SOUCES})

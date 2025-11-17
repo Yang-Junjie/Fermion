@@ -145,7 +145,7 @@ namespace Fermion
     {
         static std::shared_ptr<Font> DefaultFont;
         if (!DefaultFont)
-            DefaultFont = std::make_shared<Font>("../Boson/assets/opensans/static/OpenSans-Regular.ttf");
+            DefaultFont = std::make_shared<Font>("../Boson/Resources/assets/fonts/opensans/static/OpenSans-Regular.ttf");
 
         return DefaultFont;
     }

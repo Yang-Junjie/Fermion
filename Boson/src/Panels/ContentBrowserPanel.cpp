@@ -6,7 +6,7 @@
 namespace Fermion
 {
 	// 相对于可执行文件所在的 bin 目录
-	constexpr const char *s_assetDirectory = "../Boson/assets";
+	constexpr const char *s_assetDirectory = "../Boson/projects";
 
 	ContentBrowserPanel::ContentBrowserPanel()
 		: m_baseDirectory(std::filesystem::path(s_assetDirectory)),
