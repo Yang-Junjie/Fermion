@@ -32,9 +32,9 @@ namespace Fermion
         void onOverlayRender();
 
         void newProject();
-        bool openProject();
-        void openProject(const std::filesystem::path &path);
+        void openProject();
         void saveProject();
+       
 
         void newScene();
         void saveSceneAs();

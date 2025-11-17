@@ -4,23 +4,24 @@
 #include <fstream>
 #include <yaml-cpp/yaml.h>
 
-namespace Fermion {
+namespace Fermion
+{
 
 	ProjectSerializer::ProjectSerializer(std::shared_ptr<Project> project)
 		: m_project(project)
 	{
 	}
 
-	bool ProjectSerializer::serialize(const std::filesystem::path& filepath)
+	bool ProjectSerializer::serialize(const std::filesystem::path &filepath)
 	{
-		const auto& config = m_project->getConfig();
+		const auto &config = m_project->getConfig();
 
 		YAML::Emitter out;
 		{
 			out << YAML::BeginMap; // Root
 			out << YAML::Key << "Project" << YAML::Value;
 			{
-				out << YAML::BeginMap;// Project
+				out << YAML::BeginMap; // Project
 				out << YAML::Key << "Name" << YAML::Value << config.name;
 				out << YAML::Key << "StartScene" << YAML::Value << config.startScene.string();
 				out << YAML::Key << "AssetDirectory" << YAML::Value << config.assetDirectory.string();
@@ -35,9 +36,9 @@ namespace Fermion {
 		return true;
 	}
 
-	bool ProjectSerializer::deserialize(const std::filesystem::path& filepath)
+	bool ProjectSerializer::deserialize(const std::filesystem::path &filepath)
 	{
-		auto& config = m_project->getConfig();
+		auto &config = m_project->getConfig();
 
 		YAML::Node data;
 		try

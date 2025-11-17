@@ -15,9 +15,8 @@
 namespace Fermion
 {
 
-    BosonLayer::BosonLayer(const std::string &name) : Layer(name)
-    {
-    }
+    BosonLayer::BosonLayer(const std::string &name) : Layer(name) {}
+
     void BosonLayer::onAttach()
     {
         FM_PROFILE_FUNCTION();
@@ -44,10 +43,12 @@ namespace Fermion
         m_sceneHierarchyPanel.setContext(m_activeScene);
         m_viewportRenderer->setScene(m_activeScene);
     }
+
     void BosonLayer::onDetach()
     {
         FM_PROFILE_FUNCTION();
     }
+
     void BosonLayer::onUpdate(Timestep dt)
     {
         FM_PROFILE_FUNCTION();
@@ -170,12 +171,17 @@ namespace Fermion
                         if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S"))
                             saveSceneAs();
                         ImGui::Separator();
-                        if (ImGui::MenuItem("Open Project...", "Ctrl+O"))
+                        if (ImGui::MenuItem("new project"))
+                            newProject();
+                        if (ImGui::MenuItem("open project"))
                             openProject();
-                        if (ImGui::MenuItem("Save Project", "Ctrl+Shift+P"))
+                        if (ImGui::MenuItem("save project"))
                             saveProject();
                         if (ImGui::MenuItem("Exit"))
+                        {
+                            saveProject();
                             Engine::get().close();
+                        }
                         ImGui::EndMenu();
                     }
                     ImGui::EndMenuBar();
@@ -186,8 +192,8 @@ namespace Fermion
             // Scene Hierarchy
 
             m_sceneHierarchyPanel.onImGuiRender();
-
             m_contentBrowserPanel.onImGuiRender();
+
             UIToolbar();
             // Statistics
             {
@@ -568,73 +574,65 @@ namespace Fermion
 
     void BosonLayer::newProject()
     {
-        Project::newProject();
-    }
-
-    void BosonLayer::openProject(const std::filesystem::path &path)
-    {
-        if (!Project::loadProject(path))
-            return;
-
-        auto project = Project::getActive();
-        if (!project)
-            return;
-
-        // Sync content browser panel with active project
-        m_contentBrowserPanel.setBaseDirectory(Project::getAssetDirectory());
-
-        const auto &startSceneRelative = project->getConfig().startScene;
-        if (!startSceneRelative.empty())
+        std::filesystem::path path = FileDialogs::saveFile(
+            "Project (*.fmproj)\0*.fmproj\0", "../Boson/assets/project/");
+        if (path.empty())
         {
-            auto startScenePath = Project::GetAssetFileSystemPath(startSceneRelative);
-            Log::Warn(fmt::format("Opening start scene: {}", startScenePath.string()));
-            if (std::filesystem::exists(startScenePath))
-            {
-                openScene(startScenePath);
-                return;
-            }
+            Log::Warn("Project Selection directory is empty!");
+            return;
         }
 
-        // No valid start scene, just create an empty one
-        newScene();
-    }
-    bool BosonLayer::openProject()
-    {
-        std::filesystem::path defaultDir = std::filesystem::current_path();
-        auto filepath = FileDialogs::openFile(
-            "Fermion Project (*.fmproj)\0*.fmproj\0", defaultDir.string());
-        if (filepath.empty())
-            return false;
+        if (std::filesystem::create_directories(path.parent_path() / "Assets"))
+            Log::Info(std::format("Assets directory created successfully! Path: {}",
+                                  (path.parent_path() / "Assets").string()));
+        else
+            Log::Warn(std::format("Assets directory already exists! Path: {}",
+                                  (path.parent_path() / "Assets").string()));
 
-        openProject(filepath);
-        return true;
+        Project::newProject();
+
+        auto &config = Project::getActive()->getConfig();
+        config.name = path.stem().string();
+        config.startScene = "";
+        config.assetDirectory = path.parent_path() / "Assets";
+
+        if (Project::saveActive(path))
+            Log::Info(std::format("Project created successfully! Path: {}",
+                                  Project::getActive()->getProjectPath().string()));
+        else
+            Log::Error("Project create failed!");
+
+        m_contentBrowserPanel.setBaseDirectory(Project::getActive()->getProjectDirectory());
+    }
+
+    void BosonLayer::openProject()
+    {
+        std::filesystem::path path = FileDialogs::openFile(
+            "Project (*.fmproj)\0*.fmproj\0", "../Boson/assets/project/");
+        if (path.empty())
+        {
+            Log::Warn("Project Selection directory is empty!");
+            return;
+        }
+        Project::loadProject(path);
+        auto lastScene = Project::getActive()->getConfig().startScene;
+        openScene(lastScene);
+        m_contentBrowserPanel.setBaseDirectory(Project::getActive()->getProjectDirectory());
     }
 
     void BosonLayer::saveProject()
     {
-        auto project = Project::getActive();
-        if (!project)
-            project = Project::newProject();
-
-        // 如果还没有目录，默认当前目录；有的话用项目目录
-        std::filesystem::path defaultDir =
-            Project::getProjectDirectory().empty()
-                ? std::filesystem::current_path()
-                : Project::getProjectDirectory();
-
-        auto filepath = FileDialogs::saveFile(
-            "Fermion Project (*.fmproj)\0*.fmproj\0", defaultDir.string());
-        if (filepath.empty())
-            return;
-
-        // 用文件名更新项目名
-        auto &config = project->getConfig();
-        config.name = filepath.stem().string();
-        if (config.assetDirectory.empty())
-            config.assetDirectory = "assets";
-
-        // StartScene 已经在 saveSceneAs 时更新
-        Project::saveActive(filepath);
+        saveScene();
+        auto &config = Project::getActive()->getConfig();
+        config.startScene = std::filesystem::absolute(m_editorScenePath);
+        if (Project::saveActive(Project::getActive()->getProjectPath()))
+        {
+            Log::Info("Project save successfully!");
+        }
+        else
+        {
+            Log::Error("Project save failed!");
+        }
     }
 
     void BosonLayer::onDuplicateEntity()
@@ -662,24 +660,17 @@ namespace Fermion
 
     void BosonLayer::saveSceneAs()
     {
-        auto project = Project::getActive();
-        std::filesystem::path defaultDir =
-            project ? Project::getAssetDirectory() / "scenes"
-                    : std::filesystem::path("../Boson/assets/scenes/");
 
         auto path = FileDialogs::saveFile(
-            "Scene (*.fermion)\0*.fermion\0", defaultDir.string());
+            "Scene (*.fermion)\0*.fermion\0", "../Boson/assets/scenes/");
         if (path.empty())
             return;
 
         SceneSerializer serializer(m_editorScene);
         serializer.serialize(path);
         m_editorScenePath = path;
-
-        // 更新当前 Project 的 StartScene（相对于资产目录）
-        if (project)
-            project->getConfig().startScene =
-                std::filesystem::relative(path, Project::getAssetDirectory());
+        Log::Info(std::format("Scene saved successfully! Path: {}",
+                              path.string()));
     }
 
     void BosonLayer::saveScene()
@@ -688,6 +679,8 @@ namespace Fermion
         {
             SceneSerializer serializer(m_editorScene);
             serializer.serialize(m_editorScenePath);
+            Log::Info(std::format("Scene saved successfully! Path: {}",
+                                  m_editorScenePath.string()));
         }
         else
         {
@@ -697,15 +690,13 @@ namespace Fermion
 
     void BosonLayer::openScene()
     {
-        auto project = Project::getActive();
-        std::filesystem::path defaultDir =
-            project ? Project::getAssetDirectory() / "scenes"
-                    : std::filesystem::path("../Boson/assets/scenes/");
 
         std::filesystem::path path = FileDialogs::openFile(
-            "Scene (*.fermion)\0*.fermion\0", defaultDir.string());
+            "Scene (*.fermion)\0*.fermion\0", "../Boson/assets/scenes/");
         if (!path.empty())
+        {
             openScene(path);
+        }
     }
 
     void BosonLayer::openScene(const std::filesystem::path &path)
@@ -725,6 +716,13 @@ namespace Fermion
             m_editorScenePath = path;
             m_sceneHierarchyPanel.setContext(m_activeScene);
             m_viewportRenderer->setScene(m_activeScene);
+            Log::Info(std::format("Scene opened successfully! Path: {}",
+                                  path.string()));
+        }
+        else
+        {
+            Log::Error(std::format("Scene open failed! Path: {}",
+                                   path.string()));
         }
     }
 

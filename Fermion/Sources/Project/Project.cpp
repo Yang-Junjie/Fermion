@@ -19,6 +19,7 @@ namespace Fermion {
 		if (serializer.deserialize(path))
 		{
 			project->m_projectDirectory = path.parent_path();
+			project->m_projectPath = path;
 			s_activeProject = project;
 			return s_activeProject;
 		}
@@ -32,6 +33,7 @@ namespace Fermion {
 		if (serializer.serialize(path))
 		{
 			s_activeProject->m_projectDirectory = path.parent_path();
+			s_activeProject->m_projectPath = path;
 			return true;
 		}
 

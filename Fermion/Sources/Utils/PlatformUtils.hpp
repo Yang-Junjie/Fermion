@@ -10,6 +10,7 @@ namespace Fermion {
 	public:
 		static std::filesystem::path openFile(const char* filter,std::string defaultPath);
 		static std::filesystem::path saveFile(const char* filter,std::string defaultPath);
+		static std::filesystem::path selectDirectory(std::string defaultPath);
 	};
 
 	class Time
