@@ -140,9 +140,22 @@ namespace Fermion
 		{
 			out << YAML::Key << "CircleRendererComponent";
 			out << YAML::BeginMap;
-			out << YAML::Key << "Color" << YAML::Value << entity.getComponent<CircleRendererComponent>().color;
-			out << YAML::Key << "Thickness" << YAML::Value << entity.getComponent<CircleRendererComponent>().thickness;
-			out << YAML::Key << "Fade" << YAML::Value << entity.getComponent<CircleRendererComponent>().fade;
+			auto& circleComponent = entity.getComponent<CircleRendererComponent>();
+			out << YAML::Key << "Color" << YAML::Value << circleComponent.color;
+			out << YAML::Key << "Thickness" << YAML::Value << circleComponent.thickness;
+			out << YAML::Key << "Fade" << YAML::Value << circleComponent.fade;
+			out << YAML::EndMap;
+		}
+		if (entity.hasComponent<TextComponent>())
+		{
+			out << YAML::Key << "TextComponent";
+			out << YAML::BeginMap;
+			auto &textComponent = entity.getComponent<TextComponent>();
+			out << YAML::Key << "Text" << YAML::Value << textComponent.textString;
+			// TODO:textComponent.FontAsset
+			out << YAML::Key << "Color" << YAML::Value << textComponent.color;
+			out << YAML::Key << "Kerning" << YAML::Value << textComponent.kerning;
+			out << YAML::Key << "LineSpacing" << YAML::Value << textComponent.lineSpacing;
 			out << YAML::EndMap;
 		}
 		if (entity.hasComponent<Rigidbody2DComponent>())
@@ -302,6 +315,23 @@ namespace Fermion
 						cr.thickness = n.as<float>();
 					if (auto n = circleRendererComponent["Fade"]; n)
 						cr.fade = n.as<float>();
+				}
+				auto textComponent = entity["TextComponent"];
+				if (textComponent && textComponent.IsMap())
+				{
+					auto &tc = deserializedEntity.addComponent<TextComponent>();
+
+					if (auto n = textComponent["Text"]; n)
+						tc.textString = n.as<std::string>();
+
+					// tc.fontAsset // TODO: 目前使用默认字体
+
+					if (auto n = textComponent["Color"]; n)
+						tc.color = n.as<glm::vec4>();
+					if (auto n = textComponent["Kerning"]; n)
+						tc.kerning = n.as<float>();
+					if (auto n = textComponent["LineSpacing"]; n)
+						tc.lineSpacing = n.as<float>();
 				}
 
 				auto rigidbody2DComponent = entity["Rigidbody2DComponent"];

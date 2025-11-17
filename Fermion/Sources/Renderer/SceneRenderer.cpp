@@ -11,7 +11,7 @@ namespace Fermion
     void SceneRenderer::beginScene(const EditorCamera &camera)
     {
 
-       beginScene({camera, camera.getViewMatrix()});
+        beginScene({camera, camera.getViewMatrix()});
     }
 
     void SceneRenderer::beginScene(const SceneRendererCamera &camera)
@@ -32,6 +32,11 @@ namespace Fermion
                                  sprite.tilingFactor, sprite.color, objectID);
         else
             Renderer2D::drawQuad(transform, sprite.color, objectID);
+    }
+
+    void SceneRenderer::drawString(const std::string &string, const glm::mat4 &transform, const TextComponent &component, int objectID)
+    {
+        Renderer2D::drawString(string, component.fontAsset, transform, {component.color, component.kerning, component.lineSpacing}, objectID);
     }
 
     void SceneRenderer::drawCircle(const glm::mat4 &transform, const glm::vec4 &color, float thickness, float fade, int objectID)

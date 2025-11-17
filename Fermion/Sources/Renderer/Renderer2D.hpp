@@ -4,6 +4,8 @@
 #include "Renderer/SubTexture2D.hpp"
 #include "Renderer/Camera.hpp"
 #include "Renderer/EditorCamera.hpp"
+#include "Renderer/Font.hpp"
+
 
 namespace Fermion
 {
@@ -48,6 +50,15 @@ namespace Fermion
 
         static float getLineWidth();
         static void setLineWidth(float width);
+
+        struct TextParams
+        {
+            glm::vec4 color{1.0f};
+            float kerning = 0.0f;
+            float lineSpacing = 0.0f;
+        };
+        static void drawString(const std::string &string, std::shared_ptr<Font> font, const glm::mat4 &transform, const TextParams &textParams, int objectId = -1);
+        
         struct Satistics
         {
             uint32_t drawCalls = 0;

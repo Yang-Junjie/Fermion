@@ -13,8 +13,11 @@ Entities:
     TagComponent:
       Tag: Empty Entity
     TransformComponent:
-      Translation: [2.44281, 0, 0]
+      Translation: [-1.2138138, 1.6690092, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
+    TextComponent:
+      Text: Fermion
+      Color: [0.18532819, 0.63198245, 1, 1]
+      Kerning: 0
+      LineSpacing: 0

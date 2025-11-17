@@ -204,7 +204,15 @@ namespace Fermion
                 renderer->drawCircle(transform.getTransform(), circle.color, circle.thickness, circle.fade, (int)entity);
             }
         }
-
+        {
+            auto group = m_registry.group<>(entt::get<TransformComponent, TextComponent>);
+            for (auto entity : group)
+            {
+                auto &transform = group.get<TransformComponent>(entity);
+                auto &text = group.get<TextComponent>(entity);
+                renderer->drawString(text.textString, transform.getTransform(), text, (int)entity);
+            }
+        }
 
         renderer->endScene();
     }
@@ -337,7 +345,6 @@ namespace Fermion
                         renderer->drawCircle(transform.getTransform(), circle.color, circle.thickness, circle.fade, (int)entity);
                     }
                 }
-
 
                 renderer->endScene();
             }

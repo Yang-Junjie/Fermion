@@ -8,7 +8,7 @@ namespace Fermion
 {
     class SceneRenderer
     {
-  public:
+    public:
         struct SceneRendererCamera
         {
             Camera camera;
@@ -38,11 +38,12 @@ namespace Fermion
         void beginScene(const SceneRendererCamera &camera);
 
         void endScene();
-        void drawSprite(const glm::mat4 &transform, SpriteRendererComponent &sprite, int objectID);
+        void drawSprite(const glm::mat4 &transform, SpriteRendererComponent &sprite, int objectID = -1);
+        void drawString(const std::string &string, const glm::mat4 &transform, const TextComponent &component, int objectID = -1);
         void drawCircle(const glm::mat4 &transform, const glm::vec4 &color, float thickness = 1.0f, float fade = 0.005f, int objectID = -1);
         void drawRect(const glm::vec3 &position, const glm::vec2 &size, const glm::vec4 &color, int objectId = -1);
         void drawRect(const glm::mat4 &transform, const glm::vec4 &color, int objectId = -1);
-       
+
         void setScene(std::shared_ptr<Scene> scene) { m_scene = scene; }
         std::shared_ptr<Scene> getScene() const { return m_scene; }
 
@@ -50,7 +51,6 @@ namespace Fermion
 
     private:
         std::shared_ptr<Scene> m_scene;
-       
 
         struct SceneInfo
         {

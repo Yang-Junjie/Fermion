@@ -3,6 +3,7 @@
 #include "Fermion.hpp"
 #include "Scene/SceneSerializer.hpp"
 #include "Utils/PlatformUtils.hpp"
+#include "Renderer/Font.hpp"
 
 #include "Math/Math.hpp"
 
@@ -15,7 +16,11 @@
 namespace Fermion
 {
 
-    BosonLayer::BosonLayer(const std::string &name) : Layer(name) {}
+    static std::shared_ptr<Font> s_Font; // TODO:  Temporary
+    BosonLayer::BosonLayer(const std::string &name) : Layer(name)
+    {
+        s_Font = Font::getDefault();
+    }
 
     void BosonLayer::onAttach()
     {
@@ -86,6 +91,7 @@ namespace Fermion
             m_editorCamera.onUpdate(dt);
 
             m_activeScene->onUpdateEditor(m_viewportRenderer, dt, m_editorCamera);
+            
         }
 
         // mouse picking
@@ -103,6 +109,7 @@ namespace Fermion
             m_hoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_activeScene.get());
         }
         onOverlayRender();
+        
         m_framebuffer->unbind();
     }
 
@@ -220,6 +227,7 @@ namespace Fermion
             {
                 ImGui::Begin("settings");
                 ImGui::Checkbox("showPhysicsColliders", &m_showPhysicsColliders);
+                ImGui::Image((ImTextureID)s_Font->getAtlasTexture()->getRendererID(), { 512,512 }, {0, 1}, {1, 0});
                 ImGui::End();
             }
 

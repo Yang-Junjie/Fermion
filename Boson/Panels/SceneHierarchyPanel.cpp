@@ -266,6 +266,14 @@ namespace Fermion
 					ImGui::CloseCurrentPopup();
 				}
 			}
+			if (!m_selectedEntity.hasComponent<TextComponent>())
+			{
+				if (ImGui::MenuItem("Text"))
+				{
+					m_selectedEntity.addComponent<TextComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+			}
 			if (!m_selectedEntity.hasComponent<Rigidbody2DComponent>())
 			{
 				if (ImGui::MenuItem("Rigidbody2D"))
@@ -427,7 +435,19 @@ namespace Fermion
 			}
 
 			ImGui::DragFloat("Tiling Factor", &component.tilingFactor, 0.1f, 0.0f, 100.0f); });
+		drawComponent<TextComponent>("Text", entity, [](auto &component)
+									 {
+			char buffer[1024]; 
+			strncpy(buffer, component.textString.c_str(), sizeof(buffer));
+			buffer[sizeof(buffer)-1] = '\0';
 
+			if (ImGui::InputTextMultiline("Text String", buffer, sizeof(buffer)))
+			{
+				component.textString = buffer; 
+			}
+			ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
+			ImGui::DragFloat("Kerning", &component.kerning, 0.025f);
+			ImGui::DragFloat("Line Spacing", &component.lineSpacing, 0.025f); });
 		drawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto &component)
 											   {
 			ImGui::ColorEdit4("Color", glm::value_ptr(component.color)); 

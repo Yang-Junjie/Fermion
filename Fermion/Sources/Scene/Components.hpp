@@ -4,6 +4,7 @@
 // #include "Scene/ScriptableEntity.hpp"
 #include "Renderer/Texture.hpp"
 #include "Renderer/SceneCamera.hpp"
+#include "Renderer/Font.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -64,6 +65,14 @@ namespace Fermion
         SpriteRendererComponent() = default;
         SpriteRendererComponent(const glm::vec4 &color) : color(color) {}
         SpriteRendererComponent(const SpriteRendererComponent &) = default;
+    };
+    struct TextComponent
+    {
+        std::string textString;
+        std::shared_ptr<Font> fontAsset = Font::getDefault();
+        glm::vec4 color{1.0f};
+        float kerning = 0.0f;
+        float lineSpacing = 0.0f;
     };
 
     struct CircleRendererComponent
@@ -172,6 +181,5 @@ namespace Fermion
         ComponentGroup<TransformComponent, SpriteRendererComponent,
                        CircleRendererComponent,
                        CameraComponent,
-                       NativeScriptComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent
-                       >;
+                       NativeScriptComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, TextComponent>;
 }
