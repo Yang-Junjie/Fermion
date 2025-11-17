@@ -1,6 +1,6 @@
 # Fermion
 
-Fermion 是一款基于 C++20 的轻量级 2D 游戏引擎，同时配套提供基于 ImGui 的场景编辑器 **Boson** 和示例游戏工程。引擎采用模块化设计，围绕组件化场景系统、2D 渲染管线和 Box2D 物理进行构建，适合作为学习引擎架构、搭建小型游戏/工具的基础。
+Fermion 是一款基于 Hazel 而扩展来的 C++20 的轻量级 2D 游戏引擎，同时配套提供基于 ImGui 的场景编辑器 **Boson** 和示例游戏工程。引擎采用模块化设计，围绕组件化场景系统、2D 渲染管线和 Box2D 物理进行构建，适合作为学习引擎架构、搭建小型游戏/工具的基础。
 
 ## 命名与愿景
 
@@ -23,6 +23,7 @@ Fermion 是一款基于 C++20 的轻量级 2D 游戏引擎，同时配套提供�
     - 纯色/纹理矩形、旋转矩形
     - 基于纹理图集的 `SubTexture2D`
     - 圆形、线段与矩形轮廓（用于调试或 Gizmo）
+  - `SceneRenerer` 封装渲染指令用于场景渲染
   - 帧缓冲（`Framebuffer`）用于 Boson 视口渲染与离屏绘制
   - 多种相机类型：`OrthographicCamera`、`SceneCamera`、`EditorCamera`
 
@@ -31,7 +32,7 @@ Fermion 是一款基于 C++20 的轻量级 2D 游戏引擎，同时配套提供�
   - 常用内置组件：
     - `IDComponent`、`TagComponent`
     - `TransformComponent`（平移、欧拉旋转、缩放）
-    - `SpriteRendererComponent`、`CircleRendererComponent`
+    - `SpriteRendererComponent`、`CircleRendererComponent`、`TextComponent`
     - `CameraComponent`
     - `NativeScriptComponent`（C++ 行为脚本）
     - `Rigidbody2DComponent`、`BoxCollider2DComponent`、`CircleCollider2DComponent`
@@ -83,6 +84,7 @@ Fermion/
 │   │   ├── Renderer/        # Renderer2D、Shader、Texture、Camera 等
 │   │   ├── Scene/           # Scene、Entity、组件、场景序列化
 │   │   ├── Physics/         # Box2D 2D 物理封装
+│   │   ├── Project/         # 项目管理
 │   │   ├── ImGui/           # ImGui 层与主题
 │   │   ├── Math/            # 变换分解等数学工具
 │   │   ├── Time/            # 计时器
@@ -114,6 +116,8 @@ Fermion/
 - [stb](https://github.com/nothings/stb) – 使用 `stb_image` 进行纹理加载
 - [yaml-cpp](https://github.com/jbeder/yaml-cpp) – YAML 序列化（场景保存/加载）
 - [box2d](https://github.com/erincatto/box2d) – 2D 刚体物理引擎
+- [msdf-atlas-gen](https://github.com/Chlumsky/msdf-atlas-gen) - MSDF 纹理生成
+- [freetype](https://github.com/freetype/freetype) - FreeType 字体库
 
 ## 构建说明
 
