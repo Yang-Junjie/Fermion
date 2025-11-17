@@ -1,30 +1,30 @@
-[submodule "external/spdlog"]
-	path = external/spdlog
+[submodule "Fermion/external/spdlog"]
+	path = Fermion/external/spdlog
 	url = https://github.com/gabime/spdlog.git
-[submodule "external/entt"]
-	path = external/entt
+[submodule "Fermion/external/entt"]
+	path = Fermion/external/entt
 	url = https://github.com/skypjack/entt.git
-[submodule "external/glm"]
-	path = external/glm
+[submodule "Fermion/external/glm"]
+	path = Fermion/external/glm
 	url = https://github.com/icaven/glm.git
-[submodule "external/imgui"]
-	path = external/imgui
+[submodule "Fermion/external/imgui"]
+	path = Fermion/external/imgui
 	url = https://github.com/ocornut/imgui.git
-[submodule "external/GLFW"]
-	path = external/GLFW
+[submodule "Fermion/external/GLFW"]
+	path = Fermion/external/GLFW
 	url = https://github.com/glfw/glfw.git
-[submodule "external/yaml-cpp"]
-	path = external/yaml-cpp
+[submodule "Fermion/external/yaml-cpp"]
+	path = Fermion/external/yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp.git
-[submodule "external/ImGuizmo"]
-	path = external/ImGuizmo
+[submodule "Fermion/external/ImGuizmo"]
+	path = Fermion/external/ImGuizmo
 	url = https://github.com/CedricGuillemet/ImGuizmo.git
-[submodule "external/box2d"]
-	path = external/box2d
+[submodule "Fermion/external/box2d"]
+	path = Fermion/external/box2d
 	url = https://github.com/erincatto/box2d.git
-[submodule "external/msdf-atlas-gen"]
-	path = external/msdf-atlas-gen
+[submodule "Fermion/external/msdf-atlas-gen"]
+	path = Fermion/external/msdf-atlas-gen
 	url = https://github.com/Chlumsky/msdf-atlas-gen.git
-[submodule "external/freetype"]
-	path = external/freetype
+[submodule "Fermion/external/freetype"]
+	path = Fermion/external/freetype
 	url = https://github.com/freetype/freetype.git

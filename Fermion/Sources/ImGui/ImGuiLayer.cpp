@@ -1,15 +1,18 @@
 ﻿#include "ImGuiLayer.hpp"
+#include "Core/Log.hpp"
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <ImGuizmo.h>
-
+#include <filesystem>
 namespace Fermion
 {
     ImGuiLayer::ImGuiLayer(void *nativeWindow)
         : Layer("ImGuiLayer"), m_window(static_cast<GLFWwindow *>(nativeWindow))
     {
     }
+
+
 
     void ImGuiLayer::onAttach()
     {
@@ -22,24 +25,40 @@ namespace Fermion
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
-        // 尝试加载 Bold 字体
-        ImFont *fontBold = io.Fonts->AddFontFromFileTTF(
-            "../Boson/Resources/assets/fonts/opensans/static/OpenSans-Bold.ttf",
-            18.0f);
+        const char *fontBoldPath = "../Boson/Resources/assets/fonts/opensans/static/OpenSans-Bold.ttf";
+        const char *fontRegularPath = "../Boson/Resources/assets/fonts/opensans/static/OpenSans-Regular.ttf";
 
-        // 尝试加载 Regular 主字体
-        ImFont *fontRegular = io.Fonts->AddFontFromFileTTF(
-            "../Boson/Resources/assets/fonts/opensans/static/OpenSans-Regular.ttf",
-            18.0f);
+        ImFont *fontRegular = nullptr;
+        ImFont *fontBold = nullptr;
 
-        // 设置默认字体：如果 fontRegular 加载失败则使用系统默认字体
-        if (fontRegular != nullptr)
-            io.FontDefault = fontRegular;
+        if (std::filesystem::exists(fontRegularPath))
+        {
+            fontRegular = io.Fonts->AddFontFromFileTTF(fontRegularPath, 18.0f);
+        }
         else
-            io.FontDefault = io.Fonts->AddFontDefault(); // 加载内置默认字体
+        {
+            Log::Warn(std::format("Font file not found: {}", fontRegularPath));
+        }
 
-        // 🌟 如果 Bold 字体加载失败，用默认字体代替
-        if (fontBold == nullptr)
+        if (std::filesystem::exists(fontBoldPath))
+        {
+            fontBold = io.Fonts->AddFontFromFileTTF(fontBoldPath, 18.0f);
+        }
+        else
+        {
+            Log::Warn(std::format("Font file not found: {}", fontRegularPath));
+        }
+
+        if (!fontRegular)
+        {
+
+            Log::Warn("Using default imgui font!");
+            fontRegular = io.Fonts->AddFontDefault();
+        }
+
+        io.FontDefault = fontRegular;
+
+        if (!fontBold)
             fontBold = io.Fonts->AddFontDefault();
 
         ImGui::StyleColorsDark();

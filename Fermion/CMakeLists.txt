@@ -3,7 +3,7 @@ project(engine LANGUAGES CXX C)
 
 set(FERMION_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
 set(PLATFORM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Platform)
-set(EXTERNAL_DIR ${CMAKE_SOURCE_DIR}/external)
+set(EXTERNAL_DIR ${CMAKE_SOURCE_DIR}/Fermion/external)
 
 set(CORE_SOURCES
     ${FERMION_DIR}/fmpch.cpp
