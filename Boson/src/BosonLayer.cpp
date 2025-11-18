@@ -91,7 +91,6 @@ namespace Fermion
             m_editorCamera.onUpdate(dt);
 
             m_activeScene->onUpdateEditor(m_viewportRenderer, dt, m_editorCamera);
-            
         }
 
         // mouse picking
@@ -109,7 +108,7 @@ namespace Fermion
             m_hoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_activeScene.get());
         }
         onOverlayRender();
-        
+
         m_framebuffer->unbind();
     }
 
@@ -227,13 +226,13 @@ namespace Fermion
             {
                 ImGui::Begin("settings");
                 ImGui::Checkbox("showPhysicsColliders", &m_showPhysicsColliders);
-                ImGui::Image((ImTextureID)s_Font->getAtlasTexture()->getRendererID(), { 512,512 }, {0, 1}, {1, 0});
+                ImGui::Image((ImTextureID)s_Font->getAtlasTexture()->getRendererID(), {512, 512}, {0, 1}, {1, 0});
                 ImGui::End();
             }
 
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{0, 0});
 
-            // Viewport
+            // VIEWPORT
             {
                 ImGui::Begin("Viewport");
                 auto viewportOffset = ImGui::GetCursorPos(); // include tab bar (local to window)
@@ -262,6 +261,19 @@ namespace Fermion
                         if (path && path[0])
                         {
                             openScene(std::string(path));
+                        }
+                    }
+                    ImGui::EndDragDropTarget();
+                }
+                // 接受 .fmproj 拖放
+                if (ImGui::BeginDragDropTarget())
+                {
+                    if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_PROJECT"))
+                    {
+                        const char *path = static_cast<const char *>(payload->Data);
+                        if (path && path[0])
+                        {
+                            openProject(std::string(path));
                         }
                     }
                     ImGui::EndDragDropTarget();
@@ -622,7 +634,14 @@ namespace Fermion
             Log::Warn("Project Selection directory is empty!");
             return;
         }
-        Project::loadProject(path);
+
+        openProject(path);
+    }
+
+    void BosonLayer::openProject(const std::filesystem::path &path)
+    {
+        auto project = Project::loadProject(path);
+        FERMION_ASSERT(project != nullptr, "Failed to load project!");
         auto lastScene = Project::getActive()->getConfig().startScene;
         openScene(lastScene);
         m_contentBrowserPanel.setBaseDirectory(Project::getActive()->getProjectDirectory());

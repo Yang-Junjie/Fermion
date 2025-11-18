@@ -83,6 +83,17 @@ namespace Fermion
 					ImGui::EndDragDropSource();
 				}
 			}
+			// .fmproj 文件作为拖拽源
+			if (!isDirectory && path.extension() == ".fmproj")
+			{
+				if (ImGui::BeginDragDropSource())
+				{
+					std::string fullPath = path.string();
+					ImGui::SetDragDropPayload("FERMION_PROJECT", fullPath.c_str(), fullPath.size() + 1);
+					ImGui::Text("%s", filename.c_str());
+					ImGui::EndDragDropSource();
+				}
+			}
 			//.png or 图片
 			if (!isDirectory && (path.extension() == ".png" || path.extension() == ".jpg" || path.extension() == ".jpeg"))
 			{
@@ -114,7 +125,7 @@ namespace Fermion
 		ImGui::End();
 	}
 
-	void ContentBrowserPanel::setBaseDirectory(const std::filesystem::path& directory)
+	void ContentBrowserPanel::setBaseDirectory(const std::filesystem::path &directory)
 	{
 		if (directory.empty())
 			return;

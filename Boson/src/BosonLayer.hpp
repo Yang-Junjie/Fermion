@@ -33,6 +33,7 @@ namespace Fermion
 
         void newProject();
         void openProject();
+        void openProject(const std::filesystem::path &path);
         void saveProject();
        
 
