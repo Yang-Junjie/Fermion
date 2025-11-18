@@ -15,7 +15,7 @@ namespace Fermion {
 			case RendererAPI::API::OpenGL:  return std::make_shared<OpenGLFramebuffer>(spec);
 		}
 
-		FMAssert::Assert(false,"Unknown RendererAPI!",__FILE__,__LINE__);
+		FERMION_ASSERT(false, "Unknown RendererAPI!");
 		return nullptr;
 	}
 

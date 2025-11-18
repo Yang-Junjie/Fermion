@@ -17,7 +17,7 @@ namespace Fermion
             if (type == "fragment" || type == "pixel")
                 return GL_FRAGMENT_SHADER;
 
-            FMAssert::Assert(false, "Unknown shader type", __FILE__, __LINE__);
+            FERMION_ASSERT(false, "Unknown shader type");
             return 0;
         }
 
@@ -186,14 +186,14 @@ namespace Fermion
         while (pos != std::string::npos)
         {
             size_t eol = source.find_first_of("\r\n", pos);
-            FMAssert::Assert(eol != std::string::npos, "Syntax error", __FILE__, __LINE__);
+            FERMION_ASSERT(eol != std::string::npos, "Syntax error");
             size_t begin = pos + typeTokenLength + 1; // Start of shader type name (after "#type " keyword)
             std::string type = source.substr(begin, eol - begin);
 
-            FMAssert::Assert(Utils::ShaderTypeFromString(type), "Invalid shader type specified", __FILE__, __LINE__);
+            FERMION_ASSERT(Utils::ShaderTypeFromString(type), "Invalid shader type specified");
 
             size_t nextLinePos = source.find_first_not_of("\r\n", eol); // Start of shader code after shader type declaration line
-            FMAssert::Assert(nextLinePos != std::string::npos, "Syntax error", __FILE__, __LINE__);
+            FERMION_ASSERT(nextLinePos != std::string::npos, "Syntax error");
             pos = source.find(typeToken, nextLinePos); // Start of next shader type declaration line
 
             shaderSources[Utils::ShaderTypeFromString(type)] = (pos == std::string::npos) ? source.substr(nextLinePos) : source.substr(nextLinePos, pos - nextLinePos);

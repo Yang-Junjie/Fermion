@@ -28,17 +28,17 @@ namespace Fermion
         template <typename T>
         bool hasComponent() const
         {
-            FMAssert::Assert(m_scene != nullptr, "Entity is null (no owning scene)", __FILE__, __LINE__);
-            FMAssert::Assert(m_entityHandle != entt::null, "Entity handle is null", __FILE__, __LINE__);
+            FERMION_ASSERT(m_scene != nullptr, "Scene is null (no owning scene)");
+            FERMION_ASSERT(m_entityHandle != entt::null, "Entity handle is null");
             return m_scene->m_registry.all_of<T>(m_entityHandle);
         }
 
         template <typename T, typename... Args>
         T &addComponent(Args &&...args)
         {
-            FMAssert::Assert(m_scene != nullptr, "Entity is null (no owning scene)", __FILE__, __LINE__);
-            FMAssert::Assert(m_entityHandle != entt::null, "Entity handle is null", __FILE__, __LINE__);
-            FMAssert::Assert(!hasComponent<T>(), "Entity already has this component", __FILE__, __LINE__);
+            FERMION_ASSERT(m_scene != nullptr, "Entity is null (no owning scene)");
+            FERMION_ASSERT(m_entityHandle != entt::null, "Entity handle is null");
+            FERMION_ASSERT(!hasComponent<T>(), "Entity already has this component");
 
             T &component = m_scene->m_registry.emplace<T>(m_entityHandle, std::forward<Args>(args)...);
 
@@ -58,18 +58,18 @@ namespace Fermion
         template <typename T>
         T &getComponent()
         {
-            FMAssert::Assert(m_scene != nullptr, "Entity is null (no owning scene)", __FILE__, __LINE__);
-            FMAssert::Assert(m_entityHandle != entt::null, "Entity handle is null", __FILE__, __LINE__);
-            FMAssert::Assert(hasComponent<T>(), "Entity does not have this component", __FILE__, __LINE__);
+            FERMION_ASSERT(m_scene != nullptr, "Entity is null (no owning scene)");
+            FERMION_ASSERT(m_entityHandle != entt::null, "Entity handle is null");
+            FERMION_ASSERT(hasComponent<T>(), "Entity does not have this component");
             return m_scene->m_registry.get<T>(m_entityHandle);
         }
 
         template <typename T>
         void removeComponent()
         {
-            FMAssert::Assert(m_scene != nullptr, "Entity is null (no owning scene)", __FILE__, __LINE__);
-            FMAssert::Assert(m_entityHandle != entt::null, "Entity handle is null", __FILE__, __LINE__);
-            FMAssert::Assert(hasComponent<T>(), "Entity does not have this component", __FILE__, __LINE__);
+            FERMION_ASSERT(m_scene != nullptr, "Entity is null (no owning scene)");
+            FERMION_ASSERT(m_entityHandle != entt::null, "Entity handle is null");
+            FERMION_ASSERT(hasComponent<T>(), "Entity does not have this component");
             m_scene->m_registry.remove<T>(m_entityHandle);
         }
 

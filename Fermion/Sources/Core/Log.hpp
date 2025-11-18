@@ -48,7 +48,7 @@ namespace Fermion
     {                                                                                                                    \
         if (!(condition))                                                                                                \
         {                                                                                                                \
-            Fermion::Log::Error("Assertion failed: {0}, file {1}, line {2}", message, __FILE__, __LINE__);               \
+            Fermion::Log::Error(std::format("Assertion failed: {}, file {}, line {}", message, __FILE__, __LINE__));    \
             std::cerr << "Assertion failed: " << message << ", file " << __FILE__ << ", line " << __LINE__ << std::endl; \
             assert(false);                                                                                               \
         }                                                                                                                \

@@ -17,7 +17,7 @@ namespace Fermion {
 				case Rigidbody2DComponent::BodyType::Kinematic: return b2_kinematicBody;
 			}
 
-			FMAssert::Assert(false, "Unknown body type", __FILE__, __LINE__);
+			FERMION_ASSERT(false, "Unknown body type");
 			return b2_staticBody;
 		}
 
@@ -29,7 +29,7 @@ namespace Fermion {
 				case b2_dynamicBody:   return Rigidbody2DComponent::BodyType::Dynamic;  
 				case b2_kinematicBody: return Rigidbody2DComponent::BodyType::Kinematic;
 			}
-			FMAssert::Assert(false, "Unknown body type", __FILE__, __LINE__);
+			FERMION_ASSERT(false, "Unknown body type");
 			return Rigidbody2DComponent::BodyType::Static;
 		}
 

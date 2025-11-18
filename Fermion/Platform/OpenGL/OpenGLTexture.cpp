@@ -18,7 +18,7 @@ namespace Fermion
 				return GL_RGBA;
 			}
 
-			FMAssert::Assert(false, "Unknown ImageFormat!", __FILE__, __LINE__);
+			FERMION_ASSERT(false, "Unknown ImageFormat!");
 			return 0;
 		}
 
@@ -32,7 +32,7 @@ namespace Fermion
 				return GL_RGBA8;
 			}
 
-			FMAssert::Assert(false, "Unknown ImageFormat!", __FILE__, __LINE__);
+			FERMION_ASSERT(false, "Unknown ImageFormat!");
 			return 0;
 		}
 
@@ -139,7 +139,7 @@ namespace Fermion
 		FM_PROFILE_FUNCTION();
 
 		uint32_t bpp = m_dataFormat == GL_RGBA ? 4 : 3;
-		FMAssert::Assert(size == m_width * m_height * (m_dataFormat == GL_RGBA ? 4 : 3), "Data must be entire texture!", __FILE__, __LINE__);
+		FERMION_ASSERT(size == m_width * m_height * bpp, "Data must be entire texture!");
 		glTextureSubImage2D(m_rendererID, 0, 0, 0, m_width, m_height, m_dataFormat, GL_UNSIGNED_BYTE, data);
 	}
 	void OpenGLTexture2D::bind(uint32_t slot) const

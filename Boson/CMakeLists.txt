@@ -16,7 +16,7 @@ set_target_properties(BosonEditor PROPERTIES
 
 target_include_directories(BosonEditor PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
-    ${CMAKE_SOURCE_DIR}/external/ImGuizmo)
+    ${CMAKE_SOURCE_DIR}/Fermion/external/ImGuizmo)
 
 target_link_libraries(BosonEditor PRIVATE engine)
 

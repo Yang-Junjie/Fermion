@@ -108,7 +108,7 @@ namespace Fermion
 	}
 	static void serializeEntity(YAML::Emitter &out, Entity entity)
 	{
-		FMAssert::Assert(entity.hasComponent<IDComponent>(), "Entity must have an IDComponent", __FILE__, __LINE__);
+		FERMION_ASSERT(entity.hasComponent<IDComponent>(), "Entity must have an IDComponent");
 		out << YAML::BeginMap;
 		out << YAML::Key << "Entity" << YAML::Value << entity.getUUID();
 		if (entity.hasComponent<TagComponent>())

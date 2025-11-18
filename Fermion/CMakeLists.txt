@@ -5,6 +5,28 @@ set(FERMION_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
 set(PLATFORM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Platform)
 set(EXTERNAL_DIR ${CMAKE_SOURCE_DIR}/Fermion/external)
 
+if(PLATFORM STREQUAL "Desktop")
+    set(PLATFORM_DEPENDENCIES_SOURCE
+        ${PLATFORM_DIR}/Window/GLFWWindow.cpp
+        ${PLATFORM_DIR}/Window/GLFWWindowInput.cpp
+    )
+    set(PLATFORM_DEPENDENCIES_INCLUDE_DIRS
+        ${EXTERNAL_DIR}/GLFW/include
+    )
+    set(IMGUI_PLATFORM_SOURCE
+        ${EXTERNAL_DIR}/imgui/backends/imgui_impl_glfw.cpp
+    )
+    if(WIN32)
+        set(PLATFORM_EXCLUSIVE_SOURCES
+            ${PLATFORM_DIR}/Window/WindowsPlatformUtils.cpp
+        )
+    endif()
+elseif(Platform STREQUAL "Android")
+    set(IMGUI_PLATFORM_SOURCE
+        ${EXTERNAL_DIR}/imgui/backends/imgui_impl_android.cpp
+    )
+endif()
+
 set(CORE_SOURCES
     ${FERMION_DIR}/fmpch.cpp
     ${FERMION_DIR}/Core/Engine.cpp
@@ -56,9 +78,8 @@ set(PLATFORM_SOURCES
     ${PLATFORM_DIR}/OpenGL/OpenGLShader.cpp
     ${PLATFORM_DIR}/OpenGL/OpenGLFrameBuffer.cpp
 
-    ${PLATFORM_DIR}/Window/GLFWWindow.cpp
-    ${PLATFORM_DIR}/Window/GLFWWindowInput.cpp
-    ${PLATFORM_DIR}/Window/WindowsPlatformUtils.cpp
+    ${PLATFORM_DEPENDENCIES_SOURCE}
+    ${PLATFORM_EXCLUSIVE_SOURCES}
 
 )
 
@@ -70,7 +91,7 @@ set(THIRD_PARTY_SOURCES
     ${EXTERNAL_DIR}/imgui/imgui_draw.cpp
     ${EXTERNAL_DIR}/imgui/imgui_tables.cpp
     ${EXTERNAL_DIR}/imgui/imgui_widgets.cpp
-    ${EXTERNAL_DIR}/imgui/backends/imgui_impl_glfw.cpp
+    ${IMGUI_PLATFORM_SOURCE}
     ${EXTERNAL_DIR}/imgui/backends/imgui_impl_opengl3.cpp
 
     ${EXTERNAL_DIR}/stb/stb_image.cpp
@@ -104,7 +125,7 @@ target_include_directories(engine PUBLIC
     ${EXTERNAL_DIR}/imgui
     ${EXTERNAL_DIR}/imgui/backends
     ${EXTERNAL_DIR}/GLAD/include
-    ${EXTERNAL_DIR}/GLFW/include
+    ${PLATFORM_DEPENDENCIES_INCLUDE_DIRS}
     ${EXTERNAL_DIR}/stb
     ${EXTERNAL_DIR}/yaml-cpp/include
     ${EXTERNAL_DIR}/ImGuizmo
@@ -114,11 +135,17 @@ target_include_directories(engine PUBLIC
 )
 
 
-target_link_libraries(engine PUBLIC spdlog::spdlog box2d::box2d)
+target_link_libraries(engine PUBLIC spdlog::spdlog box2d::box2d msdf-atlas-gen::msdf-atlas-gen)
+
 
 if(USE_GLFW)
-    target_link_libraries(engine PRIVATE glfw opengl32)
+    target_compile_definitions(engine PRIVATE FM_PLATFORM_DESKTOP)
+    target_link_libraries(engine PRIVATE glfw)
 endif()
 
-# Link msdf-atlas-gen for future text rendering
-target_link_libraries(engine PUBLIC msdf-atlas-gen::msdf-atlas-gen)
+
+target_link_libraries(engine PRIVATE opengl32)
+
+
+
+

@@ -1,10 +1,14 @@
 ﻿#include "ImGuiLayer.hpp"
 #include "Core/Log.hpp"
 #include <imgui.h>
+#ifdef FM_PLATFORM_DESKTOP
 #include <backends/imgui_impl_glfw.h>
+#endif
 #include <backends/imgui_impl_opengl3.h>
 #include <ImGuizmo.h>
 #include <filesystem>
+
+//TODO:该类直接依赖于opengl和glfw，记得抽象出来以支持跨平台
 namespace Fermion
 {
     ImGuiLayer::ImGuiLayer(void *nativeWindow)

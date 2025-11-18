@@ -29,7 +29,7 @@ namespace Fermion
 
 	void ShaderLibrary::add(const std::string &name, const std::shared_ptr<Shader> &shader)
 	{
-		FMAssert::Assert(!exists(name), "Shader already exists!", __FILE__, __LINE__);
+		FERMION_ASSERT(!exists(name), "Shader already exists!");
 		m_Shaders[name] = shader;
 		// Log::Info("Shader loaded: " + name);
 		Log::Info(std::format("Shader loaded: {}", name));
@@ -57,7 +57,7 @@ namespace Fermion
 
 	std::shared_ptr<Shader> ShaderLibrary::get(const std::string &name)
 	{
-		FMAssert::Assert(exists(name), "Shader not found!", __FILE__, __LINE__);
+		FERMION_ASSERT(exists(name), "Shader not found!");
 		return m_Shaders[name];
 	}
 

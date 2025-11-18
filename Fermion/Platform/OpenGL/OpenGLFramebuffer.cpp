@@ -93,7 +93,7 @@ namespace Fermion
 				return GL_RED_INTEGER;
 			}
 
-			FMAssert::Assert(false, "Invalid framebuffer texture format!", __FILE__, __LINE__);
+			FERMION_ASSERT(false, "Invalid framebuffer texture format!");
 			return 0;
 		}
 
@@ -107,7 +107,7 @@ namespace Fermion
 			case FramebufferTextureFormat::RED_INTEGER:
 				return GL_RED_INTEGER;
 			}
-			FMAssert::Assert(false, "Invalid framebuffer base format!", __FILE__, __LINE__);
+			FERMION_ASSERT(false,"Invalid framebuffer base format!");
 			return 0;
 		}
 
@@ -186,7 +186,7 @@ namespace Fermion
 
 		if (m_colorAttachments.size() > 1)
 		{
-			FMAssert::Assert(m_colorAttachments.size() <= 4, "Maximum number of color attachments exceeded!", __FILE__, __LINE__);
+			FERMION_ASSERT(m_colorAttachments.size() <= 4, "Maximum number of color attachments exceeded!");
 			GLenum buffers[4] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
 			glDrawBuffers((GLsizei)m_colorAttachments.size(), buffers);
 		}
@@ -196,7 +196,7 @@ namespace Fermion
 			glDrawBuffer(GL_NONE);
 		}
 
-		FMAssert::Assert(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is incomplete!", __FILE__, __LINE__);
+		FERMION_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "Framebuffer is incomplete!");
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
@@ -226,8 +226,7 @@ namespace Fermion
 
 	int OpenGLFramebuffer::readPixel(uint32_t attachmentIndex, int x, int y)
 	{
-		FMAssert::Assert(attachmentIndex < m_colorAttachments.size(), "Attachment index out of range!", __FILE__, __LINE__);
-
+		FERMION_ASSERT(attachmentIndex < m_colorAttachments.size(), "Attachment index out of range!");
 		glReadBuffer(GL_COLOR_ATTACHMENT0 + attachmentIndex);
 		int pixelData;
 		// Assumes reading from an integer attachment (e.g., RED_INTEGER picking buffer)
@@ -238,7 +237,7 @@ namespace Fermion
 	void OpenGLFramebuffer::clearAttachment(uint32_t attachmentIndex, int value)
 	{
 
-		FMAssert::Assert(attachmentIndex < m_colorAttachments.size(), "Attachment index out of range!", __FILE__, __LINE__);
+		FERMION_ASSERT(attachmentIndex < m_colorAttachments.size(), "Attachment index out of range!");
 
 		auto &spec = m_colorAttachmentSpecifications[attachmentIndex];
 		if (spec.textureFormat == FramebufferTextureFormat::RED_INTEGER)

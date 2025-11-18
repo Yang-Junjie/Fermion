@@ -1,23 +1,38 @@
 ﻿cmake_minimum_required(VERSION 3.16)
 project(Fermion LANGUAGES CXX)
 
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# option(USE_SFML "Use SFML as rendering backend" OFF)
-option(USE_GLFW "Use GLFW as rendering backend" ON)
+
+
+message("===== Your Platform =====")
+if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+    message("Platform: Android")
+    set(PLATFORM "Android" CACHE STRING "Platform")
+else()
+    set(PLATFORM "Desktop" CACHE STRING "Platform")
+    set(USE_GLFW ON CACHE BOOL "Use GLFW as window backend")
+    if(WIN32)
+        message("Platform: Windows")
+        message("Use GLFW: ${USE_GLFW}")
+    elseif(UNIX AND NOT APPLE)
+        message("Platform: Linux")
+        message("Use GLFW: ${USE_GLFW}")
+    endif()
+endif()
+message("=========================")
 
 # build boson
 option(BUILD_BOSON "Build Boson" ON)
-# option(BUILD_GAME "Build Fermion" OFF)
 
 # build game
-# option(BUILD_BOSON "Build Boson" OFF)
 option(BUILD_GAME "Build Fermion" ON)
 set(YAML_BUILD_SHARED_LIBS OFF CACHE BOOL "Build yaml-cpp as static library" FORCE)
 
 
-# 添加这一行来解决yaml-cpp的dllimport问题
+# 这一行来解决yaml-cpp的dllimport问题
 add_compile_definitions(YAML_CPP_STATIC_DEFINE)
 
 # 输出目录
@@ -46,8 +61,6 @@ add_subdirectory(Fermion/external/entt)
 add_subdirectory(Fermion/external/glm)
 add_subdirectory(Fermion/external/yaml-cpp)
 add_subdirectory(Fermion/external/box2d)
-
-# freetype as internal dependency (for msdfgen/msdf-atlas-gen)
 add_subdirectory(Fermion/external/freetype)
 if(TARGET freetype AND NOT TARGET Freetype::Freetype)
     add_library(Freetype::Freetype ALIAS freetype)
@@ -69,10 +82,12 @@ add_subdirectory(Fermion/external/msdf-atlas-gen)
 add_subdirectory(Fermion)
 
 if(BUILD_GAME)
-add_subdirectory(game)
+    add_subdirectory(game)
+    message("BUILD GAME:${BUILD_GAME}")
 endif()
 
 # Boson
 if(BUILD_BOSON)
-add_subdirectory(Boson)
+    add_subdirectory(Boson)
+    message("BUILD BOSON:${BUILD_BOSON}")
 endif()

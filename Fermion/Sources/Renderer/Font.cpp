@@ -41,7 +41,7 @@ namespace Fermion
         : m_data(new MSDFData())
     {
         msdfgen::FreetypeHandle *ft = msdfgen::initializeFreetype();
-        FMAssert::Assert(ft, "Failed to initialize freetype", __FILE__, __LINE__);
+        FERMION_ASSERT(ft, "Failed to initialize freetype");
 
         std::string fileString = filepath.string();
 
@@ -82,7 +82,7 @@ namespace Fermion
         atlasPacker.setMiterLimit(1.0);
         atlasPacker.setScale(emSize);
         int remaining = atlasPacker.pack(m_data->glyphs.data(), (int)m_data->glyphs.size());
-        FMAssert::Assert(remaining == 0, "Failed to pack font", __FILE__, __LINE__);
+        FERMION_ASSERT(remaining == 0, "Failed to pack font");
 
         int width, height;
         atlasPacker.getDimensions(width, height);
