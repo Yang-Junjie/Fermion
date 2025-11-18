@@ -199,6 +199,7 @@ namespace Fermion
 
             m_sceneHierarchyPanel.onImGuiRender();
             m_contentBrowserPanel.onImGuiRender();
+            m_assetManagerPanel.onImGuiRender();
 
             UIToolbar();
             // Statistics
