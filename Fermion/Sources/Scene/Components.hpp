@@ -5,6 +5,7 @@
 #include "Renderer/Texture.hpp"
 #include "Renderer/SceneCamera.hpp"
 #include "Renderer/Font.hpp"
+#include "Asset/Asset.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -74,6 +75,7 @@ namespace Fermion
         glm::vec4 color{1.0f};
         float kerning = 0.0f;
         float lineSpacing = 0.0f;
+        AssetHandle fontHandle = AssetHandle(0);
     };
 
     struct CircleRendererComponent

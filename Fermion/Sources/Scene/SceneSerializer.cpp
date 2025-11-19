@@ -156,7 +156,8 @@ namespace Fermion
 			out << YAML::BeginMap;
 			auto &textComponent = entity.getComponent<TextComponent>();
 			out << YAML::Key << "Text" << YAML::Value << textComponent.textString;
-			// TODO:textComponent.FontAsset
+			if (static_cast<uint64_t>(textComponent.fontHandle) != 0)
+				out << YAML::Key << "FontHandle" << YAML::Value << static_cast<uint64_t>(textComponent.fontHandle);
 			out << YAML::Key << "Color" << YAML::Value << textComponent.color;
 			out << YAML::Key << "Kerning" << YAML::Value << textComponent.kerning;
 			out << YAML::Key << "LineSpacing" << YAML::Value << textComponent.lineSpacing;
@@ -337,14 +338,21 @@ namespace Fermion
 					if (auto n = textComponent["Text"]; n)
 						tc.textString = n.as<std::string>();
 
-					// tc.fontAsset // TODO: 目前使用默认字体
-
 					if (auto n = textComponent["Color"]; n)
 						tc.color = n.as<glm::vec4>();
 					if (auto n = textComponent["Kerning"]; n)
 						tc.kerning = n.as<float>();
 					if (auto n = textComponent["LineSpacing"]; n)
 						tc.lineSpacing = n.as<float>();
+					if (auto n = textComponent["FontHandle"]; n)
+					{
+						uint64_t handleValue = n.as<uint64_t>();
+						if (handleValue != 0)
+						{
+							tc.fontHandle = AssetHandle(handleValue);
+							tc.fontAsset = AssetManager::getAsset<Font>(tc.fontHandle);
+						}
+					}
 				}
 
 				auto rigidbody2DComponent = entity["Rigidbody2DComponent"];
