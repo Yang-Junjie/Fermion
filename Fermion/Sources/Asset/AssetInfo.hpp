@@ -7,8 +7,11 @@ namespace Fermion
 
     struct AssetInfo
     {
-        AssetHandle Handle ;
+        AssetHandle Handle;
         AssetType Type;
         std::filesystem::path FilePath;
+
+        std::string Name;
+        bool isMemoryAsset = false;
     };
 }

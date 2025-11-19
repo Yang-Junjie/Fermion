@@ -7,5 +7,6 @@ namespace Fermion
         Texture,
         Scene,
         Font,
+        Shader
     };
 }
