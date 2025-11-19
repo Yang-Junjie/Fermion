@@ -53,7 +53,8 @@ namespace Fermion
 			const auto &path = entry.path();
 			std::string filename = path.filename().string();
 			bool isDirectory = entry.is_directory();
-
+			if (entry.is_regular_file() && path.extension() == ".fmasset")
+				continue;
 			ImGui::PushID(filename.c_str());
 
 			std::shared_ptr<Texture2D> icon = isDirectory ? m_directoryIcon : m_fileIcon;
