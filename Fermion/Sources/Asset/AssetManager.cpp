@@ -4,9 +4,7 @@
 #include "Scene/SceneSerializer.hpp"
 #include "Asset/SceneAsset.hpp"
 #include "Project/Project.hpp"
-
-#include <yaml-cpp/yaml.h>
-#include <fstream>
+#include "Asset/AssetSerialzer.hpp"
 
 namespace Fermion
 {
@@ -29,52 +27,6 @@ namespace Fermion
         return metaPath;
     }
 
-    // Hazel-style: each asset has a sidecar .fmasset meta file which stores
-    // a persistent UUID. That UUID is our AssetHandle and survives restarts.
-    static AssetHandle LoadOrCreateAssetMeta(const std::filesystem::path &assetPath, AssetType type)
-    {
-        if (type == AssetType::None)
-            return AssetHandle(0);
-
-        std::filesystem::path metaPath = GetMetaPath(assetPath);
-
-        if (std::filesystem::exists(metaPath))
-        {
-            try
-            {
-                YAML::Node data = YAML::LoadFile(metaPath.string());
-                auto assetNode = data["Asset"];
-                if (assetNode && assetNode["Handle"])
-                {
-                    uint64_t handleValue = assetNode["Handle"].as<uint64_t>();
-                    return AssetHandle(handleValue);
-                }
-            }
-            catch (const YAML::Exception &)
-            {
-                // fall through and recreate meta
-            }
-        }
-
-        AssetHandle handle;
-        if ((uint64_t)handle == 0)
-            handle = AssetHandle(1);
-
-        YAML::Emitter out;
-        out << YAML::BeginMap;
-        out << YAML::Key << "Asset" << YAML::Value;
-        out << YAML::BeginMap;
-        out << YAML::Key << "Handle" << YAML::Value << static_cast<uint64_t>(handle);
-        out << YAML::Key << "Type" << YAML::Value << static_cast<int>(type);
-        out << YAML::EndMap;
-        out << YAML::EndMap;
-
-        std::ofstream fout(metaPath);
-        fout << out.c_str();
-
-        return handle;
-    }
-
     void AssetManager::init(const std::filesystem::path &assetDirectory)
     {
         s_assetDirectory = assetDirectory;
@@ -93,7 +45,18 @@ namespace Fermion
             if (type == AssetType::None)
                 continue;
 
-            AssetHandle handle = LoadOrCreateAssetMeta(path, type);
+            std::filesystem::path metaPath = GetMetaPath(path);
+            AssetHandle handle;
+            AssetType metaType;
+            if (!AssetSerializer::deserializeMeta(metaPath, handle, metaType))
+            {
+                // create new persistent UUID for this asset
+                handle = AssetHandle{};
+                if ((uint64_t)handle == 0)
+                    handle = AssetHandle(1);
+                AssetSerializer::serializeMeta(metaPath, handle, type);
+            }
+
             if ((uint64_t)handle == 0)
                 continue;
 
@@ -145,7 +108,17 @@ namespace Fermion
         if (type == AssetType::None)
             return AssetHandle(0);
 
-        AssetHandle handle = LoadOrCreateAssetMeta(absolutePath, type);
+        std::filesystem::path metaPath = GetMetaPath(absolutePath);
+        AssetHandle handle;
+        AssetType metaType;
+        if (!AssetSerializer::deserializeMeta(metaPath, handle, metaType))
+        {
+            handle = AssetHandle{};
+            if ((uint64_t)handle == 0)
+                handle = AssetHandle(1);
+            AssetSerializer::serializeMeta(metaPath, handle, type);
+        }
+
         if ((uint64_t)handle == 0)
             return AssetHandle(0);
 
