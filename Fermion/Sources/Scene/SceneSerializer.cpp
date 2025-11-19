@@ -1,6 +1,7 @@
 #include "SceneSerializer.hpp"
 #include "Entity.hpp"
 #include "Components.hpp"
+#include "Asset/AssetManager.hpp"
 
 #include <fstream>
 #include <yaml-cpp/yaml.h>
@@ -133,7 +134,10 @@ namespace Fermion
 		{
 			out << YAML::Key << "SpriteRendererComponent";
 			out << YAML::BeginMap;
-			out << YAML::Key << "Color" << YAML::Value << entity.getComponent<SpriteRendererComponent>().color;
+			auto& sprite = entity.getComponent<SpriteRendererComponent>();
+			out << YAML::Key << "Color" << YAML::Value << sprite.color;
+			if (static_cast<uint64_t>(sprite.textureHandle) != 0)
+				out << YAML::Key << "TextureHandle" << YAML::Value << static_cast<uint64_t>(sprite.textureHandle);
 			out << YAML::EndMap;
 		}
 		if (entity.hasComponent<CircleRendererComponent>())
@@ -304,6 +308,15 @@ namespace Fermion
 					auto &src = deserializedEntity.addComponent<SpriteRendererComponent>();
 					if (auto n = spriteRendererComponent["Color"]; n)
 						src.color = n.as<glm::vec4>();
+					if (auto n = spriteRendererComponent["TextureHandle"]; n)
+					{
+						uint64_t handleValue = n.as<uint64_t>();
+						if (handleValue != 0)
+						{
+							src.textureHandle = AssetHandle(handleValue);
+							src.texture = AssetManager::getAsset<Texture2D>(src.textureHandle);
+						}
+					}
 				}
 				auto circleRendererComponent = entity["CircleRendererComponent"];
 				if (circleRendererComponent && circleRendererComponent.IsMap())

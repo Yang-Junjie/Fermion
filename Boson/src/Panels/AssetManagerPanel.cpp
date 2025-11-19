@@ -9,15 +9,20 @@
 
 namespace Fermion
 {
-    static const char* AssetTypeToString(AssetType type)
+    static const char *AssetTypeToString(AssetType type)
     {
         switch (type)
         {
-        case AssetType::Texture: return "Texture";
-        case AssetType::Scene:   return "Scene";
-        case AssetType::Font:    return "Font";
-        case AssetType::Shader:  return "Shader";
-        default:                 return "None";
+        case AssetType::Texture:
+            return "Texture";
+        case AssetType::Scene:
+            return "Scene";
+        case AssetType::Font:
+            return "Font";
+        case AssetType::Shader:
+            return "Shader";
+        default:
+            return "None";
         }
     }
 
@@ -25,7 +30,7 @@ namespace Fermion
     {
         ImGui::Begin("Asset Manager");
 
-        const auto& registry = AssetRegistry::getRegistry();
+        const auto &registry = AssetRegistry::getRegistry();
 
         if (registry.empty())
         {
@@ -43,12 +48,12 @@ namespace Fermion
             ImGui::TableSetupColumn("Status");
             ImGui::TableHeadersRow();
 
-            for (const auto& [handle, info] : registry)
+            for (const auto &[handle, info] : registry)
             {
                 ImGui::TableNextRow();
 
                 ImGui::TableNextColumn();
-                ImGui::Text("%llu", static_cast<unsigned long long>(static_cast<uint64_t>(handle)));
+                ImGui::Text("%llu", (uint64_t)handle);
 
                 ImGui::TableNextColumn();
                 ImGui::TextUnformatted(AssetTypeToString(info.Type));
@@ -60,9 +65,14 @@ namespace Fermion
                 ImGui::TextUnformatted(info.FilePath.string().c_str());
 
                 ImGui::TableNextColumn();
+
                 bool loaded = AssetManager::isAssetLoaded(handle);
                 ImGui::TextUnformatted(loaded ? "Loaded" : "Unloaded");
                 ImGui::SameLine();
+
+               
+                ImGui::PushID((int)handle);
+
                 if (loaded)
                 {
                     if (ImGui::SmallButton("Unload"))
@@ -73,6 +83,8 @@ namespace Fermion
                     if (ImGui::SmallButton("Load"))
                         AssetManager::getAsset<Asset>(handle);
                 }
+
+                ImGui::PopID();
             }
 
             ImGui::EndTable();
@@ -81,4 +93,3 @@ namespace Fermion
         ImGui::End();
     }
 }
-

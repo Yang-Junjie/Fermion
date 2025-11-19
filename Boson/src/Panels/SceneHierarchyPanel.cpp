@@ -430,8 +430,9 @@ namespace Fermion
 					if (path && path[0])
 					{
 						AssetHandle handle = AssetManager::importAsset(std::filesystem::path(path));
-						if (handle != AssetHandle{})
+						if (static_cast<uint64_t>(handle) != 0)
 						{
+							component.textureHandle = handle;
 							component.texture = AssetManager::getAsset<Texture2D>(handle);
 						}
 					}

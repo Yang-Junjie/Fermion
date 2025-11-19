@@ -75,11 +75,11 @@ namespace Fermion
     AssetHandle AssetManager::importAsset(const std::filesystem::path& path)
     {
         if (path.empty())
-            return AssetHandle{};
+            return AssetHandle(0);
 
         std::filesystem::path absolutePath = std::filesystem::absolute(path);
         if (!std::filesystem::exists(absolutePath))
-            return AssetHandle{};
+            return AssetHandle(0);
 
         for (const auto& [handle, info] : AssetRegistry::getRegistry())
         {
@@ -94,10 +94,10 @@ namespace Fermion
 
         AssetType type = GetAssetTypeFromPath(absolutePath);
         if (type == AssetType::None)
-            return AssetHandle{};
+            return AssetHandle(0);
 
         AssetInfo info;
-        info.Handle = AssetHandle{};
+        info.Handle = AssetHandle{}; // new random UUID
         info.Type = type;
         info.FilePath = absolutePath;
         info.Name = absolutePath.stem().string();

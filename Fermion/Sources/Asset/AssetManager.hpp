@@ -18,7 +18,7 @@ namespace Fermion
         template <typename T>
         static std::shared_ptr<T> getAsset(AssetHandle handle)
         {
-            static_assert(std::is_base_of_v<Asset, T>, "T must derive from Asset");
+
             auto it = s_loadedAssets.find(handle);
             if (it != s_loadedAssets.end())
                 return std::dynamic_pointer_cast<T>(it->second);

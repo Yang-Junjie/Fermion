@@ -61,6 +61,7 @@ namespace Fermion
         glm::vec4 color{1.0f, 1.0f, 1.0f, 1.0f};
         std::shared_ptr<Texture2D> texture = nullptr;
         float tilingFactor = 1.0f;
+        AssetHandle textureHandle = AssetHandle(0);
 
         SpriteRendererComponent() = default;
         SpriteRendererComponent(const glm::vec4 &color) : color(color) {}
