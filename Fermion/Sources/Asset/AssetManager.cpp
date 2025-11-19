@@ -1,16 +1,19 @@
-﻿#include "AssetManager.hpp"
+#include "AssetManager.hpp"
 #include "Renderer/Texture.hpp"
 #include "Renderer/Font.hpp"
 #include "Scene/SceneSerializer.hpp"
 #include "Asset/SceneAsset.hpp"
 #include "Project/Project.hpp"
 
+#include <yaml-cpp/yaml.h>
+#include <fstream>
+
 namespace Fermion
 {
     std::unordered_map<AssetHandle, std::shared_ptr<Asset>> AssetManager::s_loadedAssets;
     std::filesystem::path AssetManager::s_assetDirectory;
 
-    static AssetType GetAssetTypeFromPath(const std::filesystem::path& path)
+    static AssetType GetAssetTypeFromPath(const std::filesystem::path &path)
     {
         auto ext = path.extension().string();
         auto it = s_AssetExtensionMap.find(ext);
@@ -19,7 +22,60 @@ namespace Fermion
         return AssetType::None;
     }
 
-    void AssetManager::init(const std::filesystem::path& assetDirectory)
+    static std::filesystem::path GetMetaPath(const std::filesystem::path &assetPath)
+    {
+        std::filesystem::path metaPath = assetPath;
+        metaPath += ".fmasset";
+        return metaPath;
+    }
+
+    // Hazel-style: each asset has a sidecar .fmasset meta file which stores
+    // a persistent UUID. That UUID is our AssetHandle and survives restarts.
+    static AssetHandle LoadOrCreateAssetMeta(const std::filesystem::path &assetPath, AssetType type)
+    {
+        if (type == AssetType::None)
+            return AssetHandle(0);
+
+        std::filesystem::path metaPath = GetMetaPath(assetPath);
+
+        if (std::filesystem::exists(metaPath))
+        {
+            try
+            {
+                YAML::Node data = YAML::LoadFile(metaPath.string());
+                auto assetNode = data["Asset"];
+                if (assetNode && assetNode["Handle"])
+                {
+                    uint64_t handleValue = assetNode["Handle"].as<uint64_t>();
+                    return AssetHandle(handleValue);
+                }
+            }
+            catch (const YAML::Exception &)
+            {
+                // fall through and recreate meta
+            }
+        }
+
+        AssetHandle handle;
+        if ((uint64_t)handle == 0)
+            handle = AssetHandle(1);
+
+        YAML::Emitter out;
+        out << YAML::BeginMap;
+        out << YAML::Key << "Asset" << YAML::Value;
+        out << YAML::BeginMap;
+        out << YAML::Key << "Handle" << YAML::Value << static_cast<uint64_t>(handle);
+        out << YAML::Key << "Type" << YAML::Value << static_cast<int>(type);
+        out << YAML::EndMap;
+        out << YAML::EndMap;
+
+        std::ofstream fout(metaPath);
+        fout << out.c_str();
+
+        return handle;
+    }
+
+    void AssetManager::init(const std::filesystem::path &assetDirectory)
     {
         s_assetDirectory = assetDirectory;
         AssetRegistry::clear();
@@ -27,21 +83,25 @@ namespace Fermion
         if (!std::filesystem::exists(assetDirectory))
             return;
 
-        for (auto& entry : std::filesystem::recursive_directory_iterator(assetDirectory))
+        for (auto &entry : std::filesystem::recursive_directory_iterator(assetDirectory))
         {
             if (!entry.is_regular_file())
                 continue;
 
-            const auto& path = entry.path();
+            const auto &path = entry.path();
             AssetType type = GetAssetTypeFromPath(path);
             if (type == AssetType::None)
                 continue;
 
+            AssetHandle handle = LoadOrCreateAssetMeta(path, type);
+            if ((uint64_t)handle == 0)
+                continue;
+
             AssetInfo info;
-            info.Handle = AssetHandle{};            // 自动生成 UUID
-            info.Type   = type;
+            info.Handle = handle;
+            info.Type = type;
             info.FilePath = path;
-            info.Name  = path.stem().string();
+            info.Name = path.stem().string();
             info.isMemoryAsset = false;
 
             AssetRegistry::set(info.Handle, info);
@@ -72,7 +132,7 @@ namespace Fermion
             loadAssetInternal(handle);
     }
 
-    AssetHandle AssetManager::importAsset(const std::filesystem::path& path)
+    AssetHandle AssetManager::importAsset(const std::filesystem::path &path)
     {
         if (path.empty())
             return AssetHandle(0);
@@ -81,23 +141,19 @@ namespace Fermion
         if (!std::filesystem::exists(absolutePath))
             return AssetHandle(0);
 
-        for (const auto& [handle, info] : AssetRegistry::getRegistry())
-        {
-            std::error_code ec;
-            if (!info.FilePath.empty() &&
-                std::filesystem::equivalent(info.FilePath, absolutePath, ec) &&
-                !ec)
-            {
-                return handle;
-            }
-        }
-
         AssetType type = GetAssetTypeFromPath(absolutePath);
         if (type == AssetType::None)
             return AssetHandle(0);
 
+        AssetHandle handle = LoadOrCreateAssetMeta(absolutePath, type);
+        if ((uint64_t)handle == 0)
+            return AssetHandle(0);
+
+        if (AssetRegistry::exists(handle))
+            return handle;
+
         AssetInfo info;
-        info.Handle = AssetHandle{}; // new random UUID
+        info.Handle = handle;
         info.Type = type;
         info.FilePath = absolutePath;
         info.Name = absolutePath.stem().string();
@@ -109,7 +165,7 @@ namespace Fermion
 
     std::shared_ptr<Asset> AssetManager::loadAssetInternal(AssetHandle handle)
     {
-        auto& info = AssetRegistry::get(handle);
+        auto &info = AssetRegistry::get(handle);
         std::shared_ptr<Asset> asset;
 
         switch (info.Type)
@@ -137,3 +193,4 @@ namespace Fermion
         return asset;
     }
 }
+
