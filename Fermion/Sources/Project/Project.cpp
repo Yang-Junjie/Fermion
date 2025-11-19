@@ -2,6 +2,7 @@
 #include "Project.hpp"
 
 #include "ProjectSerializer.hpp"
+#include "Asset/AssetManager.hpp"
 
 namespace Fermion {
 
@@ -21,6 +22,7 @@ namespace Fermion {
 			project->m_projectDirectory = path.parent_path();
 			project->m_projectPath = path;
 			s_activeProject = project;
+			AssetManager::init(project->getConfig().assetDirectory);
 			return s_activeProject;
 		}
 

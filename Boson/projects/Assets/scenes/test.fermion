@@ -1,14 +1,5 @@
 Scene: Name
 Entities:
-  - Entity: 3901718077131729418
-    TagComponent:
-      Tag: Empty Entity
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [1, 0, 0, 1]
   - Entity: 3904215341491529811
     TagComponent:
       Tag: Empty Entity
@@ -21,3 +12,13 @@ Entities:
       Color: [0.18532819, 0.63198245, 1, 1]
       Kerning: 0
       LineSpacing: 0
+  - Entity: 3901718077131729418
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 0, 0, 1]
+      TextureHandle: 7905696349160021444

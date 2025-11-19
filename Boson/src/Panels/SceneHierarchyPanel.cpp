@@ -8,6 +8,7 @@
 #include "Scene/Components.hpp"
 #include "Scene/Scene.hpp"
 #include <glm/gtc/type_ptr.hpp>
+#include "Asset/AssetManager.hpp"
 
 namespace Fermion
 {
@@ -428,7 +429,12 @@ namespace Fermion
 					const char *path = static_cast<const char *>(payload->Data);
 					if (path && path[0])
 					{
-						component.texture = Texture2D::create(std::string(path));
+						AssetHandle handle = AssetManager::importAsset(std::filesystem::path(path));
+						if (static_cast<uint64_t>(handle) != 0)
+						{
+							component.textureHandle = handle;
+							component.texture = AssetManager::getAsset<Texture2D>(handle);
+						}
 					}
 				}
 				ImGui::EndDragDropTarget();

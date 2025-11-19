@@ -66,6 +66,9 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Scene/Entity.cpp
     ${FERMION_DIR}/Scene/SceneSerializer.cpp
 
+    ${FERMION_DIR}/Asset/AssetManager.cpp
+    ${FERMION_DIR}/Asset/AssetRegistry.cpp
+
 
 )
 

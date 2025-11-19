@@ -1,6 +1,7 @@
 #include "SceneSerializer.hpp"
 #include "Entity.hpp"
 #include "Components.hpp"
+#include "Asset/AssetManager.hpp"
 
 #include <fstream>
 #include <yaml-cpp/yaml.h>
@@ -133,7 +134,10 @@ namespace Fermion
 		{
 			out << YAML::Key << "SpriteRendererComponent";
 			out << YAML::BeginMap;
-			out << YAML::Key << "Color" << YAML::Value << entity.getComponent<SpriteRendererComponent>().color;
+			auto& sprite = entity.getComponent<SpriteRendererComponent>();
+			out << YAML::Key << "Color" << YAML::Value << sprite.color;
+			if (static_cast<uint64_t>(sprite.textureHandle) != 0)
+				out << YAML::Key << "TextureHandle" << YAML::Value << static_cast<uint64_t>(sprite.textureHandle);
 			out << YAML::EndMap;
 		}
 		if (entity.hasComponent<CircleRendererComponent>())
@@ -152,7 +156,8 @@ namespace Fermion
 			out << YAML::BeginMap;
 			auto &textComponent = entity.getComponent<TextComponent>();
 			out << YAML::Key << "Text" << YAML::Value << textComponent.textString;
-			// TODO:textComponent.FontAsset
+			if (static_cast<uint64_t>(textComponent.fontHandle) != 0)
+				out << YAML::Key << "FontHandle" << YAML::Value << static_cast<uint64_t>(textComponent.fontHandle);
 			out << YAML::Key << "Color" << YAML::Value << textComponent.color;
 			out << YAML::Key << "Kerning" << YAML::Value << textComponent.kerning;
 			out << YAML::Key << "LineSpacing" << YAML::Value << textComponent.lineSpacing;
@@ -304,6 +309,15 @@ namespace Fermion
 					auto &src = deserializedEntity.addComponent<SpriteRendererComponent>();
 					if (auto n = spriteRendererComponent["Color"]; n)
 						src.color = n.as<glm::vec4>();
+					if (auto n = spriteRendererComponent["TextureHandle"]; n)
+					{
+						uint64_t handleValue = n.as<uint64_t>();
+						if (handleValue != 0)
+						{
+							src.textureHandle = AssetHandle(handleValue);
+							src.texture = AssetManager::getAsset<Texture2D>(src.textureHandle);
+						}
+					}
 				}
 				auto circleRendererComponent = entity["CircleRendererComponent"];
 				if (circleRendererComponent && circleRendererComponent.IsMap())
@@ -324,14 +338,21 @@ namespace Fermion
 					if (auto n = textComponent["Text"]; n)
 						tc.textString = n.as<std::string>();
 
-					// tc.fontAsset // TODO: 目前使用默认字体
-
 					if (auto n = textComponent["Color"]; n)
 						tc.color = n.as<glm::vec4>();
 					if (auto n = textComponent["Kerning"]; n)
 						tc.kerning = n.as<float>();
 					if (auto n = textComponent["LineSpacing"]; n)
 						tc.lineSpacing = n.as<float>();
+					if (auto n = textComponent["FontHandle"]; n)
+					{
+						uint64_t handleValue = n.as<uint64_t>();
+						if (handleValue != 0)
+						{
+							tc.fontHandle = AssetHandle(handleValue);
+							tc.fontAsset = AssetManager::getAsset<Font>(tc.fontHandle);
+						}
+					}
 				}
 
 				auto rigidbody2DComponent = entity["Rigidbody2DComponent"];

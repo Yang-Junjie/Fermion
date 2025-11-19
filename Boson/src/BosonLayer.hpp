@@ -4,6 +4,7 @@
 #include "Renderer/EditorCamera.hpp"
 #include "Panels/SceneHierarchyPanel.hpp"
 #include "Panels/ContentBrowserPanel.hpp"
+#include "Panels/AssetManagerPanel.hpp"
 #include "Renderer/SceneRenderer.hpp"
 
 #include <filesystem>
@@ -54,6 +55,7 @@ namespace Fermion
     private:
         SceneHierarchyPanel m_sceneHierarchyPanel;
         ContentBrowserPanel m_contentBrowserPanel;
+        AssetManagerPanel m_assetManagerPanel;
 
         std::shared_ptr<Framebuffer> m_framebuffer;
         glm::vec2 m_viewportSize{0.0f, 0.0f};

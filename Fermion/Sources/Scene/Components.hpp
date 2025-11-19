@@ -5,6 +5,7 @@
 #include "Renderer/Texture.hpp"
 #include "Renderer/SceneCamera.hpp"
 #include "Renderer/Font.hpp"
+#include "Asset/Asset.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -61,6 +62,7 @@ namespace Fermion
         glm::vec4 color{1.0f, 1.0f, 1.0f, 1.0f};
         std::shared_ptr<Texture2D> texture = nullptr;
         float tilingFactor = 1.0f;
+        AssetHandle textureHandle = AssetHandle(0);
 
         SpriteRendererComponent() = default;
         SpriteRendererComponent(const glm::vec4 &color) : color(color) {}
@@ -73,6 +75,7 @@ namespace Fermion
         glm::vec4 color{1.0f};
         float kerning = 0.0f;
         float lineSpacing = 0.0f;
+        AssetHandle fontHandle = AssetHandle(0);
     };
 
     struct CircleRendererComponent

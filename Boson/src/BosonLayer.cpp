@@ -199,6 +199,7 @@ namespace Fermion
 
             m_sceneHierarchyPanel.onImGuiRender();
             m_contentBrowserPanel.onImGuiRender();
+            m_assetManagerPanel.onImGuiRender();
 
             UIToolbar();
             // Statistics
@@ -622,7 +623,7 @@ namespace Fermion
         else
             Log::Error("Project create failed!");
 
-        m_contentBrowserPanel.setBaseDirectory(Project::getActive()->getProjectDirectory());
+        m_contentBrowserPanel.setBaseDirectory(Project::getActive()->getConfig().assetDirectory);
     }
 
     void BosonLayer::openProject()
@@ -644,7 +645,7 @@ namespace Fermion
         FERMION_ASSERT(project != nullptr, "Failed to load project!");
         auto lastScene = Project::getActive()->getConfig().startScene;
         openScene(lastScene);
-        m_contentBrowserPanel.setBaseDirectory(Project::getActive()->getProjectDirectory());
+        m_contentBrowserPanel.setBaseDirectory(Project::getActive()->getConfig().assetDirectory);
     }
 
     void BosonLayer::saveProject()
