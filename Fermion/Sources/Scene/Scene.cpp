@@ -6,6 +6,7 @@
 #include "Renderer/Renderer2D.hpp"
 #include "Renderer/SceneRenderer.hpp"
 #include "Physics/Physics2D.hpp"
+#include "Script/ScriptEngine.hpp"
 #include <glm/glm.hpp>
 #include "Scene.hpp"
 #include "Core/Log.hpp"
@@ -260,6 +261,7 @@ namespace Fermion
     {
         // Scripts
         {
+            ScriptEngine::runScripts();
             m_registry.view<NativeScriptComponent>().each(
                 [=](auto entity, auto &nsc)
                 {

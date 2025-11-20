@@ -5,9 +5,14 @@
 #include <map>
 #include <memory>
 #include <vector>
-
+#include <functional>
+#include <mono/jit/jit.h>
+#include <mono/metadata/assembly.h>
+#include <mono/metadata/debug-helpers.h>
+#include <mono/metadata/mono-config.h>
 namespace Fermion
 {
+#if 0
     class Entity;
 
     enum class ScriptFieldType
@@ -21,14 +26,12 @@ namespace Fermion
         Vector3,
     };
 
-
     struct ScriptField
     {
         ScriptFieldType type{};
         std::string name;
     };
 
- 
     class IScriptFieldInstance
     {
     public:
@@ -36,7 +39,6 @@ namespace Fermion
 
         virtual ScriptFieldType getType() const = 0;
         virtual const std::string &getName() const = 0;
-
 
         virtual void getValue(void *outBuffer) = 0;
         virtual void setValue(const void *value) = 0;
@@ -70,16 +72,22 @@ namespace Fermion
 
         virtual ScriptClass *getScriptClass() = 0;
     };
+#endif
+    using Func = void(*)(void*);
 
+  
     class ScriptEngine
     {
     public:
-     
         static void init();
-
-        
+        static bool runScripts();
+        static bool registerMethod(const std::string& name, Func func);
         static void shutdown();
+    private:
+        inline static bool s_initialized = false;
+        inline static MonoDomain* s_rootDomain = nullptr;
+        inline static MonoDomain* s_appDomain = nullptr;
+        inline static std::vector<std::pair<std::string, Func>> s_registeredMethods;
     };
 
 }
-
