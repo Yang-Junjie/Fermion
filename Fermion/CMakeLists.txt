@@ -27,6 +27,7 @@ elseif(Platform STREQUAL "Android")
     )
 endif()
 
+
 set(CORE_SOURCES
     ${FERMION_DIR}/fmpch.cpp
     ${FERMION_DIR}/Core/Engine.cpp
@@ -114,6 +115,12 @@ set(ENGINE_SOURCES
 
 add_library(engine STATIC ${ENGINE_SOURCES})
 
+add_custom_command(
+    TARGET engine POST_BUILD 
+    COMMAND ${CMAKE_COMMAND} -E copy # 使用 CMake 内置命令 copy
+    ${EXTERNAL_DIR}/mono/binary/mscorlib.dll
+    ${BIN_DIR}/mscorlib.dll
+)
 
 target_include_directories(engine PUBLIC
     ${FERMION_DIR}
@@ -135,10 +142,26 @@ target_include_directories(engine PUBLIC
     ${EXTERNAL_DIR}/box2d/include
     ${EXTERNAL_DIR}/msdf-atlas-gen/msdf-atlas-gen
     # ${EXTERNAL_DIR}/box2d/src
+    ${EXTERNAL_DIR}/mono/include
 )
 
+add_library(Mono STATIC IMPORTED)
 
-target_link_libraries(engine PUBLIC spdlog::spdlog box2d::box2d msdf-atlas-gen::msdf-atlas-gen)
+set_target_properties(Mono PROPERTIES
+    IMPORTED_LOCATION "${EXTERNAL_DIR}/mono/lib/libmono-static-sgen.lib"
+)
+
+target_link_libraries(engine PUBLIC
+    spdlog::spdlog
+    box2d::box2d
+    msdf-atlas-gen::msdf-atlas-gen
+    Mono
+    ws2_32
+    bcrypt
+    version
+    iphlpapi
+    winmm
+)
 
 
 if(USE_GLFW)
@@ -148,7 +171,6 @@ endif()
 
 
 target_link_libraries(engine PRIVATE opengl32)
-
 
 
 

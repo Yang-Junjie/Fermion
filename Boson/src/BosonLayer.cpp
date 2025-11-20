@@ -439,7 +439,7 @@ namespace Fermion
         const auto &buttonActive = colors[ImGuiCol_ButtonActive];
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(buttonActive.x, buttonActive.y, buttonActive.z, 0.5f));
 
-        ImGui::Begin("toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+        ImGui::Begin("toolbar", nullptr,  ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
         std::shared_ptr<Texture2D> icon = m_sceneState == SceneState::Edit ? m_iconPlay : m_iconStop;
         bool toolbarEnabled = (bool)m_activeScene;
 

@@ -36,7 +36,7 @@ set(YAML_BUILD_SHARED_LIBS OFF CACHE BOOL "Build yaml-cpp as static library" FOR
 add_compile_definitions(YAML_CPP_STATIC_DEFINE)
 
 # 输出目录
-set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
+set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin CACHE PATH "Output directory for binaries")
 
 # 确保输出目录存在
 file(MAKE_DIRECTORY ${BIN_DIR})
