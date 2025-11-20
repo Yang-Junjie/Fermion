@@ -70,6 +70,10 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Asset/AssetManager.cpp
     ${FERMION_DIR}/Asset/AssetRegistry.cpp
 
+    ${FERMION_DIR}/Script/ScriptEngine.cpp
+    ${FERMION_DIR}/Script/ScriptGlue.cpp
+    # ${FERMION_DIR}/Script/CSharp/CSharpScriptEngine.cpp
+
 
 )
 

@@ -1,25 +1,35 @@
 ﻿#include "Core/Engine.hpp"
 #include "Core/Timestep.hpp"
+#include "Script/ScriptEngine.hpp"
+
 #include <GLFW/glfw3.h>
 
 namespace Fermion
 {
     Engine *Engine::s_instance = nullptr;
-    Engine::Engine(const std::string& name)
+
+    Engine::Engine(const std::string &name)
     {
         FM_PROFILE_FUNCTION();
         s_instance = this;
         WindowProps windowProps;
-        
+
         windowProps.title = name;
         m_window = IWindow::create(windowProps);
         m_window->setEventCallback([this](IEvent &event)
                                    { this->onEvent(event); });
         m_window->setVSync(true);
         Renderer::init();
+        ScriptEngine::init();
         m_imGuiLayer = std::make_unique<ImGuiLayer>(m_window->getNativeWindow());
         m_imGuiLayerRaw = m_imGuiLayer.get();
         pushOverlay(std::move(m_imGuiLayer));
+    }
+
+    Engine::~Engine()
+    {
+        FM_PROFILE_FUNCTION();
+        ScriptEngine::shutdown();
     }
 
     void Engine::run()
@@ -59,6 +69,7 @@ namespace Fermion
         layer->onAttach();
         m_layerStack.pushLayer(std::move(layer));
     }
+
     void Engine::pushOverlay(std::unique_ptr<Layer> overlay)
     {
         FM_PROFILE_FUNCTION();
@@ -75,7 +86,7 @@ namespace Fermion
                                                { return this->onWindowResize(e); });
         dispatcher.dispatch<WindowCloseEvent>([this](WindowCloseEvent &e)
                                               { return this->onWindowClose(e); });
-        // 从后往前遍历 LayerStack，优先分发给最上层的 Layer
+        // �Ӻ���ǰ���� LayerStack�����ȷַ������ϲ�� Layer
         for (auto it = m_layerStack.rbegin(); it != m_layerStack.rend(); ++it)
         {
             if (event.handled)
@@ -106,3 +117,4 @@ namespace Fermion
         return true;
     }
 }
+
