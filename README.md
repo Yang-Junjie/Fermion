@@ -5,9 +5,9 @@ Fermion 是一款基于 Hazel2D 而扩展来的 C++20 的轻量级 2D 游戏引�
 ## 命名与愿景
 
 - **Fermion（费米子）**：对应引擎核心。费米子构成物质世界中的“实体”，象征核心运行时负责承载游戏世界中的一切对象与逻辑。
-- **Boson（玻色子）**：对应编辑器。玻色子是相互作用的媒介粒子，象征编辑器作为开发者与引擎之间的“交互媒介”，用于搭建场景、调整参数、驱动物体。
+- **Boson（玻色子）**：对应编辑器。玻色子是传递费米子之间的相互作用的媒介粒子，象征编辑器作为开发者与引擎之间的“交互媒介”，用于搭建场景、调整参数、驱动物体。
 - **Higgs（希格斯粒子）**：对应物理模块。希格斯场赋予粒子质量，物理系统则为引擎中的对象带来“重量”“惯性”和真实的运动行为。
-- **Muon（缪子）**: 对应脚本系统。
+- **Photon（光子）**: 对应脚本系统。光子是一种玻色子，标志着Photoon是编辑器的一部分。并且光子轻、快象征着脚本的轻、快。
 
 
 ## 核心特性
@@ -118,6 +118,7 @@ Fermion/
 - [box2d](https://github.com/erincatto/box2d) – 2D 刚体物理引擎
 - [msdf-atlas-gen](https://github.com/Chlumsky/msdf-atlas-gen) - MSDF 纹理生成
 - [freetype](https://github.com/freetype/freetype) - FreeType 字体库
+- [Mono](https://github.com/mono/mono.git) - 跨平台 .NET 运行时，用于在引擎中运行 C# 脚本。
 
 ## 构建说明
 
