@@ -5,3 +5,4 @@ bin
 *.ini
 .vs
 out
+cmake-build-debug

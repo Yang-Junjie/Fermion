@@ -1,12 +1,12 @@
 ﻿#include "Core/Engine.hpp"
 #include "Core/Timestep.hpp"
-#include "Script/ScriptEngine.hpp"
+#include "Script/ScriptManager.hpp"
 
 #include <GLFW/glfw3.h>
 
 namespace Fermion
 {
-     void MyPrint(void *arg)
+    extern "C" void MyPrint()
     {
         Log::Warn("C++ InternalCall called!");
     }
@@ -24,8 +24,9 @@ namespace Fermion
                                    { this->onEvent(event); });
         m_window->setVSync(true);
         Renderer::init();
-        ScriptEngine::init();
-        ScriptEngine::registerMethod("TestScript::PrintFromCpp",Fermion::MyPrint);
+        ScriptManager::init();
+        ScriptManager::registerFunction("TestScript::PrintFromCpp", Fermion::MyPrint);
+        ScriptManager::loadScript("TestScript.dll");
         m_imGuiLayer = std::make_unique<ImGuiLayer>(m_window->getNativeWindow());
         m_imGuiLayerRaw = m_imGuiLayer.get();
         pushOverlay(std::move(m_imGuiLayer));
@@ -34,7 +35,7 @@ namespace Fermion
     Engine::~Engine()
     {
         FM_PROFILE_FUNCTION();
-        ScriptEngine::shutdown();
+        ScriptManager::shutdown();
     }
 
     void Engine::run()
@@ -122,4 +123,3 @@ namespace Fermion
         return true;
     }
 }
-

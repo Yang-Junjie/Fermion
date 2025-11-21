@@ -1,43 +1,35 @@
-﻿
-// #include "Script/ScriptEngine.hpp"
+﻿#include "Script/ScriptEngine.hpp"
+#include "fmpch.hpp"
 
-// extern "C"
-// {
-//     typedef struct _MonoClass MonoClass;
-//     typedef struct _MonoObject MonoObject;
-//     typedef struct _MonoMethod MonoMethod;
-//     typedef struct _MonoAssembly MonoAssembly;
-//     typedef struct _MonoImage MonoImage;
-//     typedef struct _MonoClassField MonoClassField;
-//     typedef struct _MonoString MonoString;
-// }
+#include <mono/jit/jit.h>
+#include <mono/metadata/assembly.h>
+#include <mono/metadata/debug-helpers.h>
+#include <mono/metadata/mono-config.h>
+namespace Fermion
+{
+    class CSharpScriptEngine : public IScriptEngine
+    {
+    public:
+        virtual ~CSharpScriptEngine() = default;
+        virtual bool init() override;
+        virtual void shutdown() override;
 
-// namespace Fermion
-// {
-//     struct CSScriptField : public ScriptField
-//     {
-//         ScriptFieldType type{};
-//         std::string name;
+        // 加载脚本
+        virtual bool loadScript(const std::filesystem::path &path) override;
 
-//         MonoClassField *classField;
-//     };
+        // 注册函数给脚本 name是C#中的namespace.函数名
+        virtual void registerFunction(const std::string &name, Func function) override;
 
-//     class CSScriptFieldInstance : public IScriptFieldInstance
-//     {
-//     public:
-//         CSScriptField Field;
-//         virtual ~CSScriptFieldInstance() = default;
+        // 调用脚本中的函数
+        virtual void invokeFunction(const std::string &name) override;
 
-//         virtual ScriptFieldType getType() override;
-//         virtual const std::string &getName() override;
-
-//         virtual void getValue(void *outBuffer) override;
-//         virtual void setValue(const void *value) override;
-
-//     private:
-//         uint8_t m_buffer[16];
-
-//         friend class ScriptEngine;
-//         friend class ScriptInstance;
-//     };
-// }
+    private:
+        bool m_initialized = false;
+        MonoDomain *m_rootDomain = nullptr;
+        MonoDomain *m_appDomain = nullptr;
+        std::unordered_map<std::string, MonoAssembly *> m_assemblies;
+        std::unordered_map<std::string, MonoMethod *> m_methods;
+        std::unordered_map<std::string, MonoClass *> m_classes;
+        std::unordered_map<std::string, Func *> m_functions;
+    };
+}

@@ -1,5 +1,4 @@
-﻿#pragma once
-#include "Core/Engine.hpp"
+﻿#include "Core/Engine.hpp"
 #include "BosonLayer.hpp"
 namespace Fermion
 {
