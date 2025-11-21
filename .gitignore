@@ -6,3 +6,4 @@ bin
 .vs
 out
 cmake-build-debug
+.idea
