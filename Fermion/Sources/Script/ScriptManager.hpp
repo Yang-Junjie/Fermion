@@ -47,6 +47,9 @@ namespace Fermion
         {
             s_scriptEngine->onUpdateEntity(entity, ts);
         }
+        static const std::vector<std::string> &getALLEntityClasses()  {
+            return s_scriptEngine->getALLEntityClasses();
+        }
 
     private:
         inline static std::shared_ptr<IScriptEngine> s_scriptEngine;

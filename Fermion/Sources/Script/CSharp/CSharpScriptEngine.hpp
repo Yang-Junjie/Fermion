@@ -56,12 +56,15 @@ namespace Fermion
 
         virtual void onRuntimeStart(Scene *scene) override;
         virtual void onRuntimeStop() override;
+        
         // 检查类是否存在
         virtual bool entityClassExists(const std::string &fullClassName) override;
         // 创建实例
         virtual void onCreateEntity(Entity entity) override;
         // 更新实例
         virtual void onUpdateEntity(Entity entity, Timestep ts) override;
+
+        virtual const std::vector<std::string>& getALLEntityClasses() const override;
 
     private:
         // 辅助方法：根据字段类型设置实体字段值
@@ -71,6 +74,7 @@ namespace Fermion
 
         bool m_initialized = false;
         MonoDomain *m_rootDomain = nullptr;
+        std::vector<std::string> m_allEntityClassesNames;
         std::unordered_map<std::string, std::shared_ptr<CSharpScriptClass>> m_classes;
         std::unordered_map<UUID, std::shared_ptr<ScriptInstance>> m_entityInstances;
         std::unordered_map<UUID, ScriptFieldMap> m_entityScriptFields;

@@ -7,3 +7,4 @@ bin
 out
 cmake-build-debug
 .idea
+Photon/csbuild.bat

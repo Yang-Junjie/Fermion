@@ -9,6 +9,7 @@
 #include "Scene/Scene.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include "Asset/AssetManager.hpp"
+#include "Script/ScriptManager.hpp"
 
 namespace Fermion
 {
@@ -469,9 +470,16 @@ namespace Fermion
 			memset(buffer, 0, sizeof(buffer));
 			strncpy_s(buffer, component.className.c_str(), sizeof(buffer));
 			
-			if (ImGui::InputText("Class Name", buffer, sizeof(buffer)))
-			{
-				component.className = std::string(buffer);
+			// if (ImGui::InputText("Class Name", buffer, sizeof(buffer)))
+			// {
+			// 	component.className = std::string(buffer);
+			// }
+			for(auto name : ScriptManager::getALLEntityClasses()){
+				 bool isSelected = (component.className == name);
+				if (ImGui::Selectable(name.c_str(), isSelected))
+				{
+					component.className = name;
+				}
 			}
 			
 			if (ImGui::IsItemHovered())

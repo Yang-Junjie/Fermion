@@ -210,23 +210,24 @@ namespace Fermion
 
             const char *name = mono_class_get_name(klass);
             const char *namesp = mono_class_get_namespace(klass);
-
+            
             if (!name)
-                continue;
-
+            continue;
+            
             std::string fullName;
             if (namesp && namesp[0] != '\0')
-                fullName = std::string(namesp) + "." + name;
+            fullName = std::string(namesp) + "." + name;
             else
-                fullName = name;
-
+            fullName = name;
+            
+            m_allEntityClassesNames.push_back(std::string(fullName));
             Log::Info("  -> load script class : " + fullName);
 
             // 存储脚本类信息
             m_classes[fullName] = std::make_shared<CSharpScriptClass>(m_rootDomain, klass, namesp ? namesp : "", name);
         }
 
-        Log::Info(std::format("CSharpScriptEngine:  {} script class  was loaded ", m_classes.size()));
+        Log::Info(std::format("CSharpScriptEngine:  {} script class was loaded ", m_classes.size()));
         return true;
     }
 
@@ -389,4 +390,9 @@ namespace Fermion
             Log::Warn(std::format("CSharpScriptEngine: entity {} hast script entity", entityID.toString()));
         }
     }
+    const std::vector<std::string> &CSharpScriptEngine::getALLEntityClasses() const
+    {
+        return m_allEntityClassesNames;
+    }
+
 }

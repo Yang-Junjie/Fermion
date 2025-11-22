@@ -50,11 +50,11 @@ namespace Fermion
         {
             // 实例化脚本对象（会调用默认构造函数）
             m_instance = m_scriptClass->instantiate();
-            
+
             // 获取常用的生命周期方法
             m_onCreateMethod = m_scriptClass->getMethod("OnCreate", 0);
             m_onUpdateMethod = m_scriptClass->getMethod("OnUpdate", 1);
-            
+
             // 设置 Entity ID 字段
             // 注意：Entity 基类的 ID 字段在 C# 中是 readonly，在构造后设置
             UUID uuid = entity.getUUID();
@@ -140,6 +140,7 @@ namespace Fermion
         virtual bool entityClassExists(const std::string &fullClassName) = 0;
         virtual void onCreateEntity(Entity entity) = 0;
         virtual void onUpdateEntity(Entity entity, Timestep ts) = 0;
+        virtual const std::vector<std::string> &getALLEntityClasses() const = 0;
 
     protected:
         Scene *m_scene = nullptr;

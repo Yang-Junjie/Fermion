@@ -9,7 +9,7 @@ namespace Sandbox
         
         public void OnCreate()
         {
-            Console.WriteLine("[SimpleTest] 创建成功 - 脚本系统正常工作!");
+            Console.WriteLine("[SimpleTest] create successfully !");
         }
         
         public void OnUpdate(float ts)

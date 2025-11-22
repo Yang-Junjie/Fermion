@@ -115,6 +115,7 @@ namespace Fermion
     void BosonLayer::onImGuiRender()
     {
         FM_PROFILE_FUNCTION();
+
         static bool dockspaceOpen = true;
         if (dockspaceOpen)
         {
@@ -200,6 +201,7 @@ namespace Fermion
             m_sceneHierarchyPanel.onImGuiRender();
             m_contentBrowserPanel.onImGuiRender();
             m_assetManagerPanel.onImGuiRender();
+            // ImGui::ShowDemoWindow();
 
             UIToolbar();
             // Statistics
