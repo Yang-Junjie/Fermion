@@ -9,13 +9,15 @@ namespace Sandbox
         public int MyIntVar = 42;
         public bool MyBoolVar = true;
 
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern void PrintFromCpp();
 
-        public static void OnCreate()
+        public void OnCreate()
         {
             Console.WriteLine("Hello from C#!");
-            PrintFromCpp();
+            Console.WriteLine($"[TestScript] Entity ID = {ID}");
+            InternalCalls.NativeLog("native log",123);
+            Console.WriteLine($"[TestScript] About to call TransformComponent_GetTranslation with ID = {ID}");
+            InternalCalls.TransformComponent_GetTranslation(ID, out Vector3 translation);
+            Console.WriteLine($"[TestScript] Translation: {translation.X},{translation.Y},{translation.Z}");
         }
 
         public void OnUpdate(float ts)

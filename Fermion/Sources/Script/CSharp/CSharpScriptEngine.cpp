@@ -45,6 +45,9 @@ namespace Fermion
                 case MONO_TYPE_I4:
                     fieldType = ScriptFieldType::Int;
                     break;
+                case MONO_TYPE_U8:
+                    fieldType = ScriptFieldType::ULong;
+                    break;
                 }
 
                 if (fieldType != ScriptFieldType::None)
@@ -125,11 +128,8 @@ namespace Fermion
         if (!instance.isValid())
             return false;
 
-        const auto &fields = getFields();
-        auto it = fields.find(name);
-        if (it == fields.end())
-            return false;
-
+        // 不检查m_fields，因为字段可能来自基类
+        // mono_class_get_field_from_name会自动搜索基类
         MonoObject *obj = static_cast<MonoObject *>(instance.m_instance);
         MonoClassField *field = mono_class_get_field_from_name(m_class, name.c_str());
 
@@ -210,16 +210,16 @@ namespace Fermion
 
             const char *name = mono_class_get_name(klass);
             const char *namesp = mono_class_get_namespace(klass);
-            
+
             if (!name)
-            continue;
-            
+                continue;
+
             std::string fullName;
             if (namesp && namesp[0] != '\0')
-            fullName = std::string(namesp) + "." + name;
+                fullName = std::string(namesp) + "." + name;
             else
-            fullName = name;
-            
+                fullName = name;
+
             m_allEntityClassesNames.push_back(std::string(fullName));
             Log::Info("  -> load script class : " + fullName);
 
@@ -311,6 +311,10 @@ namespace Fermion
         Log::Info("CSharpScriptEngine: runtime start");
         m_scene = scene;
     }
+    Scene *CSharpScriptEngine::getSceneContext() const
+    {
+        return m_scene;
+    }
     void CSharpScriptEngine::onRuntimeStop()
     {
         m_scene = nullptr;
@@ -338,6 +342,9 @@ namespace Fermion
             break;
         case ScriptFieldType::Int:
             instance->setFieldValue(name, fieldInstance.getValue<int>());
+            break;
+        case ScriptFieldType::ULong:
+            instance->setFieldValue(name, fieldInstance.getValue<uint64_t>());
             break;
         default:
             Log::Warn(std::format("CSharpScriptEngine: Unsupported field type '{}' for field '{}'",

@@ -51,6 +51,10 @@ namespace Fermion
             return s_scriptEngine->getALLEntityClasses();
         }
 
+        static Scene* getSceneContext(){
+            return s_scriptEngine->getSceneContext();
+        }
+
     private:
         inline static std::shared_ptr<IScriptEngine> s_scriptEngine;
     };

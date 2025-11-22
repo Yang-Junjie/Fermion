@@ -12,7 +12,7 @@ namespace Fermion
 			ID = id;
 		}
 
-		public readonly ulong ID;
+		public ulong ID;
 
 	}
 

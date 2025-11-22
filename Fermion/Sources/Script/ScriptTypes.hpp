@@ -15,6 +15,7 @@ namespace Fermion
         Double,
         Bool,
         Int,
+        ULong,     // uint64_t / C# ulong
         Vector2,
         Vector3,
         Vector4,
@@ -58,7 +59,7 @@ namespace Fermion
 
     private:
         // 使用 variant 存储不同类型的值
-        std::variant<std::monostate, float, double, bool, int> m_buffer;
+        std::variant<std::monostate, float, double, bool, int, uint64_t> m_buffer;
     };
 
     // 脚本句柄类型枚举

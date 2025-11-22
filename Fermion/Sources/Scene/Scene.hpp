@@ -22,9 +22,9 @@ namespace Fermion
         void onSimulationStart();
         void onSimulationStop();
 
-        void onUpdateEditor(std::shared_ptr<SceneRenderer> renderer,Timestep ts, EditorCamera &camera);
-        void onUpdateSimulation(std::shared_ptr<SceneRenderer> renderer,Timestep ts, EditorCamera &camera);
-        void onUpdateRuntime(std::shared_ptr<SceneRenderer> renderer,Timestep ts);
+        void onUpdateEditor(std::shared_ptr<SceneRenderer> renderer, Timestep ts, EditorCamera &camera);
+        void onUpdateSimulation(std::shared_ptr<SceneRenderer> renderer, Timestep ts, EditorCamera &camera);
+        void onUpdateRuntime(std::shared_ptr<SceneRenderer> renderer, Timestep ts);
 
         void onViewportResize(uint32_t width, uint32_t height);
 
@@ -33,6 +33,8 @@ namespace Fermion
         void destroyEntity(Entity entity);
 
         Entity duplicateEntity(Entity entity);
+        Entity findEntityByName(std::string_view name);
+        Entity getEntityByUUID(UUID uuid);
 
         uint32_t getViewportWidth() const
         {
@@ -60,8 +62,7 @@ namespace Fermion
     private:
         void onPhysics2DStart();
         void onPhysics2DStop();
-        void onRenderEditor(std::shared_ptr<SceneRenderer> renderer,EditorCamera &camera);
-       
+        void onRenderEditor(std::shared_ptr<SceneRenderer> renderer, EditorCamera &camera);
 
     private:
         entt::registry m_registry;
@@ -72,7 +73,7 @@ namespace Fermion
         int m_stepFrames = 0;
 
         b2WorldId m_physicsWorld = b2_nullWorldId;
-
+        std::unordered_map<UUID, entt::entity> m_entityMap;
         friend class Entity;
         friend class SceneRenderer;
         friend class SceneSerializer;

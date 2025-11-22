@@ -414,11 +414,15 @@ namespace Fermion
         entity.addComponent<IDComponent>(uuid);
         entity.addComponent<TransformComponent>();
         entity.addComponent<TagComponent>(name.empty() ? std::string("unknown") : name);
+
+        m_entityMap[uuid] = entity;
         return entity;
     }
     void Scene::destroyEntity(Entity entity)
     {
+        m_entityMap.erase(entity.getUUID());
         m_registry.destroy(entity);
+        
     }
 
     Entity Scene::duplicateEntity(Entity entity)
@@ -427,6 +431,26 @@ namespace Fermion
         Entity newEntity = createEntity(name);
         copyComponentIfExists(AllComponents{}, newEntity, entity);
         return newEntity;
+    }
+
+    Entity Scene::findEntityByName(std::string_view name)
+    {
+        auto view = m_registry.view<TagComponent>();
+        for (auto entity : view)
+        {
+            const TagComponent &tc = view.get<TagComponent>(entity);
+            if (tc.tag == name)
+                return Entity{entity, this};
+        }
+        return {};
+    }
+
+    Entity Scene::getEntityByUUID(UUID uuid)
+    {
+        if (m_entityMap.find(uuid) != m_entityMap.end())
+            return {m_entityMap.at(uuid), this};
+
+        return {};
     }
 
     Entity Scene::getPrimaryCameraEntity()

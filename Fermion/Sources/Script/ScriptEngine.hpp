@@ -56,9 +56,12 @@ namespace Fermion
             m_onUpdateMethod = m_scriptClass->getMethod("OnUpdate", 1);
 
             // 设置 Entity ID 字段
-            // 注意：Entity 基类的 ID 字段在 C# 中是 readonly，在构造后设置
+            // 注意：需要将 UUID 转换为 uint64_t 再传递给 C#
             UUID uuid = entity.getUUID();
-            m_scriptClass->setFieldValue(m_instance, "ID", &uuid);
+            uint64_t id = (uint64_t)uuid;  // 使用 UUID 的 operator uint64_t()
+            Log::Info(std::format("ScriptInstance: Setting ID field to UUID = {} (uint64_t = {})", uuid.toString(), id));
+            bool success = m_scriptClass->setFieldValue(m_instance, "ID", &id);
+            Log::Info(std::format("ScriptInstance: setFieldValue result = {}", success));
         }
 
         virtual ~ScriptInstance() = default;
@@ -136,6 +139,7 @@ namespace Fermion
         virtual bool setFieldValue(const ScriptHandle &instance, const std::string &name, const void *value) = 0;
 
         virtual void onRuntimeStart(Scene *scene) = 0;
+        virtual Scene* getSceneContext() const= 0;
         virtual void onRuntimeStop() = 0;
         virtual bool entityClassExists(const std::string &fullClassName) = 0;
         virtual void onCreateEntity(Entity entity) = 0;

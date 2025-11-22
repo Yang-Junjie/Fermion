@@ -55,8 +55,9 @@ namespace Fermion
         virtual bool setFieldValue(const ScriptHandle &instance, const std::string &name, const void *value) override;
 
         virtual void onRuntimeStart(Scene *scene) override;
+        virtual Scene *getSceneContext() const override;
         virtual void onRuntimeStop() override;
-        
+
         // 检查类是否存在
         virtual bool entityClassExists(const std::string &fullClassName) override;
         // 创建实例
@@ -64,13 +65,13 @@ namespace Fermion
         // 更新实例
         virtual void onUpdateEntity(Entity entity, Timestep ts) override;
 
-        virtual const std::vector<std::string>& getALLEntityClasses() const override;
+        virtual const std::vector<std::string> &getALLEntityClasses() const override;
 
     private:
         // 辅助方法：根据字段类型设置实体字段值
         void setEntityFieldValue(std::shared_ptr<ScriptInstance> instance,
-                                const std::string &name,
-                                const ScriptFieldInstance &fieldInstance);
+                                 const std::string &name,
+                                 const ScriptFieldInstance &fieldInstance);
 
         bool m_initialized = false;
         MonoDomain *m_rootDomain = nullptr;
