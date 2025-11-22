@@ -6,10 +6,7 @@
 
 namespace Fermion
 {
-    extern "C" void MyPrint()
-    {
-        Log::Warn("C++ InternalCall called!");
-    }
+
     Engine *Engine::s_instance = nullptr;
 
     Engine::Engine(const std::string &name)
@@ -25,7 +22,6 @@ namespace Fermion
         m_window->setVSync(true);
         Renderer::init();
         ScriptManager::init();
-        ScriptManager::registerFunction("TestScript::PrintFromCpp", Fermion::MyPrint);
         ScriptManager::loadScript("TestScript.dll");
         m_imGuiLayer = std::make_unique<ImGuiLayer>(m_window->getNativeWindow());
         m_imGuiLayerRaw = m_imGuiLayer.get();

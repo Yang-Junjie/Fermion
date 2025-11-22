@@ -22,14 +22,9 @@ namespace Fermion
             return s_scriptEngine->loadScript(path);
         }
 
-        static void registerFunction(const std::string &name, Func func)
+        static std::shared_ptr<IScriptEngine> get() 
         {
-            s_scriptEngine->registerFunction(name, func);
-        }
-
-        static void invokeFunction(const std::string &name)
-        {
-            s_scriptEngine->invokeFunction(name);
+            return s_scriptEngine;
         }
 
     private:

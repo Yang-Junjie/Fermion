@@ -261,7 +261,26 @@ namespace Fermion
     {
         // Scripts
         {
-            ScriptManager::invokeFunction("OnCreate");
+            auto engine = std::static_pointer_cast<Fermion::CSharpScriptEngine>(ScriptManager::get());
+            auto handle = engine->createInstance("Fermion.TestScript");
+            engine->invokeMethod(handle, "OnCreate");
+
+            float myFloat = 0.0f;
+            if (engine->getFieldValue(handle, "MyFloatVar", &myFloat))
+            {
+                Log::Info("MyFloatVar before: " + std::to_string(myFloat));
+            }
+            else{
+                Log::Error("Failed to get MyFloatVar");
+            }
+
+            float newFloat = 5.5f;
+            engine->setFieldValue(handle, "MyFloatVar", &newFloat);
+
+            if (engine->getFieldValue(handle, "MyFloatVar", &myFloat))
+            {
+                Log::Info("MyFloatVar after: " + std::to_string(myFloat));
+            }
             m_registry.view<NativeScriptComponent>().each(
                 [=](auto entity, auto &nsc)
                 {
