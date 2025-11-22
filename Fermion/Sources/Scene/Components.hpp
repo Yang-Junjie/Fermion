@@ -151,7 +151,7 @@ namespace Fermion
         glm::vec2 offset = {0.0f, 0.0f};
         glm::vec2 size = {0.5f, 0.5f};
 
-        // TODO(Yan): move into physics material in the future maybe
+        // TODO: move into physics material in the future maybe
         float density = 1.0f;
         float friction = 0.5f;
         float restitution = 0.0f;
@@ -169,7 +169,7 @@ namespace Fermion
         glm::vec2 offset = {0.0f, 0.0f};
         float radius = 0.5f;
 
-        // TODO(Yan): move into physics material in the future maybe
+        // TODO: move into physics material in the future maybe
         float density = 1.0f;
         float friction = 0.5f;
         float restitution = 0.0f;

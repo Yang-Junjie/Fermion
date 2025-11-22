@@ -61,7 +61,7 @@ namespace Fermion
                 }
                 m_imGuiLayerRaw->end();
             }
-            m_window->OnUpdate();
+            m_window->onUpdate();
         }
     }
 

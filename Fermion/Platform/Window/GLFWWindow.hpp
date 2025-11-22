@@ -16,7 +16,7 @@ namespace Fermion
         GLFWWindow(const WindowProps &props);
         virtual ~GLFWWindow();
 
-        void OnUpdate() override;
+        void onUpdate() override;
 
         unsigned int getWidth() const override { return m_data.width; }
         unsigned int getHeight() const override { return m_data.height; }
@@ -28,8 +28,8 @@ namespace Fermion
         virtual void *getNativeWindow() const override { return m_window; }
 
     private:
-        virtual void Init(const WindowProps &props);
-        virtual void Shutdown();
+        virtual void init(const WindowProps &props);
+        virtual void shutdown();
 
     private:
         GLFWwindow *m_window;

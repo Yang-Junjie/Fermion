@@ -23,17 +23,17 @@ namespace Fermion
     {
         FM_PROFILE_FUNCTION();
 
-        Init(props);
+        init(props);
     }
 
     GLFWWindow::~GLFWWindow()
     {
         FM_PROFILE_FUNCTION();
 
-        Shutdown();
+        shutdown();
     }
 
-    void GLFWWindow::Init(const WindowProps &props)
+    void GLFWWindow::init(const WindowProps &props)
     {
         FM_PROFILE_FUNCTION();
 
@@ -155,7 +155,7 @@ namespace Fermion
         });
     }
 
-    void GLFWWindow::Shutdown()
+    void GLFWWindow::shutdown()
     {
         FM_PROFILE_FUNCTION();
 
@@ -169,7 +169,7 @@ namespace Fermion
         Log::Info("Window destroyed");
     }
 
-    void GLFWWindow::OnUpdate()
+    void GLFWWindow::onUpdate()
     {
         FM_PROFILE_FUNCTION();
 
