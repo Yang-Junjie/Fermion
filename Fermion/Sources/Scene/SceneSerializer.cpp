@@ -223,6 +223,14 @@ namespace Fermion
 			out << YAML::Key << "FixedAspectRatio" << YAML::Value << cc.fixedAspectRatio;
 			out << YAML::EndMap;
 		}
+		if (entity.hasComponent<ScriptComponent>())
+		{
+			out << YAML::Key << "ScriptComponent";
+			out << YAML::BeginMap;
+			auto& sc = entity.getComponent<ScriptComponent>();
+			out << YAML::Key << "ClassName" << YAML::Value << sc.className;
+			out << YAML::EndMap;
+		}
 
 		// Close entity map after writing all components
 		out << YAML::EndMap;
@@ -427,6 +435,16 @@ namespace Fermion
 						cc.primary = n.as<bool>();
 					if (auto n = cameraComponent["FixedAspectRatio"]; n)
 						cc.fixedAspectRatio = n.as<bool>();
+				}
+				auto scriptComponent = entity["ScriptComponent"];
+				if (scriptComponent && scriptComponent.IsMap())
+				{
+					auto& sc = deserializedEntity.addComponent<ScriptComponent>();
+					if (auto n = scriptComponent["ClassName"]; n)
+					{
+						sc.className = n.as<std::string>();
+						Log::Info(std::format("  ScriptComponent: ClassName = {}", sc.className));
+					}
 				}
 			}
 		}

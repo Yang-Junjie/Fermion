@@ -24,14 +24,14 @@ namespace Fermion
     // 脚本字段定义结构体
     struct ScriptField
     {
-        std::string name;       // 字段名称
-        ScriptFieldType type;   // 字段类型
+        std::string name;     // 字段名称
+        ScriptFieldType type; // 字段类型
     };
 
     // 脚本字段实例，用于存储字段的具体值
     struct ScriptFieldInstance
     {
-        ScriptField field;      // 字段定义
+        ScriptField field; // 字段定义
 
         ScriptFieldInstance() { m_buffer = std::monostate(); }
 
@@ -72,7 +72,7 @@ namespace Fermion
     // 脚本句柄，用于引用脚本中的对象或方法
     struct ScriptHandle
     {
-        void* m_instance = nullptr; // 原始指针
+        void *m_instance = nullptr;                     // 原始指针
         ScriptHandleType type = ScriptHandleType::None; // 句柄类型
 
         // 检查句柄是否有效

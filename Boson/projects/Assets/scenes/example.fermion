@@ -4,11 +4,13 @@ Entities:
     TagComponent:
       Tag: green square
     TransformComponent:
-      Translation: [0, 0, 0]
+      Translation: [0, -1.39, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
       Color: [0, 1, 0, 1]
+    ScriptComponent:
+      ClassName: Sandbox.TestScript
   - Entity: 17674460285504380402
     TagComponent:
       Tag: red square

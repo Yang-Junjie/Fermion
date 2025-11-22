@@ -24,8 +24,8 @@ namespace Fermion
         // 注册 InternalCall
         // 名字必须完全匹配 C# 的 namespace + 类名 + 方法名
         // C# 定义: namespace Fermion, class TestScript, method PrintFromCpp
-        mono_add_internal_call("Fermion.TestScript::PrintFromCpp", (const void*)&PrintFromCpp);
+        mono_add_internal_call("Sandbox.TestScript::PrintFromCpp", (const void *)&PrintFromCpp);
+
         
-        // 可以在这里添加更多的内部调用注册
     }
 }

@@ -275,6 +275,14 @@ namespace Fermion
 					ImGui::CloseCurrentPopup();
 				}
 			}
+			if (!m_selectedEntity.hasComponent<ScriptComponent>())
+			{
+				if (ImGui::MenuItem("Script"))
+				{
+					m_selectedEntity.addComponent<ScriptComponent>();
+					ImGui::CloseCurrentPopup();
+				}
+			}
 			if (!m_selectedEntity.hasComponent<Rigidbody2DComponent>())
 			{
 				if (ImGui::MenuItem("Rigidbody2D"))
@@ -454,6 +462,23 @@ namespace Fermion
 			ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
 			ImGui::DragFloat("Kerning", &component.kerning, 0.025f);
 			ImGui::DragFloat("Line Spacing", &component.lineSpacing, 0.025f); });
+
+		drawComponent<ScriptComponent>("Script", entity, [](auto &component)
+									   {
+			char buffer[256];
+			memset(buffer, 0, sizeof(buffer));
+			strncpy_s(buffer, component.className.c_str(), sizeof(buffer));
+			
+			if (ImGui::InputText("Class Name", buffer, sizeof(buffer)))
+			{
+				component.className = std::string(buffer);
+			}
+			
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::SetTooltip("Full class name with namespace\nExample: Sandbox.SimpleTest");
+			} });
+
 		drawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto &component)
 											   {
 			ImGui::ColorEdit4("Color", glm::value_ptr(component.color)); 

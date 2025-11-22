@@ -190,5 +190,5 @@ namespace Fermion
         ComponentGroup<TransformComponent, SpriteRendererComponent,
                        CircleRendererComponent,
                        CameraComponent,
-                       NativeScriptComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, TextComponent>;
+                       ScriptComponent, NativeScriptComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, TextComponent>;
 }
