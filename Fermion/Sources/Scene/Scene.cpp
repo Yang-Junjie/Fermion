@@ -84,12 +84,22 @@ namespace Fermion
     {
         m_isRunning = true;
         onPhysics2DStart();
+        {
+            ScriptManager::onRuntimeStart(this);
+            auto view = m_registry.view<ScriptComponent>();
+            for (auto e : view)
+            {
+                Entity entity = {e, this};
+                ScriptManager::onCreateEntity(entity);
+            }
+        }
     }
 
     void Scene::onRuntimeStop()
     {
         m_isRunning = false;
         onPhysics2DStop();
+        ScriptManager::onRuntimeStop();
     }
 
     void Scene::onSimulationStart()
@@ -261,25 +271,32 @@ namespace Fermion
     {
         // Scripts
         {
-            auto engine = std::static_pointer_cast<Fermion::CSharpScriptEngine>(ScriptManager::get());
-            auto handle = engine->createInstance("Fermion.TestScript");
-            engine->invokeMethod(handle, "OnCreate");
+            // auto engine = std::static_pointer_cast<Fermion::CSharpScriptEngine>(ScriptManager::get());
+            // auto handle = engine->createInstance("Fermion.TestScript");
+            // engine->invokeMethod(handle, "OnCreate");
 
-            float myFloat = 0.0f;
-            if (engine->getFieldValue(handle, "MyFloatVar", &myFloat))
+            // float myFloat = 0.0f;
+            // if (engine->getFieldValue(handle, "MyFloatVar", &myFloat))
+            // {
+            //     Log::Info("MyFloatVar before: " + std::to_string(myFloat));
+            // }
+            // else
+            // {
+            //     Log::Error("Failed to get MyFloatVar");
+            // }
+
+            // float newFloat = 5.5f;
+            // engine->setFieldValue(handle, "MyFloatVar", &newFloat);
+
+            // if (engine->getFieldValue(handle, "MyFloatVar", &myFloat))
+            // {
+            //     Log::Info("MyFloatVar after: " + std::to_string(myFloat));
+            // }
+            auto view = m_registry.view<ScriptComponent>();
+            for (auto e : view)
             {
-                Log::Info("MyFloatVar before: " + std::to_string(myFloat));
-            }
-            else{
-                Log::Error("Failed to get MyFloatVar");
-            }
-
-            float newFloat = 5.5f;
-            engine->setFieldValue(handle, "MyFloatVar", &newFloat);
-
-            if (engine->getFieldValue(handle, "MyFloatVar", &myFloat))
-            {
-                Log::Info("MyFloatVar after: " + std::to_string(myFloat));
+                Entity entity = {e, this};
+                ScriptManager::onUpdateEntity(entity, ts);
             }
             m_registry.view<NativeScriptComponent>().each(
                 [=](auto entity, auto &nsc)

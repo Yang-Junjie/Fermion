@@ -9,7 +9,6 @@
 #include <mono/metadata/class.h>
 #include <mono/metadata/attrdefs.h>
 
-
 namespace Fermion
 {
     // ====================================================================================================
@@ -20,29 +19,37 @@ namespace Fermion
         : ScriptClass(ns, name), m_domain(domain), m_class(klass)
     {
         // 缓存所有公共字段
-        void* iter = nullptr;
-        while (MonoClassField* field = mono_class_get_fields(m_class, &iter))
+        void *iter = nullptr;
+        while (MonoClassField *field = mono_class_get_fields(m_class, &iter))
         {
             uint32_t flags = mono_field_get_flags(field);
             if (flags & MONO_FIELD_ATTR_PUBLIC)
             {
-                const char* fieldName = mono_field_get_name(field);
+                const char *fieldName = mono_field_get_name(field);
                 ScriptFieldType fieldType = ScriptFieldType::None;
-                MonoType* type = mono_field_get_type(field);
-                
+                MonoType *type = mono_field_get_type(field);
+
                 // 简单的类型映射
                 int typeEnum = mono_type_get_type(type);
                 switch (typeEnum)
                 {
-                    case MONO_TYPE_R4: fieldType = ScriptFieldType::Float; break;
-                    case MONO_TYPE_R8: fieldType = ScriptFieldType::Double; break;
-                    case MONO_TYPE_BOOLEAN: fieldType = ScriptFieldType::Bool; break;
-                    case MONO_TYPE_I4: fieldType = ScriptFieldType::Int; break;
+                case MONO_TYPE_R4:
+                    fieldType = ScriptFieldType::Float;
+                    break;
+                case MONO_TYPE_R8:
+                    fieldType = ScriptFieldType::Double;
+                    break;
+                case MONO_TYPE_BOOLEAN:
+                    fieldType = ScriptFieldType::Bool;
+                    break;
+                case MONO_TYPE_I4:
+                    fieldType = ScriptFieldType::Int;
+                    break;
                 }
 
                 if (fieldType != ScriptFieldType::None)
                 {
-                    m_fields[fieldName] = { fieldName, fieldType };
+                    m_fields[fieldName] = {fieldName, fieldType};
                 }
             }
         }
@@ -93,37 +100,43 @@ namespace Fermion
         }
     }
 
-    bool CSharpScriptClass::getFieldValue(const ScriptHandle& instance, const std::string& name, void* buffer)
+    bool CSharpScriptClass::getFieldValue(const ScriptHandle &instance, const std::string &name, void *buffer)
     {
-        if (!instance.isValid()) return false;
+        if (!instance.isValid())
+            return false;
 
-        const auto& fields = getFields();
+        const auto &fields = getFields();
         auto it = fields.find(name);
-        if (it == fields.end()) return false;
+        if (it == fields.end())
+            return false;
 
-        MonoObject* obj = static_cast<MonoObject*>(instance.m_instance);
-        MonoClassField* field = mono_class_get_field_from_name(m_class, name.c_str());
-        
-        if (!field) return false;
+        MonoObject *obj = static_cast<MonoObject *>(instance.m_instance);
+        MonoClassField *field = mono_class_get_field_from_name(m_class, name.c_str());
+
+        if (!field)
+            return false;
 
         mono_field_get_value(obj, field, buffer);
         return true;
     }
 
-    bool CSharpScriptClass::setFieldValue(const ScriptHandle& instance, const std::string& name, const void* value)
+    bool CSharpScriptClass::setFieldValue(const ScriptHandle &instance, const std::string &name, const void *value)
     {
-        if (!instance.isValid()) return false;
+        if (!instance.isValid())
+            return false;
 
-        const auto& fields = getFields();
+        const auto &fields = getFields();
         auto it = fields.find(name);
-        if (it == fields.end()) return false;
+        if (it == fields.end())
+            return false;
 
-        MonoObject* obj = static_cast<MonoObject*>(instance.m_instance);
-        MonoClassField* field = mono_class_get_field_from_name(m_class, name.c_str());
-        
-        if (!field) return false;
+        MonoObject *obj = static_cast<MonoObject *>(instance.m_instance);
+        MonoClassField *field = mono_class_get_field_from_name(m_class, name.c_str());
 
-        mono_field_set_value(obj, field, (void*)value);
+        if (!field)
+            return false;
+
+        mono_field_set_value(obj, field, (void *)value);
         return true;
     }
 
@@ -186,6 +199,8 @@ namespace Fermion
 
         // 遍历程序集中的所有类型
         int typeCount = mono_image_get_table_rows(image, MONO_TABLE_TYPEDEF);
+        Log::Info(std::format("CSharpScriptEngine: load {}, total {} type", path.string(), typeCount));
+
         for (int i = 1; i <= typeCount; ++i)
         {
             uint32_t typeToken = mono_metadata_make_token(MONO_TABLE_TYPEDEF, i);
@@ -205,12 +220,13 @@ namespace Fermion
             else
                 fullName = name;
 
-            // Log::Info("加载脚本类: " + fullName);
+            Log::Info("  -> load script class : " + fullName);
 
             // 存储脚本类信息
             m_classes[fullName] = std::make_shared<CSharpScriptClass>(m_rootDomain, klass, namesp ? namesp : "", name);
         }
 
+        Log::Info(std::format("CSharpScriptEngine:  {} script class  was loaded ", m_classes.size()));
         return true;
     }
 
@@ -258,31 +274,119 @@ namespace Fermion
         }
     }
 
-    bool CSharpScriptEngine::getFieldValue(const ScriptHandle& instance, const std::string& name, void* buffer)
+    bool CSharpScriptEngine::getFieldValue(const ScriptHandle &instance, const std::string &name, void *buffer)
     {
-        if (!instance.isValid()) return false;
+        if (!instance.isValid())
+            return false;
 
-        MonoObject* obj = static_cast<MonoObject*>(instance.m_instance);
-        MonoClass* klass = mono_object_get_class(obj);
-        MonoClassField* field = mono_class_get_field_from_name(klass, name.c_str());
+        MonoObject *obj = static_cast<MonoObject *>(instance.m_instance);
+        MonoClass *klass = mono_object_get_class(obj);
+        MonoClassField *field = mono_class_get_field_from_name(klass, name.c_str());
 
-        if (!field) return false;
+        if (!field)
+            return false;
 
         mono_field_get_value(obj, field, buffer);
         return true;
     }
 
-    bool CSharpScriptEngine::setFieldValue(const ScriptHandle& instance, const std::string& name, const void* value)
+    bool CSharpScriptEngine::setFieldValue(const ScriptHandle &instance, const std::string &name, const void *value)
     {
-        if (!instance.isValid()) return false;
+        if (!instance.isValid())
+            return false;
 
-        MonoObject* obj = static_cast<MonoObject*>(instance.m_instance);
-        MonoClass* klass = mono_object_get_class(obj);
-        MonoClassField* field = mono_class_get_field_from_name(klass, name.c_str());
+        MonoObject *obj = static_cast<MonoObject *>(instance.m_instance);
+        MonoClass *klass = mono_object_get_class(obj);
+        MonoClassField *field = mono_class_get_field_from_name(klass, name.c_str());
 
-        if (!field) return false;
+        if (!field)
+            return false;
 
-        mono_field_set_value(obj, field, (void*)value);
+        mono_field_set_value(obj, field, (void *)value);
         return true;
+    }
+    void CSharpScriptEngine::onRuntimeStart(Scene *scene)
+    {
+        Log::Info("CSharpScriptEngine: runtime start");
+        m_scene = scene;
+    }
+    void CSharpScriptEngine::onRuntimeStop()
+    {
+        m_scene = nullptr;
+        m_entityInstances.clear();
+    }
+    bool CSharpScriptEngine::entityClassExists(const std::string &fullClassName)
+    {
+        return m_classes.find(fullClassName) != m_classes.end();
+    }
+
+    void CSharpScriptEngine::setEntityFieldValue(std::shared_ptr<ScriptInstance> instance,
+                                                 const std::string &name,
+                                                 const ScriptFieldInstance &fieldInstance)
+    {
+        switch (fieldInstance.field.type)
+        {
+        case ScriptFieldType::Float:
+            instance->setFieldValue(name, fieldInstance.getValue<float>());
+            break;
+        case ScriptFieldType::Double:
+            instance->setFieldValue(name, fieldInstance.getValue<double>());
+            break;
+        case ScriptFieldType::Bool:
+            instance->setFieldValue(name, fieldInstance.getValue<bool>());
+            break;
+        case ScriptFieldType::Int:
+            instance->setFieldValue(name, fieldInstance.getValue<int>());
+            break;
+        default:
+            Log::Warn(std::format("CSharpScriptEngine: Unsupported field type '{}' for field '{}'",
+                                  static_cast<int>(fieldInstance.field.type), name));
+            break;
+        }
+    }
+    void CSharpScriptEngine::onCreateEntity(Entity entity)
+    {
+        const auto &sc = entity.getComponent<ScriptComponent>();
+        Log::Info(std::format("CSharpScriptEngine: try to create entity: {}", sc.className));
+
+        if (entityClassExists(sc.className))
+        {
+            UUID entityID = entity.getUUID();
+            Log::Info(std::format("  -> find script class  {}, crate entity (EntityID: {})", sc.className, entityID.toString()));
+
+            std::shared_ptr<ScriptInstance> instance = std::make_shared<ScriptInstance>(m_classes[sc.className], entity);
+
+            m_entityInstances[entityID] = instance;
+
+            if (m_entityScriptFields.find(entityID) != m_entityScriptFields.end())
+            {
+                const ScriptFieldMap &fieldMap = m_entityScriptFields.at(entityID);
+                for (const auto &[name, fieldInstance] : fieldMap)
+                {
+                    setEntityFieldValue(instance, name, fieldInstance);
+                }
+            }
+
+            Log::Info("  -> call  OnCreate()");
+            instance->invokeOnCreate();
+            Log::Info("  -> OnCreate() call done");
+        }
+        else
+        {
+            Log::Error(std::format("CSharpScriptEngine: cant find script class : {}", sc.className));
+        }
+    }
+    void CSharpScriptEngine::onUpdateEntity(Entity entity, Timestep ts)
+    {
+        UUID entityID = entity.getUUID();
+        if (m_entityInstances.find(entityID) != m_entityInstances.end())
+        {
+            std::shared_ptr<ScriptInstance> instance = m_entityInstances[entityID];
+            instance->invokeOnUpdate(ts);
+        }
+        else
+        {
+            Log::Warn(std::format("CSharpScriptEngine: entity {} hast script entity", entityID.toString()));
+        }
     }
 }

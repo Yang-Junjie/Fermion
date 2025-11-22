@@ -1,5 +1,6 @@
 ﻿#pragma once
-
+#include "Scene/Scene.hpp"
+#include "Scene/Entity.hpp"
 #include "ScriptTypes.hpp"
 #include <string>
 #include <unordered_map>
@@ -27,9 +28,9 @@ namespace Fermion
         virtual void invokeMethod(const ScriptHandle &instance, const ScriptHandle &method, void **params = nullptr) = 0;
 
         // 获取字段值
-        virtual bool getFieldValue(const ScriptHandle& instance, const std::string& name, void* buffer) = 0;
+        virtual bool getFieldValue(const ScriptHandle &instance, const std::string &name, void *buffer) = 0;
         // 设置字段值
-        virtual bool setFieldValue(const ScriptHandle& instance, const std::string& name, const void* value) = 0;
+        virtual bool setFieldValue(const ScriptHandle &instance, const std::string &name, const void *value) = 0;
 
         // 获取该脚本类的所有字段
         const std::map<std::string, ScriptField> &getFields() const { return m_fields; }
@@ -44,14 +45,20 @@ namespace Fermion
     class ScriptInstance
     {
     public:
-        ScriptInstance(std::shared_ptr<ScriptClass> scriptClass)
+        ScriptInstance(std::shared_ptr<ScriptClass> scriptClass, Entity entity)
             : m_scriptClass(scriptClass)
         {
-            // 实例化脚本对象
+            // 实例化脚本对象（会调用默认构造函数）
             m_instance = m_scriptClass->instantiate();
+            
             // 获取常用的生命周期方法
             m_onCreateMethod = m_scriptClass->getMethod("OnCreate", 0);
             m_onUpdateMethod = m_scriptClass->getMethod("OnUpdate", 1);
+            
+            // 设置 Entity ID 字段
+            // 注意：Entity 基类的 ID 字段在 C# 中是 readonly，在构造后设置
+            UUID uuid = entity.getUUID();
+            m_scriptClass->setFieldValue(m_instance, "ID", &uuid);
         }
 
         virtual ~ScriptInstance() = default;
@@ -74,8 +81,8 @@ namespace Fermion
         }
 
         // 获取字段值
-        template<typename T>
-        T getFieldValue(const std::string& name)
+        template <typename T>
+        T getFieldValue(const std::string &name)
         {
             T value;
             if (m_scriptClass->getFieldValue(m_instance, name, &value))
@@ -84,8 +91,8 @@ namespace Fermion
         }
 
         // 设置字段值
-        template<typename T>
-        void setFieldValue(const std::string& name, T value)
+        template <typename T>
+        void setFieldValue(const std::string &name, T value)
         {
             m_scriptClass->setFieldValue(m_instance, name, &value);
         }
@@ -124,8 +131,17 @@ namespace Fermion
         virtual void invokeMethod(ScriptHandle instance, const std::string &name) = 0;
 
         // 获取字段值
-        virtual bool getFieldValue(const ScriptHandle& instance, const std::string& name, void* buffer) = 0;
+        virtual bool getFieldValue(const ScriptHandle &instance, const std::string &name, void *buffer) = 0;
         // 设置字段值
-        virtual bool setFieldValue(const ScriptHandle& instance, const std::string& name, const void* value) = 0;
+        virtual bool setFieldValue(const ScriptHandle &instance, const std::string &name, const void *value) = 0;
+
+        virtual void onRuntimeStart(Scene *scene) = 0;
+        virtual void onRuntimeStop() = 0;
+        virtual bool entityClassExists(const std::string &fullClassName) = 0;
+        virtual void onCreateEntity(Entity entity) = 0;
+        virtual void onUpdateEntity(Entity entity, Timestep ts) = 0;
+
+    protected:
+        Scene *m_scene = nullptr;
     };
 }

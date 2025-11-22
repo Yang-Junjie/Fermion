@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-namespace Fermion
+using Fermion;
+namespace Sandbox
 {
-    public class TestScript
+    public class TestScript : Entity
     {
         public float MyFloatVar = 3.14f;
         public int MyIntVar = 42;
@@ -19,7 +20,7 @@ namespace Fermion
 
         public void OnUpdate(float ts)
         {
-            // Console.WriteLine($"Update: {ts}, MyFloatVar: {MyFloatVar}");
+            Console.WriteLine("on update: " + ts);
         }
     }
 }

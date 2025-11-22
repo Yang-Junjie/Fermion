@@ -22,9 +22,30 @@ namespace Fermion
             return s_scriptEngine->loadScript(path);
         }
 
-        static std::shared_ptr<IScriptEngine> get() 
+        static std::shared_ptr<IScriptEngine> get()
         {
             return s_scriptEngine;
+        }
+
+        static void onRuntimeStart(Scene *scene)
+        {
+            s_scriptEngine->onRuntimeStart(scene);
+        }
+        static void onRuntimeStop()
+        {
+            s_scriptEngine->onRuntimeStop();
+        }
+        static bool entityClassExists(const std::string &fullClassName)
+        {
+            return s_scriptEngine->entityClassExists(fullClassName);
+        }
+        static void onCreateEntity(Entity entity)
+        {
+            s_scriptEngine->onCreateEntity(entity);
+        }
+        static void onUpdateEntity(Entity entity, Timestep ts)
+        {
+            s_scriptEngine->onUpdateEntity(entity, ts);
         }
 
     private:

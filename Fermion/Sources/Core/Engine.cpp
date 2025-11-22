@@ -22,7 +22,7 @@ namespace Fermion
         m_window->setVSync(true);
         Renderer::init();
         ScriptManager::init();
-        ScriptManager::loadScript("TestScript.dll");
+        ScriptManager::loadScript("Photon.dll");
         m_imGuiLayer = std::make_unique<ImGuiLayer>(m_window->getNativeWindow());
         m_imGuiLayerRaw = m_imGuiLayer.get();
         pushOverlay(std::move(m_imGuiLayer));

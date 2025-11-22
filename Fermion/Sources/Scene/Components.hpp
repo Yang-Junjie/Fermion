@@ -97,6 +97,12 @@ namespace Fermion
         CameraComponent(const CameraComponent &camera) = default;
     };
 
+    struct ScriptComponent
+    {
+        std::string className;
+        ScriptComponent() = default;
+        ScriptComponent(const ScriptComponent &script) = default;
+    };
     class ScriptableEntity;
     struct NativeScriptComponent
     {
