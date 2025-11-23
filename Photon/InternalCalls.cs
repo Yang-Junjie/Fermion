@@ -20,5 +20,9 @@ namespace Fermion
         internal static extern void TransformComponent_GetTranslation(ulong entityID, out Vector3 translation);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void TransformComponent_SetTranslation(ulong entityID, ref Vector3 translation);
+        
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool Input_IsKeyDown(KeyCode keycode);
+
     }
 }

@@ -82,6 +82,10 @@ namespace Fermion
         entity.getComponent<TransformComponent>().translation = *translation;
     }
 
+    static bool Input_IsKeyDown(KeyCode keycode)
+    {
+        return Input::isKeyPressed(keycode);
+    }
 #define FM_ADD_INTERNAL_CALL(Name) mono_add_internal_call("Fermion.InternalCalls::" #Name, Name)
 
     // 注册组件
@@ -101,5 +105,6 @@ namespace Fermion
 
         FM_ADD_INTERNAL_CALL(TransformComponent_GetTranslation);
         FM_ADD_INTERNAL_CALL(TransformComponent_SetTranslation);
+        FM_ADD_INTERNAL_CALL(Input_IsKeyDown);
     }
 }
