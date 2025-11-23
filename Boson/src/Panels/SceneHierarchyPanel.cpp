@@ -469,22 +469,25 @@ namespace Fermion
 			char buffer[256];
 			memset(buffer, 0, sizeof(buffer));
 			strncpy_s(buffer, component.className.c_str(), sizeof(buffer));
-			
+
 			// if (ImGui::InputText("Class Name", buffer, sizeof(buffer)))
 			// {
 			// 	component.className = std::string(buffer);
 			// }
-			for(auto name : ScriptManager::getALLEntityClasses()){
-				 bool isSelected = (component.className == name);
-				if (ImGui::Selectable(name.c_str(), isSelected))
+			for (auto name : ScriptManager::getALLEntityClasses()){
+				size_t dotPos = name.find('.');
+				if (dotPos != std::string::npos)
 				{
-					component.className = name;
+					std::string namespaceName = name.substr(0, dotPos);
+					if (namespaceName != "Fermion")
+					{
+						bool isSelected = (component.className == name);
+						if (ImGui::Selectable(name.c_str(), isSelected))
+						{
+							component.className = name;
+						}
+					}
 				}
-			}
-			
-			if (ImGui::IsItemHovered())
-			{
-				ImGui::SetTooltip("Full class name with namespace\nExample: Sandbox.SimpleTest");
 			} });
 
 		drawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto &component)

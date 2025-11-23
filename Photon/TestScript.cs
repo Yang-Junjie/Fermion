@@ -5,10 +5,6 @@ namespace Sandbox
 {
     public class TestScript : Entity
     {
-        public float MyFloatVar = 3.14f;
-        public int MyIntVar = 42;
-        public bool MyBoolVar = true;
-
         float speed = 5.0f;
         public void OnCreate()
         {
