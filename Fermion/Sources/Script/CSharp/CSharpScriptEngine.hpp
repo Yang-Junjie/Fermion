@@ -56,6 +56,7 @@ namespace Fermion
 
         virtual void onRuntimeStart(Scene *scene) override;
         virtual Scene *getSceneContext() const override;
+        virtual ScriptHandle getManagedInstance(UUID uuid) override;
         virtual void onRuntimeStop() override;
 
         // 检查类是否存在
@@ -67,6 +68,9 @@ namespace Fermion
 
         virtual const std::vector<std::string> &getALLEntityClasses() const override;
 
+        // 获取核心程序集的 Image
+        MonoImage *getCoreAssemblyImage() const { return m_coreAssemblyImage; }
+
     private:
         // 辅助方法：根据字段类型设置实体字段值
         void setEntityFieldValue(std::shared_ptr<ScriptInstance> instance,
@@ -75,6 +79,7 @@ namespace Fermion
 
         bool m_initialized = false;
         MonoDomain *m_rootDomain = nullptr;
+        MonoImage *m_coreAssemblyImage = nullptr;  // 保存核心程序集的 Image
         std::vector<std::string> m_allEntityClassesNames;
         std::unordered_map<std::string, std::shared_ptr<CSharpScriptClass>> m_classes;
         std::unordered_map<UUID, std::shared_ptr<ScriptInstance>> m_entityInstances;

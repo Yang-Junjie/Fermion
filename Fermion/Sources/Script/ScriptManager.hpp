@@ -31,6 +31,10 @@ namespace Fermion
         {
             s_scriptEngine->onRuntimeStart(scene);
         }
+        static ScriptHandle getManagedInstance(UUID uuid)
+        {
+            return s_scriptEngine->getManagedInstance(uuid);
+        }
         static void onRuntimeStop()
         {
             s_scriptEngine->onRuntimeStop();
@@ -47,12 +51,20 @@ namespace Fermion
         {
             s_scriptEngine->onUpdateEntity(entity, ts);
         }
-        static const std::vector<std::string> &getALLEntityClasses()  {
+        static const std::vector<std::string> &getALLEntityClasses()
+        {
             return s_scriptEngine->getALLEntityClasses();
         }
 
-        static Scene* getSceneContext(){
+        static Scene *getSceneContext()
+        {
             return s_scriptEngine->getSceneContext();
+        }
+
+        static MonoImage *getCoreAssemblyImage()
+        {
+            auto *csharpEngine = dynamic_cast<CSharpScriptEngine *>(s_scriptEngine.get());
+            return csharpEngine ? csharpEngine->getCoreAssemblyImage() : nullptr;
         }
 
     private:

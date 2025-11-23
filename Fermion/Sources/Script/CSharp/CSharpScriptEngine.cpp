@@ -197,6 +197,9 @@ namespace Fermion
         if (!image)
             return false;
 
+        // 保存核心程序集的 Image
+        m_coreAssemblyImage = image;
+
         // 遍历程序集中的所有类型
         int typeCount = mono_image_get_table_rows(image, MONO_TABLE_TYPEDEF);
         Log::Info(std::format("CSharpScriptEngine: load {}, total {} type", path.string(), typeCount));
@@ -228,6 +231,10 @@ namespace Fermion
         }
 
         Log::Info(std::format("CSharpScriptEngine:  {} script class was loaded ", m_classes.size()));
+        
+        // 注册组件
+        ScriptGlue::registerComponents();
+        
         return true;
     }
 
@@ -314,6 +321,11 @@ namespace Fermion
     Scene *CSharpScriptEngine::getSceneContext() const
     {
         return m_scene;
+    }
+    ScriptHandle CSharpScriptEngine::getManagedInstance(UUID uuid)
+    {
+        FERMION_ASSERT(m_entityInstances.find(uuid)!=m_entityInstances.end(), "Entity not found!");
+        return m_entityInstances[uuid]->getHandle();
     }
     void CSharpScriptEngine::onRuntimeStop()
     {

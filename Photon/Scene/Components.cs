@@ -26,5 +26,15 @@ namespace Fermion
 			}
 		}
 	}
+	public class Rigidbody2DComponent : Component
+	{
+		public enum BodyType { Static = 0, Dynamic = 1, Kinematic = 2 }
 
+		public BodyType Type
+		{
+			get => InternalCalls.Rigidbody2DComponent_GetType(Entity.ID);
+			set => InternalCalls.Rigidbody2DComponent_SetType(Entity.ID, value);
+		}
+
+	}
 }

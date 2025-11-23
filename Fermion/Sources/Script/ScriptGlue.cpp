@@ -2,6 +2,7 @@
 #include "ScriptGlue.hpp"
 #include "ScriptEngine.hpp"
 #include "ScriptManager.hpp"
+#include "ScriptTypes.hpp"
 
 #include "Core/UUID.hpp"
 #include "Core/KeyCodes.hpp"
@@ -9,10 +10,13 @@
 
 #include "Scene/Scene.hpp"
 #include "Scene/Entity.hpp"
-
+#include "Scene/Components.hpp"
+#include "Physics/Physics2D.hpp"
 #include "imgui/ConsolePanel.hpp"
+
 #include "mono/metadata/object.h"
 #include "mono/metadata/reflection.h"
+#include <box2d/box2d.h>
 
 namespace Fermion
 {
@@ -40,6 +44,11 @@ namespace Fermion
     {
         std::string str = Utils::monoStringToString(string);
         ConsolePanel::get().addLog(str.c_str());
+    }
+
+    extern "C" static MonoObject *GetScriptInstance(UUID entityID)
+    {
+        return (MonoObject *)ScriptManager::getManagedInstance(entityID).m_instance;
     }
 
     extern "C" static bool Entity_HasComponent(UUID entityID, MonoReflectionType *componentType)
@@ -79,7 +88,7 @@ namespace Fermion
         *outTranslation = entity.getComponent<TransformComponent>().translation;
     }
 
-    static void TransformComponent_SetTranslation(UUID entityID, glm::vec3 *translation)
+    extern "C" static void TransformComponent_SetTranslation(UUID entityID, glm::vec3 *translation)
     {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
@@ -89,17 +98,125 @@ namespace Fermion
         entity.getComponent<TransformComponent>().translation = *translation;
     }
 
-    static bool Input_IsKeyDown(KeyCode keycode)
+    extern "C" static Rigidbody2DComponent::BodyType Rigidbody2DComponent_GetType(UUID entityID)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        auto &rb2d = entity.getComponent<Rigidbody2DComponent>();
+        uint64_t storedId = (uint64_t)(uintptr_t)rb2d.runtimeBody;
+        b2BodyId bodyId = b2LoadBodyId(storedId);
+        b2BodyType bodyType = b2Body_GetType(bodyId);
+        return Utils::Rigidbody2DTypeFromBox2DBody(bodyType);
+    }
+
+    extern "C" static void Rigidbody2DComponent_SetType(UUID entityID, Rigidbody2DComponent::BodyType bodyType)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        auto &rb2d = entity.getComponent<Rigidbody2DComponent>();
+        uint64_t storedId = (uint64_t)(uintptr_t)rb2d.runtimeBody;
+        b2BodyId bodyId = b2LoadBodyId(storedId);
+        b2Body_SetType(bodyId, Utils::Rigidbody2DTypeToBox2DBody(bodyType));
+    }
+
+    extern "C" static bool Input_IsKeyDown(KeyCode keycode)
     {
         return Input::isKeyPressed(keycode);
     }
 #define FM_ADD_INTERNAL_CALL(Name) mono_add_internal_call("Fermion.InternalCalls::" #Name, Name)
 
+    // 模板递归注册 
+    template <typename... Components>
+    static void RegisterComponent()
+    {
+        if constexpr (sizeof...(Components) == 0)
+        {
+            // 终止条件：参数包为空
+            return;
+        }
+        else if constexpr (sizeof...(Components) == 1)
+        {
+            // 单个组件注册
+            using Component = std::tuple_element_t<0, std::tuple<Components...>>;
+            
+            // 获取 C++ 组件类型的名称
+            std::string_view typeName = typeid(Component).name();
+
+            // 移除可能的 "struct " 或 "class " 前缀
+            std::string componentName(typeName);
+            size_t pos = componentName.find("struct ");
+            if (pos != std::string::npos)
+                componentName = componentName.substr(pos + 7);
+            pos = componentName.find("class ");
+            if (pos != std::string::npos)
+                componentName = componentName.substr(pos + 6);
+
+            // 移除命名空间前缀
+            pos = componentName.find_last_of("::");
+            if (pos != std::string::npos && pos + 1 < componentName.length())
+                componentName = componentName.substr(pos + 1);
+
+            // 在 C# 程序集中查找对应的类型
+            MonoImage *image = ScriptManager::getCoreAssemblyImage();
+            if (!image)
+            {
+                Log::Error(std::format("Component registration failed: Core assembly image not available"));
+                return;
+            }
+
+            // 在 Fermion 命名空间中查找组件类
+            MonoClass *monoClass = mono_class_from_name(image, "Fermion", componentName.c_str());
+            if (!monoClass)
+            {
+                Log::Warn(std::format("Component '{}' not found in C# assembly, skipping registration", componentName));
+                return;
+            }
+
+            MonoType *managedType = mono_class_get_type(monoClass);
+            if (!managedType)
+            {
+                Log::Error(std::format("Failed to get MonoType for component '{}'", componentName));
+                return;
+            }
+
+            // 注册 HasComponent 检查函数
+            s_entityHasComponentFuncs[managedType] = [](Entity entity)
+            { return entity.hasComponent<Component>(); };
+
+            Log::Info(std::format("Registered component: {}", componentName));
+        }
+        else
+        {
+            // 多个组件：递归注册
+            using FirstComponent = std::tuple_element_t<0, std::tuple<Components...>>;
+            RegisterComponent<FirstComponent>();
+            
+            // 递归处理剩余组件
+            []<std::size_t... Is>(std::index_sequence<Is...>)
+            {
+                RegisterComponent<std::tuple_element_t<Is + 1, std::tuple<Components...>>...>();
+            }(std::make_index_sequence<sizeof...(Components) - 1>{});
+        }
+    }
+
+    // ComponentGroup 包装器，用于解包组件列表
+    template <typename... Component>
+    static void RegisterComponent(ComponentGroup<Component...>)
+    {
+        RegisterComponent<Component...>();
+    }
+
     // 注册组件
     void ScriptGlue::registerComponents()
     {
-        // TODO: 注册可在 C# 使用的组件，比如 Transform、RigidBody 等
-        // 这里将来会包含遍历实体组件并注册到 Mono 运行时的逻辑
+        s_entityHasComponentFuncs.clear();
+        RegisterComponent(AllComponents{});
     }
 
     // 注册内部函数
@@ -109,11 +226,16 @@ namespace Fermion
         FM_ADD_INTERNAL_CALL(NativeLog);
         FM_ADD_INTERNAL_CALL(ConsoleLog);
 
+        FM_ADD_INTERNAL_CALL(GetScriptInstance);
         FM_ADD_INTERNAL_CALL(Entity_HasComponent);
         FM_ADD_INTERNAL_CALL(Entity_FindEntityByName);
 
         FM_ADD_INTERNAL_CALL(TransformComponent_GetTranslation);
         FM_ADD_INTERNAL_CALL(TransformComponent_SetTranslation);
+
+        FM_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetType);
+        FM_ADD_INTERNAL_CALL(Rigidbody2DComponent_SetType);
+
         FM_ADD_INTERNAL_CALL(Input_IsKeyDown);
     }
 }
