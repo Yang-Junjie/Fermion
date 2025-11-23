@@ -10,6 +10,7 @@
 #include "Scene/Scene.hpp"
 #include "Scene/Entity.hpp"
 
+#include "imgui/ConsolePanel.hpp"
 #include "mono/metadata/object.h"
 #include "mono/metadata/reflection.h"
 
@@ -33,6 +34,12 @@ namespace Fermion
     {
         std::string str = Utils::monoStringToString(string);
         Log::Info(str + " " + std::to_string(parameter));
+    }
+
+    extern "C" static void ConsoleLog(MonoString *string)
+    {
+        std::string str = Utils::monoStringToString(string);
+        ConsolePanel::get().addLog(str.c_str());
     }
 
     extern "C" static bool Entity_HasComponent(UUID entityID, MonoReflectionType *componentType)
@@ -100,6 +107,8 @@ namespace Fermion
     {
 
         FM_ADD_INTERNAL_CALL(NativeLog);
+        FM_ADD_INTERNAL_CALL(ConsoleLog);
+
         FM_ADD_INTERNAL_CALL(Entity_HasComponent);
         FM_ADD_INTERNAL_CALL(Entity_FindEntityByName);
 

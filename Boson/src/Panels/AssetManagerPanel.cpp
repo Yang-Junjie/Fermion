@@ -29,6 +29,7 @@ namespace Fermion
 
     void AssetManagerPanel::onImGuiRender()
     {
+        
         ImGui::Begin("Asset Manager");
 
         const auto &registry = AssetRegistry::getRegistry();
@@ -37,6 +38,7 @@ namespace Fermion
         {
             ImGui::TextUnformatted("No assets registered.");
             ImGui::End();
+            
             return;
         }
 
@@ -92,5 +94,6 @@ namespace Fermion
         }
 
         ImGui::End();
+      
     }
 }

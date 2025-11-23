@@ -39,6 +39,7 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Core/UUID.cpp
 
     ${FERMION_DIR}/ImGui/ImGuiLayer.cpp
+    ${FERMION_DIR}/ImGui/ConsolePanel.cpp
 
     ${FERMION_DIR}/Math/Math.cpp
 

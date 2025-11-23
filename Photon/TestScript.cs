@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using Fermion;
+using static Fermion.InternalCalls;
 namespace Sandbox
 {
     public class TestScript : Entity
@@ -30,14 +31,26 @@ namespace Sandbox
             Vector3 pos = Translation;
 
             if (Input.IsKeyDown(KeyCode.W))
+            {
                 pos.Y += ts * speed;
+                ConsoleLog("W"+$"[TestScript] Translation: {Translation.X},{Translation.Y},{Translation.Z}");
+            }
             else if (Input.IsKeyDown(KeyCode.S))
+            {
                 pos.Y -= ts * speed;
+                ConsoleLog("S"+$"[TestScript] Translation: {Translation.X},{Translation.Y},{Translation.Z}");
+            }
 
             if (Input.IsKeyDown(KeyCode.A))
+            {
                 pos.X -= ts * speed;
+                ConsoleLog("A"+$"[TestScript] Translation: {Translation.X},{Translation.Y},{Translation.Z}");
+            }
             else if (Input.IsKeyDown(KeyCode.D))
+            {
                 pos.X += ts * speed;
+                ConsoleLog("D"+$"[TestScript] Translation: {Translation.X},{Translation.Y},{Translation.Z}");
+            }
 
             Translation = pos;
 

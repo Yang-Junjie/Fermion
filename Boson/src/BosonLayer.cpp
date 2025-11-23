@@ -5,6 +5,7 @@
 #include "Utils/PlatformUtils.hpp"
 #include "Renderer/Font.hpp"
 
+#include "imgui/ConsolePanel.hpp"
 #include "Math/Math.hpp"
 
 #include <imgui.h>
@@ -201,6 +202,7 @@ namespace Fermion
             m_sceneHierarchyPanel.onImGuiRender();
             m_contentBrowserPanel.onImGuiRender();
             m_assetManagerPanel.onImGuiRender();
+            ConsolePanel::get().onImGuiRender();
             // ImGui::ShowDemoWindow();
 
             UIToolbar();
@@ -237,6 +239,7 @@ namespace Fermion
 
             // VIEWPORT
             {
+                ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4{0.117f, 0.117f, 0.117f, 1.0f});
                 ImGui::Begin("Viewport");
                 auto viewportOffset = ImGui::GetCursorPos(); // include tab bar (local to window)
 
@@ -340,6 +343,7 @@ namespace Fermion
                 }
 
                 ImGui::End();
+                ImGui::PopStyleColor();
                 ImGui::PopStyleVar();
             }
         }
@@ -435,13 +439,15 @@ namespace Fermion
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
         ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4{0.117f, 0.117f, 0.117f, 1.0f});
+        
         auto &colors = ImGui::GetStyle().Colors;
         const auto &buttonHovered = colors[ImGuiCol_ButtonHovered];
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(buttonHovered.x, buttonHovered.y, buttonHovered.z, 0.5f));
         const auto &buttonActive = colors[ImGuiCol_ButtonActive];
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(buttonActive.x, buttonActive.y, buttonActive.z, 0.5f));
 
-        ImGui::Begin("toolbar", nullptr,  ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+        ImGui::Begin("toolbar", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
         std::shared_ptr<Texture2D> icon = m_sceneState == SceneState::Edit ? m_iconPlay : m_iconStop;
         bool toolbarEnabled = (bool)m_activeScene;
 
@@ -449,7 +455,7 @@ namespace Fermion
         if (!toolbarEnabled)
             tintColor.w = 0.5f;
 
-        float size = ImGui::GetWindowHeight() - 5.0f;
+        float size = ImGui::GetWindowHeight() - 10.0f;
         ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
 
         bool hasPlayButton = m_sceneState == SceneState::Edit || m_sceneState == SceneState::Play;
@@ -525,7 +531,7 @@ namespace Fermion
             }
         }
         ImGui::PopStyleVar(2);
-        ImGui::PopStyleColor(3);
+        ImGui::PopStyleColor(4);
         ImGui::End();
     }
 

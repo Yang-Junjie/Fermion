@@ -8804,8 +8804,8 @@ struct ExampleAppConsole
     {
         IMGUI_DEMO_MARKER("Examples/Console");
         ClearLog();
-        memset(InputBuf, 0, sizeof(InputBuf));
         HistoryPos = -1;
+        memset(InputBuf, 0, sizeof(InputBuf));
 
         // "CLASSIFY" is here to provide the test case where "C"+[tab] completes to "CL" and display multiple matches.
         Commands.push_back("HELP");
@@ -8828,7 +8828,7 @@ struct ExampleAppConsole
     static int   Strnicmp(const char* s1, const char* s2, int n) { int d = 0; while (n > 0 && (d = toupper(*s2) - toupper(*s1)) == 0 && *s1) { s1++; s2++; n--; } return d; }
     static char* Strdup(const char* s)                           { IM_ASSERT(s); size_t len = strlen(s) + 1; void* buf = ImGui::MemAlloc(len); IM_ASSERT(buf); return (char*)memcpy(buf, (const void*)s, len); }
     static void  Strtrim(char* s)                                { char* str_end = s + strlen(s); while (str_end > s && str_end[-1] == ' ') str_end--; *str_end = 0; }
-
+    
     void    ClearLog()
     {
         for (int i = 0; i < Items.Size; i++)

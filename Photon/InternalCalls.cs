@@ -9,6 +9,9 @@ namespace Fermion
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void NativeLog(string s, int parameter);
 
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void ConsoleLog(string s);
+
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern bool Entity_HasComponent(ulong id, Type componentType);

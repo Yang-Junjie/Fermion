@@ -8,15 +8,13 @@
 #include <ImGuizmo.h>
 #include <filesystem>
 
-//TODO:该类直接依赖于opengl和glfw，记得抽象出来以支持跨平台
+// TODO:该类直接依赖于opengl和glfw，记得抽象出来以支持跨平台
 namespace Fermion
 {
     ImGuiLayer::ImGuiLayer(void *nativeWindow)
         : Layer("ImGuiLayer"), m_window(static_cast<GLFWwindow *>(nativeWindow))
     {
     }
-
-
 
     void ImGuiLayer::onAttach()
     {
@@ -119,7 +117,7 @@ namespace Fermion
     void ImGuiLayer::setDarkThemeColors()
     {
         auto &colors = ImGui::GetStyle().Colors;
-        colors[ImGuiCol_WindowBg] = ImVec4{0.1f, 0.105f, 0.11f, 1.0f};
+        colors[ImGuiCol_WindowBg] = ImVec4{0.145f, 0.145f, 0.149f, 1.0f};
 
         // Headers
         colors[ImGuiCol_Header] = ImVec4{0.2f, 0.205f, 0.21f, 1.0f};
