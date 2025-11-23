@@ -243,72 +243,15 @@ namespace Fermion
 		}
 		if (ImGui::BeginPopup("Add Component"))
 		{
-			if (!m_selectedEntity.hasComponent<SpriteRendererComponent>())
-			{
-				if (ImGui::MenuItem("Sprite Renderer"))
-				{
 
-					m_selectedEntity.addComponent<SpriteRendererComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-			}
-			if (!m_selectedEntity.hasComponent<CircleRendererComponent>())
-			{
-				if (ImGui::MenuItem("Circle Renderer"))
-				{
-					m_selectedEntity.addComponent<CircleRendererComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-			}
-			if (!m_selectedEntity.hasComponent<CameraComponent>())
-			{
-				if (ImGui::MenuItem("Camera"))
-				{
-					m_selectedEntity.addComponent<CameraComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-			}
-			if (!m_selectedEntity.hasComponent<TextComponent>())
-			{
-				if (ImGui::MenuItem("Text"))
-				{
-					m_selectedEntity.addComponent<TextComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-			}
-			if (!m_selectedEntity.hasComponent<ScriptComponent>())
-			{
-				if (ImGui::MenuItem("Script"))
-				{
-					m_selectedEntity.addComponent<ScriptComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-			}
-			if (!m_selectedEntity.hasComponent<Rigidbody2DComponent>())
-			{
-				if (ImGui::MenuItem("Rigidbody2D"))
-				{
-					m_selectedEntity.addComponent<Rigidbody2DComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-			}
-
-			if (!m_selectedEntity.hasComponent<BoxCollider2DComponent>())
-			{
-				if (ImGui::MenuItem("Box Collider2D"))
-				{
-					m_selectedEntity.addComponent<BoxCollider2DComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-			}
-			if (!m_selectedEntity.hasComponent<CircleCollider2DComponent>())
-			{
-				if (ImGui::MenuItem("Circle Collider2D"))
-				{
-					m_selectedEntity.addComponent<CircleCollider2DComponent>();
-					ImGui::CloseCurrentPopup();
-				}
-			}
+			displayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
+			displayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
+			displayAddComponentEntry<CameraComponent>("Camera");
+			displayAddComponentEntry<TextComponent>("Text");
+			displayAddComponentEntry<ScriptComponent>("Script");
+			displayAddComponentEntry<Rigidbody2DComponent>("Rigidbody2D");
+			displayAddComponentEntry<BoxCollider2DComponent>("Box Collider2D");
+			displayAddComponentEntry<CircleCollider2DComponent>("Circle Collider2D");
 
 			// if (ImGui::MenuItem("Native Script"))
 			// {
@@ -536,5 +479,17 @@ namespace Fermion
 			ImGui::DragFloat("Friction", &component.friction, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Restitution", &component.restitution, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Restitution Threshold", &component.restitutionThreshold, 0.01f, 0.0f); });
+	}
+	template <typename T>
+	inline void SceneHierarchyPanel::displayAddComponentEntry(const std::string &entryName)
+	{
+		if (!m_selectedEntity.hasComponent<T>())
+		{
+			if (ImGui::MenuItem(entryName.c_str()))
+			{
+				m_selectedEntity.addComponent<T>();
+				ImGui::CloseCurrentPopup();
+			}
+		}
 	}
 }

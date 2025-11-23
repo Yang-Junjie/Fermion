@@ -18,12 +18,14 @@ namespace Fermion
 
 		Entity getSelectedEntity() const { return m_selectedEntity; }
 		void setSelectedEntity(Entity entity);
-		
+
 		void setEditingEnabled(bool enabled);
 
 	private:
 		void drawEntityNode(Entity entity);
 		void drawComponents(Entity entity);
+		template <typename T>
+		void displayAddComponentEntry(const std::string &entryName);
 
 	private:
 		std::shared_ptr<Scene> m_contextScene;
@@ -32,5 +34,7 @@ namespace Fermion
 
 		std::shared_ptr<Texture2D> m_spriteComponentDefaultTexture;
 	};
+
+	
 
 }
