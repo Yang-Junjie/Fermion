@@ -194,46 +194,49 @@ namespace Fermion
         }
     }
 
-    void Scene::onRenderEditor(std::shared_ptr<SceneRenderer> renderer, EditorCamera &camera)
+    void Scene::onRenderEditor(std::shared_ptr<SceneRenderer> renderer, EditorCamera &camera, bool showRenderEntities)
     {
         renderer->beginScene(camera);
+        if (showRenderEntities)
         {
-            auto group = m_registry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
-            for (auto entity : group)
             {
-                auto &transform = group.get<TransformComponent>(entity);
-                auto &sprite = group.get<SpriteRendererComponent>(entity);
-                renderer->drawSprite(transform.getTransform(), sprite, (int)entity);
+                auto group = m_registry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
+                for (auto entity : group)
+                {
+                    auto &transform = group.get<TransformComponent>(entity);
+                    auto &sprite = group.get<SpriteRendererComponent>(entity);
+                    renderer->drawSprite(transform.getTransform(), sprite, (int)entity);
+                }
             }
-        }
-        {
-            auto group = m_registry.group<>(entt::get<TransformComponent, CircleRendererComponent>);
-            for (auto entity : group)
             {
-                auto &transform = group.get<TransformComponent>(entity);
-                auto &circle = group.get<CircleRendererComponent>(entity);
-                renderer->drawCircle(transform.getTransform(), circle.color, circle.thickness, circle.fade, (int)entity);
+                auto group = m_registry.group<>(entt::get<TransformComponent, CircleRendererComponent>);
+                for (auto entity : group)
+                {
+                    auto &transform = group.get<TransformComponent>(entity);
+                    auto &circle = group.get<CircleRendererComponent>(entity);
+                    renderer->drawCircle(transform.getTransform(), circle.color, circle.thickness, circle.fade, (int)entity);
+                }
             }
-        }
-        {
-            auto group = m_registry.group<>(entt::get<TransformComponent, TextComponent>);
-            for (auto entity : group)
             {
-                auto &transform = group.get<TransformComponent>(entity);
-                auto &text = group.get<TextComponent>(entity);
-                renderer->drawString(text.textString, transform.getTransform(), text, (int)entity);
+                auto group = m_registry.group<>(entt::get<TransformComponent, TextComponent>);
+                for (auto entity : group)
+                {
+                    auto &transform = group.get<TransformComponent>(entity);
+                    auto &text = group.get<TextComponent>(entity);
+                    renderer->drawString(text.textString, transform.getTransform(), text, (int)entity);
+                }
             }
         }
 
         renderer->endScene();
     }
 
-    void Scene::onUpdateEditor(std::shared_ptr<SceneRenderer> renderer, Timestep ts, EditorCamera &camera)
+    void Scene::onUpdateEditor(std::shared_ptr<SceneRenderer> renderer, Timestep ts, EditorCamera &camera, bool showRenderEntities)
     {
-        onRenderEditor(renderer, camera);
+        onRenderEditor(renderer, camera, showRenderEntities);
     }
 
-    void Scene::onUpdateSimulation(std::shared_ptr<SceneRenderer> renderer, Timestep ts, EditorCamera &camera)
+    void Scene::onUpdateSimulation(std::shared_ptr<SceneRenderer> renderer, Timestep ts, EditorCamera &camera, bool showRenderEntities)
     {
         if (!m_isPaused || m_stepFrames-- > 0)
             if (B2_IS_NON_NULL(m_physicsWorld))
@@ -264,10 +267,10 @@ namespace Fermion
                     transform.rotation.z = angle;
                 }
             }
-        onRenderEditor(renderer, camera);
+        onRenderEditor(renderer, camera, showRenderEntities);
     }
 
-    void Scene::onUpdateRuntime(std::shared_ptr<SceneRenderer> renderer, Timestep ts)
+    void Scene::onUpdateRuntime(std::shared_ptr<SceneRenderer> renderer, Timestep ts, bool showRenderEntities)
     {
         // Scripts
         {
@@ -364,23 +367,26 @@ namespace Fermion
             if (mainCamera)
             {
                 renderer->beginScene(*mainCamera, cameraTransform);
+                if (showRenderEntities)
                 {
-                    auto group = m_registry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
-                    for (auto entity : group)
                     {
-                        auto &transform = group.get<TransformComponent>(entity);
-                        auto &sprite = group.get<SpriteRendererComponent>(entity);
+                        auto group = m_registry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
+                        for (auto entity : group)
+                        {
+                            auto &transform = group.get<TransformComponent>(entity);
+                            auto &sprite = group.get<SpriteRendererComponent>(entity);
 
-                        renderer->drawSprite(transform.getTransform(), sprite, (int)entity);
+                            renderer->drawSprite(transform.getTransform(), sprite, (int)entity);
+                        }
                     }
-                }
-                {
-                    auto group = m_registry.group<>(entt::get<TransformComponent, CircleRendererComponent>);
-                    for (auto entity : group)
                     {
-                        auto &transform = group.get<TransformComponent>(entity);
-                        auto &circle = group.get<CircleRendererComponent>(entity);
-                        renderer->drawCircle(transform.getTransform(), circle.color, circle.thickness, circle.fade, (int)entity);
+                        auto group = m_registry.group<>(entt::get<TransformComponent, CircleRendererComponent>);
+                        for (auto entity : group)
+                        {
+                            auto &transform = group.get<TransformComponent>(entity);
+                            auto &circle = group.get<CircleRendererComponent>(entity);
+                            renderer->drawCircle(transform.getTransform(), circle.color, circle.thickness, circle.fade, (int)entity);
+                        }
                     }
                 }
 

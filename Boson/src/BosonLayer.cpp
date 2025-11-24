@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include "BosonLayer.hpp"
 #include "Fermion.hpp"
+#include "BosonLayer.hpp"
 #include "Scene/SceneSerializer.hpp"
 #include "Utils/PlatformUtils.hpp"
 #include "Renderer/Font.hpp"
@@ -76,7 +76,7 @@ namespace Fermion
 
         if (m_sceneState == SceneState::Play)
         {
-            m_activeScene->onUpdateRuntime(m_viewportRenderer, dt);
+            m_activeScene->onUpdateRuntime(m_viewportRenderer, dt, m_showRenderEntities);
             m_sceneHierarchyPanel.setSelectedEntity({});
         }
         else if (m_sceneState == SceneState::Simulate)
@@ -84,14 +84,14 @@ namespace Fermion
             // if (m_viewportHovered)
             m_editorCamera.onUpdate(dt);
 
-            m_activeScene->onUpdateSimulation(m_viewportRenderer, dt, m_editorCamera);
+            m_activeScene->onUpdateSimulation(m_viewportRenderer, dt, m_editorCamera, m_showRenderEntities);
         }
         else // Edit
         {
             // if (m_viewportHovered)
             m_editorCamera.onUpdate(dt);
 
-            m_activeScene->onUpdateEditor(m_viewportRenderer, dt, m_editorCamera);
+            m_activeScene->onUpdateEditor(m_viewportRenderer, dt, m_editorCamera, m_showRenderEntities);
         }
 
         // mouse picking
@@ -231,6 +231,7 @@ namespace Fermion
             {
                 ImGui::Begin("settings");
                 ImGui::Checkbox("showPhysicsColliders", &m_showPhysicsColliders);
+                ImGui::Checkbox("showRenderEntities", &m_showRenderEntities);
                 ImGui::Image((ImTextureID)s_Font->getAtlasTexture()->getRendererID(), {512, 512}, {0, 1}, {1, 0});
                 ImGui::End();
             }
@@ -440,7 +441,7 @@ namespace Fermion
         ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4{0.117f, 0.117f, 0.117f, 1.0f});
-        
+
         auto &colors = ImGui::GetStyle().Colors;
         const auto &buttonHovered = colors[ImGuiCol_ButtonHovered];
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(buttonHovered.x, buttonHovered.y, buttonHovered.z, 0.5f));
@@ -537,6 +538,7 @@ namespace Fermion
 
     void BosonLayer::onOverlayRender()
     {
+
         if (m_sceneState == SceneState::Play)
         {
             Entity camera = m_activeScene->getPrimaryCameraEntity();

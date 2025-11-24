@@ -43,3 +43,5 @@
 
 // Project
 #include "Project/Project.hpp"
+
+#include "Asset/AssetManager.hpp"

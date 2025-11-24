@@ -85,5 +85,6 @@ namespace Fermion
         int m_gizmoType = -1;
         bool m_primaryCamera = true;
         bool m_showPhysicsColliders = false;
+        bool m_showRenderEntities = true;
     };
 }

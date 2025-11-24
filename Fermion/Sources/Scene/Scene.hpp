@@ -22,9 +22,9 @@ namespace Fermion
         void onSimulationStart();
         void onSimulationStop();
 
-        void onUpdateEditor(std::shared_ptr<SceneRenderer> renderer, Timestep ts, EditorCamera &camera);
-        void onUpdateSimulation(std::shared_ptr<SceneRenderer> renderer, Timestep ts, EditorCamera &camera);
-        void onUpdateRuntime(std::shared_ptr<SceneRenderer> renderer, Timestep ts);
+        void onUpdateEditor(std::shared_ptr<SceneRenderer> renderer, Timestep ts, EditorCamera &camera, bool showRenderEntities = true);
+        void onUpdateSimulation(std::shared_ptr<SceneRenderer> renderer, Timestep ts, EditorCamera &camera, bool showRenderEntities = true);
+        void onUpdateRuntime(std::shared_ptr<SceneRenderer> renderer, Timestep ts, bool showRenderEntities = true);
 
         void onViewportResize(uint32_t width, uint32_t height);
 
@@ -62,7 +62,7 @@ namespace Fermion
     private:
         void onPhysics2DStart();
         void onPhysics2DStop();
-        void onRenderEditor(std::shared_ptr<SceneRenderer> renderer, EditorCamera &camera);
+        void onRenderEditor(std::shared_ptr<SceneRenderer> renderer, EditorCamera &camera, bool showRenderEntities = true);
 
     private:
         entt::registry m_registry;

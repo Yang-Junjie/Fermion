@@ -10,7 +10,6 @@ namespace Fermion
 {
 	SceneHierarchyPanel::SceneHierarchyPanel()
 	{
-		
 	}
 
 	SceneHierarchyPanel::SceneHierarchyPanel(const std::shared_ptr<Scene> &scene) : m_contextScene(scene)
@@ -20,6 +19,7 @@ namespace Fermion
 	{
 		m_contextScene = scene;
 		m_selectedEntity = {};
+		m_inspectorPanel.setSelectedEntity({});
 	}
 	void SceneHierarchyPanel::onImGuiRender()
 	{
@@ -38,6 +38,7 @@ namespace Fermion
 		if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
 		{
 			m_selectedEntity = {};
+			m_inspectorPanel.setSelectedEntity(Entity());
 		}
 		if (ImGui::BeginPopupContextWindow("WindowContextMenu", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
 		{
@@ -62,7 +63,10 @@ namespace Fermion
 	{
 		m_editingEnabled = enabled;
 		if (!m_editingEnabled)
+		{
 			m_selectedEntity = {};
+			m_inspectorPanel.setSelectedEntity({});
+		}
 	}
 
 	void SceneHierarchyPanel::drawEntityNode(Entity entity)
@@ -75,6 +79,7 @@ namespace Fermion
 		if (m_editingEnabled && ImGui::IsItemClicked())
 		{
 			m_selectedEntity = entity;
+			m_inspectorPanel.setSelectedEntity(entity);
 		}
 
 		bool enetityDeleted = false;
@@ -98,6 +103,7 @@ namespace Fermion
 			if (m_selectedEntity == entity)
 			{
 				m_selectedEntity = {};
+				m_inspectorPanel.setSelectedEntity(Entity());
 			}
 		}
 	}
