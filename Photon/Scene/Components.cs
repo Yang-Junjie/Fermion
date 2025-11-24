@@ -30,6 +30,15 @@ namespace Fermion
 	{
 		public enum BodyType { Static = 0, Dynamic = 1, Kinematic = 2 }
 
+		public Vector2 LinearVelocity
+		{
+			get
+			{
+				InternalCalls.Rigidbody2DComponent_GetLinearVelocity(Entity.ID, out Vector2 velocity);
+				return velocity;
+			}
+		}
+
 		public BodyType Type
 		{
 			get => InternalCalls.Rigidbody2DComponent_GetType(Entity.ID);
@@ -40,5 +49,7 @@ namespace Fermion
 		{
 			InternalCalls.Rigidbody2DComponent_ApplyLinearImpulseToCenter(Entity.ID, ref impulse, wake);
 		}
+
+
 	}
 }

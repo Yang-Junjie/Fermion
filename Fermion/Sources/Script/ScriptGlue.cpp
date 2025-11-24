@@ -136,7 +136,23 @@ namespace Fermion
         uint64_t storedId = (uint64_t)(uintptr_t)rb2d.runtimeBody;
         b2BodyId bodyId = b2LoadBodyId(storedId);
 
-        b2Body_ApplyLinearImpulseToCenter(bodyId, b2Vec2{impulse->x,impulse->y}, wake);
+        b2Body_ApplyLinearImpulseToCenter(bodyId, b2Vec2{impulse->x, impulse->y}, wake);
+    }
+
+    extern "C" static void Rigidbody2DComponent_GetLinearVelocity(UUID entityID, glm::vec2 *out)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        auto &rb2d = entity.getComponent<Rigidbody2DComponent>();
+        uint64_t storedId = (uint64_t)(uintptr_t)rb2d.runtimeBody;
+        b2BodyId bodyId = b2LoadBodyId(storedId);
+
+        b2Vec2 vel = b2Body_GetLinearVelocity(bodyId);
+        out->x = vel.x;
+        out->y = vel.y;
     }
 
     extern "C" static bool Input_IsKeyDown(KeyCode keycode)
@@ -248,6 +264,7 @@ namespace Fermion
         FM_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetType);
         FM_ADD_INTERNAL_CALL(Rigidbody2DComponent_SetType);
         FM_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyLinearImpulseToCenter);
+        FM_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetLinearVelocity);
 
         FM_ADD_INTERNAL_CALL(Input_IsKeyDown);
     }
