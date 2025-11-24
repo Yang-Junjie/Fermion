@@ -103,6 +103,13 @@ namespace Fermion
         ScriptComponent() = default;
         ScriptComponent(const ScriptComponent &script) = default;
     };
+
+    // struct ScriptContianerComponent
+    // {
+    //     std::unordered_map<std::string, std::unique_ptr<ScriptComponent>> scripts;
+    // };
+
+
     class ScriptableEntity;
     struct NativeScriptComponent
     {
@@ -190,5 +197,8 @@ namespace Fermion
         ComponentGroup<TransformComponent, SpriteRendererComponent,
                        CircleRendererComponent,
                        CameraComponent,
-                       ScriptComponent, NativeScriptComponent, Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, TextComponent>;
+                       ScriptComponent, 
+                       NativeScriptComponent, 
+                       Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, 
+                       TextComponent>;
 }

@@ -1,8 +1,7 @@
 #pragma once
 #include "Scene/Scene.hpp"
 #include "Scene/Entity.hpp"
-#include <memory>
-#include "Renderer/Texture.hpp"
+#include "InspectorPanel.hpp"
 
 namespace Fermion
 {
@@ -23,18 +22,15 @@ namespace Fermion
 
 	private:
 		void drawEntityNode(Entity entity);
-		void drawComponents(Entity entity);
-		template <typename T>
-		void displayAddComponentEntry(const std::string &entryName);
+		// void drawComponents(Entity entity);
+		// template <typename T>
+		// void displayAddComponentEntry(const std::string &entryName);
 
 	private:
+		InspectorPanel m_inspectorPanel;
 		std::shared_ptr<Scene> m_contextScene;
 		Entity m_selectedEntity;
 		bool m_editingEnabled = true;
-
-		std::shared_ptr<Texture2D> m_spriteComponentDefaultTexture;
 	};
-
-	
 
 }
