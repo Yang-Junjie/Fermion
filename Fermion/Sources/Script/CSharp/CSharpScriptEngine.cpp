@@ -224,17 +224,17 @@ namespace Fermion
                 fullName = name;
 
             m_allEntityClassesNames.push_back(std::string(fullName));
-            Log::Info("  -> load script class : " + fullName);
+            Log::Info("  CSharpScriptEngine: load script class : " + fullName);
 
             // 存储脚本类信息
             m_classes[fullName] = std::make_shared<CSharpScriptClass>(m_rootDomain, klass, namesp ? namesp : "", name);
         }
 
         Log::Info(std::format("CSharpScriptEngine:  {} script class was loaded ", m_classes.size()));
-        
+
         // 注册组件
         ScriptGlue::registerComponents();
-        
+
         return true;
     }
 
@@ -324,7 +324,7 @@ namespace Fermion
     }
     ScriptHandle CSharpScriptEngine::getManagedInstance(UUID uuid)
     {
-        FERMION_ASSERT(m_entityInstances.find(uuid)!=m_entityInstances.end(), "Entity not found!");
+        FERMION_ASSERT(m_entityInstances.find(uuid) != m_entityInstances.end(), "Entity not found!");
         return m_entityInstances[uuid]->getHandle();
     }
     void CSharpScriptEngine::onRuntimeStop()
@@ -372,7 +372,7 @@ namespace Fermion
         if (entityClassExists(sc.className))
         {
             UUID entityID = entity.getUUID();
-            Log::Info(std::format("  -> find script class  {}, crate entity (EntityID: {})", sc.className, entityID.toString()));
+            Log::Info(std::format(" ScriptCreateEntity:  find script class  {}, crate entity (EntityID: {})", sc.className, entityID.toString()));
 
             std::shared_ptr<ScriptInstance> instance = std::make_shared<ScriptInstance>(m_classes[sc.className], entity);
 
@@ -386,10 +386,7 @@ namespace Fermion
                     setEntityFieldValue(instance, name, fieldInstance);
                 }
             }
-
-            Log::Info("  -> call  OnCreate()");
             instance->invokeOnCreate();
-            Log::Info("  -> OnCreate() call done");
         }
         else
         {

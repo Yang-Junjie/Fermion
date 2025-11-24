@@ -1,16 +1,16 @@
 Scene: Name
 Entities:
-  - Entity: 15104107341039513431
+  - Entity: 13995839978119638108
     TagComponent:
-      Tag: Empty Entity
+      Tag: green square
     TransformComponent:
-      Translation: [0.028575689, -3.0454814, 0]
+      Translation: [0, -1.39, 0]
       Rotation: [0, 0, 0]
-      Scale: [8.365876, 0.24451688, 1]
+      Scale: [1, 1, 1]
     SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
+      Color: [0, 1, 0, 1]
     Rigidbody2DComponent:
-      BodyType: 0
+      BodyType: 1
       FixedRotation: false
     BoxCollider2DComponent:
       Offset: [0, 0]
@@ -19,6 +19,17 @@ Entities:
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
+    ScriptComponent:
+      ClassName: Sandbox.TestScript
+  - Entity: 17674460285504380402
+    TagComponent:
+      Tag: red square
+    TransformComponent:
+      Translation: [0, 0, -5.09]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 0, 0, 1]
   - Entity: 13479184233855098003
     TagComponent:
       Tag: camera
@@ -37,26 +48,17 @@ Entities:
         OrthographicFar: 100
       Primary: true
       FixedAspectRatio: false
-  - Entity: 17674460285504380402
+  - Entity: 15104107341039513431
     TagComponent:
-      Tag: red square
+      Tag: Empty Entity
     TransformComponent:
-      Translation: [0, 0, -5.09]
+      Translation: [0.028575689, -3.0454814, 0]
       Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
+      Scale: [8.365876, 0.24451688, 1]
     SpriteRendererComponent:
-      Color: [1, 0, 0, 1]
-  - Entity: 13995839978119638108
-    TagComponent:
-      Tag: green square
-    TransformComponent:
-      Translation: [0, -1.39, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [0, 1, 0, 1]
+      Color: [1, 1, 1, 1]
     Rigidbody2DComponent:
-      BodyType: 1
+      BodyType: 0
       FixedRotation: false
     BoxCollider2DComponent:
       Offset: [0, 0]

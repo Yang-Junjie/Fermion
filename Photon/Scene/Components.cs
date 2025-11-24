@@ -36,5 +36,9 @@ namespace Fermion
 			set => InternalCalls.Rigidbody2DComponent_SetType(Entity.ID, value);
 		}
 
+		public void ApplyLinearImpulse(Vector2 impulse, bool wake)
+		{
+			InternalCalls.Rigidbody2DComponent_ApplyLinearImpulseToCenter(Entity.ID, ref impulse, wake);
+		}
 	}
 }

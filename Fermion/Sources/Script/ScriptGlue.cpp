@@ -125,13 +125,27 @@ namespace Fermion
         b2Body_SetType(bodyId, Utils::Rigidbody2DTypeToBox2DBody(bodyType));
     }
 
+    extern "C" static void Rigidbody2DComponent_ApplyLinearImpulseToCenter(UUID entityID, glm::vec2 *impulse, bool wake)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        auto &rb2d = entity.getComponent<Rigidbody2DComponent>();
+        uint64_t storedId = (uint64_t)(uintptr_t)rb2d.runtimeBody;
+        b2BodyId bodyId = b2LoadBodyId(storedId);
+
+        b2Body_ApplyLinearImpulseToCenter(bodyId, b2Vec2{impulse->x,impulse->y}, wake);
+    }
+
     extern "C" static bool Input_IsKeyDown(KeyCode keycode)
     {
         return Input::isKeyPressed(keycode);
     }
 #define FM_ADD_INTERNAL_CALL(Name) mono_add_internal_call("Fermion.InternalCalls::" #Name, Name)
 
-    // 模板递归注册 
+    // 模板递归注册
     template <typename... Components>
     static void RegisterComponent()
     {
@@ -144,11 +158,10 @@ namespace Fermion
         {
             // 单个组件注册
             using Component = std::tuple_element_t<0, std::tuple<Components...>>;
-            
+
             // 获取 C++ 组件类型的名称
             std::string_view typeName = typeid(Component).name();
 
-            // 移除可能的 "struct " 或 "class " 前缀
             std::string componentName(typeName);
             size_t pos = componentName.find("struct ");
             if (pos != std::string::npos)
@@ -157,12 +170,11 @@ namespace Fermion
             if (pos != std::string::npos)
                 componentName = componentName.substr(pos + 6);
 
-            // 移除命名空间前缀
             pos = componentName.find_last_of("::");
             if (pos != std::string::npos && pos + 1 < componentName.length())
                 componentName = componentName.substr(pos + 1);
 
-            // 在 C# 程序集中查找对应的类型
+            // 在 C# 中查找对应的类型
             MonoImage *image = ScriptManager::getCoreAssemblyImage();
             if (!image)
             {
@@ -196,7 +208,7 @@ namespace Fermion
             // 多个组件：递归注册
             using FirstComponent = std::tuple_element_t<0, std::tuple<Components...>>;
             RegisterComponent<FirstComponent>();
-            
+
             // 递归处理剩余组件
             []<std::size_t... Is>(std::index_sequence<Is...>)
             {
@@ -235,6 +247,7 @@ namespace Fermion
 
         FM_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetType);
         FM_ADD_INTERNAL_CALL(Rigidbody2DComponent_SetType);
+        FM_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyLinearImpulseToCenter);
 
         FM_ADD_INTERNAL_CALL(Input_IsKeyDown);
     }
