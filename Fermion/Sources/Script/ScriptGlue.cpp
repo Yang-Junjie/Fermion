@@ -46,9 +46,9 @@ namespace Fermion
         ConsolePanel::get().addLog(str.c_str());
     }
 
-    extern "C" static MonoObject *GetScriptInstance(UUID entityID)
+    extern "C" static MonoObject *GetScriptInstance(UUID entityID,std::string className)
     {
-        return (MonoObject *)ScriptManager::getManagedInstance(entityID).m_instance;
+        return (MonoObject *)ScriptManager::getManagedInstance(entityID,className).m_instance;
     }
 
     extern "C" static bool Entity_HasComponent(UUID entityID, MonoReflectionType *componentType)

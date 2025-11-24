@@ -31,9 +31,9 @@ namespace Fermion
         {
             s_scriptEngine->onRuntimeStart(scene);
         }
-        static ScriptHandle getManagedInstance(UUID uuid)
+        static ScriptHandle getManagedInstance(UUID uuid,std::string className)
         {
-            return s_scriptEngine->getManagedInstance(uuid);
+            return s_scriptEngine->getManagedInstance(uuid,className);
         }
         static void onRuntimeStop()
         {

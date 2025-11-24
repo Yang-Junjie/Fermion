@@ -322,10 +322,15 @@ namespace Fermion
     {
         return m_scene;
     }
-    ScriptHandle CSharpScriptEngine::getManagedInstance(UUID uuid)
+    // ScriptHandle CSharpScriptEngine::getManagedInstance(UUID uuid)
+    // {
+    //     FERMION_ASSERT(m_entityInstances.find(uuid) != m_entityInstances.end(), "Entity not found!");
+    //     return m_entityInstances[uuid][0]->getHandle();
+    // }
+    ScriptHandle CSharpScriptEngine::getManagedInstance(UUID uuid, std::string className)
     {
         FERMION_ASSERT(m_entityInstances.find(uuid) != m_entityInstances.end(), "Entity not found!");
-        return m_entityInstances[uuid]->getHandle();
+        return m_entityInstances[uuid][className]->getHandle();
     }
     void CSharpScriptEngine::onRuntimeStop()
     {
@@ -366,31 +371,34 @@ namespace Fermion
     }
     void CSharpScriptEngine::onCreateEntity(Entity entity)
     {
-        const auto &sc = entity.getComponent<ScriptComponent>();
-        Log::Info(std::format("CSharpScriptEngine: try to create entity: {}", sc.className));
+        const auto &sc = entity.getComponent<ScriptContainerComponent>();
 
-        if (entityClassExists(sc.className))
+        for (auto className : sc.scriptClassNames)
         {
-            UUID entityID = entity.getUUID();
-            Log::Info(std::format(" ScriptCreateEntity:  find script class  {}, crate entity (EntityID: {})", sc.className, entityID.toString()));
-
-            std::shared_ptr<ScriptInstance> instance = std::make_shared<ScriptInstance>(m_classes[sc.className], entity);
-
-            m_entityInstances[entityID] = instance;
-
-            if (m_entityScriptFields.find(entityID) != m_entityScriptFields.end())
+            Log::Info(std::format("CSharpScriptEngine: try to create entity: {}", className));
+            if (entityClassExists(className))
             {
-                const ScriptFieldMap &fieldMap = m_entityScriptFields.at(entityID);
-                for (const auto &[name, fieldInstance] : fieldMap)
+                UUID entityID = entity.getUUID();
+                Log::Info(std::format(" ScriptCreateEntity:  find script class  {}, crate entity (EntityID: {})", className, entityID.toString()));
+
+                std::shared_ptr<ScriptInstance> instance = std::make_shared<ScriptInstance>(m_classes[className], entity);
+
+                m_entityInstances[entityID][className] = instance;
+
+                if (m_entityScriptFields.find(entityID) != m_entityScriptFields.end())
                 {
-                    setEntityFieldValue(instance, name, fieldInstance);
+                    const ScriptFieldMap &fieldMap = m_entityScriptFields.at(entityID);
+                    for (const auto &[name, fieldInstance] : fieldMap)
+                    {
+                        setEntityFieldValue(instance, name, fieldInstance);
+                    }
                 }
+                instance->invokeOnCreate();
             }
-            instance->invokeOnCreate();
-        }
-        else
-        {
-            Log::Error(std::format("CSharpScriptEngine: cant find script class : {}", sc.className));
+            else
+            {
+                Log::Error(std::format("CSharpScriptEngine: cant find script class : {}", className));
+            }
         }
     }
     void CSharpScriptEngine::onUpdateEntity(Entity entity, Timestep ts)
@@ -398,8 +406,11 @@ namespace Fermion
         UUID entityID = entity.getUUID();
         if (m_entityInstances.find(entityID) != m_entityInstances.end())
         {
-            std::shared_ptr<ScriptInstance> instance = m_entityInstances[entityID];
-            instance->invokeOnUpdate(ts);
+            for (const auto &[className, instance] : m_entityInstances[entityID])
+            {
+                std::shared_ptr<ScriptInstance> instanceCp = instance;
+                instanceCp->invokeOnUpdate(ts);
+            }
         }
         else
         {

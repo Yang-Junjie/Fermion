@@ -22,5 +22,6 @@ namespace Fermion
 
         std::shared_ptr<Texture2D> m_spriteComponentDefaultTexture;
         Entity m_selectedEntity;
+        
     };
 }

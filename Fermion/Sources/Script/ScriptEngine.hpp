@@ -140,7 +140,8 @@ namespace Fermion
 
         virtual void onRuntimeStart(Scene *scene) = 0;
         virtual Scene *getSceneContext() const = 0;
-        virtual ScriptHandle getManagedInstance(UUID uuid) = 0;
+        // virtual ScriptHandle getManagedInstance(UUID uuid) = 0;
+        virtual ScriptHandle getManagedInstance(UUID uuid,std::string className) = 0;
         virtual void onRuntimeStop() = 0;
         virtual bool entityClassExists(const std::string &fullClassName) = 0;
         virtual void onCreateEntity(Entity entity) = 0;

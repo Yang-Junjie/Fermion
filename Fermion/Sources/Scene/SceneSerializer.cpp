@@ -134,7 +134,7 @@ namespace Fermion
 		{
 			out << YAML::Key << "SpriteRendererComponent";
 			out << YAML::BeginMap;
-			auto& sprite = entity.getComponent<SpriteRendererComponent>();
+			auto &sprite = entity.getComponent<SpriteRendererComponent>();
 			out << YAML::Key << "Color" << YAML::Value << sprite.color;
 			if (static_cast<uint64_t>(sprite.textureHandle) != 0)
 				out << YAML::Key << "TextureHandle" << YAML::Value << static_cast<uint64_t>(sprite.textureHandle);
@@ -144,7 +144,7 @@ namespace Fermion
 		{
 			out << YAML::Key << "CircleRendererComponent";
 			out << YAML::BeginMap;
-			auto& circleComponent = entity.getComponent<CircleRendererComponent>();
+			auto &circleComponent = entity.getComponent<CircleRendererComponent>();
 			out << YAML::Key << "Color" << YAML::Value << circleComponent.color;
 			out << YAML::Key << "Thickness" << YAML::Value << circleComponent.thickness;
 			out << YAML::Key << "Fade" << YAML::Value << circleComponent.fade;
@@ -227,8 +227,21 @@ namespace Fermion
 		{
 			out << YAML::Key << "ScriptComponent";
 			out << YAML::BeginMap;
-			auto& sc = entity.getComponent<ScriptComponent>();
+			auto &sc = entity.getComponent<ScriptComponent>();
 			out << YAML::Key << "ClassName" << YAML::Value << sc.className;
+			out << YAML::EndMap;
+		}
+		if (entity.hasComponent<ScriptContainerComponent>())
+		{
+			out << YAML::Key << "ScriptContainerComponent";
+			out << YAML::BeginMap;
+
+			auto &scc = entity.getComponent<ScriptContainerComponent>();
+
+			out << YAML::Key << "ScriptClassNames" << YAML::Value << YAML::BeginSeq;
+			for (auto &name : scc.scriptClassNames)
+				out << name;
+			out << YAML::EndSeq;
 			out << YAML::EndMap;
 		}
 
@@ -439,11 +452,23 @@ namespace Fermion
 				auto scriptComponent = entity["ScriptComponent"];
 				if (scriptComponent && scriptComponent.IsMap())
 				{
-					auto& sc = deserializedEntity.addComponent<ScriptComponent>();
+					auto &sc = deserializedEntity.addComponent<ScriptComponent>();
 					if (auto n = scriptComponent["ClassName"]; n)
 					{
 						sc.className = n.as<std::string>();
 						Log::Info(std::format("  ScriptComponent: ClassName = {}", sc.className));
+					}
+				}
+				auto scriptContainerNode = entity["ScriptContainerComponent"];
+				if (scriptContainerNode && scriptContainerNode.IsMap())
+				{
+					auto &sc = deserializedEntity.addComponent<ScriptContainerComponent>();
+
+					auto classNamesNode = scriptContainerNode["ScriptClassNames"];
+					if (classNamesNode && classNamesNode.IsSequence())
+					{
+						for (auto classNode : classNamesNode)
+							sc.scriptClassNames.push_back(classNode.as<std::string>());
 					}
 				}
 			}

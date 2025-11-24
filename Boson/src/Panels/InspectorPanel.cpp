@@ -20,11 +20,11 @@ namespace Fermion
     void InspectorPanel::onImGuiRender()
     {
         ImGui::Begin("Inspector");
-		if (m_selectedEntity)
-		{
-			drawComponents(m_selectedEntity);
-		}
-		ImGui::End();
+        if (m_selectedEntity)
+        {
+            drawComponents(m_selectedEntity);
+        }
+        ImGui::End();
     }
     static void drawVec3Control(const std::string &label, glm::vec3 &values, float resetValue = 0.0f, float columnWidth = 100.0f)
     {
@@ -164,7 +164,7 @@ namespace Fermion
             // 	displayAddComponentEntry<ScriptComponent>("Script");
             // 	displayAddComponentEntry<ScriptContainerComponent>("Script Container");
             // }
-
+            displayAddComponentEntry<ScriptContainerComponent>("Script Container");
             displayAddComponentEntry<Rigidbody2DComponent>("Rigidbody2D");
             displayAddComponentEntry<BoxCollider2DComponent>("Box Collider2D");
             displayAddComponentEntry<CircleCollider2DComponent>("Circle Collider2D");
@@ -323,31 +323,73 @@ namespace Fermion
 			ImGui::DragFloat("Kerning", &component.kerning, 0.025f);
 			ImGui::DragFloat("Line Spacing", &component.lineSpacing, 0.025f); });
 
-        drawComponent<ScriptComponent>("Script", entity, [](auto &component)
-                                       {
-			char buffer[256];
-			memset(buffer, 0, sizeof(buffer));
-			strncpy_s(buffer, component.className.c_str(), sizeof(buffer));
+        // drawComponent<ScriptComponent>("Script", entity, [](auto &component)
+        //                                {
+        // 	for (auto name : ScriptManager::getALLEntityClasses()){
+        // 		size_t dotPos = name.find('.');
+        // 		if (dotPos != std::string::npos)
+        // 		{
+        // 			std::string namespaceName = name.substr(0, dotPos);
+        // 			if (namespaceName != "Fermion")
+        // 			{
+        // 				bool isSelected = (component.className == name);
+        // 				if (ImGui::Selectable(name.c_str(), isSelected))
+        // 				{
+        // 					component.className = name;
+        // 				}
+        // 			}
+        // 		}
+        // 	} });
+        drawComponent<ScriptContainerComponent>("Scripts Container", entity, [](auto &component)
+                                                {
+            static std::unordered_map<std::string, bool> checkedState;
+            for (auto &name : ScriptManager::getALLEntityClasses())
+            {
+                size_t dotPos = name.find('.');
+                if (dotPos != std::string::npos)
+                {
+                    std::string namespaceName = name.substr(0, dotPos);
+                    if (namespaceName != "Fermion")
+                    {
+                        if (checkedState.find(name) == checkedState.end())
+                            checkedState[name] = false;
+                    }
+                }
+            }
+            for (auto name : ScriptManager::getALLEntityClasses())
+            {
+                size_t dotPos = name.find('.');
+                if (dotPos != std::string::npos)
+                {
+                    std::string namespaceName = name.substr(0, dotPos);
+                    if (namespaceName != "Fermion")
+                    {
+                        bool checked = checkedState[name];
+                        std::string label = "##checkbox_" + name;
 
-			// if (ImGui::InputText("Class Name", buffer, sizeof(buffer)))
-			// {
-			// 	component.className = std::string(buffer);
-			// }
-			for (auto name : ScriptManager::getALLEntityClasses()){
-				size_t dotPos = name.find('.');
-				if (dotPos != std::string::npos)
-				{
-					std::string namespaceName = name.substr(0, dotPos);
-					if (namespaceName != "Fermion")
-					{
-						bool isSelected = (component.className == name);
-						if (ImGui::Selectable(name.c_str(), isSelected))
-						{
-							component.className = name;
-						}
-					}
-				}
-			} });
+                        if (ImGui::Checkbox(label.c_str(), &checked))
+                        {
+                            checkedState[name] = checked;
+
+                            if (checked)
+                            {
+                                component.scriptClassNames.push_back(name);
+                            }
+                            else
+                            {
+                                // 修复第380行的语法错误
+                                component.scriptClassNames.erase(
+                                    std::remove(component.scriptClassNames.begin(), component.scriptClassNames.end(), name), 
+                                    component.scriptClassNames.end());
+                            }
+                        }
+
+                        ImGui::SameLine();
+                        // 修复第386行，将item改为name
+                        ImGui::Text("%s", name.c_str());
+                    }
+                }
+            } });
 
         drawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto &component)
                                                {
