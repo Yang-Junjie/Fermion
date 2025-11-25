@@ -202,6 +202,15 @@ namespace Fermion
 			out << YAML::Key << "RestitutionThreshold" << YAML::Value << cc.restitutionThreshold;
 			out << YAML::EndMap;
 		}
+		if(entity.hasComponent<BoxSensor2DComponent>()){
+			out << YAML::Key << "BoxSensor2DComponent";
+			out << YAML::BeginMap;
+			auto &cc = entity.getComponent<BoxSensor2DComponent>();
+			out << YAML::Key << "IsTrigger" << YAML::Value << cc.isTrigger;
+			out << YAML::Key << "Offset" << YAML::Value << cc.offset;
+			out << YAML::Key << "Size" << YAML::Value << cc.size;
+			out << YAML::EndMap;
+		}
 		if (entity.hasComponent<CameraComponent>())
 		{
 			out << YAML::Key << "CameraComponent";
@@ -419,6 +428,16 @@ namespace Fermion
 						cc.restitution = n.as<float>();
 					if (auto n = circleCollider2DComponent["RestitutionThreshold"]; n)
 						cc.restitutionThreshold = n.as<float>();
+				}
+				auto boxSensor2DComponent = entity["BoxSensor2DComponent"];
+				if (boxSensor2DComponent && boxSensor2DComponent.IsMap()) { 
+					auto &bs2c = deserializedEntity.addComponent<BoxSensor2DComponent>();
+					if (auto n = boxSensor2DComponent["IsTrigger"]; n)
+						bs2c.isTrigger = n.as<bool>();
+					if (auto n = boxSensor2DComponent["Offset"]; n)
+						bs2c.offset = n.as<glm::vec2>();
+					if (auto n = boxSensor2DComponent["Size"]; n)
+						bs2c.size = n.as<glm::vec2>();
 				}
 
 				auto cameraComponent = entity["CameraComponent"];

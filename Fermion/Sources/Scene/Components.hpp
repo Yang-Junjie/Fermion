@@ -158,7 +158,7 @@ namespace Fermion
         glm::vec2 offset = {0.0f, 0.0f};
         glm::vec2 size = {0.5f, 0.5f};
 
-        // TODO: move into physics material in the future maybe
+        // TODO: move into physics material component in the future 
         float density = 1.0f;
         float friction = 0.5f;
         float restitution = 0.0f;
@@ -169,6 +169,19 @@ namespace Fermion
 
         BoxCollider2DComponent() = default;
         BoxCollider2DComponent(const BoxCollider2DComponent &) = default;
+    };
+
+    struct BoxSensor2DComponent
+    {
+        glm::vec2 offset = {0.0f, 0.0f};
+        glm::vec2 size = {0.5f, 0.5f};
+        bool isTrigger = false;
+
+        // Storage for runtime
+        void *runtimeFixture = nullptr;
+
+        BoxSensor2DComponent() = default;
+        BoxSensor2DComponent(const BoxSensor2DComponent &) = default;
     };
 
     struct CircleCollider2DComponent
@@ -200,6 +213,6 @@ namespace Fermion
                        ScriptComponent,
                        ScriptContainerComponent,
                        NativeScriptComponent,
-                       Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent,
+                       Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent,BoxSensor2DComponent,
                        TextComponent>;
 }

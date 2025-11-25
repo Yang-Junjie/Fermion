@@ -156,7 +156,7 @@ namespace Fermion
             displayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
             displayAddComponentEntry<CameraComponent>("Camera");
             displayAddComponentEntry<TextComponent>("Text");
-            displayAddComponentEntry<ScriptComponent>("Script");
+            // displayAddComponentEntry<ScriptComponent>("Script");
             // bool hasScriptComponent = m_selectedEntity.hasComponent<ScriptComponent>();
             // bool hasScriptContainerComponent = m_selectedEntity.hasComponent<ScriptContainerComponent>();
             // if (!hasScriptComponent && !hasScriptContainerComponent)
@@ -164,10 +164,11 @@ namespace Fermion
             // 	displayAddComponentEntry<ScriptComponent>("Script");
             // 	displayAddComponentEntry<ScriptContainerComponent>("Script Container");
             // }
-            displayAddComponentEntry<ScriptContainerComponent>("Script Container");
+            displayAddComponentEntry<ScriptContainerComponent>("Scripts");
             displayAddComponentEntry<Rigidbody2DComponent>("Rigidbody2D");
             displayAddComponentEntry<BoxCollider2DComponent>("Box Collider2D");
             displayAddComponentEntry<CircleCollider2DComponent>("Circle Collider2D");
+            displayAddComponentEntry<BoxSensor2DComponent>("Box Sensor2D");
 
             // if (ImGui::MenuItem("Native Script"))
             // {
@@ -437,6 +438,10 @@ namespace Fermion
 			ImGui::DragFloat("Friction", &component.friction, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Restitution", &component.restitution, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Restitution Threshold", &component.restitutionThreshold, 0.01f, 0.0f); });
+        drawComponent<BoxSensor2DComponent>("Box Sensor 2D",entity,[](auto &component){
+            ImGui::DragFloat2("Offset", glm::value_ptr(component.offset), 0.01f);
+            ImGui::DragFloat2("Size", glm::value_ptr(component.size), 0.01f);
+        });
     }
     template <typename T>
     inline void InspectorPanel::displayAddComponentEntry(const std::string &entryName)

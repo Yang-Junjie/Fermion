@@ -19,6 +19,10 @@ Entities:
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
+    BoxSensor2DComponent:
+      IsTrigger: false
+      Offset: [0, -0.51]
+      Size: [0.5, 0.1]
     ScriptContainerComponent:
       ScriptClassNames:
         - Sandbox.TestScript

@@ -590,6 +590,21 @@ namespace Fermion
                     m_viewportRenderer->drawCircle(transform, glm::vec4(0, 1, 0, 1), 0.1f);
                 }
             }
+            // Box Sensor
+            {
+                auto view = m_activeScene->getAllEntitiesWith<TransformComponent, BoxSensor2DComponent>();
+                for (auto entity : view)
+                {
+                    auto [tc, bs2d] = view.get<TransformComponent, BoxSensor2DComponent>(entity);
+
+                    glm::vec3 translation = tc.translation + glm::vec3(bs2d.offset, 0.001f);
+                    glm::vec3 scale = tc.scale * glm::vec3(bs2d.size * 2.0f, 1.0f);
+
+                    glm::mat4 transform = glm::translate(glm::mat4(1.0f), tc.translation) * glm::rotate(glm::mat4(1.0f), tc.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(bs2d.offset, 0.001f)) * glm::scale(glm::mat4(1.0f), scale);
+
+                    m_viewportRenderer->drawRect(transform, glm::vec4(0, 1, 1, 1));
+                }
+            }
         }
 
         // Draw selected entity outline

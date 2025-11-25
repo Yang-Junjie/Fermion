@@ -96,7 +96,7 @@ namespace Fermion
             for (auto e : view)
             {
                 Entity entity = {e, this};
-                ScriptManager::onCreateEntity(entity); 
+                ScriptManager::onCreateEntity(entity);
             }
         }
     }
@@ -159,6 +159,7 @@ namespace Fermion
                 shapeDef.density = bc2d.density;
                 shapeDef.material.friction = bc2d.friction;
                 shapeDef.material.restitution = bc2d.restitution;
+                shapeDef.enableSensorEvents = true;
 
                 b2Polygon box = b2MakeOffsetBox(
                     halfWidth, halfHeight,
@@ -177,6 +178,7 @@ namespace Fermion
                 shapeDef.density = cc2d.density;
                 shapeDef.material.friction = cc2d.friction;
                 shapeDef.material.restitution = cc2d.restitution;
+                shapeDef.enableSensorEvents = true;
 
                 b2Circle circle;
                 // offset 也按缩放来算，和可视 Transform 一致
@@ -188,6 +190,25 @@ namespace Fermion
 
                 b2ShapeId shapeId = b2CreateCircleShape(bodyId, &shapeDef, &circle);
                 cc2d.runtimeFixture = (void *)(uintptr_t)b2StoreShapeId(shapeId);
+            }
+            if (entity.hasComponent<BoxSensor2DComponent>())
+            {
+                auto &boxSensor2d = entity.getComponent<BoxSensor2DComponent>();
+
+                float halfWidth = boxSensor2d.size.x * transform.scale.x;
+                float halfHeight = boxSensor2d.size.y * transform.scale.y;
+
+                b2ShapeDef shapeDef = b2DefaultShapeDef();
+                shapeDef.isSensor = true;
+                shapeDef.enableSensorEvents = true;
+
+                b2Polygon box = b2MakeOffsetBox(
+                    halfWidth, halfHeight,
+                    b2Vec2{boxSensor2d.offset.x, boxSensor2d.offset.y},
+                    b2Rot_identity);
+
+                b2ShapeId shapeId = b2CreatePolygonShape(bodyId, &shapeDef, &box);
+                boxSensor2d.runtimeFixture = (void *)(uintptr_t)b2StoreShapeId(shapeId);
             }
         }
     }
@@ -249,6 +270,45 @@ namespace Fermion
             {
                 b2World_Step(m_physicsWorld, ts.getSeconds(), 4);
 
+                b2SensorEvents sensorEvents = b2World_GetSensorEvents(m_physicsWorld);
+                {
+                    auto view = m_registry.view<BoxSensor2DComponent>();
+                    for (auto e : view)
+                    {
+                        Entity entity{e, this};
+                        auto &bs2d = entity.getComponent<BoxSensor2DComponent>();
+                        
+                        if (!bs2d.runtimeFixture)
+                            continue;
+                            
+                        uint64_t storedShapeId = (uint64_t)(uintptr_t)bs2d.runtimeFixture;
+                        b2ShapeId myShapeId = b2LoadShapeId(storedShapeId);
+                        
+                        if (!b2Shape_IsValid(myShapeId))
+                            continue;
+
+                        bs2d.isTrigger = false;
+                        for (int i = 0; i < sensorEvents.beginCount; ++i)
+                        {
+                            b2SensorBeginTouchEvent *begin = sensorEvents.beginEvents + i;
+                            if (B2_ID_EQUALS(begin->sensorShapeId, myShapeId))
+                            {
+                                bs2d.isTrigger = true;
+                                break;
+                            }
+                        }
+
+                        for (int i = 0; i < sensorEvents.endCount; ++i)
+                        {
+                            b2SensorEndTouchEvent *end = sensorEvents.endEvents + i;
+                            if (b2Shape_IsValid(end->sensorShapeId) && B2_ID_EQUALS(end->sensorShapeId, myShapeId))
+                            {
+                                bs2d.isTrigger = false;
+                                break;
+                            }
+                        }
+                    }
+                }
                 auto view = m_registry.view<Rigidbody2DComponent>();
                 for (auto e : view)
                 {
@@ -280,14 +340,14 @@ namespace Fermion
     {
         // Scripts
         {
- 
+
             // auto view = m_registry.view<ScriptComponent>();
             // for (auto e : view)
             // {
             //     Entity entity = {e, this};
             //     ScriptManager::onUpdateEntity(entity, ts);
             // }
-            auto view = m_registry.view<ScriptContainerComponent >();
+            auto view = m_registry.view<ScriptContainerComponent>();
             for (auto e : view)
             {
                 Entity entity = {e, this};
@@ -310,6 +370,47 @@ namespace Fermion
             if (B2_IS_NON_NULL(m_physicsWorld))
             {
                 b2World_Step(m_physicsWorld, ts.getSeconds(), 4);
+
+                b2SensorEvents sensorEvents = b2World_GetSensorEvents(m_physicsWorld);
+                {
+                    auto view = m_registry.view<BoxSensor2DComponent>();
+                    for (auto e : view)
+                    {
+                        Entity entity{e, this};
+                        auto &bs2d = entity.getComponent<BoxSensor2DComponent>();
+                        
+                        if (!bs2d.runtimeFixture)
+                            continue;
+                            
+                        uint64_t storedShapeId = (uint64_t)(uintptr_t)bs2d.runtimeFixture;
+                        b2ShapeId myShapeId = b2LoadShapeId(storedShapeId);
+                        
+                        if (!b2Shape_IsValid(myShapeId))
+                            continue;
+
+                        bs2d.isTrigger = false;
+                        for (int i = 0; i < sensorEvents.beginCount; ++i)
+                        {
+                            b2SensorBeginTouchEvent *begin = sensorEvents.beginEvents + i;
+                            if (B2_ID_EQUALS(begin->sensorShapeId, myShapeId))
+                            {
+                                bs2d.isTrigger = true;
+                                break;
+                            }
+                        }
+
+                        for (int i = 0; i < sensorEvents.endCount; ++i)
+                        {
+                            b2SensorEndTouchEvent *end = sensorEvents.endEvents + i;
+                            if (b2Shape_IsValid(end->sensorShapeId) && B2_ID_EQUALS(end->sensorShapeId, myShapeId))
+                            {
+                                bs2d.isTrigger = false;
+                                break;
+                            }
+                        }
+                        
+                    }
+                }
 
                 auto view = m_registry.view<Rigidbody2DComponent>();
                 for (auto e : view)
@@ -420,7 +521,6 @@ namespace Fermion
     {
         m_entityMap.erase(entity.getUUID());
         m_registry.destroy(entity);
-        
     }
 
     Entity Scene::duplicateEntity(Entity entity)
