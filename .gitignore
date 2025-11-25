@@ -1,6 +1,8 @@
 ﻿.vscode
 build
-bin
+bin/*
+!bin/
+!bin/imgui.ini
 *.log
 *.ini
 .vs
