@@ -54,9 +54,13 @@ namespace Fermion
 	}
 	public class BoxSensor2DComponent : Component
 	{
-		public bool IsTrigger
+		public bool SensorBegin
 		{
-			get => InternalCalls.BoxSensor2D_IsTrigger(Entity.ID);
+			get => InternalCalls.BoxSensor2D_SensorBegin(Entity.ID);
+		}
+		public bool SensorEnd
+		{
+			get => InternalCalls.BoxSensor2D_SensorEnd(Entity.ID);
 		}
 	}
 }

@@ -154,7 +154,7 @@ namespace Fermion
         out->x = vel.x;
         out->y = vel.y;
     }
-    extern "C" static bool BoxSensor2D_IsTrigger(UUID entityID)
+    extern "C" static bool BoxSensor2D_SensorBegin(UUID entityID)
     {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
@@ -163,7 +163,18 @@ namespace Fermion
 
         auto &bs2c = entity.getComponent<BoxSensor2DComponent>();
 
-        return bs2c.isTrigger;
+        return bs2c.sensorBegin;
+    }
+    extern "C" static bool BoxSensor2D_SensorEnd(UUID entityID)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        auto &bs2c = entity.getComponent<BoxSensor2DComponent>();
+
+        return bs2c.sensorEnd;
     }
 
     extern "C" static bool Input_IsKeyDown(KeyCode keycode)
@@ -276,7 +287,8 @@ namespace Fermion
         FM_ADD_INTERNAL_CALL(Rigidbody2DComponent_SetType);
         FM_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyLinearImpulseToCenter);
         FM_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetLinearVelocity);
-        FM_ADD_INTERNAL_CALL(BoxSensor2D_IsTrigger);
+        FM_ADD_INTERNAL_CALL(BoxSensor2D_SensorBegin);
+        FM_ADD_INTERNAL_CALL(BoxSensor2D_SensorEnd);
 
         FM_ADD_INTERNAL_CALL(Input_IsKeyDown);
     }

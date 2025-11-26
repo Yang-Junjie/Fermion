@@ -277,33 +277,33 @@ namespace Fermion
                     {
                         Entity entity{e, this};
                         auto &bs2d = entity.getComponent<BoxSensor2DComponent>();
-                        
+
                         if (!bs2d.runtimeFixture)
                             continue;
-                            
+
                         uint64_t storedShapeId = (uint64_t)(uintptr_t)bs2d.runtimeFixture;
                         b2ShapeId myShapeId = b2LoadShapeId(storedShapeId);
-                        
+
                         if (!b2Shape_IsValid(myShapeId))
                             continue;
 
-                        bs2d.isTrigger = false;
+                        bs2d.sensorBegin = false;
                         for (int i = 0; i < sensorEvents.beginCount; ++i)
                         {
                             b2SensorBeginTouchEvent *begin = sensorEvents.beginEvents + i;
                             if (B2_ID_EQUALS(begin->sensorShapeId, myShapeId))
                             {
-                                bs2d.isTrigger = true;
+                                bs2d.sensorBegin = true;
                                 break;
                             }
                         }
-
+                        bs2d.sensorEnd = false;
                         for (int i = 0; i < sensorEvents.endCount; ++i)
                         {
                             b2SensorEndTouchEvent *end = sensorEvents.endEvents + i;
                             if (b2Shape_IsValid(end->sensorShapeId) && B2_ID_EQUALS(end->sensorShapeId, myShapeId))
                             {
-                                bs2d.isTrigger = false;
+                                bs2d.sensorEnd = false;
                                 break;
                             }
                         }
@@ -378,37 +378,36 @@ namespace Fermion
                     {
                         Entity entity{e, this};
                         auto &bs2d = entity.getComponent<BoxSensor2DComponent>();
-                        
+
                         if (!bs2d.runtimeFixture)
                             continue;
-                            
+
                         uint64_t storedShapeId = (uint64_t)(uintptr_t)bs2d.runtimeFixture;
                         b2ShapeId myShapeId = b2LoadShapeId(storedShapeId);
-                        
+
                         if (!b2Shape_IsValid(myShapeId))
                             continue;
 
-                        bs2d.isTrigger = false;
+                        bs2d.sensorBegin = false;
                         for (int i = 0; i < sensorEvents.beginCount; ++i)
                         {
                             b2SensorBeginTouchEvent *begin = sensorEvents.beginEvents + i;
                             if (B2_ID_EQUALS(begin->sensorShapeId, myShapeId))
                             {
-                                bs2d.isTrigger = true;
+                                bs2d.sensorBegin = true;
                                 break;
                             }
                         }
-
+                        bs2d.sensorEnd = false;
                         for (int i = 0; i < sensorEvents.endCount; ++i)
                         {
                             b2SensorEndTouchEvent *end = sensorEvents.endEvents + i;
                             if (b2Shape_IsValid(end->sensorShapeId) && B2_ID_EQUALS(end->sensorShapeId, myShapeId))
                             {
-                                bs2d.isTrigger = false;
+                                bs2d.sensorEnd = true;
                                 break;
                             }
                         }
-                        
                     }
                 }
 

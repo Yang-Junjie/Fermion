@@ -1,64 +1,63 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 using Fermion;
 using static Fermion.InternalCalls;
+
 namespace Sandbox
 {
     public class TestScript : Entity
     {
-        float Speed = 50.0f;
-        private Rigidbody2DComponent m_Rigidbody;
+        public float MoveSpeed = 50.0f;
+        public float JumpImpulse = 1.0f;   // 跳跃力度
         public float Time = 0.0f;
+
+        private Rigidbody2DComponent m_Rigidbody;
+        private BoxSensor2DComponent m_Sensor;
+
+        private int groundContactCount = 0;
+        public bool IsGrounded => groundContactCount > 0;
+
         public void OnCreate()
         {
             m_Rigidbody = GetComponent<Rigidbody2DComponent>();
-            string type;
-            if (m_Rigidbody.Type == Rigidbody2DComponent.BodyType.Static)
-            {
-                type = "Static";
-            }
-            else if (m_Rigidbody.Type == Rigidbody2DComponent.BodyType.Kinematic)
-            {
-                type = "Kinematic";
-            }
-            else
-            {
-                type = "Dynamic";
-            }
-            ConsoleLog($"[TestScript] Rigidbody2DComponent.Type: {type}");
+            m_Sensor = GetComponent<BoxSensor2DComponent>();
 
+            ConsoleLog("[TestScript] Created");
         }
 
         public void OnUpdate(float ts)
         {
             Time += ts;
 
-            float speed = Speed;
+            if (m_Sensor.SensorBegin)
+                groundContactCount++;
+
+            if (m_Sensor.SensorEnd)
+                groundContactCount--;
+
+            if (groundContactCount < 0)
+                groundContactCount = 0;
+
             Vector3 velocity = Vector3.Zero;
 
-            // ConsoleLog($"dt= {ts}");
-            if (Input.IsKeyDown(KeyCode.W))
-            {
-                velocity.Y = 1.0f;
-            }
-            else if (Input.IsKeyDown(KeyCode.S))
-            {
-                velocity.Y = -1.0f;
-            }
-
             if (Input.IsKeyDown(KeyCode.A))
-            {
                 velocity.X = -1.0f;
-            }
             else if (Input.IsKeyDown(KeyCode.D))
-            {
                 velocity.X = 1.0f;
+
+            if (Input.IsKeyDown(KeyCode.S))
+                velocity.Y = -1.0f;
+
+            if (IsGrounded && Input.IsKeyDown(KeyCode.W))
+            {
+            
+                m_Rigidbody.ApplyLinearImpulse(new Vector2(0, JumpImpulse), true);
+
             }
-
-
-            velocity *= speed * ts;
-
             m_Rigidbody.ApplyLinearImpulse(velocity.XY, true);
+
+            
+            velocity *= MoveSpeed * ts;
+
         }
     }
 }

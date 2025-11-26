@@ -43,7 +43,10 @@ namespace Fermion
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal extern static void Rigidbody2DComponent_GetLinearVelocity(ulong entityID, out Vector2 linearVelocity);
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal extern static bool BoxSensor2D_IsTrigger(ulong entityID);
+        internal extern static bool BoxSensor2D_SensorBegin(ulong entityID);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal extern static bool BoxSensor2D_SensorEnd(ulong entityID);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern bool Input_IsKeyDown(KeyCode keycode);

@@ -206,7 +206,8 @@ namespace Fermion
 			out << YAML::Key << "BoxSensor2DComponent";
 			out << YAML::BeginMap;
 			auto &cc = entity.getComponent<BoxSensor2DComponent>();
-			out << YAML::Key << "IsTrigger" << YAML::Value << cc.isTrigger;
+			out << YAML::Key << "SensorBegin" << YAML::Value << cc.sensorBegin;
+			out << YAML::Key << "SensorEnd" << YAML::Value << cc.sensorEnd;
 			out << YAML::Key << "Offset" << YAML::Value << cc.offset;
 			out << YAML::Key << "Size" << YAML::Value << cc.size;
 			out << YAML::EndMap;
@@ -432,8 +433,10 @@ namespace Fermion
 				auto boxSensor2DComponent = entity["BoxSensor2DComponent"];
 				if (boxSensor2DComponent && boxSensor2DComponent.IsMap()) { 
 					auto &bs2c = deserializedEntity.addComponent<BoxSensor2DComponent>();
-					if (auto n = boxSensor2DComponent["IsTrigger"]; n)
-						bs2c.isTrigger = n.as<bool>();
+					if (auto n = boxSensor2DComponent["SensorBegin"]; n)
+						bs2c.sensorBegin = n.as<bool>();
+					if (auto n = boxSensor2DComponent["SensorEnd"]; n)
+						bs2c.sensorEnd = n.as<bool>();
 					if (auto n = boxSensor2DComponent["Offset"]; n)
 						bs2c.offset = n.as<glm::vec2>();
 					if (auto n = boxSensor2DComponent["Size"]; n)
