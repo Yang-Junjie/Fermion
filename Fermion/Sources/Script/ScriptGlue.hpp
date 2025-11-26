@@ -7,7 +7,7 @@ namespace Fermion
     {
     public:
         static void registerComponents();
-
+        static void registerComponentFactories();
         static void registerFunctions();
     };
 

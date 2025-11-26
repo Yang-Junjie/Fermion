@@ -6,7 +6,7 @@ namespace Sandbox
 {
     public class TestScript : Entity
     {
-        public float MoveSpeed = 50.0f;
+        public float MoveSpeed = 1.0f;
         public float JumpImpulse = 1.0f;   // 跳跃力度
         public float Time = 0.0f;
 
@@ -40,22 +40,21 @@ namespace Sandbox
             Vector3 velocity = Vector3.Zero;
 
             if (Input.IsKeyDown(KeyCode.A))
-                velocity.X = -1.0f;
+                velocity.X = -0.1f;
             else if (Input.IsKeyDown(KeyCode.D))
-                velocity.X = 1.0f;
+                velocity.X = 0.1f;
 
-            if (Input.IsKeyDown(KeyCode.S))
-                velocity.Y = -1.0f;
+
 
             if (IsGrounded && Input.IsKeyDown(KeyCode.W))
             {
-            
+
                 m_Rigidbody.ApplyLinearImpulse(new Vector2(0, JumpImpulse), true);
 
             }
             m_Rigidbody.ApplyLinearImpulse(velocity.XY, true);
 
-            
+
             velocity *= MoveSpeed * ts;
 
         }

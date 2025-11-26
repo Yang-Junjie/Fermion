@@ -3,6 +3,7 @@
 #include "Core/Timestep.hpp"
 #include "Core/UUID.hpp"
 #include "Renderer/EditorCamera.hpp"
+#include "Components.hpp"
 #include <box2d/box2d.h>
 namespace Fermion
 {
@@ -59,10 +60,15 @@ namespace Fermion
             return m_registry.view<Components...>();
         }
 
+        b2WorldId getPhysicsWorld() const { return m_physicsWorld; }
+        bool isPhysicsWorldValid() const { return B2_IS_NON_NULL(m_physicsWorld); }
+
     private:
         void onPhysics2DStart();
         void onPhysics2DStop();
         void onRenderEditor(std::shared_ptr<SceneRenderer> renderer, EditorCamera &camera, bool showRenderEntities = true);
+
+      
 
     private:
         entt::registry m_registry;
@@ -80,4 +86,5 @@ namespace Fermion
         friend class SceneHierarchyPanel;
     };
 
+    
 }

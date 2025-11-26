@@ -32,7 +32,9 @@ namespace Fermion
             return str;
         }
     }
+#define FM_ADD_INTERNAL_CALL(Name) mono_add_internal_call("Fermion.InternalCalls::" #Name, Name)
     static std::unordered_map<MonoType *, std::function<bool(Entity)>> s_entityHasComponentFuncs;
+    static std::unordered_map<MonoType *, std::function<void(Entity)>> s_entitycomponentFactories;
     // C++ 实现的内部调用函数示例
     extern "C" static void NativeLog(MonoString *string, int parameter)
     {
@@ -61,6 +63,19 @@ namespace Fermion
         MonoType *managedType = mono_reflection_type_get_type(componentType);
         FERMION_ASSERT(s_entityHasComponentFuncs.find(managedType) != s_entityHasComponentFuncs.end(), "Component type is not registered");
         return s_entityHasComponentFuncs.at(managedType)(entity);
+    }
+    extern "C" static void Entity_AddComponent(uint64_t entityID, MonoReflectionType *componentType)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null");
+        Entity entity = scene->getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null");
+
+        MonoType *type = mono_reflection_type_get_type(componentType);
+        auto it = s_entitycomponentFactories.find(type);
+        FERMION_ASSERT(it != s_entitycomponentFactories.end(), "Component type not registered");
+
+        it->second(entity);
     }
 
     extern "C" static uint64_t Entity_FindEntityByName(MonoString *name)
@@ -181,7 +196,6 @@ namespace Fermion
     {
         return Input::isKeyPressed(keycode);
     }
-#define FM_ADD_INTERNAL_CALL(Name) mono_add_internal_call("Fermion.InternalCalls::" #Name, Name)
 
     // 模板递归注册
     template <typename... Components>
@@ -255,6 +269,54 @@ namespace Fermion
         }
     }
 
+    template <typename Component>
+    void registerComponentFactory(MonoImage *image)
+    {
+        std::string componentName = typeid(Component).name();
+        size_t pos = componentName.find("struct ");
+        if (pos != std::string::npos)
+            componentName = componentName.substr(pos + 7);
+        pos = componentName.find("class ");
+        if (pos != std::string::npos)
+            componentName = componentName.substr(pos + 6);
+        pos = componentName.find_last_of("::");
+        if (pos != std::string::npos)
+            componentName = componentName.substr(pos + 1);
+
+        MonoClass *monoClass = mono_class_from_name(image, "Fermion", componentName.c_str());
+        if (!monoClass)
+            return;
+
+        MonoType *type = mono_class_get_type(monoClass);
+        if (!type)
+            return;
+
+        // 添加到工厂表
+        s_entitycomponentFactories[type] = [](Entity entity)
+        {
+            if constexpr (std::is_same_v<Component, ScriptContainerComponent>)
+            {
+                // 多实例组件挂载到容器
+                entity.getComponent<ScriptContainerComponent>();
+            }
+            else
+            {
+                auto &component = entity.addComponent<Component>();// TODO::实现动态初始化组件否则动态添加的组件无法使用
+            }
+        };
+    }
+    template <typename... Components>
+    void registerAllComponentFactories(MonoImage *image)
+    {
+        (registerComponentFactory<Components>(image), ...);
+    }
+
+    // 对 ComponentGroup 解包
+    template <typename... Components>
+    void registerAllComponentFactories(ComponentGroup<Components...> group, MonoImage *image)
+    {
+        registerAllComponentFactories<Components...>(image);
+    }
     // ComponentGroup 包装器，用于解包组件列表
     template <typename... Component>
     static void RegisterComponent(ComponentGroup<Component...>)
@@ -268,7 +330,12 @@ namespace Fermion
         s_entityHasComponentFuncs.clear();
         RegisterComponent(AllComponents{});
     }
-
+    void ScriptGlue::registerComponentFactories()
+    {
+        s_entitycomponentFactories.clear();
+        MonoImage *image = ScriptManager::getCoreAssemblyImage();
+        registerAllComponentFactories(AllComponents{}, image);
+    }
     // 注册内部函数
     void ScriptGlue::registerFunctions()
     {
@@ -278,6 +345,7 @@ namespace Fermion
 
         FM_ADD_INTERNAL_CALL(GetScriptInstance);
         FM_ADD_INTERNAL_CALL(Entity_HasComponent);
+        FM_ADD_INTERNAL_CALL(Entity_AddComponent);
         FM_ADD_INTERNAL_CALL(Entity_FindEntityByName);
 
         FM_ADD_INTERNAL_CALL(TransformComponent_GetTranslation);

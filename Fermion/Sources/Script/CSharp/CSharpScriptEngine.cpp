@@ -234,6 +234,7 @@ namespace Fermion
 
         // 注册组件
         ScriptGlue::registerComponents();
+        ScriptGlue::registerComponentFactories();
 
         return true;
     }

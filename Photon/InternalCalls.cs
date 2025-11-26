@@ -14,14 +14,15 @@ namespace Fermion
 
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern object GetScriptInstance(ulong entityID,string className);
+        internal static extern object GetScriptInstance(ulong entityID, string className);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern bool Entity_HasComponent(ulong id, Type componentType);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern ulong Entity_FindEntityByName(string name);
 
-
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Entity_AddComponent(ulong id, Type componentType);
 
 
         [MethodImpl(MethodImplOptions.InternalCall)]

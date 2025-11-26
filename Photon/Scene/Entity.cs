@@ -42,6 +42,14 @@ namespace Fermion
 			return component;
 		}
 
+		public T AddComponent<T>() where T : Component, new()
+		{
+			Type componentType = typeof(T);
+			InternalCalls.Entity_AddComponent(ID, componentType);
+			InternalCalls.ConsoleLog("Added component " + componentType.Name);
+			return GetComponent<T>();
+		}
+
 		public Entity FindEntityByName(string name)
 		{
 			ulong entityID = InternalCalls.Entity_FindEntityByName(name);
