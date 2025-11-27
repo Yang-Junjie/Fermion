@@ -229,12 +229,11 @@ namespace Fermion
         FERMION_ASSERT(entity, "Entity is null!");
 
         auto &bs2c = entity.getComponent<BoxSensor2DComponent>();
-        *out = bs2c.offset
+        *out = bs2c.offset;
     }
-    F
 
-        extern "C" static bool
-        Input_IsKeyDown(KeyCode keycode)
+    extern "C" static bool
+    Input_IsKeyDown(KeyCode keycode)
     {
         return Input::isKeyPressed(keycode);
     }

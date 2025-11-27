@@ -111,11 +111,27 @@ namespace Fermion
     void Scene::onSimulationStart()
     {
         onPhysics2DStart();
+        {
+            ScriptManager::onRuntimeStart(this);
+            // auto view = m_registry.view<ScriptComponent>();
+            // for (auto e : view)
+            // {
+            //     Entity entity = {e, this};
+            //     ScriptManager::onCreateEntity(entity);
+            // }
+            auto view = m_registry.view<ScriptContainerComponent>();
+            for (auto e : view)
+            {
+                Entity entity = {e, this};
+                ScriptManager::onCreateEntity(entity);
+            }
+        }
     }
 
     void Scene::onSimulationStop()
     {
         onPhysics2DStop();
+        ScriptManager::onRuntimeStop();
     }
     void Scene::initPhysicsSensor(Entity entity)
     {
@@ -272,6 +288,35 @@ namespace Fermion
     void Scene::onUpdateSimulation(std::shared_ptr<SceneRenderer> renderer, Timestep ts, EditorCamera &camera, bool showRenderEntities)
     {
         if (!m_isPaused || m_stepFrames-- > 0)
+        // Scripts
+        {
+
+            // auto view = m_registry.view<ScriptComponent>();
+            // for (auto e : view)
+            // {
+            //     Entity entity = {e, this};
+            //     ScriptManager::onUpdateEntity(entity, ts);
+            // }
+            auto view = m_registry.view<ScriptContainerComponent>();
+            for (auto e : view)
+            {
+                Entity entity = {e, this};
+
+                ScriptManager::onUpdateEntity(entity, ts);
+            }
+            m_registry.view<NativeScriptComponent>().each(
+                [=](auto entity, auto &nsc)
+                {
+                    if (!nsc.instance)
+                    {
+                        nsc.instance = nsc.instantiateScript();
+                        nsc.instance->m_entity = Entity{entity, this};
+                        nsc.instance->onCreate();
+                    }
+                    nsc.instance->onUpdate(ts);
+                });
+        }
+        {
             if (B2_IS_NON_NULL(m_physicsWorld))
             {
                 b2World_Step(m_physicsWorld, ts.getSeconds(), 4);
@@ -339,6 +384,7 @@ namespace Fermion
                     transform.rotation.z = angle;
                 }
             }
+        }
         onRenderEditor(renderer, camera, showRenderEntities);
     }
 
@@ -357,7 +403,7 @@ namespace Fermion
             for (auto e : view)
             {
                 Entity entity = {e, this};
-                
+
                 ScriptManager::onUpdateEntity(entity, ts);
             }
             m_registry.view<NativeScriptComponent>().each(
@@ -380,11 +426,11 @@ namespace Fermion
                 b2SensorEvents sensorEvents = b2World_GetSensorEvents(m_physicsWorld);
                 {
                     auto view = m_registry.view<BoxSensor2DComponent>();
-                    
+
                     for (auto e : view)
                     {
                         Entity entity{e, this};
-                       
+
                         // initPhysicsSensor(entity);
                         auto &bs2d = entity.getComponent<BoxSensor2DComponent>();
 
