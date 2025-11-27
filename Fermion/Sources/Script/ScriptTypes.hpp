@@ -7,7 +7,6 @@
 
 namespace Fermion
 {
-    // 支持的脚本字段类型枚举
     enum class ScriptFieldType
     {
         None = 0,
@@ -15,28 +14,28 @@ namespace Fermion
         Double,
         Bool,
         Int,
-        ULong,     // uint64_t / C# ulong
+        ULong,     
         Vector2,
         Vector3,
         Vector4,
         Entity
     };
 
-    // 脚本字段定义结构体
+    
     struct ScriptField
     {
-        std::string name;     // 字段名称
-        ScriptFieldType type; // 字段类型
+        std::string name;     
+        ScriptFieldType type;
     };
 
-    // 脚本字段实例，用于存储字段的具体值
+    
     struct ScriptFieldInstance
     {
-        ScriptField field; // 字段定义
+        ScriptField field; 
 
         ScriptFieldInstance() { m_buffer = std::monostate(); }
 
-        // 获取字段值
+
         template <typename T>
         T getValue() const
         {
@@ -50,7 +49,7 @@ namespace Fermion
             }
         }
 
-        // 设置字段值
+        
         template <typename T>
         void setValue(T value)
         {
@@ -58,11 +57,10 @@ namespace Fermion
         }
 
     private:
-        // 使用 variant 存储不同类型的值
+       
         std::variant<std::monostate, float, double, bool, int, uint64_t> m_buffer;
     };
 
-    // 脚本句柄类型枚举
     enum class ScriptHandleType
     {
         None,
@@ -70,13 +68,13 @@ namespace Fermion
         Method
     };
 
-    // 脚本句柄，用于引用脚本中的对象或方法
+   
     struct ScriptHandle
     {
-        void *m_instance = nullptr;                     // 原始指针
-        ScriptHandleType type = ScriptHandleType::None; // 句柄类型
+        void *m_instance = nullptr;                     
+        ScriptHandleType type = ScriptHandleType::None;
 
-        // 检查句柄是否有效
+
         bool isValid() const { return m_instance != nullptr && type != ScriptHandleType::None; }
     };
 }

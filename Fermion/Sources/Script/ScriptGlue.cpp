@@ -151,6 +151,8 @@ namespace Fermion
         uint64_t storedId = (uint64_t)(uintptr_t)rb2d.runtimeBody;
         b2BodyId bodyId = b2LoadBodyId(storedId);
 
+        if (impulse->x != 0.0f || impulse->y != 0.0f)
+            Log::Warn(std::format("impulse:{},{}", impulse->x, impulse->y));
         b2Body_ApplyLinearImpulseToCenter(bodyId, b2Vec2{impulse->x, impulse->y}, wake);
     }
 
@@ -238,21 +240,19 @@ namespace Fermion
         return Input::isKeyPressed(keycode);
     }
 
-    // 模板递归注册
     template <typename... Components>
     static void RegisterComponent()
     {
         if constexpr (sizeof...(Components) == 0)
         {
-            // 终止条件：参数包为空
+
             return;
         }
         else if constexpr (sizeof...(Components) == 1)
         {
-            // 单个组件注册
+
             using Component = std::tuple_element_t<0, std::tuple<Components...>>;
 
-            // 获取 C++ 组件类型的名称
             std::string_view typeName = typeid(Component).name();
 
             std::string componentName(typeName);
@@ -267,7 +267,6 @@ namespace Fermion
             if (pos != std::string::npos && pos + 1 < componentName.length())
                 componentName = componentName.substr(pos + 1);
 
-            // 在 C# 中查找对应的类型
             MonoImage *image = ScriptManager::getCoreAssemblyImage();
             if (!image)
             {
@@ -275,7 +274,6 @@ namespace Fermion
                 return;
             }
 
-            // 在 Fermion 命名空间中查找组件类
             MonoClass *monoClass = mono_class_from_name(image, "Fermion", componentName.c_str());
             if (!monoClass)
             {
@@ -290,7 +288,6 @@ namespace Fermion
                 return;
             }
 
-            // 注册 HasComponent 检查函数
             s_entityHasComponentFuncs[managedType] = [](Entity entity)
             { return entity.hasComponent<Component>(); };
 
@@ -298,11 +295,9 @@ namespace Fermion
         }
         else
         {
-            // 多个组件：递归注册
             using FirstComponent = std::tuple_element_t<0, std::tuple<Components...>>;
             RegisterComponent<FirstComponent>();
 
-            // 递归处理剩余组件
             []<std::size_t... Is>(std::index_sequence<Is...>)
             {
                 RegisterComponent<std::tuple_element_t<Is + 1, std::tuple<Components...>>...>();
@@ -332,17 +327,15 @@ namespace Fermion
         if (!type)
             return;
 
-        // 添加到工厂表
         s_entitycomponentFactories[type] = [](Entity entity)
         {
             if constexpr (std::is_same_v<Component, ScriptContainerComponent>)
             {
-                // 多实例组件挂载到容器
                 entity.getComponent<ScriptContainerComponent>();
             }
             else
             {
-                auto &component = entity.addComponent<Component>(); // TODO::实现动态初始化组件否则动态添加的组件无法使用
+                auto &component = entity.addComponent<Component>();
                 if (entity.hasComponent<BoxSensor2DComponent>())
                 {
                     ScriptManager::getSceneContext()->initPhysicsSensor(entity);
@@ -357,20 +350,18 @@ namespace Fermion
         (registerComponentFactory<Components>(image), ...);
     }
 
-    // 对 ComponentGroup 解包
     template <typename... Components>
     void registerAllComponentFactories(ComponentGroup<Components...> group, MonoImage *image)
     {
         registerAllComponentFactories<Components...>(image);
     }
-    // ComponentGroup 包装器，用于解包组件列表
+
     template <typename... Component>
     static void RegisterComponent(ComponentGroup<Component...>)
     {
         RegisterComponent<Component...>();
     }
 
-    // 注册组件
     void ScriptGlue::registerComponents()
     {
         s_entityHasComponentFuncs.clear();
@@ -382,7 +373,7 @@ namespace Fermion
         MonoImage *image = ScriptManager::getCoreAssemblyImage();
         registerAllComponentFactories(AllComponents{}, image);
     }
-    // 注册内部函数
+
     void ScriptGlue::registerFunctions()
     {
 

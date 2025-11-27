@@ -86,12 +86,6 @@ namespace Fermion
         onPhysics2DStart();
         {
             ScriptManager::onRuntimeStart(this);
-            // auto view = m_registry.view<ScriptComponent>();
-            // for (auto e : view)
-            // {
-            //     Entity entity = {e, this};
-            //     ScriptManager::onCreateEntity(entity);
-            // }
             auto view = m_registry.view<ScriptContainerComponent>();
             for (auto e : view)
             {
@@ -113,12 +107,6 @@ namespace Fermion
         onPhysics2DStart();
         {
             ScriptManager::onRuntimeStart(this);
-            // auto view = m_registry.view<ScriptComponent>();
-            // for (auto e : view)
-            // {
-            //     Entity entity = {e, this};
-            //     ScriptManager::onCreateEntity(entity);
-            // }
             auto view = m_registry.view<ScriptContainerComponent>();
             for (auto e : view)
             {
@@ -155,11 +143,11 @@ namespace Fermion
     }
     void Scene::onPhysics2DStart()
     {
-        // Create Box2D world
+
         b2WorldDef worldDef = b2DefaultWorldDef();
         worldDef.gravity = {0.0f, -9.8f};
         m_physicsWorld = b2CreateWorld(&worldDef);
-        // Create bodies and shapes for all rigidbodies
+        
         auto view = m_registry.view<Rigidbody2DComponent>();
         for (auto e : view)
         {
@@ -181,7 +169,6 @@ namespace Fermion
                 b2Body_SetMotionLocks(bodyId, locks);
             }
 
-            // Store runtime handle (serialized as uint64_t)
             rb2d.runtimeBody = (void *)(uintptr_t)b2StoreBodyId(bodyId);
 
             if (entity.hasComponent<BoxCollider2DComponent>())
@@ -192,6 +179,7 @@ namespace Fermion
                 float halfHeight = bc2d.size.y * transform.scale.y;
 
                 b2ShapeDef shapeDef = b2DefaultShapeDef();
+                // TODO : material component
                 shapeDef.density = bc2d.density;
                 shapeDef.material.friction = bc2d.friction;
                 shapeDef.material.restitution = bc2d.restitution;
@@ -222,7 +210,7 @@ namespace Fermion
                     cc2d.offset.x * transform.scale.x,
                     cc2d.offset.y * transform.scale.y};
 
-                circle.radius = cc2d.radius * transform.scale.x; // 或者用 max(scale.x, scale.y)
+                circle.radius = cc2d.radius * transform.scale.x; 
 
                 b2ShapeId shapeId = b2CreateCircleShape(bodyId, &shapeDef, &circle);
                 cc2d.runtimeFixture = (void *)(uintptr_t)b2StoreShapeId(shapeId);
@@ -291,12 +279,6 @@ namespace Fermion
         // Scripts
         {
 
-            // auto view = m_registry.view<ScriptComponent>();
-            // for (auto e : view)
-            // {
-            //     Entity entity = {e, this};
-            //     ScriptManager::onUpdateEntity(entity, ts);
-            // }
             auto view = m_registry.view<ScriptContainerComponent>();
             for (auto e : view)
             {
@@ -354,7 +336,7 @@ namespace Fermion
                             b2SensorEndTouchEvent *end = sensorEvents.endEvents + i;
                             if (b2Shape_IsValid(end->sensorShapeId) && B2_ID_EQUALS(end->sensorShapeId, myShapeId))
                             {
-                                bs2d.sensorEnd = false;
+                                bs2d.sensorEnd = true;
                                 break;
                             }
                         }
@@ -392,13 +374,6 @@ namespace Fermion
     {
         // Scripts
         {
-
-            // auto view = m_registry.view<ScriptComponent>();
-            // for (auto e : view)
-            // {
-            //     Entity entity = {e, this};
-            //     ScriptManager::onUpdateEntity(entity, ts);
-            // }
             auto view = m_registry.view<ScriptContainerComponent>();
             for (auto e : view)
             {
@@ -431,7 +406,6 @@ namespace Fermion
                     {
                         Entity entity{e, this};
 
-                        // initPhysicsSensor(entity);
                         auto &bs2d = entity.getComponent<BoxSensor2DComponent>();
 
                         if (!bs2d.runtimeFixture)
@@ -624,122 +598,4 @@ namespace Fermion
         m_stepFrames = frames;
     }
 
-    // void Scene::createPhysicsShape(Entity entity, BoxSensor2DComponent& bs2d)
-    // {
-
-    //     if (!entity.hasComponent<Rigidbody2DComponent>())
-    //     {
-    //         Log::Warn("BoxSensor2D requires Rigidbody2D component");
-    //         return;
-    //     }
-
-    //     auto& rb2d = entity.getComponent<Rigidbody2DComponent>();
-    //     if (!rb2d.runtimeBody)
-    //     {
-    //         Log::Warn("Rigidbody2D has no runtime body");
-    //         return;
-    //     }
-
-    //     auto& transform = entity.getComponent<TransformComponent>();
-    //     uint64_t storedId = (uint64_t)(uintptr_t)rb2d.runtimeBody;
-    //     b2BodyId bodyId = b2LoadBodyId(storedId);
-
-    //     if (!b2Body_IsValid(bodyId))
-    //         return;
-
-    //     float halfWidth = bs2d.size.x * transform.scale.x;
-    //     float halfHeight = bs2d.size.y * transform.scale.y;
-
-    //     b2ShapeDef shapeDef = b2DefaultShapeDef();
-    //     shapeDef.isSensor = true;
-    //     shapeDef.enableSensorEvents = true;
-
-    //     b2Polygon box = b2MakeOffsetBox(
-    //         halfWidth, halfHeight,
-    //         b2Vec2{bs2d.offset.x, bs2d.offset.y},
-    //         b2Rot_identity);
-
-    //     b2ShapeId shapeId = b2CreatePolygonShape(bodyId, &shapeDef, &box);
-    //     bs2d.runtimeFixture = (void*)(uintptr_t)b2StoreShapeId(shapeId);
-    // }
-
-    // void Scene::createPhysicsShape(Entity entity, BoxCollider2DComponent& bc2d)
-    // {
-    //     // 必须有 Rigidbody2D 才能创建物理形状
-    //     if (!entity.hasComponent<Rigidbody2DComponent>())
-    //     {
-    //         Log::Warn("BoxCollider2D requires Rigidbody2D component");
-    //         return;
-    //     }
-
-    //     auto& rb2d = entity.getComponent<Rigidbody2DComponent>();
-    //     if (!rb2d.runtimeBody)
-    //     {
-    //         Log::Warn("Rigidbody2D has no runtime body");
-    //         return;
-    //     }
-
-    //     auto& transform = entity.getComponent<TransformComponent>();
-    //     uint64_t storedId = (uint64_t)(uintptr_t)rb2d.runtimeBody;
-    //     b2BodyId bodyId = b2LoadBodyId(storedId);
-
-    //     if (!b2Body_IsValid(bodyId))
-    //         return;
-
-    //     float halfWidth = bc2d.size.x * transform.scale.x;
-    //     float halfHeight = bc2d.size.y * transform.scale.y;
-
-    //     b2ShapeDef shapeDef = b2DefaultShapeDef();
-    //     shapeDef.density = bc2d.density;
-    //     shapeDef.material.friction = bc2d.friction;
-    //     shapeDef.material.restitution = bc2d.restitution;
-    //     shapeDef.enableSensorEvents = true;
-
-    //     b2Polygon box = b2MakeOffsetBox(
-    //         halfWidth, halfHeight,
-    //         b2Vec2{bc2d.offset.x, bc2d.offset.y},
-    //         b2Rot_identity);
-
-    //     b2ShapeId shapeId = b2CreatePolygonShape(bodyId, &shapeDef, &box);
-    //     bc2d.runtimeFixture = (void*)(uintptr_t)b2StoreShapeId(shapeId);
-    // }
-
-    // void Scene::createPhysicsShape(Entity entity, CircleCollider2DComponent& cc2d)
-    // {
-    //     // 必须有 Rigidbody2D 才能创建物理形状
-    //     if (!entity.hasComponent<Rigidbody2DComponent>())
-    //     {
-    //         Log::Warn("CircleCollider2D requires Rigidbody2D component");
-    //         return;
-    //     }
-
-    //     auto& rb2d = entity.getComponent<Rigidbody2DComponent>();
-    //     if (!rb2d.runtimeBody)
-    //     {
-    //         Log::Warn("Rigidbody2D has no runtime body");
-    //         return;
-    //     }
-
-    //     auto& transform = entity.getComponent<TransformComponent>();
-    //     uint64_t storedId = (uint64_t)(uintptr_t)rb2d.runtimeBody;
-    //     b2BodyId bodyId = b2LoadBodyId(storedId);
-
-    //     if (!b2Body_IsValid(bodyId))
-    //         return;
-
-    //     b2ShapeDef shapeDef = b2DefaultShapeDef();
-    //     shapeDef.density = cc2d.density;
-    //     shapeDef.material.friction = cc2d.friction;
-    //     shapeDef.material.restitution = cc2d.restitution;
-    //     shapeDef.enableSensorEvents = true;
-
-    //     b2Circle circle;
-    //     circle.center = b2Vec2{
-    //         cc2d.offset.x * transform.scale.x,
-    //         cc2d.offset.y * transform.scale.y};
-    //     circle.radius = cc2d.radius * transform.scale.x;
-
-    //     b2ShapeId shapeId = b2CreateCircleShape(bodyId, &shapeDef, &circle);
-    //     cc2d.runtimeFixture = (void*)(uintptr_t)b2StoreShapeId(shapeId);
-    // }
 }

@@ -7,7 +7,7 @@ namespace Sandbox
     public class TestScript : Entity
     {
         public float MoveSpeed = 1.0f;
-        public float JumpImpulse = 1.0f;   // 跳跃力度
+        public float JumpImpulse = 10.0f;   // 跳跃力度
         public float Time = 0.0f;
 
         private Rigidbody2DComponent m_Rigidbody;
@@ -22,7 +22,8 @@ namespace Sandbox
             // m_Sensor = GetComponent<BoxSensor2DComponent>();
             m_Sensor = AddComponent<BoxSensor2DComponent>();
 
-            m_Sensor.Size = new Vector2(1.0f, 1.0f);
+            m_Sensor.Size = new Vector2(0.5f, 0.1f);
+            m_Sensor.Offset = new Vector2(0, -0.55f);
             ConsoleLog("[TestScript] Created");
         }
 
