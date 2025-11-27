@@ -595,8 +595,11 @@ namespace Fermion
                 auto view = m_activeScene->getAllEntitiesWith<TransformComponent, BoxSensor2DComponent>();
                 for (auto entity : view)
                 {
+                    Entity sensor = {entity, m_activeScene.get()};
+                    // Log::Warn(std::format("Entity: {},has sensor:{}", sensor.getUUID().toString(), sensor.hasComponent<BoxSensor2DComponent>()));
                     auto [tc, bs2d] = view.get<TransformComponent, BoxSensor2DComponent>(entity);
-
+                    if (bs2d.sensorBegin)
+                        Log::Warn(std::format("Sensor begin{}", bs2d.sensorBegin));
                     glm::vec3 translation = tc.translation + glm::vec3(bs2d.offset, 0.001f);
                     glm::vec3 scale = tc.scale * glm::vec3(bs2d.size * 2.0f, 1.0f);
 
@@ -610,6 +613,7 @@ namespace Fermion
         // Draw selected entity outline
         if (Entity selectedEntity = m_sceneHierarchyPanel.getSelectedEntity())
         {
+            // Log::Warn(std::format("Selected Entity from m_hoveredEntity: {},has sensor:{}", selectedEntity.getUUID().toString(), selectedEntity.hasComponent<BoxSensor2DComponent>()));
             const TransformComponent &transform = selectedEntity.getComponent<TransformComponent>();
             m_viewportRenderer->drawRect(transform.getTransform(), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
         }

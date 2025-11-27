@@ -59,9 +59,10 @@ namespace Fermion
         {
             return m_registry.view<Components...>();
         }
-
+        void initPhysicsSensor(Entity entity);
         b2WorldId getPhysicsWorld() const { return m_physicsWorld; }
         bool isPhysicsWorldValid() const { return B2_IS_NON_NULL(m_physicsWorld); }
+
 
     private:
         void onPhysics2DStart();
@@ -80,6 +81,7 @@ namespace Fermion
 
         b2WorldId m_physicsWorld = b2_nullWorldId;
         std::unordered_map<UUID, entt::entity> m_entityMap;
+        std::unordered_map<UUID,b2BodyId> m_physicsBodyMap;
         friend class Entity;
         friend class SceneRenderer;
         friend class SceneSerializer;

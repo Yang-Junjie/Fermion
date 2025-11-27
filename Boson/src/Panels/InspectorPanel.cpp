@@ -96,6 +96,7 @@ namespace Fermion
     template <typename T, typename UIFunction>
     static void drawComponent(const std::string &name, Entity entity, UIFunction uiFunction)
     {
+         
         if (!entity.hasComponent<T>())
             return;
 

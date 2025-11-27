@@ -25,6 +25,7 @@ namespace Fermion
         internal static extern void Entity_AddComponent(ulong id, Type componentType);
 
 
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void TransformComponent_GetTranslation(ulong entityID, out Vector3 translation);
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -48,6 +49,22 @@ namespace Fermion
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal extern static bool BoxSensor2D_SensorEnd(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal extern static void BoxSensor2D_SetSize(ulong entityID, ref Vector2 size);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal extern static void BoxSensor2D_GetSize(ulong entityID, ref Vector2 size);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal extern static void BoxSensor2D_SetOffset(ulong entityID, ref Vector2 size);
+
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal extern static void BoxSensor2D_GetOffset(ulong entityID, ref Vector2 size);
+
+
+
+
+
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern bool Input_IsKeyDown(KeyCode keycode);

@@ -191,8 +191,50 @@ namespace Fermion
 
         return bs2c.sensorEnd;
     }
+    extern "C" static void BoxSensor2D_SetSize(UUID entityID, glm::vec2 *out)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
 
-    extern "C" static bool Input_IsKeyDown(KeyCode keycode)
+        auto &bs2c = entity.getComponent<BoxSensor2DComponent>();
+        bs2c.size = *out;
+    }
+    extern "C" static void BoxSensor2D_GetSize(UUID entityID, glm::vec2 *out)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        auto &bs2c = entity.getComponent<BoxSensor2DComponent>();
+        *out = bs2c.size;
+    }
+    extern "C" static void BoxSensor2D_SetOffset(UUID entityID, glm::vec2 *out)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        auto &bs2c = entity.getComponent<BoxSensor2DComponent>();
+        bs2c.offset = *out;
+    }
+    extern "C" static void BoxSensor2D_GetOffset(UUID entityID, glm::vec2 *out)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        auto &bs2c = entity.getComponent<BoxSensor2DComponent>();
+        *out = bs2c.offset
+    }
+    F
+
+        extern "C" static bool
+        Input_IsKeyDown(KeyCode keycode)
     {
         return Input::isKeyPressed(keycode);
     }
@@ -301,7 +343,12 @@ namespace Fermion
             }
             else
             {
-                auto &component = entity.addComponent<Component>();// TODO::实现动态初始化组件否则动态添加的组件无法使用
+                auto &component = entity.addComponent<Component>(); // TODO::实现动态初始化组件否则动态添加的组件无法使用
+                if (entity.hasComponent<BoxSensor2DComponent>())
+                {
+                    ScriptManager::getSceneContext()->initPhysicsSensor(entity);
+                    Log::Warn(std::format("entity uuid{}", entity.getUUID().toString()));
+                }
             }
         };
     }
@@ -355,8 +402,13 @@ namespace Fermion
         FM_ADD_INTERNAL_CALL(Rigidbody2DComponent_SetType);
         FM_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyLinearImpulseToCenter);
         FM_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetLinearVelocity);
+
         FM_ADD_INTERNAL_CALL(BoxSensor2D_SensorBegin);
         FM_ADD_INTERNAL_CALL(BoxSensor2D_SensorEnd);
+        FM_ADD_INTERNAL_CALL(BoxSensor2D_SetSize);
+        FM_ADD_INTERNAL_CALL(BoxSensor2D_GetSize);
+        FM_ADD_INTERNAL_CALL(BoxSensor2D_SetOffset);
+        FM_ADD_INTERNAL_CALL(BoxSensor2D_GetOffset);
 
         FM_ADD_INTERNAL_CALL(Input_IsKeyDown);
     }

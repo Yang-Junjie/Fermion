@@ -117,6 +117,26 @@ namespace Fermion
     {
         onPhysics2DStop();
     }
+    void Scene::initPhysicsSensor(Entity entity)
+    {
+        auto &transform = entity.getComponent<TransformComponent>();
+        auto &boxSensor2d = entity.getComponent<BoxSensor2DComponent>();
+
+        float halfWidth = boxSensor2d.size.x * transform.scale.x;
+        float halfHeight = boxSensor2d.size.y * transform.scale.y;
+
+        b2ShapeDef shapeDef = b2DefaultShapeDef();
+        shapeDef.isSensor = true;
+        shapeDef.enableSensorEvents = true;
+
+        b2Polygon box = b2MakeOffsetBox(
+            halfWidth, halfHeight,
+            b2Vec2{boxSensor2d.offset.x, boxSensor2d.offset.y},
+            b2Rot_identity);
+
+        b2ShapeId shapeId = b2CreatePolygonShape(m_physicsBodyMap[entity.getUUID()], &shapeDef, &box);
+        boxSensor2d.runtimeFixture = (void *)(uintptr_t)b2StoreShapeId(shapeId);
+    }
     void Scene::onPhysics2DStart()
     {
         // Create Box2D world
@@ -137,6 +157,7 @@ namespace Fermion
             bodyDef.rotation = b2MakeRot(transform.rotation.z);
 
             b2BodyId bodyId = b2CreateBody(m_physicsWorld, &bodyDef);
+            m_physicsBodyMap[entity.getUUID()] = bodyId;
 
             if (rb2d.fixedRotation)
             {
@@ -192,26 +213,11 @@ namespace Fermion
             }
             if (entity.hasComponent<BoxSensor2DComponent>())
             {
-                auto &boxSensor2d = entity.getComponent<BoxSensor2DComponent>();
-
-                float halfWidth = boxSensor2d.size.x * transform.scale.x;
-                float halfHeight = boxSensor2d.size.y * transform.scale.y;
-
-                b2ShapeDef shapeDef = b2DefaultShapeDef();
-                shapeDef.isSensor = true;
-                shapeDef.enableSensorEvents = true;
-
-                b2Polygon box = b2MakeOffsetBox(
-                    halfWidth, halfHeight,
-                    b2Vec2{boxSensor2d.offset.x, boxSensor2d.offset.y},
-                    b2Rot_identity);
-
-                b2ShapeId shapeId = b2CreatePolygonShape(bodyId, &shapeDef, &box);
-                boxSensor2d.runtimeFixture = (void *)(uintptr_t)b2StoreShapeId(shapeId);
+                initPhysicsSensor(entity);
             }
         }
     }
-  
+
     void Scene::onPhysics2DStop()
     {
         if (B2_IS_NON_NULL(m_physicsWorld))
@@ -351,6 +357,7 @@ namespace Fermion
             for (auto e : view)
             {
                 Entity entity = {e, this};
+                
                 ScriptManager::onUpdateEntity(entity, ts);
             }
             m_registry.view<NativeScriptComponent>().each(
@@ -370,13 +377,15 @@ namespace Fermion
             if (B2_IS_NON_NULL(m_physicsWorld))
             {
                 b2World_Step(m_physicsWorld, ts.getSeconds(), 4);
-
                 b2SensorEvents sensorEvents = b2World_GetSensorEvents(m_physicsWorld);
                 {
                     auto view = m_registry.view<BoxSensor2DComponent>();
+                    
                     for (auto e : view)
                     {
                         Entity entity{e, this};
+                       
+                        // initPhysicsSensor(entity);
                         auto &bs2d = entity.getComponent<BoxSensor2DComponent>();
 
                         if (!bs2d.runtimeFixture)

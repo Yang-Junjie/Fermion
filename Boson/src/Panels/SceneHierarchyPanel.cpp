@@ -52,21 +52,23 @@ namespace Fermion
 		ImGui::End();
 
 		m_inspectorPanel.onImGuiRender();
+		
 	}
 
 	void SceneHierarchyPanel::setSelectedEntity(Entity entity)
 	{
 		m_selectedEntity = entity;
 		m_inspectorPanel.setSelectedEntity(entity);
+		
 	}
 	void SceneHierarchyPanel::setEditingEnabled(bool enabled)
 	{
-		m_editingEnabled = enabled;
-		if (!m_editingEnabled)
-		{
-			m_selectedEntity = {};
-			m_inspectorPanel.setSelectedEntity({});
-		}
+		// m_editingEnabled = enabled;
+		// if (!m_editingEnabled)
+		// {
+		// 	m_selectedEntity = {};
+		// 	m_inspectorPanel.setSelectedEntity({});
+		// }
 	}
 
 	void SceneHierarchyPanel::drawEntityNode(Entity entity)
@@ -80,6 +82,7 @@ namespace Fermion
 		{
 			m_selectedEntity = entity;
 			m_inspectorPanel.setSelectedEntity(entity);
+			
 		}
 
 		bool enetityDeleted = false;

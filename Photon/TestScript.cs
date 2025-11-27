@@ -19,8 +19,10 @@ namespace Sandbox
         public void OnCreate()
         {
             m_Rigidbody = GetComponent<Rigidbody2DComponent>();
-            m_Sensor = GetComponent<BoxSensor2DComponent>();
+            // m_Sensor = GetComponent<BoxSensor2DComponent>();
+            m_Sensor = AddComponent<BoxSensor2DComponent>();
 
+            m_Sensor.Size = new Vector2(1.0f, 1.0f);
             ConsoleLog("[TestScript] Created");
         }
 
@@ -29,11 +31,15 @@ namespace Sandbox
             Time += ts;
 
             if (m_Sensor.SensorBegin)
+            {
                 groundContactCount++;
+                ConsoleLog($"[TestScript]m_Sensor begin : {m_Sensor.SensorBegin}");
+            }
 
             if (m_Sensor.SensorEnd)
+            {
                 groundContactCount--;
-
+            }
             if (groundContactCount < 0)
                 groundContactCount = 0;
 
@@ -51,7 +57,9 @@ namespace Sandbox
 
                 m_Rigidbody.ApplyLinearImpulse(new Vector2(0, JumpImpulse), true);
 
+
             }
+
             m_Rigidbody.ApplyLinearImpulse(velocity.XY, true);
 
 

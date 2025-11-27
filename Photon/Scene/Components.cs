@@ -54,6 +54,28 @@ namespace Fermion
 	}
 	public class BoxSensor2DComponent : Component
 	{
+		public Vector2 Size
+        {
+            get
+            {
+                InternalCalls.BoxSensor2D_GetSize(Entity.ID, out Vector2 size);
+            }
+			set
+			{
+				InternalCalls.BoxSensor2D_SetSize(Entity.ID, ref value);
+			}
+        }
+		public Vector2 Offset
+        {
+            get
+            {
+                InternalCalls.BoxSensor2D_GetOffset(Entity.ID, out Vector2 offset);
+            }
+			set
+			{
+				InternalCalls.BoxSensor2D_SetOffset(Entity.ID, ref value);
+			}
+        }
 		public bool SensorBegin
 		{
 			get => InternalCalls.BoxSensor2D_SensorBegin(Entity.ID);
