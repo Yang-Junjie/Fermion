@@ -34,7 +34,7 @@ namespace Sandbox
             if (m_Sensor.SensorBegin)
             {
                 groundContactCount++;
-                ConsoleLog($"[TestScript]m_Sensor begin : {m_Sensor.SensorBegin}");
+                ConsoleLog($"[TestScript]m_Sensor begin : {m_Sensor.SensorBegin}{ts}");
             }
 
             if (m_Sensor.SensorEnd)

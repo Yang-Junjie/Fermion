@@ -151,8 +151,6 @@ namespace Fermion
         uint64_t storedId = (uint64_t)(uintptr_t)rb2d.runtimeBody;
         b2BodyId bodyId = b2LoadBodyId(storedId);
 
-        if (impulse->x != 0.0f || impulse->y != 0.0f)
-            Log::Warn(std::format("impulse:{},{}", impulse->x, impulse->y));
         b2Body_ApplyLinearImpulseToCenter(bodyId, b2Vec2{impulse->x, impulse->y}, wake);
     }
 
@@ -202,6 +200,7 @@ namespace Fermion
 
         auto &bs2c = entity.getComponent<BoxSensor2DComponent>();
         bs2c.size = *out;
+        scene->initPhysicsSensor(entity);
     }
     extern "C" static void BoxSensor2D_GetSize(UUID entityID, glm::vec2 *out)
     {
@@ -222,6 +221,7 @@ namespace Fermion
 
         auto &bs2c = entity.getComponent<BoxSensor2DComponent>();
         bs2c.offset = *out;
+        scene->initPhysicsSensor(entity);
     }
     extern "C" static void BoxSensor2D_GetOffset(UUID entityID, glm::vec2 *out)
     {
