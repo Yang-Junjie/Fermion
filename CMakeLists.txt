@@ -7,6 +7,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
 
+# option(BUILD_RELEASE "Build in Release mode" ON)
+
+
+# if(BUILD_RELEASE)
+#     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type" FORCE)
+# else()
+#     set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type" FORCE)
+# endif()
+
+
+
 message("===== Your Platform =====")
 if(CMAKE_SYSTEM_NAME STREQUAL "Android")
     message("Platform: Android")

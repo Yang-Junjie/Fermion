@@ -35,7 +35,19 @@ namespace Fermion
 #define FM_ADD_INTERNAL_CALL(Name) mono_add_internal_call("Fermion.InternalCalls::" #Name, Name)
     static std::unordered_map<MonoType *, std::function<bool(Entity)>> s_entityHasComponentFuncs;
     static std::unordered_map<MonoType *, std::function<void(Entity)>> s_entitycomponentFactories;
-    // C++ 实现的内部调用函数示例
+
+#pragma region Scene
+    extern "C" static uint64_t Scene_CreateEntity(MonoString *tag)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null");
+        std::string tagStr = Utils::monoStringToString(tag);
+        return scene->createEntity(tagStr).getUUID();
+    }
+#pragma endregion
+
+
+#pragma region Log
     extern "C" static void NativeLog(MonoString *string, int parameter)
     {
         std::string str = Utils::monoStringToString(string);
@@ -47,7 +59,9 @@ namespace Fermion
         std::string str = Utils::monoStringToString(string);
         ConsolePanel::get().addLog(str.c_str());
     }
+#pragma endregion
 
+#pragma region Entity
     extern "C" static MonoObject *GetScriptInstance(UUID entityID, std::string className)
     {
         return (MonoObject *)ScriptManager::getManagedInstance(entityID, className).m_instance;
@@ -92,7 +106,9 @@ namespace Fermion
 
         return entity.getUUID();
     }
+#pragma endregion
 
+#pragma region TransformComponent
     extern "C" static void TransformComponent_GetTranslation(UUID entityID, glm::vec3 *outTranslation)
     {
         Scene *scene = ScriptManager::getSceneContext();
@@ -112,7 +128,22 @@ namespace Fermion
 
         entity.getComponent<TransformComponent>().translation = *translation;
     }
+#pragma endregion
 
+
+#pragma region SpriteRendererComponent
+    extern "C" static void SpriteRendererComponent_SetColor(UUID entityID, glm::vec4 *color)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        entity.getComponent<SpriteRendererComponent>().color = *color;
+    }
+#pragma region 
+
+#pragma region Box2DComponent
     extern "C" static Rigidbody2DComponent::BodyType Rigidbody2DComponent_GetType(UUID entityID)
     {
         Scene *scene = ScriptManager::getSceneContext();
@@ -233,12 +264,15 @@ namespace Fermion
         auto &bs2c = entity.getComponent<BoxSensor2DComponent>();
         *out = bs2c.offset;
     }
+#pragma endregion
 
+#pragma region Input
     extern "C" static bool
     Input_IsKeyDown(KeyCode keycode)
     {
         return Input::isKeyPressed(keycode);
     }
+#pragma endregion
 
     template <typename... Components>
     static void RegisterComponent()
@@ -377,6 +411,8 @@ namespace Fermion
     void ScriptGlue::registerFunctions()
     {
 
+        FM_ADD_INTERNAL_CALL(Scene_CreateEntity);
+
         FM_ADD_INTERNAL_CALL(NativeLog);
         FM_ADD_INTERNAL_CALL(ConsoleLog);
 
@@ -387,6 +423,8 @@ namespace Fermion
 
         FM_ADD_INTERNAL_CALL(TransformComponent_GetTranslation);
         FM_ADD_INTERNAL_CALL(TransformComponent_SetTranslation);
+
+        FM_ADD_INTERNAL_CALL(SpriteRendererComponent_SetColor);
 
         FM_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetType);
         FM_ADD_INTERNAL_CALL(Rigidbody2DComponent_SetType);

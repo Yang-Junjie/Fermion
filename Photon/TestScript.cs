@@ -7,7 +7,7 @@ namespace Sandbox
     public class TestScript : Entity
     {
         public float MoveSpeed = 1.0f;
-        public float JumpImpulse = 10.0f;   // 跳跃力度
+        public float JumpImpulse = 5.0f;
         public float Time = 0.0f;
 
         private Rigidbody2DComponent m_Rigidbody;
@@ -25,6 +25,16 @@ namespace Sandbox
             m_Sensor.Size = new Vector2(0.5f, 0.1f);
             m_Sensor.Offset = new Vector2(0, -0.55f);
             ConsoleLog("[TestScript] Created");
+            for (int j = 0; j < 100; j++)
+            {
+                for (int i = 0; i < 100; i++)
+                {
+
+                    Entity testEngtity = Scene.CreateEntity($"TestEntity{i}{j}");
+                    testEngtity.GetComponent<TransformComponent>().Translation = new Vector3(i, j, 0);
+                    testEngtity.AddComponent<SpriteRendererComponent>().Color = new Vector4(i / 100.0f, j / 100.0f, 0, 1);
+                }
+            }
         }
 
         public void OnUpdate(float ts)
@@ -41,6 +51,7 @@ namespace Sandbox
             {
                 groundContactCount--;
             }
+
             if (groundContactCount < 0)
                 groundContactCount = 0;
 
@@ -57,8 +68,6 @@ namespace Sandbox
             {
 
                 m_Rigidbody.ApplyLinearImpulse(new Vector2(0, JumpImpulse), true);
-
-
             }
 
             m_Rigidbody.ApplyLinearImpulse(velocity.XY, true);

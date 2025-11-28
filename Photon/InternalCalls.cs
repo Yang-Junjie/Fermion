@@ -7,6 +7,9 @@ namespace Fermion
     {
 
         [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern ulong Scene_CreateEntity(string name);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void NativeLog(string s, int parameter);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -31,7 +34,8 @@ namespace Fermion
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void TransformComponent_SetTranslation(ulong entityID, ref Vector3 translation);
 
-
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SpriteRendererComponent_SetColor(ulong entityID, ref Vector4 translation);
 
 
         [MethodImpl(MethodImplOptions.InternalCall)]
