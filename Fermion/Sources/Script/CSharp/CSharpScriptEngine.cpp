@@ -60,9 +60,7 @@ namespace Fermion
 
     ScriptHandle CSharpScriptClass::instantiate()
     {
-        // 创建 Mono 对象
         MonoObject *obj = mono_object_new(m_domain, m_class);
-        // 调用默认构造函数
         mono_runtime_object_init(obj);
 
         ScriptHandle handle;
@@ -73,7 +71,6 @@ namespace Fermion
 
     ScriptHandle CSharpScriptClass::getMethod(const std::string &name, int parameterCount)
     {
-        // 获取 Mono 方法
         MonoMethod *method = mono_class_get_method_from_name(m_class, name.c_str(), parameterCount);
         ScriptHandle handle;
         handle.m_instance = method;
@@ -92,14 +89,12 @@ namespace Fermion
         MonoObject *obj = static_cast<MonoObject *>(instance.m_instance);
         MonoMethod *m = static_cast<MonoMethod *>(method.m_instance);
 
-        // 调用 Mono 方法
         MonoObject *exception = nullptr;
         mono_runtime_invoke(m, obj, params, &exception);
 
         if (exception)
         {
             Log::Error("CSharpScriptClass::invokeMethod: script exception!");
-            // TODO: 打印异常堆栈
         }
     }
 
@@ -128,8 +123,6 @@ namespace Fermion
         if (!instance.isValid())
             return false;
 
-        // 不检查m_fields，因为字段可能来自基类
-        // mono_class_get_field_from_name会自动搜索基类
         MonoObject *obj = static_cast<MonoObject *>(instance.m_instance);
         MonoClassField *field = mono_class_get_field_from_name(m_class, name.c_str());
 
@@ -149,11 +142,9 @@ namespace Fermion
         if (m_initialized)
             return false;
 
-        // 设置 Mono 程序集路径为当前目录
         mono_set_assemblies_path(std::filesystem::current_path().string().c_str());
         mono_config_parse(nullptr);
 
-        // 初始化 Mono JIT
         m_rootDomain = mono_jit_init_version("FermionRootDomain", "v4.0.30319");
         if (!m_rootDomain)
         {
@@ -163,7 +154,6 @@ namespace Fermion
 
         m_initialized = true;
 
-        // 注册内部调用
         ScriptGlue::registerFunctions();
 
         Log::Info("CSharpScriptEngine: initialized");
@@ -175,7 +165,7 @@ namespace Fermion
         if (!m_initialized)
             return;
 
-        // 清理 Mono JIT
+     
         mono_jit_cleanup(m_rootDomain);
         m_rootDomain = nullptr;
         m_initialized = false;
@@ -185,7 +175,7 @@ namespace Fermion
 
     bool CSharpScriptEngine::loadScript(const std::filesystem::path &path)
     {
-        // 加载程序集
+        
         MonoAssembly *assembly = mono_domain_assembly_open(m_rootDomain, path.string().c_str());
         if (!assembly)
         {
@@ -197,10 +187,8 @@ namespace Fermion
         if (!image)
             return false;
 
-        // 保存核心程序集的 Image
         m_coreAssemblyImage = image;
 
-        // 遍历程序集中的所有类型
         int typeCount = mono_image_get_table_rows(image, MONO_TABLE_TYPEDEF);
         Log::Info(std::format("CSharpScriptEngine: load {}, total {} type", path.string(), typeCount));
 

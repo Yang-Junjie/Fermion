@@ -1,6 +1,6 @@
 ﻿using System;
 using Fermion;
-using static Fermion.InternalCalls;
+
 
 namespace Sandbox
 {
@@ -24,15 +24,15 @@ namespace Sandbox
 
             m_Sensor.Size = new Vector2(0.5f, 0.1f);
             m_Sensor.Offset = new Vector2(0, -0.55f);
-            ConsoleLog("[TestScript] Created");
-            for (int j = 0; j < 100; j++)
+            Utils.Log("[TestScript] Created");
+            for (int j = 0; j < 10; j++)
             {
-                for (int i = 0; i < 100; i++)
+                for (int i = 0; i < 10; i++)
                 {
 
                     Entity testEngtity = Scene.CreateEntity($"TestEntity{i}{j}");
                     testEngtity.GetComponent<TransformComponent>().Translation = new Vector3(i, j, 0);
-                    testEngtity.AddComponent<SpriteRendererComponent>().Color = new Vector4(i / 100.0f, j / 100.0f, 0, 1);
+                    testEngtity.AddComponent<SpriteRendererComponent>().Color = new Vector4(i / 10.0f, j / 10.0f, 0, 1);
                 }
             }
         }
@@ -44,7 +44,7 @@ namespace Sandbox
             if (m_Sensor.SensorBegin)
             {
                 groundContactCount++;
-                ConsoleLog($"[TestScript]m_Sensor begin : {m_Sensor.SensorBegin}{ts}");
+                Utils.Log($"[TestScript]m_Sensor begin : {m_Sensor.SensorBegin}{ts}");
             }
 
             if (m_Sensor.SensorEnd)

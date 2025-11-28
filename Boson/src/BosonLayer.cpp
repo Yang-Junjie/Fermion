@@ -677,7 +677,7 @@ namespace Fermion
     {
         saveScene();
         auto &config = Project::getActive()->getConfig();
-        config.startScene = std::filesystem::absolute(m_editorScenePath);
+        config.startScene = m_editorScenePath;
         if (Project::saveActive(Project::getActive()->getProjectPath()))
         {
             Log::Info("Project save successfully!");

@@ -14,16 +14,12 @@ namespace Fermion
     public:
         CSharpScriptClass(MonoDomain *domain, MonoClass *klass, const std::string &ns, const std::string &name);
 
-        // 实例化脚本对象
         virtual ScriptHandle instantiate() override;
-        // 获取脚本方法
         virtual ScriptHandle getMethod(const std::string &name, int parameterCount = 0) override;
-        // 调用脚本方法
         virtual void invokeMethod(const ScriptHandle &instance, const ScriptHandle &method, void **params = nullptr) override;
 
-        // 获取字段值
+        
         virtual bool getFieldValue(const ScriptHandle &instance, const std::string &name, void *buffer) override;
-        // 设置字段值
         virtual bool setFieldValue(const ScriptHandle &instance, const std::string &name, const void *value) override;
 
     private:
@@ -31,57 +27,53 @@ namespace Fermion
         MonoClass *m_class = nullptr;
     };
     using ScriptFieldMap = std::unordered_map<std::string, ScriptFieldInstance>;
-    // C# 脚本引擎实现
+   
+
     class CSharpScriptEngine : public IScriptEngine
     {
     public:
-        // 初始化脚本引擎
+        
         virtual bool init() override;
-        // 关闭脚本引擎
         virtual void shutdown() override;
-
-        // 加载脚本程序集
         virtual bool loadScript(const std::filesystem::path &path) override;
 
-        // 创建脚本实例
+
         virtual ScriptHandle createInstance(const std::string &className) override;
-        // 销毁脚本实例
         virtual void destroyInstance(ScriptHandle instance) override;
-        // 调用指定名称的方法
+
+
         virtual void invokeMethod(ScriptHandle instance, const std::string &name) override;
-        // 获取字段值
+        
         virtual bool getFieldValue(const ScriptHandle &instance, const std::string &name, void *buffer) override;
-        // 设置字段值
         virtual bool setFieldValue(const ScriptHandle &instance, const std::string &name, const void *value) override;
 
         virtual void onRuntimeStart(Scene *scene) override;
         virtual Scene *getSceneContext() const override;
-        //默认获取第一个脚本实例
-        // virtual ScriptHandle getManagedInstance(UUID uuid) override;
+        
+
         virtual ScriptHandle getManagedInstance(UUID uuid,std::string className) override;
         virtual void onRuntimeStop() override;
 
-        // 检查类是否存在
+       
         virtual bool entityClassExists(const std::string &fullClassName) override;
-        // 创建实例
         virtual void onCreateEntity(Entity entity) override;
-        // 更新实例
         virtual void onUpdateEntity(Entity entity, Timestep ts) override;
 
         virtual const std::vector<std::string> &getALLEntityClasses() const override;
 
-        // 获取核心程序集的 Image
         MonoImage *getCoreAssemblyImage() const { return m_coreAssemblyImage; }
+        MonoImage *getAppAssemblyImage() const {return m_appAssemblyImage;}
 
     private:
-        // 辅助方法：根据字段类型设置实体字段值
         void setEntityFieldValue(std::shared_ptr<ScriptInstance> instance,
                                  const std::string &name,
                                  const ScriptFieldInstance &fieldInstance);
 
         bool m_initialized = false;
         MonoDomain *m_rootDomain = nullptr;
-        MonoImage *m_coreAssemblyImage = nullptr;  // 保存核心程序集的 Image
+        MonoDomain *m_appDomain = nullptr;
+        MonoImage *m_coreAssemblyImage = nullptr;  
+        MonoImage *m_appAssemblyImage = nullptr;
         std::vector<std::string> m_allEntityClassesNames;
         std::unordered_map<std::string, std::shared_ptr<CSharpScriptClass>> m_classes;
         std::unordered_map<UUID, std::unordered_map<std::string,std::shared_ptr<ScriptInstance>>> m_entityInstances;

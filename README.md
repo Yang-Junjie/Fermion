@@ -1,5 +1,5 @@
 # Fermion
-
+// TODO:支持app脚本程序集和core脚本程序集
 Fermion 是一款基于 Hazel2D 扩展而来的的轻量级游戏引擎。
 
 ## 命名哲学

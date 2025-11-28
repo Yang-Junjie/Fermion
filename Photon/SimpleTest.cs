@@ -1,6 +1,5 @@
 using System;
 using Fermion;
-using static Fermion.InternalCalls;
 namespace Sandbox
 {
     public class SimpleTest : Entity
@@ -12,7 +11,7 @@ namespace Sandbox
         public void OnCreate()
         {
             // m_boxSensor2D = GetComponent<BoxSensor2DComponent>();
-            ConsoleLog("[SimpleTest] create successfully !");
+            Utils.Log("[SimpleTest] create successfully !");
         }
 
         public void OnUpdate(float ts)
@@ -20,14 +19,14 @@ namespace Sandbox
             Counter++;
             if (Counter <= 100)
             {
-                ConsoleLog($"[SimpleTest] Update #{Counter}, DeltaTime: {ts}");
+                Utils.Log($"[SimpleTest] Update #{Counter}, DeltaTime: {ts}");
                 sum += ts;
 
             }
 
             if (a > 0 && Counter >= 100)
             {
-                ConsoleLog($"[SimpleTest] average: {sum / Counter}");
+                Utils.Log($"[SimpleTest] average: {sum / Counter}");
                 a--;
             }
             // if (m_boxSensor2D.SensorBegin)

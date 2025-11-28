@@ -88,7 +88,7 @@ namespace Fermion
                                                { return this->onWindowResize(e); });
         dispatcher.dispatch<WindowCloseEvent>([this](WindowCloseEvent &e)
                                               { return this->onWindowClose(e); });
-        // �Ӻ���ǰ���� LayerStack�����ȷַ������ϲ�� Layer
+
         for (auto it = m_layerStack.rbegin(); it != m_layerStack.rend(); ++it)
         {
             if (event.handled)
