@@ -10,9 +10,12 @@ namespace Fermion
 	struct ProjectConfig
 	{
 		std::string name = "Untitled";
+		std::string version = "1.0.0";
+		std::string author = "Your";
 
 		std::filesystem::path startScene;
 		std::filesystem::path assetDirectory;
+		std::filesystem::path scriptDirectory ;
 	};
 
 	class Project

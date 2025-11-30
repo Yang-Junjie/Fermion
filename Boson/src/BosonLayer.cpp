@@ -641,6 +641,7 @@ namespace Fermion
         config.name = path.stem().string();
         config.startScene = "";
         config.assetDirectory = path.parent_path() / "Assets";
+        config.scriptDirectory = config.assetDirectory / "scripts";
 
         if (Project::saveActive(path))
             Log::Info(std::format("Project created successfully! Path: {}",
