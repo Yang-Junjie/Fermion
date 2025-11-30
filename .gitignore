@@ -10,3 +10,4 @@ out
 cmake-build-debug
 .idea
 Photon/csbuild.bat
+Boson/projects/Assets/scripts/csbuild.bat

@@ -46,7 +46,6 @@ namespace Fermion
     }
 #pragma endregion
 
-
 #pragma region Log
     extern "C" static void NativeLog(MonoString *string, int parameter)
     {
@@ -130,7 +129,6 @@ namespace Fermion
     }
 #pragma endregion
 
-
 #pragma region SpriteRendererComponent
     extern "C" static void SpriteRendererComponent_SetColor(UUID entityID, glm::vec4 *color)
     {
@@ -141,7 +139,7 @@ namespace Fermion
 
         entity.getComponent<SpriteRendererComponent>().color = *color;
     }
-#pragma region 
+#pragma region
 
 #pragma region Box2DComponent
     extern "C" static Rigidbody2DComponent::BodyType Rigidbody2DComponent_GetType(UUID entityID)
@@ -301,7 +299,7 @@ namespace Fermion
             if (pos != std::string::npos && pos + 1 < componentName.length())
                 componentName = componentName.substr(pos + 1);
 
-            MonoImage *image = ScriptManager::getCoreAssemblyImage();
+            MonoImage *image = ScriptManager::getCoreImage();
             if (!image)
             {
                 Log::Error(std::format("Component registration failed: Core assembly image not available"));
@@ -373,7 +371,6 @@ namespace Fermion
                 if (entity.hasComponent<BoxSensor2DComponent>())
                 {
                     ScriptManager::getSceneContext()->initPhysicsSensor(entity);
-                    Log::Warn(std::format("entity uuid{}", entity.getUUID().toString()));
                 }
             }
         };
@@ -404,8 +401,9 @@ namespace Fermion
     void ScriptGlue::registerComponentFactories()
     {
         s_entitycomponentFactories.clear();
-        MonoImage *image = ScriptManager::getCoreAssemblyImage();
-        registerAllComponentFactories(AllComponents{}, image);
+        MonoImage *coreImage = ScriptManager::getCoreImage();
+        registerAllComponentFactories(AllComponents{}, coreImage);
+        
     }
 
     void ScriptGlue::registerFunctions()
@@ -440,4 +438,5 @@ namespace Fermion
 
         FM_ADD_INTERNAL_CALL(Input_IsKeyDown);
     }
+
 }

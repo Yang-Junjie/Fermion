@@ -29,7 +29,6 @@ namespace Fermion
                 ScriptFieldType fieldType = ScriptFieldType::None;
                 MonoType *type = mono_field_get_type(field);
 
-                // 简单的类型映射
                 int typeEnum = mono_type_get_type(type);
                 switch (typeEnum)
                 {
@@ -151,6 +150,10 @@ namespace Fermion
             Log::Error("CSharpScriptEngine: Mono JIT init failed!");
             return false;
         }
+        mono_domain_set(m_rootDomain, true);
+
+        m_coreAssembly = mono_domain_assembly_open(m_rootDomain, "Photon.dll");
+        m_coreImage = mono_assembly_get_image(m_coreAssembly);
 
         m_initialized = true;
 
@@ -165,33 +168,22 @@ namespace Fermion
         if (!m_initialized)
             return;
 
-     
-        mono_jit_cleanup(m_rootDomain);
-        m_rootDomain = nullptr;
-        m_initialized = false;
+        if (m_appDomain)
+            mono_domain_unload(m_appDomain);
 
+        mono_jit_cleanup(m_rootDomain);
+
+        m_rootDomain = nullptr;
+        m_appDomain = nullptr;
+
+        m_initialized = false;
         Log::Info("CSharpScriptEngine: shutdown");
     }
 
-    bool CSharpScriptEngine::loadScript(const std::filesystem::path &path)
+    void CSharpScriptEngine::loadClasses(MonoImage *image)
     {
-        
-        MonoAssembly *assembly = mono_domain_assembly_open(m_rootDomain, path.string().c_str());
-        if (!assembly)
-        {
-            Log::Error("CSharpScriptEngine: load script fail " + path.string());
-            return false;
-        }
-
-        MonoImage *image = mono_assembly_get_image(assembly);
-        if (!image)
-            return false;
-
-        m_coreAssemblyImage = image;
-
         int typeCount = mono_image_get_table_rows(image, MONO_TABLE_TYPEDEF);
-        Log::Info(std::format("CSharpScriptEngine: load {}, total {} type", path.string(), typeCount));
-
+        Log::Info("Type count in DLL: " + std::to_string(typeCount));
         for (int i = 1; i <= typeCount; ++i)
         {
             uint32_t typeToken = mono_metadata_make_token(MONO_TABLE_TYPEDEF, i);
@@ -199,31 +191,47 @@ namespace Fermion
             if (!klass)
                 continue;
 
-            const char *name = mono_class_get_name(klass);
-            const char *namesp = mono_class_get_namespace(klass);
-
-            if (!name)
+            if (!isEntityClass(klass))
                 continue;
 
-            std::string fullName;
-            if (namesp && namesp[0] != '\0')
-                fullName = std::string(namesp) + "." + name;
-            else
-                fullName = name;
+            const char *name = mono_class_get_name(klass);
+            const char *namesp = mono_class_get_namespace(klass);
+            std::string fullName = namesp && namesp[0] ? (std::string(namesp) + "." + name) : name;
 
-            m_allEntityClassesNames.push_back(std::string(fullName));
-            Log::Info("  CSharpScriptEngine: load script class : " + fullName);
+            m_allEntityClassesNames.push_back(fullName);
+            Log::Info("Load Script Class: " + fullName);
 
-            // 存储脚本类信息
-            m_classes[fullName] = std::make_shared<CSharpScriptClass>(m_rootDomain, klass, namesp ? namesp : "", name);
+            m_classes[fullName] = std::make_shared<CSharpScriptClass>(
+                m_appDomain,
+                klass,
+                namesp ? namesp : "",
+                name);
         }
+    }
 
-        Log::Info(std::format("CSharpScriptEngine:  {} script class was loaded ", m_classes.size()));
+    bool CSharpScriptEngine::loadScript(const std::filesystem::path &path)
+    {
+        m_appDomain = mono_domain_create_appdomain(const_cast<char *>("AppDomain"), nullptr);
+        mono_domain_set(m_appDomain, true);
 
-        // 注册组件
+        mono_domain_assembly_open(m_appDomain, "Photon.dll");
+
+        m_appAssembly = mono_domain_assembly_open(m_appDomain, path.string().c_str());
+        if (!m_appAssembly)
+            return false;
+        m_appImage = mono_assembly_get_image(m_appAssembly);
+
+        m_allEntityClassesNames.clear();
+        m_classes.clear();
+
+        loadClasses(m_coreImage);
+        loadClasses(m_appImage);
+
         ScriptGlue::registerComponents();
         ScriptGlue::registerComponentFactories();
 
+        Log::Info("Loading DLL: " + path.string());
+        Log::Info(std::format("CSharpScriptEngine: {} script classes loaded", m_classes.size()));
         return true;
     }
 
@@ -302,33 +310,52 @@ namespace Fermion
         mono_field_set_value(obj, field, (void *)value);
         return true;
     }
+
     void CSharpScriptEngine::onRuntimeStart(Scene *scene)
     {
         Log::Info("CSharpScriptEngine: runtime start");
         m_scene = scene;
     }
+
     Scene *CSharpScriptEngine::getSceneContext() const
     {
         return m_scene;
     }
-    // ScriptHandle CSharpScriptEngine::getManagedInstance(UUID uuid)
-    // {
-    //     FERMION_ASSERT(m_entityInstances.find(uuid) != m_entityInstances.end(), "Entity not found!");
-    //     return m_entityInstances[uuid][0]->getHandle();
-    // }
+
     ScriptHandle CSharpScriptEngine::getManagedInstance(UUID uuid, std::string className)
     {
         FERMION_ASSERT(m_entityInstances.find(uuid) != m_entityInstances.end(), "Entity not found!");
         return m_entityInstances[uuid][className]->getHandle();
     }
+
     void CSharpScriptEngine::onRuntimeStop()
     {
         m_scene = nullptr;
         m_entityInstances.clear();
+        m_entityScriptFields.clear();
     }
+
     bool CSharpScriptEngine::entityClassExists(const std::string &fullClassName)
     {
         return m_classes.find(fullClassName) != m_classes.end();
+    }
+
+    bool CSharpScriptEngine::isEntityClass(MonoClass *klass)
+    {
+        MonoClass *entityClass = mono_class_from_name(m_coreImage, "Fermion", "Entity");
+        if (!entityClass)
+            return false;
+
+        MonoClass *current = klass;
+        while (current)
+        {
+            if (current == entityClass)
+                return true;
+
+            current = mono_class_get_parent(current);
+        }
+
+        return false;
     }
 
     void CSharpScriptEngine::setEntityFieldValue(std::shared_ptr<ScriptInstance> instance,

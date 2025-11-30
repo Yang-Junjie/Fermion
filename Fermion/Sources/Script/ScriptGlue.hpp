@@ -1,5 +1,5 @@
 ﻿#pragma once
-
+#include "mono/metadata/object.h"
 namespace Fermion
 {
 

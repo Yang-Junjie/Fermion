@@ -31,9 +31,9 @@ namespace Fermion
         {
             s_scriptEngine->onRuntimeStart(scene);
         }
-        static ScriptHandle getManagedInstance(UUID uuid,std::string className)
+        static ScriptHandle getManagedInstance(UUID uuid, std::string className)
         {
-            return s_scriptEngine->getManagedInstance(uuid,className);
+            return s_scriptEngine->getManagedInstance(uuid, className);
         }
         static void onRuntimeStop()
         {
@@ -61,10 +61,15 @@ namespace Fermion
             return s_scriptEngine->getSceneContext();
         }
 
-        static MonoImage *getCoreAssemblyImage()
+        static MonoImage *getCoreImage()
         {
             auto *csharpEngine = dynamic_cast<CSharpScriptEngine *>(s_scriptEngine.get());
-            return csharpEngine ? csharpEngine->getCoreAssemblyImage() : nullptr;
+            return csharpEngine ? csharpEngine->getCoreImage() : nullptr;
+        }
+        static MonoImage *getAppImage()
+        {
+            auto *csharpEngine = dynamic_cast<CSharpScriptEngine *>(s_scriptEngine.get());
+            return csharpEngine ? csharpEngine->getAppImage() : nullptr;
         }
 
     private:

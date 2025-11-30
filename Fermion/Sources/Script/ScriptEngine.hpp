@@ -116,7 +116,6 @@ namespace Fermion
         virtual bool setFieldValue(const ScriptHandle &instance, const std::string &name, const void *value) = 0;
 
         virtual Scene *getSceneContext() const = 0;
-        // virtual ScriptHandle getManagedInstance(UUID uuid) = 0;
 
         virtual ScriptHandle getManagedInstance(UUID uuid, std::string className) = 0;
         virtual bool entityClassExists(const std::string &fullClassName) = 0;
