@@ -168,13 +168,20 @@ namespace Fermion
         if (!m_initialized)
             return;
 
+        if (m_rootDomain)
+            mono_domain_set(m_rootDomain,true);
+            
         if (m_appDomain)
+        {
             mono_domain_unload(m_appDomain);
+            m_appDomain = nullptr;
+        }
 
-        mono_jit_cleanup(m_rootDomain);
-
-        m_rootDomain = nullptr;
-        m_appDomain = nullptr;
+        if (m_rootDomain)
+        {
+            mono_jit_cleanup(m_rootDomain);
+            m_rootDomain = nullptr;
+        }
 
         m_initialized = false;
         Log::Info("CSharpScriptEngine: shutdown");
