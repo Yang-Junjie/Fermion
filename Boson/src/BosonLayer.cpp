@@ -781,6 +781,7 @@ namespace Fermion
 
     void BosonLayer::onScenePlay()
     {
+        m_hoveredEntity = {};
         if (m_sceneState == SceneState::Simulate)
             onSceneStop();
         m_sceneState = SceneState::Play;
@@ -817,5 +818,7 @@ namespace Fermion
         m_viewportRenderer->setScene(m_activeScene);
         m_sceneHierarchyPanel.setEditingEnabled(true);
         m_sceneHierarchyPanel.setContext(m_activeScene);
+
+        m_hoveredEntity = {};
     }
 }
