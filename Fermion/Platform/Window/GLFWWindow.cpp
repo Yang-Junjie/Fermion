@@ -62,7 +62,6 @@ namespace Fermion
         m_context = GraphicsContext::create(m_window);
         m_context->init();
         glfwSetWindowUserPointer(m_window, &m_data);
-        setVSync(true);
 
         glfwSetWindowSizeCallback(m_window, [](GLFWwindow *window, int width, int height)
                                   {

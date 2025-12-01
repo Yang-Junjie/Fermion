@@ -42,6 +42,7 @@ option(BUILD_BOSON "Build Boson" ON)
 option(BUILD_GAME "Build Fermion" ON)
 set(YAML_BUILD_SHARED_LIBS OFF CACHE BOOL "Build yaml-cpp as static library" FORCE)
 
+option(BUILD_NEUTRINO "Build Neutrino" ON)
 
 # 这一行来解决yaml-cpp的dllimport问题
 add_compile_definitions(YAML_CPP_STATIC_DEFINE)
@@ -92,6 +93,7 @@ add_subdirectory(Fermion/external/msdf-atlas-gen)
 # Fermion 
 add_subdirectory(Fermion)
 
+# Game
 if(BUILD_GAME)
     add_subdirectory(game)
     message("BUILD GAME:${BUILD_GAME}")
@@ -102,3 +104,10 @@ if(BUILD_BOSON)
     add_subdirectory(Boson)
     message("BUILD BOSON:${BUILD_BOSON}")
 endif()
+
+# Neutrino
+if(BUILD_NEUTRINO)
+    add_subdirectory(Neutrino)
+    message("BUILD NEUTRINO:${BUILD_NEUTRINO}")
+endif()
+

@@ -52,9 +52,9 @@ public:
             Fermion::Renderer2D::endScene();
 
             Fermion::Renderer2D::beginScene(m_cameraController.getCamera());
-            for (float y = -5.0f; y < 5.0f; y += 0.5f)
+            for (float y = -5.0f; y < 5.0f; y += 0.1f)
             {
-                for (float x = -5.0f; x < 5.0f; x += 0.5f)
+                for (float x = -5.0f; x < 5.0f; x += 0.1f)
                 {
                     glm::vec4 color = {(x + 5.0f) / 10.0f, 0.4f, (y + 5.0f) / 10.0f, 0.7f};
                     Fermion::Renderer2D::drawQuad({x + 0.25f, y + 0.25f}, glm::vec2(0.45f, 0.45f), color);

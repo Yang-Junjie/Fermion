@@ -24,7 +24,7 @@ namespace Sandbox
 
             m_Sensor.Size = new Vector2(0.5f, 0.1f);
             m_Sensor.Offset = new Vector2(0, -0.55f);
-            Utils.Log("[TestScript] Created");
+            // Utils.Log("[TestScript] Created");
             for (int j = 0; j < 10; j++)
             {
                 for (int i = 0; i < 10; i++)

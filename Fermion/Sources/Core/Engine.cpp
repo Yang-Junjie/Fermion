@@ -19,7 +19,7 @@ namespace Fermion
         m_window = IWindow::create(windowProps);
         m_window->setEventCallback([this](IEvent &event)
                                    { this->onEvent(event); });
-        m_window->setVSync(true);
+        m_window->setVSync(false);
         Renderer::init();
         ScriptManager::init();
         ScriptManager::loadScript("Sandbox.dll");

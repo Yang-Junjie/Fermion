@@ -46,7 +46,6 @@ namespace Fermion
 		{
 			Type componentType = typeof(T);
 			InternalCalls.Entity_AddComponent(ID, componentType);
-			InternalCalls.ConsoleLog("Added component " + componentType.Name);
 			return GetComponent<T>();
 		}
 

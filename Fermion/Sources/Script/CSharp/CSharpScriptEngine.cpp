@@ -189,6 +189,7 @@ namespace Fermion
 
     void CSharpScriptEngine::loadClasses(MonoImage *image)
     {
+        FM_PROFILE_FUNCTION();
         int typeCount = mono_image_get_table_rows(image, MONO_TABLE_TYPEDEF);
         Log::Info("Type count in DLL: " + std::to_string(typeCount));
         for (int i = 1; i <= typeCount; ++i)
@@ -218,6 +219,7 @@ namespace Fermion
 
     bool CSharpScriptEngine::loadScript(const std::filesystem::path &path)
     {
+        FM_PROFILE_FUNCTION();
         m_appDomain = mono_domain_create_appdomain(const_cast<char *>("AppDomain"), nullptr);
         mono_domain_set(m_appDomain, true);
 
@@ -244,6 +246,7 @@ namespace Fermion
 
     ScriptHandle CSharpScriptEngine::createInstance(const std::string &className)
     {
+        FM_PROFILE_FUNCTION();
         auto it = m_classes.find(className);
         if (it == m_classes.end())
         {
@@ -261,6 +264,7 @@ namespace Fermion
 
     void CSharpScriptEngine::invokeMethod(ScriptHandle instance, const std::string &name)
     {
+        FM_PROFILE_FUNCTION();
         if (!instance.isValid())
         {
             Log::Error("CSharpScriptEngine::invokeMethod: invalid handle!");
@@ -288,6 +292,7 @@ namespace Fermion
 
     bool CSharpScriptEngine::getFieldValue(const ScriptHandle &instance, const std::string &name, void *buffer)
     {
+        FM_PROFILE_FUNCTION();
         if (!instance.isValid())
             return false;
 
@@ -394,6 +399,7 @@ namespace Fermion
     }
     void CSharpScriptEngine::onCreateEntity(Entity entity)
     {
+        FM_PROFILE_FUNCTION();
         const auto &sc = entity.getComponent<ScriptContainerComponent>();
 
         for (auto className : sc.scriptClassNames)
@@ -426,6 +432,7 @@ namespace Fermion
     }
     void CSharpScriptEngine::onUpdateEntity(Entity entity, Timestep ts)
     {
+        FM_PROFILE_FUNCTION();
         UUID entityID = entity.getUUID();
         if (m_entityInstances.find(entityID) != m_entityInstances.end())
         {

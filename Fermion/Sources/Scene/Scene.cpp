@@ -143,11 +143,11 @@ namespace Fermion
     }
     void Scene::onPhysics2DStart()
     {
-
+        FM_PROFILE_FUNCTION();
         b2WorldDef worldDef = b2DefaultWorldDef();
         worldDef.gravity = {0.0f, -9.8f};
         m_physicsWorld = b2CreateWorld(&worldDef);
-        
+
         auto view = m_registry.view<Rigidbody2DComponent>();
         for (auto e : view)
         {
@@ -210,7 +210,7 @@ namespace Fermion
                     cc2d.offset.x * transform.scale.x,
                     cc2d.offset.y * transform.scale.y};
 
-                circle.radius = cc2d.radius * transform.scale.x; 
+                circle.radius = cc2d.radius * transform.scale.x;
 
                 b2ShapeId shapeId = b2CreateCircleShape(bodyId, &shapeDef, &circle);
                 cc2d.runtimeFixture = (void *)(uintptr_t)b2StoreShapeId(shapeId);
@@ -233,6 +233,7 @@ namespace Fermion
 
     void Scene::onRenderEditor(std::shared_ptr<SceneRenderer> renderer, EditorCamera &camera, bool showRenderEntities)
     {
+        FM_PROFILE_FUNCTION();
         renderer->beginScene(camera);
         if (showRenderEntities)
         {
@@ -270,11 +271,13 @@ namespace Fermion
 
     void Scene::onUpdateEditor(std::shared_ptr<SceneRenderer> renderer, Timestep ts, EditorCamera &camera, bool showRenderEntities)
     {
+        FM_PROFILE_FUNCTION();
         onRenderEditor(renderer, camera, showRenderEntities);
     }
 
     void Scene::onUpdateSimulation(std::shared_ptr<SceneRenderer> renderer, Timestep ts, EditorCamera &camera, bool showRenderEntities)
     {
+        FM_PROFILE_FUNCTION();
         if (!m_isPaused || m_stepFrames-- > 0)
         // Scripts
         {
@@ -372,6 +375,7 @@ namespace Fermion
 
     void Scene::onUpdateRuntime(std::shared_ptr<SceneRenderer> renderer, Timestep ts, bool showRenderEntities)
     {
+        FM_PROFILE_FUNCTION();
         // Scripts
         {
             auto view = m_registry.view<ScriptContainerComponent>();

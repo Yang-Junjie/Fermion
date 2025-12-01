@@ -35,6 +35,7 @@
 #include "Renderer/Renderer.hpp"
 #include "Renderer/RendererAPI.hpp"
 #include "Renderer/Renderer2D.hpp"
+#include "Renderer/SceneRenderer.hpp"
 #include "Renderer/Shader.hpp"
 #include "Renderer/VertexArray.hpp"
 #include "Renderer/Texture.hpp"
