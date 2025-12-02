@@ -3,7 +3,7 @@
 #include "Project/Project.hpp"
 #include "Scene/SceneSerializer.hpp"
 
-NeutrinoLayer::NeutrinoLayer(const std::filesystem::path &projectPath)
+NeutrinoLayer::NeutrinoLayer(const std::string_view &projectPath)
     : Fermion::Layer("NeutrinoLayer"), m_projectPath(projectPath)
 {
 }
@@ -80,10 +80,10 @@ void NeutrinoLayer::openProject()
     const auto &config = m_project->getConfig();
     FERMION_ASSERT(!config.startScene.empty(), "Project start scene is not set!");
 
-    loadScene(config.startScene);
+    loadScene(config.startScene.string());
 }
 
-void NeutrinoLayer::loadScene(const std::filesystem::path &filepath)
+void NeutrinoLayer::loadScene(const std::string_view &filepath)
 {
     m_runtimeScene = std::make_shared<Fermion::Scene>();
 

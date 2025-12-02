@@ -7,6 +7,7 @@
 #include <functional>
 
 #include <string>
+#include <string_view>
 #include <filesystem>
 #include <sstream>
 #include <array>

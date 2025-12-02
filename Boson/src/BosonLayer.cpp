@@ -242,7 +242,7 @@ namespace Fermion
             {
                 ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4{0.117f, 0.117f, 0.117f, 1.0f});
                 ImGui::Begin("Viewport");
-                auto viewportOffset = ImGui::GetCursorPos(); // include tab bar (local to window)
+                auto viewportOffset = ImGui::GetCursorPos(); 
 
                 m_viewportFocused = ImGui::IsWindowFocused();
                 m_viewportHovered = ImGui::IsWindowHovered();

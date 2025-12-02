@@ -9,13 +9,16 @@ namespace Fermion
 
     Application *Application::s_instance = nullptr;
 
-    Application::Application(const std::string &name)
+    Application::Application(const ApplicationSpecification &spec)
     {
         FM_PROFILE_FUNCTION();
         s_instance = this;
+        
         WindowProps windowProps;
+        windowProps.title = spec.name;
+        windowProps.width = spec.windowWidth;
+        windowProps.height = spec.windowHeight;
 
-        windowProps.title = name;
         m_window = IWindow::create(windowProps);
         m_window->setEventCallback([this](IEvent &event)
                                    { this->onEvent(event); });

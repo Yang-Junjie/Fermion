@@ -13,17 +13,22 @@
 
 #include "Time/Timer.hpp"
 
-
 #include "Renderer/Buffer.hpp"
 #include "Renderer/VertexArray.hpp"
 #include "Renderer/Renderer.hpp"
 
 namespace Fermion
 {
+
+    struct ApplicationSpecification
+    {
+        std::string name = "Fermion";
+        uint32_t windowWidth = 1600, windowHeight = 900;
+    };
     class Application
     {
     public:
-        Application(const std::string& name = "Fermion Application");
+        Application(const ApplicationSpecification &spec);
         virtual ~Application();
 
         void pushLayer(std::unique_ptr<Layer> layer);
@@ -57,5 +62,5 @@ namespace Fermion
         static Application *s_instance;
     };
     // clinet 实现
-    Application *createApplication();
+    Application *createApplication(int argc, char** argv);
 }
