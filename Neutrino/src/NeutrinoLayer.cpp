@@ -14,7 +14,7 @@ void NeutrinoLayer::onAttach()
     openProject();
     if (m_runtimeScene)
     {
-        auto &window = Fermion::Engine::get().getWindow();
+        auto &window = Fermion::Application::get().getWindow();
         m_runtimeScene->onViewportResize(window.getWidth(), window.getHeight());
         m_sceneRenderer->setScene(m_runtimeScene);
     }
@@ -60,7 +60,7 @@ bool NeutrinoLayer::onKeyPressedEvent(Fermion::KeyPressedEvent &e)
 {
     if (e.getKeyCode() == Fermion::KeyCode::Escape)
     {
-        Fermion::Engine::get().close();
+        Fermion::Application::get().close();
         return true;
     }
 

@@ -188,7 +188,7 @@ namespace Fermion
                         if (ImGui::MenuItem("Exit"))
                         {
                             saveProject();
-                            Engine::get().close();
+                            Application::get().close();
                         }
                         ImGui::EndMenu();
                     }
@@ -247,7 +247,7 @@ namespace Fermion
                 m_viewportFocused = ImGui::IsWindowFocused();
                 m_viewportHovered = ImGui::IsWindowHovered();
 
-                Engine::get().getImGuiLayer()->blockEvents(!m_viewportFocused || !m_viewportHovered);
+                Application::get().getImGuiLayer()->blockEvents(!m_viewportFocused || !m_viewportHovered);
 
                 ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 

@@ -1,4 +1,4 @@
-﻿#include "Core/Engine.hpp"
+﻿#include "Core/Application.hpp"
 #include "Core/Timestep.hpp"
 #include "Script/ScriptManager.hpp"
 
@@ -7,9 +7,9 @@
 namespace Fermion
 {
 
-    Engine *Engine::s_instance = nullptr;
+    Application *Application::s_instance = nullptr;
 
-    Engine::Engine(const std::string &name)
+    Application::Application(const std::string &name)
     {
         FM_PROFILE_FUNCTION();
         s_instance = this;
@@ -28,16 +28,16 @@ namespace Fermion
         pushOverlay(std::move(m_imGuiLayer));
     }
 
-    Engine::~Engine()
+    Application::~Application()
     {
         FM_PROFILE_FUNCTION();
         ScriptManager::shutdown();
     }
 
-    void Engine::run()
+    void Application::run()
     {
         FM_PROFILE_FUNCTION();
-        Log::Info("Engine started!");
+        Log::Info("Application started!");
 
         while (m_running)
         {
@@ -65,21 +65,21 @@ namespace Fermion
         }
     }
 
-    void Engine::pushLayer(std::unique_ptr<Layer> layer)
+    void Application::pushLayer(std::unique_ptr<Layer> layer)
     {
         FM_PROFILE_FUNCTION();
         layer->onAttach();
         m_layerStack.pushLayer(std::move(layer));
     }
 
-    void Engine::pushOverlay(std::unique_ptr<Layer> overlay)
+    void Application::pushOverlay(std::unique_ptr<Layer> overlay)
     {
         FM_PROFILE_FUNCTION();
         overlay->onAttach();
         m_layerStack.pushOverlay(std::move(overlay));
     }
 
-    void Engine::onEvent(IEvent &event)
+    void Application::onEvent(IEvent &event)
     {
         FM_PROFILE_FUNCTION();
         EventDispatcher dispatcher(event);
@@ -97,7 +97,7 @@ namespace Fermion
         }
     }
 
-    bool Engine::onWindowResize(WindowResizeEvent &event)
+    bool Application::onWindowResize(WindowResizeEvent &event)
     {
         FM_PROFILE_FUNCTION();
         if (event.getWidth() == 0 || event.getHeight() == 0)
@@ -112,7 +112,7 @@ namespace Fermion
         return false;
     }
 
-    bool Engine::onWindowClose(WindowCloseEvent &event)
+    bool Application::onWindowClose(WindowCloseEvent &event)
     {
         m_running = false;
         Log::Info("Window closed");

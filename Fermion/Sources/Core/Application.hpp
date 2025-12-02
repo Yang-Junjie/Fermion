@@ -20,11 +20,11 @@
 
 namespace Fermion
 {
-    class Engine
+    class Application
     {
     public:
-        Engine(const std::string& name = "Fermion Engine");
-        virtual ~Engine();
+        Application(const std::string& name = "Fermion Application");
+        virtual ~Application();
 
         void pushLayer(std::unique_ptr<Layer> layer);
         void pushOverlay(std::unique_ptr<Layer> overlay);
@@ -35,7 +35,7 @@ namespace Fermion
         void close() { m_running = false; }
 
         void run();
-        static Engine &get() { return *s_instance; }
+        static Application &get() { return *s_instance; }
 
     private:
         void onEvent(IEvent &event);
@@ -54,8 +54,8 @@ namespace Fermion
 
         std::unique_ptr<ITimer> m_timer;
         float m_lastFrameTime = 0.0f;
-        static Engine *s_instance;
+        static Application *s_instance;
     };
     // clinet 实现
-    Engine *createEngine();
+    Application *createApplication();
 }

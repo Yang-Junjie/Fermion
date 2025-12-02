@@ -1,14 +1,14 @@
 ﻿#pragma once
-#include "Core/Engine.hpp"
+#include "Core/Application.hpp"
 #include "GameLayer.hpp"
 #include "SandBox2D.hpp"
 
 namespace Fermion
 {
-    class GameApp : public Engine
+    class GameApp : public Application
     {
     public:
-        GameApp(): Engine("SandBox")
+        GameApp(): Application("SandBox")
         {
             Log::Info("GameApp constructor called");
             // pushLayer(std::make_unique<GameLayer>());
@@ -16,9 +16,9 @@ namespace Fermion
         };
         ~GameApp() = default;
     };
-    Engine *createEngine()
+    Application *createApplication()
     {
-        Log::Info("start preparing to create the engine");
+        Log::Info("start preparing to create the Application");
         return new Fermion::GameApp();
     }
 }

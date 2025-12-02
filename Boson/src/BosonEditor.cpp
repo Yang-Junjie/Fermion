@@ -1,20 +1,20 @@
-﻿#include "Core/Engine.hpp"
+﻿#include "Core/Application.hpp"
 #include "BosonLayer.hpp"
 namespace Fermion
 {
-    class Bonson : public Engine
+    class Bonson : public Application
     {
     public:
-        Bonson() : Engine("Fermion - Boson")
+        Bonson() : Application("Fermion - Boson")
         {
             Log::Info("Boson Editor constructor called");
             pushLayer(std::make_unique<BosonLayer>());
         };
         ~Bonson() = default;
     };
-    Engine *createEngine()
+    Application *createApplication()
     {
-        Log::Info("start preparing to create the engine");
+        Log::Info("start preparing to create the Application");
         return new Fermion::Bonson();
     }
 }

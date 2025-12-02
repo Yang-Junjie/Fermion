@@ -1,28 +1,28 @@
 #pragma once
 
-#include "Core/Engine.hpp"
+#include "Core/Application.hpp"
 #include "NeutrinoLayer.hpp"
 
 namespace Fermion
 {
-    class Neutrino : public Engine
+    class Neutrino : public Application
     {
     public:
         Neutrino()
-            : Engine("Neutrino")
+            : Application("Neutrino")
         {
             Log::Info("Neutrino runtime constructor called");
 
             std::filesystem::path projectPath = "../Boson/projects/test.fmproj";
-            pushLayer(std::make_unique<::NeutrinoLayer>(projectPath));
+            pushLayer(std::make_unique<NeutrinoLayer>(projectPath));
         }
 
         ~Neutrino() = default;
     };
 
-    Engine* createEngine()
+    Application* createApplication()
     {
-        Log::Info("start preparing to create the Neutrino engine");
+        Log::Info("start preparing to create the Neutrino Application");
         return new Fermion::Neutrino();
     }
 }

@@ -1,6 +1,6 @@
 #include "fmpch.hpp"
 #include "Utils/PlatformUtils.hpp"
-#include "Core/Engine.hpp"
+#include "Core/Application.hpp"
 #include <windows.h>
 #include <prsht.h>
 #include <shobjidl.h>
@@ -24,7 +24,7 @@ namespace Fermion
 		ZeroMemory(&ofn, sizeof(OPENFILENAME));
 		ofn.lStructSize = sizeof(OPENFILENAME);
 		ofn.hwndOwner = glfwGetWin32Window(
-			(GLFWwindow *)Engine::get().getWindow().getNativeWindow());
+			(GLFWwindow *)Application::get().getWindow().getNativeWindow());
 		ofn.lpstrFile = szFile;
 		ofn.nMaxFile = sizeof(szFile);
 		ofn.lpstrInitialDir = defaultPath.c_str();
@@ -45,7 +45,7 @@ namespace Fermion
 		ZeroMemory(&ofn, sizeof(OPENFILENAME));
 		ofn.lStructSize = sizeof(OPENFILENAME);
 		ofn.hwndOwner = glfwGetWin32Window(
-			(GLFWwindow *)Engine::get().getWindow().getNativeWindow());
+			(GLFWwindow *)Application::get().getWindow().getNativeWindow());
 		ofn.lpstrFile = szFile;
 		ofn.nMaxFile = sizeof(szFile);
 		ofn.lpstrInitialDir = defaultPath.c_str();
@@ -93,7 +93,7 @@ namespace Fermion
 
 			// 显示对话框
 			if (SUCCEEDED(pFileDialog->Show(glfwGetWin32Window(
-					(GLFWwindow *)Engine::get().getWindow().getNativeWindow()))))
+					(GLFWwindow *)Application::get().getWindow().getNativeWindow()))))
 			{
 				IShellItem *psiResult = nullptr;
 				if (SUCCEEDED(pFileDialog->GetResult(&psiResult)))
