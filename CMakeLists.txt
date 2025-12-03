@@ -1,5 +1,5 @@
 ﻿cmake_minimum_required(VERSION 3.16)
-project(Fermion VERSION 0.1 LANGUAGES CXX)
+project(Fermion VERSION 0.1 LANGUAGES CXX C)
 
 
 set(CMAKE_CXX_STANDARD 20)
