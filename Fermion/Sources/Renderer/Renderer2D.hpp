@@ -5,14 +5,14 @@
 #include "Renderer/Camera.hpp"
 #include "Renderer/EditorCamera.hpp"
 #include "Renderer/Font.hpp"
-
+#include "Renderer/RendererConfig.hpp"
 
 namespace Fermion
 {
     class Renderer2D
     {
     public:
-        static void init();
+        static void init(const RendererConfig& config);
         static void shutdown();
 
         static void beginScene(const OrthographicCamera &camera);

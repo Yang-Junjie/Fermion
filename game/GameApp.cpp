@@ -22,6 +22,7 @@ namespace Fermion
         spec.name = "SandBox";
         spec.windowWidth = 1920;
         spec.windowHeight = 1080;
+        spec.rendererConfig.ShaderPath = "../Boson/Resources/shaders/";
         Log::Info("start preparing to create the Application");
         return new Fermion::GameApp(spec);
     }

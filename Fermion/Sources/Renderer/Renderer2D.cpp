@@ -6,8 +6,8 @@
 
 #include "glm/gtc/matrix_transform.hpp"
 #include "Renderer2D.hpp"
-
 #include "Renderer/MSDFData.hpp"
+#include <filesystem>
 
 namespace Fermion
 {
@@ -109,7 +109,7 @@ namespace Fermion
 
     static Renderer2DData s_Data;
 
-    void Renderer2D::init()
+    void Renderer2D::init(const RendererConfig &config)
     {
         FM_PROFILE_FUNCTION();
 
@@ -180,10 +180,11 @@ namespace Fermion
         uint32_t whiteTextureData = 0xffffffff;
         s_Data.WhiteTexture->setData(&whiteTextureData, sizeof(uint32_t));
 
-        s_Data.QuadShader = Shader::create("../Boson/Resources/shaders/Quad.glsl");
-        s_Data.CircleShader = Shader::create("../Boson/Resources/shaders/Circle.glsl");
-        s_Data.LineShader = Shader::create("../Boson/Resources/shaders/Line.glsl");
-        s_Data.TextShader = Shader::create("../Boson/Resources/shaders/Text.glsl");
+        std::filesystem::path shaderBase = config.ShaderPath;
+        s_Data.QuadShader = Shader::create((shaderBase / "Quad.glsl").string());
+        s_Data.CircleShader = Shader::create((shaderBase / "Circle.glsl").string());
+        s_Data.LineShader = Shader::create((shaderBase / "Line.glsl").string());
+        s_Data.TextShader = Shader::create((shaderBase / "Text.glsl").string());
 
         s_Data.QuadShader->bind();
         int samplers[s_Data.MaxTextureSlots];

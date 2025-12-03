@@ -36,19 +36,19 @@ namespace Fermion
 
             return (baseDir / p).lexically_normal();
         }
-    } 
+    }
 
-	ProjectSerializer::ProjectSerializer(std::shared_ptr<Project> project)
-		: m_project(project)
-	{
-	}
+    ProjectSerializer::ProjectSerializer(std::shared_ptr<Project> project)
+        : m_project(project)
+    {
+    }
 
-	bool ProjectSerializer::serialize(const std::filesystem::path &filepath)
-	{
-		const auto &config = m_project->getConfig();
+    bool ProjectSerializer::serialize(const std::filesystem::path &filepath)
+    {
+        const auto &config = m_project->getConfig();
         const auto projectDir = filepath.parent_path();
 
-		YAML::Emitter out;
+        YAML::Emitter out;
         out << YAML::BeginMap;
         out << YAML::Key << "Project" << YAML::Value;
         {
@@ -79,48 +79,46 @@ namespace Fermion
 
         out << YAML::EndMap;
 
-		std::ofstream fout(filepath);
-		fout << out.c_str();
+        std::ofstream fout(filepath);
+        fout << out.c_str();
 
-		return true;
-	}
+        return true;
+    }
 
-	bool ProjectSerializer::deserialize(const std::filesystem::path &filepath)
-	{
-		if (!std::filesystem::exists(filepath))
-		{
-			Log::Error("Project file does not exist: " + filepath.string());
-			return false;
-		}
+    bool ProjectSerializer::deserialize(const std::filesystem::path &filepath)
+    {
+        if (!std::filesystem::exists(filepath))
+        {
+            Log::Error("Project file does not exist: " + filepath.string());
+            return false;
+        }
 
-		YAML::Node data = YAML::LoadFile(filepath.string());
-		if (!data)
-		{
-			Log::Error("Failed to load project YAML: " + filepath.string());
-			return false;
-		}
+        YAML::Node data = YAML::LoadFile(filepath.string());
+        if (!data)
+        {
+            Log::Error("Failed to load project YAML: " + filepath.string());
+            return false;
+        }
 
         const auto projectDir = filepath.parent_path();
-		ProjectConfig &config = m_project->getConfig();
+        ProjectConfig &config = m_project->getConfig();
 
-	
-		if (data["Project"])
-		{
-			YAML::Node projectNode = data["Project"];
-			if (projectNode["Name"])
-				config.name = projectNode["Name"].as<std::string>();
-			if (projectNode["Version"])
-				config.version = projectNode["Version"].as<std::string>();
-			if (projectNode["Author"])
-				config.author = projectNode["Author"].as<std::string>();
+        if (data["Project"])
+        {
+            YAML::Node projectNode = data["Project"];
+            if (projectNode["Name"])
+                config.name = projectNode["Name"].as<std::string>();
+            if (projectNode["Version"])
+                config.version = projectNode["Version"].as<std::string>();
+            if (projectNode["Author"])
+                config.author = projectNode["Author"].as<std::string>();
 
             if (projectNode["AssetDirectory"] && !data["Directories"])
                 config.assetDirectory = make_absolute(projectNode["AssetDirectory"].as<std::string>(), projectDir);
             if (projectNode["StartScene"] && !data["Runtime"])
                 config.startScene = make_absolute(projectNode["StartScene"].as<std::string>(), projectDir);
-		}
+        }
 
-       
         if (data["Directories"])
         {
             YAML::Node dirNode = data["Directories"];
@@ -130,7 +128,6 @@ namespace Fermion
                 config.scriptDirectory = make_absolute(dirNode["ScriptDirectory"].as<std::string>(), projectDir);
         }
 
-       
         if (config.scriptDirectory.empty() && !config.assetDirectory.empty())
             config.scriptDirectory = (config.assetDirectory / "scripts").lexically_normal();
 
@@ -141,7 +138,58 @@ namespace Fermion
                 config.startScene = make_absolute(runtimeNode["StartScene"].as<std::string>(), projectDir);
         }
 
-		return true;
-	}
+        return true;
+    }
+
+    bool ProjectSerializer::sertializeRuntime(const std::filesystem::path &filepath)
+    {
+        const auto &config = m_project->getConfig();
+
+        YAML::Emitter out;
+        out << YAML::BeginMap;
+        out << YAML::Key << "Project" << YAML::Value;
+        {
+            out << YAML::BeginMap;
+            out << YAML::Key << "Name" << YAML::Value << config.name;
+            out << YAML::EndMap;
+        }
+        out << YAML::EndMap;
+
+        std::ofstream fout(filepath);
+        if (!fout.is_open())
+        {
+            Log::Error("Failed to open runtime project file for writing: " + filepath.string());
+            return false;
+        }
+
+        fout << out.c_str();
+        return true;
+    }
+
+    std::string ProjectSerializer::deserializeRuntime(const std::filesystem::path &filepath)
+    {
+        if (!std::filesystem::exists(filepath))
+        {
+            Log::Error("Project file does not exist: " + filepath.string());
+            return {};
+        }
+
+        YAML::Node data = YAML::LoadFile(filepath.string());
+        if (!data)
+        {
+            Log::Error("Failed to load project YAML: " + filepath.string());
+            return {};
+        }
+
+        if (data["Project"])
+        {
+            YAML::Node projectNode = data["Project"];
+            if (projectNode["Name"])
+                return projectNode["Name"].as<std::string>();
+        }
+
+        Log::Error("Runtime project YAML does not contain 'Project/Name': " + filepath.string());
+        return {};
+    }
 
 }

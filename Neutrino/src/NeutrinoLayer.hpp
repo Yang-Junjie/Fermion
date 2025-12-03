@@ -8,7 +8,7 @@
 class NeutrinoLayer : public Fermion::Layer
 {
 public:
-    explicit NeutrinoLayer(const std::string_view &projectPath);
+    explicit NeutrinoLayer();
     virtual ~NeutrinoLayer() = default;
 
     void onAttach() override;
@@ -31,5 +31,4 @@ private:
     std::shared_ptr<Fermion::Scene> m_runtimeScene;
     std::shared_ptr<Fermion::SceneRenderer> m_sceneRenderer;
     std::shared_ptr<Fermion::Project> m_project;
-    std::string_view m_projectPath;
 };

@@ -3,13 +3,14 @@
 #include "Renderer/RenderCommand.hpp"
 #include "Renderer/OrthographicCamera.hpp"
 #include "Renderer/Shader.hpp"
+#include "Renderer/RendererConfig.hpp"
 namespace Fermion
 {
 
 	class Renderer
 	{
 	public:
-		static void init();
+		static void init(const RendererConfig& config);
 		static void shutdown();
 
 		static void onWindowResize(uint32_t width, uint32_t height);

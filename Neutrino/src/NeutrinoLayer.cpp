@@ -1,10 +1,11 @@
 #include "NeutrinoLayer.hpp"
 
 #include "Project/Project.hpp"
+#include "Project/ProjectSerializer.hpp"
 #include "Scene/SceneSerializer.hpp"
 
-NeutrinoLayer::NeutrinoLayer(const std::string_view &projectPath)
-    : Fermion::Layer("NeutrinoLayer"), m_projectPath(projectPath)
+NeutrinoLayer::NeutrinoLayer()
+    : Fermion::Layer("NeutrinoLayer")
 {
 }
 
@@ -73,8 +74,18 @@ void NeutrinoLayer::onImGuiRender()
 
 void NeutrinoLayer::openProject()
 {
+    auto runtimeRoot = std::filesystem::current_path().parent_path();
 
-    m_project = Fermion::Project::loadProject(m_projectPath);
+    auto dummyProject = std::make_shared<Fermion::Project>();
+    Fermion::ProjectSerializer serializer(dummyProject);
+    const auto runtimeFile = runtimeRoot / "Project.fdat";
+    
+    std::string projectName = serializer.deserializeRuntime(runtimeFile);
+    FERMION_ASSERT(!projectName.empty(), "Failed to read project name from Project.fdat!");
+
+    std::filesystem::path fmprojPath = runtimeRoot / (projectName + ".fmproj");
+
+    m_project = Fermion::Project::loadProject(fmprojPath);
     FERMION_ASSERT(m_project != nullptr, "Failed to load project!");
 
     const auto &config = m_project->getConfig();

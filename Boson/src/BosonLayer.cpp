@@ -4,6 +4,7 @@
 #include "Scene/SceneSerializer.hpp"
 #include "Utils/PlatformUtils.hpp"
 #include "Renderer/Font.hpp"
+#include "Project/ProjectSerializer.hpp"
 
 #include "imgui/ConsolePanel.hpp"
 #include "Math/Math.hpp"
@@ -81,14 +82,12 @@ namespace Fermion
         }
         else if (m_sceneState == SceneState::Simulate)
         {
-            // if (m_viewportHovered)
             m_editorCamera.onUpdate(dt);
 
             m_activeScene->onUpdateSimulation(m_viewportRenderer, dt, m_editorCamera, m_showRenderEntities);
         }
         else // Edit
         {
-            // if (m_viewportHovered)
             m_editorCamera.onUpdate(dt);
 
             m_activeScene->onUpdateEditor(m_viewportRenderer, dt, m_editorCamera, m_showRenderEntities);
@@ -105,7 +104,6 @@ namespace Fermion
         if (mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y)
         {
             int pixelData = m_framebuffer->readPixel(1, mouseX, mouseY);
-            // Log::Warn(std::format("pixel data: {0}", pixelData));
             m_hoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_activeScene.get());
         }
         onOverlayRender();
@@ -192,6 +190,88 @@ namespace Fermion
                         }
                         ImGui::EndMenu();
                     }
+
+                    // 先进行简单复制
+                    // 后期使用AssetsManager复制使用到的Assets，
+                    // 后期使用ShaderPack打包Shader二进制,并需要对shader支持二进制加载
+                    if (ImGui::BeginMenu("Build"))
+                    {
+                        if (ImGui::MenuItem("Build Project"))
+                        {
+                            auto project = Project::getActive();
+                            FERMION_ASSERT(project != nullptr, "No active project to build!");
+
+                            const auto projectFile = project->getProjectPath(); 
+                            const auto projectDir = projectFile.parent_path();
+
+                           
+                            {
+                                ProjectSerializer serializer(project);
+                                const auto runtimeFile = projectDir / "Project.fdat";
+                                serializer.sertializeRuntime(runtimeFile);
+                            }
+
+                            {
+                                std::filesystem::path shaderSrcDir = "../Boson/Resources/shaders";
+                                std::filesystem::path shaderDstDir = projectDir / "Resources" / "shaders";
+
+                                std::error_code ec;
+
+                                std::filesystem::create_directories(shaderDstDir, ec);
+                                if (ec)
+                                {
+                                    Log::Error(std::format("Failed to create shader output dir: {} ({})",
+                                                           shaderDstDir.string(), ec.message()));
+                                }
+                                else
+                                {
+                                    if (!std::filesystem::exists(shaderSrcDir) ||
+                                        !std::filesystem::is_directory(shaderSrcDir))
+                                    {
+                                        Log::Error(std::format("Shader source dir not found: {}",
+                                                               shaderSrcDir.string()));
+                                    }
+                                    else
+                                    {
+                                        for (const auto &entry : std::filesystem::directory_iterator(shaderSrcDir))
+                                        {
+                                            if (!entry.is_regular_file())
+                                                continue; 
+
+                                            const auto &srcPath = entry.path();
+                                            auto dstPath = shaderDstDir / srcPath.filename();
+
+                                            std::filesystem::copy_file(
+                                                srcPath,
+                                                dstPath,
+                                                std::filesystem::copy_options::overwrite_existing,
+                                                ec);
+
+                                            if (ec)
+                                            {
+                                                Log::Error(std::format("Failed to copy shader {} -> {}: {}",
+                                                                       srcPath.string(),
+                                                                       dstPath.string(),
+                                                                       ec.message()));
+                                                ec.clear();
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        ImGui::EndMenu();
+                    }
+
+                    if (ImGui::BeginMenu("Help"))
+                    {
+                        if (ImGui::MenuItem("about"))
+                        {
+                            m_showAboutWindow = true;
+                        }
+                        ImGui::EndMenu();
+                    }
+
                     ImGui::EndMenuBar();
                 }
 
@@ -205,6 +285,28 @@ namespace Fermion
             ConsolePanel::get().onImGuiRender();
             // ImGui::ShowDemoWindow();
 
+            if (m_showAboutWindow)
+            {
+                ImGui::SetNextWindowSize(ImVec2(350, 0), ImGuiCond_FirstUseEver);
+
+                ImGui::Begin("About Fermion", &m_showAboutWindow, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoDocking);
+
+                ImGui::SeparatorText("About Fermion");
+                ImGui::Text("Fermion Engine v0.1");
+                ImGui::Text("Copyright (c) 2025, Beisent");
+                ImGui::Text("This is free and open-source software under the MIT License.");
+                ImGui::SeparatorText("From");
+                ImGui::Text("This engine was written based on TheCherno's game engine tutorial series.");
+                ImGui::Text("Hazel Engine: https://github.com/TheCherno/Hazel");
+                ImGui::Text("TheCherno's game engine tutorial series:");
+                ImGui::Text("https://www.youtube.com/watch?v=JxIZbV_XjAs&list=PLlrATfBNZ98dC-V-N3m0Go4deliWHPFwT");
+
+                ImGui::Spacing();
+                if (ImGui::Button("Close", ImVec2(-1, 0)))
+                    m_showAboutWindow = false;
+
+                ImGui::End();
+            }
             UIToolbar();
             // Statistics
             {
@@ -242,7 +344,7 @@ namespace Fermion
             {
                 ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4{0.117f, 0.117f, 0.117f, 1.0f});
                 ImGui::Begin("Viewport");
-                auto viewportOffset = ImGui::GetCursorPos(); 
+                auto viewportOffset = ImGui::GetCursorPos();
 
                 m_viewportFocused = ImGui::IsWindowFocused();
                 m_viewportHovered = ImGui::IsWindowHovered();

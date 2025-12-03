@@ -5,6 +5,7 @@
 #include "Core/Log.hpp"
 #include "Core/LayerStack.hpp"
 #include "Core/Layer.hpp"
+#include "Renderer/RendererConfig.hpp"
 
 #include "Events/Event.hpp"
 #include "Events/ApplicationEvent.hpp"
@@ -24,6 +25,7 @@ namespace Fermion
     {
         std::string name = "Fermion";
         uint32_t windowWidth = 1600, windowHeight = 900;
+        RendererConfig rendererConfig;
     };
     class Application
     {

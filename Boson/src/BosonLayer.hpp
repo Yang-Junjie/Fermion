@@ -58,6 +58,7 @@ namespace Fermion
         SceneHierarchyPanel m_sceneHierarchyPanel;
         ContentBrowserPanel m_contentBrowserPanel;
         AssetManagerPanel m_assetManagerPanel;
+        bool m_showAboutWindow = false;
 
         std::shared_ptr<Framebuffer> m_framebuffer;
         glm::vec2 m_viewportSize{0.0f, 0.0f};
@@ -86,5 +87,6 @@ namespace Fermion
         bool m_primaryCamera = true;
         bool m_showPhysicsColliders = false;
         bool m_showRenderEntities = true;
+        
     };
 }

@@ -23,7 +23,7 @@ namespace Fermion
         m_window->setEventCallback([this](IEvent &event)
                                    { this->onEvent(event); });
         m_window->setVSync(false);
-        Renderer::init();
+        Renderer::init(spec.rendererConfig);
         ScriptManager::init();
         ScriptManager::loadScript("Sandbox.dll");
         m_imGuiLayer = std::make_unique<ImGuiLayer>(m_window->getNativeWindow());

@@ -5,12 +5,12 @@
 namespace Fermion
 {
     std::unique_ptr<Renderer::SceneData> Renderer::s_sceneData = std::make_unique<Renderer::SceneData>();
-    void Renderer::init()
+    void Renderer::init(const RendererConfig& config)
     {
         FM_PROFILE_FUNCTION();
 
         RenderCommand::init();
-        Renderer2D::init();
+        Renderer2D::init(config);
     }
 
     void Renderer::shutdown()

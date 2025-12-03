@@ -33,6 +33,7 @@
 #include "Renderer/OrthographicCameraController.hpp"
 #include "Renderer/RenderCommand.hpp"
 #include "Renderer/Renderer.hpp"
+#include "Renderer/RendererConfig.hpp"
 #include "Renderer/RendererAPI.hpp"
 #include "Renderer/Renderer2D.hpp"
 #include "Renderer/SceneRenderer.hpp"
