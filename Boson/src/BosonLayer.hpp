@@ -52,7 +52,11 @@ namespace Fermion
 
         void onDuplicateEntity();
 
-        void UIToolbar();
+        // ImGui Panels
+        void onUIToolPanel();
+        void onHelpPanel();
+        void onSettingsPanel();
+        void onViewportPanel();
 
     private:
         SceneHierarchyPanel m_sceneHierarchyPanel;

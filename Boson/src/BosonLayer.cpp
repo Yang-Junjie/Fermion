@@ -201,10 +201,9 @@ namespace Fermion
                             auto project = Project::getActive();
                             FERMION_ASSERT(project != nullptr, "No active project to build!");
 
-                            const auto projectFile = project->getProjectPath(); 
+                            const auto projectFile = project->getProjectPath();
                             const auto projectDir = projectFile.parent_path();
 
-                           
                             {
                                 ProjectSerializer serializer(project);
                                 const auto runtimeFile = projectDir / "Project.fdat";
@@ -236,7 +235,7 @@ namespace Fermion
                                         for (const auto &entry : std::filesystem::directory_iterator(shaderSrcDir))
                                         {
                                             if (!entry.is_regular_file())
-                                                continue; 
+                                                continue;
 
                                             const auto &srcPath = entry.path();
                                             auto dstPath = shaderDstDir / srcPath.filename();
@@ -283,172 +282,11 @@ namespace Fermion
             m_contentBrowserPanel.onImGuiRender();
             m_assetManagerPanel.onImGuiRender();
             ConsolePanel::get().onImGuiRender();
-            // ImGui::ShowDemoWindow();
 
-            if (m_showAboutWindow)
-            {
-                ImGui::SetNextWindowSize(ImVec2(350, 0), ImGuiCond_FirstUseEver);
-
-                ImGui::Begin("About Fermion", &m_showAboutWindow, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoDocking);
-
-                ImGui::SeparatorText("About Fermion");
-                ImGui::Text("Fermion Engine v0.1");
-                ImGui::Text("Copyright (c) 2025, Beisent");
-                ImGui::Text("This is free and open-source software under the MIT License.");
-                ImGui::SeparatorText("From");
-                ImGui::Text("This engine was written based on TheCherno's game engine tutorial series.");
-                ImGui::Text("Hazel Engine: https://github.com/TheCherno/Hazel");
-                ImGui::Text("TheCherno's game engine tutorial series:");
-                ImGui::Text("https://www.youtube.com/watch?v=JxIZbV_XjAs&list=PLlrATfBNZ98dC-V-N3m0Go4deliWHPFwT");
-
-                ImGui::Spacing();
-                if (ImGui::Button("Close", ImVec2(-1, 0)))
-                    m_showAboutWindow = false;
-
-                ImGui::End();
-            }
-            UIToolbar();
-            // Statistics
-            {
-                std::string name = "None";
-                if (m_hoveredEntity)
-                {
-                    name = m_hoveredEntity.getComponent<TagComponent>().tag;
-                }
-
-                ImGui::Begin("Settings");
-                ImGui::Text("hoverd entity: %s", name.c_str());
-                ImGui::Text("Statistics");
-
-                SceneRenderer::Statistics stats = m_viewportRenderer ? m_viewportRenderer->getStatistics() : SceneRenderer::Statistics{};
-                ImGui::Text("Draw Calls: %d", stats.drawCalls);
-                ImGui::Text("Quads: %d", stats.quadCount);
-                ImGui::Text("Lines: %d", stats.lineCount);
-                ImGui::Text("Circles: %d", stats.circleCount);
-                ImGui::Text("Vertices: %d", stats.getTotalVertexCount());
-                ImGui::Text("Indices: %d", stats.getTotalIndexCount());
-
-                ImGui::End();
-            }
-            {
-                ImGui::Begin("settings");
-                ImGui::Checkbox("showPhysicsColliders", &m_showPhysicsColliders);
-                ImGui::Checkbox("showRenderEntities", &m_showRenderEntities);
-                ImGui::Image((ImTextureID)s_Font->getAtlasTexture()->getRendererID(), {512, 512}, {0, 1}, {1, 0});
-                ImGui::End();
-            }
-
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{0, 0});
-
-            // VIEWPORT
-            {
-                ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4{0.117f, 0.117f, 0.117f, 1.0f});
-                ImGui::Begin("Viewport");
-                auto viewportOffset = ImGui::GetCursorPos();
-
-                m_viewportFocused = ImGui::IsWindowFocused();
-                m_viewportHovered = ImGui::IsWindowHovered();
-
-                Application::get().getImGuiLayer()->blockEvents(!m_viewportFocused || !m_viewportHovered);
-
-                ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-
-                m_viewportSize = {viewportPanelSize.x, viewportPanelSize.y};
-
-                // 接收framebuffer到imgui image进行渲染
-                uint32_t textureID = m_framebuffer->getColorAttachmentRendererID(0);
-                ImGui::Image(reinterpret_cast<void *>(static_cast<intptr_t>(textureID)),
-                             ImVec2(viewportPanelSize.x, viewportPanelSize.y),
-                             ImVec2(0, 1), ImVec2(1, 0));
-
-                // 接收 .fermion 拖放
-                if (ImGui::BeginDragDropTarget())
-                {
-                    if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_SCENE"))
-                    {
-                        const char *path = static_cast<const char *>(payload->Data);
-                        if (path && path[0])
-                        {
-                            openScene(std::string(path));
-                        }
-                    }
-                    ImGui::EndDragDropTarget();
-                }
-                // 接受 .fmproj 拖放
-                if (ImGui::BeginDragDropTarget())
-                {
-                    if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_PROJECT"))
-                    {
-                        const char *path = static_cast<const char *>(payload->Data);
-                        if (path && path[0])
-                        {
-                            openProject(std::string(path));
-                        }
-                    }
-                    ImGui::EndDragDropTarget();
-                }
-
-                ImVec2 minBound = ImGui::GetWindowPos();
-                minBound.x += viewportOffset.x;
-                minBound.y += viewportOffset.y;
-                ImVec2 maxBound = ImVec2(minBound.x + viewportPanelSize.x, minBound.y + viewportPanelSize.y);
-                m_viewportBounds[0] = {minBound.x, minBound.y};
-                m_viewportBounds[1] = {maxBound.x, maxBound.y};
-
-                // ImGuiZmo
-                Entity selectedEntity = m_sceneHierarchyPanel.getSelectedEntity();
-                if (selectedEntity && m_gizmoType != -1)
-                {
-                    ImGuizmo::SetOrthographic(false);
-                    ImGuizmo::SetDrawlist();
-                    ImGuizmo::SetRect(ImGui::GetWindowPos().x,
-                                      ImGui::GetWindowPos().y,
-                                      viewportPanelSize.x,
-                                      viewportPanelSize.y);
-
-                    // editorCamera
-                    const glm::mat4 &cameraProjection = m_editorCamera.getProjection();
-                    const glm::mat4 &cameraView = m_editorCamera.getViewMatrix();
-
-                    // Entity
-                    auto &transformComponent = selectedEntity.getComponent<TransformComponent>();
-                    glm::mat4 transform = transformComponent.getTransform();
-
-                    bool snap = Input::isKeyPressed(KeyCode::LeftAlt);
-                    float snapValue = 0.5f;
-                    if (m_gizmoType == ImGuizmo::OPERATION::ROTATE)
-                        snapValue = 45.0f;
-
-                    float snapValues[3] = {snapValue, snapValue, snapValue};
-                    ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
-                                         (ImGuizmo::OPERATION)m_gizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform), nullptr, snap ? snapValues : nullptr);
-
-                    if (ImGuizmo::IsUsing())
-                    {
-                        glm::vec3 translation, rotation, scale;
-                        Math::decomposeTransform(transform, translation, rotation, scale);
-
-                        switch ((ImGuizmo::OPERATION)m_gizmoType)
-                        {
-                        case ImGuizmo::TRANSLATE:
-                            transformComponent.translation = translation;
-                            break;
-                        case ImGuizmo::ROTATE:
-                            transformComponent.setRotationEuler(rotation);
-                            break;
-                        case ImGuizmo::SCALE:
-                            transformComponent.scale = scale;
-                            break;
-                        default:
-                            break;
-                        }
-                    }
-                }
-
-                ImGui::End();
-                ImGui::PopStyleColor();
-                ImGui::PopStyleVar();
-            }
+            onUIToolPanel();
+            onHelpPanel();
+            onSettingsPanel();
+            onViewportPanel();
         }
     }
 
@@ -537,7 +375,7 @@ namespace Fermion
         return false;
     }
 
-    void BosonLayer::UIToolbar()
+    void BosonLayer::onUIToolPanel()
     {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
         ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
@@ -636,6 +474,171 @@ namespace Fermion
         ImGui::PopStyleVar(2);
         ImGui::PopStyleColor(4);
         ImGui::End();
+    }
+
+    void BosonLayer::onHelpPanel()
+    {
+        if (m_showAboutWindow)
+        {
+            ImGui::SetNextWindowSize(ImVec2(350, 0), ImGuiCond_FirstUseEver);
+
+            ImGui::Begin("About Fermion", &m_showAboutWindow, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoDocking);
+
+            ImGui::SeparatorText("About Fermion");
+            ImGui::Text("Fermion Engine v0.1");
+            ImGui::Text("Copyright (c) 2025, Beisent");
+            ImGui::Text("This is free and open-source software under the MIT License.");
+            ImGui::SeparatorText("From");
+            ImGui::Text("This engine was written based on TheCherno's game engine tutorial series.");
+            ImGui::Text("Hazel Engine: https://github.com/TheCherno/Hazel");
+            ImGui::Text("TheCherno's game engine tutorial series:");
+            ImGui::Text("https://www.youtube.com/watch?v=JxIZbV_XjAs&list=PLlrATfBNZ98dC-V-N3m0Go4deliWHPFwT");
+
+            ImGui::Spacing();
+            if (ImGui::Button("Close", ImVec2(-1, 0)))
+                m_showAboutWindow = false;
+
+            ImGui::End();
+        }
+    }
+
+    void BosonLayer::onSettingsPanel()
+    {
+
+        std::string name = "None";
+        if (m_hoveredEntity)
+        {
+            name = m_hoveredEntity.getComponent<TagComponent>().tag;
+        }
+
+        ImGui::Begin("Settings");
+        ImGui::Text("hoverd entity: %s", name.c_str());
+        ImGui::Text("Statistics");
+        SceneRenderer::Statistics stats = m_viewportRenderer ? m_viewportRenderer->getStatistics() : SceneRenderer::Statistics{};
+        ImGui::Text("Draw Calls: %d", stats.drawCalls);
+        ImGui::Text("Quads: %d", stats.quadCount);
+        ImGui::Text("Lines: %d", stats.lineCount);
+        ImGui::Text("Circles: %d", stats.circleCount);
+        ImGui::Text("Vertices: %d", stats.getTotalVertexCount());
+        ImGui::Text("Indices: %d", stats.getTotalIndexCount());
+
+        ImGui::Separator();
+        ImGui::Checkbox("showPhysicsColliders", &m_showPhysicsColliders);
+        ImGui::Checkbox("showRenderEntities", &m_showRenderEntities);
+        ImGui::Image((ImTextureID)s_Font->getAtlasTexture()->getRendererID(), {512, 512}, {0, 1}, {1, 0});
+        ImGui::End();
+    }
+
+    void BosonLayer::onViewportPanel()
+    {
+
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{0, 0});
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4{0.117f, 0.117f, 0.117f, 1.0f});
+        ImGui::Begin("Viewport");
+        auto viewportOffset = ImGui::GetCursorPos();
+
+        m_viewportFocused = ImGui::IsWindowFocused();
+        m_viewportHovered = ImGui::IsWindowHovered();
+
+        Application::get().getImGuiLayer()->blockEvents(!m_viewportFocused || !m_viewportHovered);
+
+        ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+
+        m_viewportSize = {viewportPanelSize.x, viewportPanelSize.y};
+
+        // 接收framebuffer到imgui image进行渲染
+        uint32_t textureID = m_framebuffer->getColorAttachmentRendererID(0);
+        ImGui::Image(reinterpret_cast<void *>(static_cast<intptr_t>(textureID)),
+                     ImVec2(viewportPanelSize.x, viewportPanelSize.y),
+                     ImVec2(0, 1), ImVec2(1, 0));
+
+        // 接收 .fermion 拖放
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_SCENE"))
+            {
+                const char *path = static_cast<const char *>(payload->Data);
+                if (path && path[0])
+                {
+                    openScene(std::string(path));
+                }
+            }
+            ImGui::EndDragDropTarget();
+        }
+        // 接受 .fmproj 拖放
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_PROJECT"))
+            {
+                const char *path = static_cast<const char *>(payload->Data);
+                if (path && path[0])
+                {
+                    openProject(std::string(path));
+                }
+            }
+            ImGui::EndDragDropTarget();
+        }
+
+        ImVec2 minBound = ImGui::GetWindowPos();
+        minBound.x += viewportOffset.x;
+        minBound.y += viewportOffset.y;
+        ImVec2 maxBound = ImVec2(minBound.x + viewportPanelSize.x, minBound.y + viewportPanelSize.y);
+        m_viewportBounds[0] = {minBound.x, minBound.y};
+        m_viewportBounds[1] = {maxBound.x, maxBound.y};
+
+        // ImGuiZmo
+        Entity selectedEntity = m_sceneHierarchyPanel.getSelectedEntity();
+        if (selectedEntity && m_gizmoType != -1)
+        {
+            ImGuizmo::SetOrthographic(false);
+            ImGuizmo::SetDrawlist();
+            ImGuizmo::SetRect(ImGui::GetWindowPos().x,
+                              ImGui::GetWindowPos().y,
+                              viewportPanelSize.x,
+                              viewportPanelSize.y);
+
+            // editorCamera
+            const glm::mat4 &cameraProjection = m_editorCamera.getProjection();
+            const glm::mat4 &cameraView = m_editorCamera.getViewMatrix();
+
+            // Entity
+            auto &transformComponent = selectedEntity.getComponent<TransformComponent>();
+            glm::mat4 transform = transformComponent.getTransform();
+
+            bool snap = Input::isKeyPressed(KeyCode::LeftAlt);
+            float snapValue = 0.5f;
+            if (m_gizmoType == ImGuizmo::OPERATION::ROTATE)
+                snapValue = 45.0f;
+
+            float snapValues[3] = {snapValue, snapValue, snapValue};
+            ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
+                                 (ImGuizmo::OPERATION)m_gizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform), nullptr, snap ? snapValues : nullptr);
+
+            if (ImGuizmo::IsUsing())
+            {
+                glm::vec3 translation, rotation, scale;
+                Math::decomposeTransform(transform, translation, rotation, scale);
+
+                switch ((ImGuizmo::OPERATION)m_gizmoType)
+                {
+                case ImGuizmo::TRANSLATE:
+                    transformComponent.translation = translation;
+                    break;
+                case ImGuizmo::ROTATE:
+                    transformComponent.setRotationEuler(rotation);
+                    break;
+                case ImGuizmo::SCALE:
+                    transformComponent.scale = scale;
+                    break;
+                default:
+                    break;
+                }
+            }
+        }
+
+        ImGui::End();
+        ImGui::PopStyleColor();
+        ImGui::PopStyleVar();
     }
 
     void BosonLayer::onOverlayRender()
