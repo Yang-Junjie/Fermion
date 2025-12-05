@@ -2,15 +2,15 @@
 #include "BosonLayer.hpp"
 namespace Fermion
 {
-    class Bonson : public Application
+    class Bonson final : public Application
     {
     public:
-        Bonson(const ApplicationSpecification& spec) : Application(spec)
+        explicit Bonson(const ApplicationSpecification& spec) : Application(spec)
         {
             Log::Info("Boson Editor constructor called");
             pushLayer(std::make_unique<BosonLayer>());
         };
-        ~Bonson() = default;
+        ~Bonson() override = default;
     };
     Application *createApplication(int argc, char** argv)
     {

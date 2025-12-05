@@ -19,7 +19,8 @@ namespace Fermion
     {
     public:
         BosonLayer(const std::string &name = "BosonLayer");
-        virtual ~BosonLayer() = default;
+
+        virtual ~BosonLayer() override = default;
 
         virtual void onAttach() override;
         virtual void onDetach() override;

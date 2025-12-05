@@ -1,5 +1,4 @@
-﻿#pragma once
-#include "Fermion.hpp"
+﻿#include "Fermion.hpp"
 #include "BosonLayer.hpp"
 #include "Scene/SceneSerializer.hpp"
 #include "Utils/PlatformUtils.hpp"
@@ -45,7 +44,7 @@ namespace Fermion
         m_viewportRenderer = std::make_shared<SceneRenderer>();
 
         m_editorScene = m_activeScene;
-        m_editorCamera = EditorCamera(45.0f, (float)fbSpec.width / (float)fbSpec.height, 0.1f, 1000.0f);
+        m_editorCamera = EditorCamera(45.0f, static_cast<float>(fbSpec.width) / static_cast<float>(fbSpec.height), 0.1f, 1000.0f);
 
         m_sceneHierarchyPanel.setContext(m_activeScene);
         m_viewportRenderer->setScene(m_activeScene);
@@ -97,11 +96,11 @@ namespace Fermion
         auto [mx, my] = ImGui::GetMousePos();
         mx -= (float)m_viewportBounds[0].x;
         my -= (float)m_viewportBounds[0].y;
-        glm::vec2 viewportSize = m_viewportBounds[1] - m_viewportBounds[0];
+        const glm::vec2 viewportSize = m_viewportBounds[1] - m_viewportBounds[0];
         my = viewportSize.y - my;
-        int mouseX = (int)mx;
-        int mouseY = (int)my;
-        if (mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y)
+        const int mouseX = static_cast<int>(mx);
+        const int mouseY = static_cast<int>(my);
+        if (mouseX >= 0 && mouseY >= 0 && mouseX < static_cast<int>(viewportSize.x) && mouseY < static_cast<int>(viewportSize.y))
         {
             int pixelData = m_framebuffer->readPixel(1, mouseX, mouseY);
             m_hoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_activeScene.get());
@@ -407,7 +406,7 @@ namespace Fermion
         {
             std::shared_ptr<Texture2D> icon = (m_sceneState == SceneState::Edit || m_sceneState == SceneState::Simulate) ? m_iconPlay : m_iconStop;
             if (ImGui::ImageButton("##toolbar_playbtn",
-                                   (ImTextureID)(uint64_t)icon->getRendererID(),
+                                   (ImTextureID)static_cast<uint64_t>(icon->getRendererID()),
                                    ImVec2(size, size),
                                    ImVec2(0, 0), ImVec2(1, 1),
                                    ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor))
@@ -802,7 +801,7 @@ namespace Fermion
         Entity selectedEntity = m_sceneHierarchyPanel.getSelectedEntity();
         if (selectedEntity)
         {
-            Entity newEntity = m_editorScene->duplicateEntity(selectedEntity);
+            const Entity newEntity = m_editorScene->duplicateEntity(selectedEntity);
             m_sceneHierarchyPanel.setSelectedEntity(newEntity);
         }
     }

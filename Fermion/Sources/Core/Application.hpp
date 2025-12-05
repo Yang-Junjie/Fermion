@@ -2,7 +2,7 @@
 #include "fmpch.hpp"
 
 #include "Core/Window.hpp"
-#include "Core/Log.hpp"
+
 #include "Core/LayerStack.hpp"
 #include "Core/Layer.hpp"
 #include "Renderer/RendererConfig.hpp"
@@ -14,9 +14,7 @@
 
 #include "Time/Timer.hpp"
 
-#include "Renderer/Buffer.hpp"
-#include "Renderer/VertexArray.hpp"
-#include "Renderer/Renderer.hpp"
+
 
 namespace Fermion
 {
@@ -30,14 +28,14 @@ namespace Fermion
     class Application
     {
     public:
-        Application(const ApplicationSpecification &spec);
+        explicit Application(const ApplicationSpecification &spec);
         virtual ~Application();
 
         void pushLayer(std::unique_ptr<Layer> layer);
         void pushOverlay(std::unique_ptr<Layer> overlay);
 
-        IWindow &getWindow() { return *m_window; }
-        ImGuiLayer *getImGuiLayer() { return m_imGuiLayerRaw; }
+        IWindow &getWindow() const { return *m_window; }
+        ImGuiLayer *getImGuiLayer() const { return m_imGuiLayerRaw; }
 
         void close() { m_running = false; }
 
@@ -46,8 +44,8 @@ namespace Fermion
 
     private:
         void onEvent(IEvent &event);
-        bool onWindowResize(WindowResizeEvent &event);
-        bool onWindowClose(WindowCloseEvent &event);
+        bool onWindowResize(const WindowResizeEvent &event);
+        bool onWindowClose(const WindowCloseEvent &event);
 
     private:
         bool m_running = true;
@@ -63,6 +61,6 @@ namespace Fermion
         float m_lastFrameTime = 0.0f;
         static Application *s_instance;
     };
-    // clinet 实现
+    // client 实现
     Application *createApplication(int argc, char** argv);
 }

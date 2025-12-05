@@ -32,12 +32,12 @@ namespace Fermion
             return str;
         }
     }
-#define FM_ADD_INTERNAL_CALL(Name) mono_add_internal_call("Fermion.InternalCalls::" #Name, Name)
+#define FM_ADD_INTERNAL_CALL(Name) mono_add_internal_call("Fermion.InternalCalls::" #Name, (void*)Name)
     static std::unordered_map<MonoType *, std::function<bool(Entity)>> s_entityHasComponentFuncs;
     static std::unordered_map<MonoType *, std::function<void(Entity)>> s_entitycomponentFactories;
 
 #pragma region Scene
-    extern "C" static uint64_t Scene_CreateEntity(MonoString *tag)
+    extern "C" uint64_t Scene_CreateEntity(MonoString *tag)
     {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null");
@@ -47,13 +47,13 @@ namespace Fermion
 #pragma endregion
 
 #pragma region Log
-    extern "C" static void NativeLog(MonoString *string, int parameter)
+    extern "C" void NativeLog(MonoString *string, int parameter)
     {
         std::string str = Utils::monoStringToString(string);
         Log::Info(str + " " + std::to_string(parameter));
     }
 
-    extern "C" static void ConsoleLog(MonoString *string)
+    extern "C" void ConsoleLog(MonoString *string)
     {
         std::string str = Utils::monoStringToString(string);
         ConsolePanel::get().addLog(str.c_str());
@@ -61,12 +61,12 @@ namespace Fermion
 #pragma endregion
 
 #pragma region Entity
-    extern "C" static MonoObject *GetScriptInstance(UUID entityID, std::string className)
+    extern "C" MonoObject *GetScriptInstance(UUID entityID, std::string className)
     {
         return (MonoObject *)ScriptManager::getManagedInstance(entityID, className).m_instance;
     }
 
-    extern "C" static bool Entity_HasComponent(UUID entityID, MonoReflectionType *componentType)
+    extern "C" bool Entity_HasComponent(UUID entityID, MonoReflectionType *componentType)
     {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null");
@@ -77,7 +77,7 @@ namespace Fermion
         FERMION_ASSERT(s_entityHasComponentFuncs.find(managedType) != s_entityHasComponentFuncs.end(), "Component type is not registered");
         return s_entityHasComponentFuncs.at(managedType)(entity);
     }
-    extern "C" static void Entity_AddComponent(uint64_t entityID, MonoReflectionType *componentType)
+    extern "C" void Entity_AddComponent(uint64_t entityID, MonoReflectionType *componentType)
     {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null");
@@ -91,7 +91,7 @@ namespace Fermion
         it->second(entity);
     }
 
-    extern "C" static uint64_t Entity_FindEntityByName(MonoString *name)
+    extern "C" uint64_t Entity_FindEntityByName(MonoString *name)
     {
         char *nameCStr = mono_string_to_utf8(name);
 
@@ -108,7 +108,7 @@ namespace Fermion
 #pragma endregion
 
 #pragma region TransformComponent
-    extern "C" static void TransformComponent_GetTranslation(UUID entityID, glm::vec3 *outTranslation)
+    extern "C" void TransformComponent_GetTranslation(UUID entityID, glm::vec3 *outTranslation)
     {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
@@ -118,7 +118,7 @@ namespace Fermion
         *outTranslation = entity.getComponent<TransformComponent>().translation;
     }
 
-    extern "C" static void TransformComponent_SetTranslation(UUID entityID, glm::vec3 *translation)
+    extern "C" void TransformComponent_SetTranslation(UUID entityID, glm::vec3 *translation)
     {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
@@ -130,7 +130,7 @@ namespace Fermion
 #pragma endregion
 
 #pragma region SpriteRendererComponent
-    extern "C" static void SpriteRendererComponent_SetColor(UUID entityID, glm::vec4 *color)
+    extern "C" void SpriteRendererComponent_SetColor(UUID entityID, glm::vec4 *color)
     {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
@@ -142,7 +142,7 @@ namespace Fermion
 #pragma region
 
 #pragma region Box2DComponent
-    extern "C" static Rigidbody2DComponent::BodyType Rigidbody2DComponent_GetType(UUID entityID)
+    extern "C" Rigidbody2DComponent::BodyType Rigidbody2DComponent_GetType(UUID entityID)
     {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
@@ -156,7 +156,7 @@ namespace Fermion
         return Utils::Rigidbody2DTypeFromBox2DBody(bodyType);
     }
 
-    extern "C" static void Rigidbody2DComponent_SetType(UUID entityID, Rigidbody2DComponent::BodyType bodyType)
+    extern "C" void Rigidbody2DComponent_SetType(UUID entityID, Rigidbody2DComponent::BodyType bodyType)
     {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
@@ -169,7 +169,7 @@ namespace Fermion
         b2Body_SetType(bodyId, Utils::Rigidbody2DTypeToBox2DBody(bodyType));
     }
 
-    extern "C" static void Rigidbody2DComponent_ApplyLinearImpulseToCenter(UUID entityID, glm::vec2 *impulse, bool wake)
+    extern "C" void Rigidbody2DComponent_ApplyLinearImpulseToCenter(UUID entityID, glm::vec2 *impulse, bool wake)
     {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
@@ -183,7 +183,7 @@ namespace Fermion
         b2Body_ApplyLinearImpulseToCenter(bodyId, b2Vec2{impulse->x, impulse->y}, wake);
     }
 
-    extern "C" static void Rigidbody2DComponent_GetLinearVelocity(UUID entityID, glm::vec2 *out)
+    extern "C" void Rigidbody2DComponent_GetLinearVelocity(UUID entityID, glm::vec2 *out)
     {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
@@ -198,7 +198,7 @@ namespace Fermion
         out->x = vel.x;
         out->y = vel.y;
     }
-    extern "C" static bool BoxSensor2D_SensorBegin(UUID entityID)
+    extern "C" bool BoxSensor2D_SensorBegin(UUID entityID)
     {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
@@ -209,7 +209,7 @@ namespace Fermion
 
         return bs2c.sensorBegin;
     }
-    extern "C" static bool BoxSensor2D_SensorEnd(UUID entityID)
+    extern "C" bool BoxSensor2D_SensorEnd(UUID entityID)
     {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
@@ -220,7 +220,7 @@ namespace Fermion
 
         return bs2c.sensorEnd;
     }
-    extern "C" static void BoxSensor2D_SetSize(UUID entityID, glm::vec2 *out)
+    extern "C" void BoxSensor2D_SetSize(UUID entityID, glm::vec2 *out)
     {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
@@ -231,7 +231,7 @@ namespace Fermion
         bs2c.size = *out;
         scene->initPhysicsSensor(entity);
     }
-    extern "C" static void BoxSensor2D_GetSize(UUID entityID, glm::vec2 *out)
+    extern "C" void BoxSensor2D_GetSize(UUID entityID, glm::vec2 *out)
     {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
@@ -241,7 +241,7 @@ namespace Fermion
         auto &bs2c = entity.getComponent<BoxSensor2DComponent>();
         *out = bs2c.size;
     }
-    extern "C" static void BoxSensor2D_SetOffset(UUID entityID, glm::vec2 *out)
+    extern "C" void BoxSensor2D_SetOffset(UUID entityID, glm::vec2 *out)
     {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
@@ -252,7 +252,7 @@ namespace Fermion
         bs2c.offset = *out;
         scene->initPhysicsSensor(entity);
     }
-    extern "C" static void BoxSensor2D_GetOffset(UUID entityID, glm::vec2 *out)
+    extern "C" void BoxSensor2D_GetOffset(UUID entityID, glm::vec2 *out)
     {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
@@ -265,7 +265,7 @@ namespace Fermion
 #pragma endregion
 
 #pragma region Input
-    extern "C" static bool
+    extern "C" bool
     Input_IsKeyDown(KeyCode keycode)
     {
         return Input::isKeyPressed(keycode);
@@ -403,7 +403,6 @@ namespace Fermion
         s_entitycomponentFactories.clear();
         MonoImage *coreImage = ScriptManager::getCoreImage();
         registerAllComponentFactories(AllComponents{}, coreImage);
-        
     }
 
     void ScriptGlue::registerFunctions()

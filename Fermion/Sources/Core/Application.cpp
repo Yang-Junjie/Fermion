@@ -1,7 +1,9 @@
 ﻿#include "Core/Application.hpp"
 #include "Core/Timestep.hpp"
 #include "Script/ScriptManager.hpp"
-
+#include "Renderer/Buffer.hpp"
+#include "Renderer/VertexArray.hpp"
+#include "Renderer/Renderer.hpp"
 #include <GLFW/glfw3.h>
 
 namespace Fermion
@@ -45,8 +47,8 @@ namespace Fermion
         while (m_running)
         {
             FM_PROFILE_SCOPE("RunLoop");
-            float time = static_cast<float>(glfwGetTime()); // TODO :GLFE TIMER
-            Timestep timestep = time - m_lastFrameTime;
+            const float time = static_cast<float>(glfwGetTime()); // TODO :GLFE TIMER
+            const Timestep timestep = time - m_lastFrameTime;
             m_lastFrameTime = time;
 
             if (!m_minimized)
@@ -100,7 +102,7 @@ namespace Fermion
         }
     }
 
-    bool Application::onWindowResize(WindowResizeEvent &event)
+    bool Application::onWindowResize(const WindowResizeEvent &event)
     {
         FM_PROFILE_FUNCTION();
         if (event.getWidth() == 0 || event.getHeight() == 0)
@@ -110,12 +112,10 @@ namespace Fermion
         }
         m_minimized = false;
         Renderer::onWindowResize(event.getWidth(), event.getHeight());
-        // Log::Info("Window resized to " + std::to_string(event.getWidth()) + "x" + std::to_string(event.getHeight()));
-        Log::Info(std::format("Window resized to {}x{}", event.getWidth(), event.getHeight()));
-        return false;
+        return true;
     }
 
-    bool Application::onWindowClose(WindowCloseEvent &event)
+    bool Application::onWindowClose(const WindowCloseEvent &event)
     {
         m_running = false;
         Log::Info("Window closed");
