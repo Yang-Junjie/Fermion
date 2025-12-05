@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "AssetInfo.hpp"
+#include "AssetMetadata.hpp"
 #include "AssetTypes.hpp"
 
 #include <filesystem>

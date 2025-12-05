@@ -2,14 +2,14 @@
 
 namespace Fermion
 {
-    std::unordered_map<AssetHandle, AssetInfo> AssetRegistry::s_assetsRegistry;
+    std::unordered_map<AssetHandle, AssetMetadata> AssetRegistry::s_assetsRegistry;
 
-    AssetInfo& AssetRegistry::get(AssetHandle handle)
+    AssetMetadata& AssetRegistry::get(AssetHandle handle)
     {
         return s_assetsRegistry.at(handle);
     }
 
-    void AssetRegistry::set(AssetHandle handle, const AssetInfo& info)
+    void AssetRegistry::set(AssetHandle handle, const AssetMetadata& info)
     {
         s_assetsRegistry[handle] = info;
     }
@@ -29,7 +29,7 @@ namespace Fermion
         s_assetsRegistry.clear();
     }
 
-    const std::unordered_map<AssetHandle, AssetInfo>& AssetRegistry::getRegistry()
+    const std::unordered_map<AssetHandle, AssetMetadata>& AssetRegistry::getRegistry()
     {
         return s_assetsRegistry;
     }

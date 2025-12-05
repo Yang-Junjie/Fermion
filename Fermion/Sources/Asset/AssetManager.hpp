@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "fmpch.hpp"
 #include "Asset.hpp"
-#include "AssetInfo.hpp"
+#include "AssetMetadata.hpp"
 #include "AssetRegistry.hpp"
 #include "AssetExtensions.hpp"
 
@@ -38,7 +38,7 @@ namespace Fermion
         static void reloadAsset(AssetHandle handle);
         static void unloadAsset(AssetHandle handle);
 
-        static AssetHandle importAsset(const std::filesystem::path& path); // 可选
+        static AssetHandle importAsset(const std::filesystem::path& path); 
 
     private:
         static std::shared_ptr<Asset> loadAssetInternal(AssetHandle handle);

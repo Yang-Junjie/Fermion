@@ -4,8 +4,7 @@
 #include <filesystem>
 namespace Fermion
 {
-
-    struct AssetInfo
+    struct AssetMetadata
     {
         AssetHandle Handle;
         AssetType Type;
