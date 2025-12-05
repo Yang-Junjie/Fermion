@@ -1,4 +1,5 @@
 ﻿#pragma once
+
 namespace Fermion
 {
     enum class AssetType

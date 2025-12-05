@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include "Asset.hpp"
 #include "AssetMetadata.hpp"
 #include <unordered_map>
 

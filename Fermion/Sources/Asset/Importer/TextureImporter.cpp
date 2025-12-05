@@ -4,9 +4,8 @@
 
 namespace Fermion
 {
-    AssetMetadata TextureImporter::importAsset(const std::filesystem::path &assetPath)
+    AssetMetadata TextureImporter::importAsset(const std::filesystem::path& assetPath)
     {
-        // Create basic metadata for a texture asset
         m_Metadata.Handle = UUID();
         if (static_cast<uint64_t>(m_Metadata.Handle) == 0)
             m_Metadata.Handle = UUID(1);
@@ -19,15 +18,14 @@ namespace Fermion
         return m_Metadata;
     }
 
-    void TextureImporter::writeMetadata(const AssetMetadata &metadata)
+    void TextureImporter::writeMetadata(const AssetMetadata& metadata)
     {
-        // Meta file is simply the asset path with ".fmasset" appended
-        std::filesystem::path metaPath = metadata.FilePath;
-        metaPath += ".fmasset";
+        auto metaPath = metadata.FilePath;
+        metaPath += ".meta";
         AssetSerializer::serializeMeta(metaPath, metadata.Handle, metadata.Type);
     }
 
-    void TextureImporter::loadMetadata(const std::filesystem::path &metaFilePath)
+    void TextureImporter::loadMetadata(const std::filesystem::path& metaFilePath)
     {
         AssetHandle handle;
         AssetType type;
@@ -38,7 +36,6 @@ namespace Fermion
         }
 
         std::filesystem::path assetPath = metaFilePath;
-        // Remove the ".fmasset" extension to get back the asset path
         assetPath.replace_extension();
 
         m_Metadata.Handle = handle;
@@ -47,6 +44,4 @@ namespace Fermion
         m_Metadata.Name = assetPath.stem().string();
         m_Metadata.isMemoryAsset = false;
     }
-
 }
-

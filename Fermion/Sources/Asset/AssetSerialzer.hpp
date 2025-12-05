@@ -1,47 +1,39 @@
 ﻿#pragma once
-
 #include "AssetMetadata.hpp"
 #include "AssetTypes.hpp"
-
-#include <filesystem>
 #include <yaml-cpp/yaml.h>
 #include <fstream>
+#include <filesystem>
 
 namespace Fermion
 {
     class AssetSerializer
     {
     public:
-        static bool deserializeMeta(const std::filesystem::path &metaPath, AssetHandle &outHandle, AssetType &outType)
+        static bool deserializeMeta(const std::filesystem::path& metaPath, AssetHandle& outHandle, AssetType& outType)
         {
-            if (!std::filesystem::exists(metaPath))
-                return false;
+            if (!std::filesystem::exists(metaPath)) return false;
 
             try
             {
                 YAML::Node data = YAML::LoadFile(metaPath.string());
                 auto assetNode = data["Asset"];
-                if (!assetNode)
-                    return false;
-
-                if (!assetNode["Handle"] || !assetNode["Type"])
+                if (!assetNode || !assetNode["Handle"] || !assetNode["Type"])
                     return false;
 
                 uint64_t handleValue = assetNode["Handle"].as<uint64_t>();
                 int typeValue = assetNode["Type"].as<int>();
-
                 outHandle = AssetHandle(handleValue);
                 outType = static_cast<AssetType>(typeValue);
                 return true;
             }
-            catch (const YAML::Exception &)
+            catch (...)
             {
                 return false;
             }
         }
 
-
-        static void serializeMeta(const std::filesystem::path &metaPath, AssetHandle handle, AssetType type)
+        static void serializeMeta(const std::filesystem::path& metaPath, AssetHandle handle, AssetType type)
         {
             YAML::Emitter out;
             out << YAML::BeginMap;
@@ -56,6 +48,4 @@ namespace Fermion
             fout << out.c_str();
         }
     };
-
 }
-

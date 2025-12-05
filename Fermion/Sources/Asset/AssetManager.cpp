@@ -24,50 +24,37 @@ namespace Fermion
     static std::filesystem::path GetMetaPath(const std::filesystem::path &assetPath)
     {
         std::filesystem::path metaPath = assetPath;
-        metaPath += ".fmasset";
+        metaPath += ".meta";
         return metaPath;
     }
 
     void AssetManager::init(const std::filesystem::path &assetDirectory)
     {
         s_assetDirectory = assetDirectory;
-        AssetRegistry::clear();
 
-        if (!std::filesystem::exists(assetDirectory))
-            return;
-
-        for (auto &entry : std::filesystem::recursive_directory_iterator(assetDirectory))
+        for (auto &p : std::filesystem::recursive_directory_iterator(assetDirectory))
         {
-            if (!entry.is_regular_file())
+            if (!p.is_regular_file())
                 continue;
-
-            const auto &path = entry.path();
-            AssetType type = GetAssetTypeFromPath(path);
-            if (type == AssetType::None)
+            auto ext = p.path().extension().string();
+            AssetType t = GetAssetTypeFromExtension(ext);
+            if (t == AssetType::None)
                 continue;
-
-            std::filesystem::path metaPath = GetMetaPath(path);
+            auto metaPath = p.path().string() + ".meta";
             AssetHandle handle;
             AssetType metaType;
             if (!AssetSerializer::deserializeMeta(metaPath, handle, metaType))
             {
-                handle = AssetHandle{};
-                if ((uint64_t)handle == 0)
-                    handle = AssetHandle(1);
-                AssetSerializer::serializeMeta(metaPath, handle, type);
+                handle = AssetHandle();
+                AssetSerializer::serializeMeta(metaPath, handle, t);
             }
-
-            if ((uint64_t)handle == 0)
-                continue;
-
-            AssetMetadata metadata;
-            metadata.Handle = handle;
-            metadata.Type = type;
-            metadata.FilePath = path;
-            metadata.Name = path.stem().string();
-            metadata.isMemoryAsset = false;
-
-            AssetRegistry::set(metadata.Handle, metadata);
+            AssetMetadata meta;
+            meta.Handle = handle;
+            meta.Type = t;
+            meta.FilePath = std::filesystem::absolute(p.path());
+            meta.Name = p.path().stem().string();
+            meta.isMemoryAsset = false;
+            AssetRegistry::set(handle, meta);
         }
     }
 
