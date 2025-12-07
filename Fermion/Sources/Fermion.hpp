@@ -46,4 +46,7 @@
 // Project
 #include "Project/Project.hpp"
 
+// Asset system
 #include "Asset/AssetManager.hpp"
+#include "Asset/RuntimeAssetManager.hpp"
+#include "Asset/EditorAssetManager.hpp"

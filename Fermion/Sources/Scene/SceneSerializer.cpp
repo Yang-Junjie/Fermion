@@ -1,7 +1,7 @@
 #include "SceneSerializer.hpp"
 #include "Entity.hpp"
 #include "Components.hpp"
-#include "Asset/AssetManager.hpp"
+#include "Asset/RuntimeAssetManager.hpp"
 
 #include <fstream>
 #include <yaml-cpp/yaml.h>
@@ -345,8 +345,8 @@ namespace Fermion
 						uint64_t handleValue = n.as<uint64_t>();
 						if (handleValue != 0)
 						{
-							src.textureHandle = AssetHandle(handleValue);
-							src.texture = AssetManager::getAsset<Texture2D>(src.textureHandle);
+								src.textureHandle = AssetHandle(handleValue);
+								src.texture = RuntimeAssetManager::getAsset<Texture2D>(src.textureHandle);
 						}
 					}
 				}
@@ -380,8 +380,8 @@ namespace Fermion
 						uint64_t handleValue = n.as<uint64_t>();
 						if (handleValue != 0)
 						{
-							tc.fontHandle = AssetHandle(handleValue);
-							tc.fontAsset = AssetManager::getAsset<Font>(tc.fontHandle);
+								tc.fontHandle = AssetHandle(handleValue);
+								tc.fontAsset = RuntimeAssetManager::getAsset<Font>(tc.fontHandle);
 						}
 					}
 				}

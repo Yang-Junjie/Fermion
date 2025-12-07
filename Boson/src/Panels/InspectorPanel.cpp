@@ -1,7 +1,7 @@
 ﻿#include "InspectorPanel.hpp"
 #include "Scene/Scene.hpp"
 #include "Scene/Components.hpp"
-#include "Asset/AssetManager.hpp"
+#include "Asset/EditorAssetManager.hpp"
 #include "Script/ScriptManager.hpp"
 
 #include <imgui.h>
@@ -291,24 +291,24 @@ namespace Fermion
 			if (textureID)
 				ImGui::Image(textureID, imageSize, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
 
-			// Drag & drop to assign texture
-			if (ImGui::BeginDragDropTarget())
-			{
-				if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_TEXTURE"))
+				// Drag & drop to assign texture
+				if (ImGui::BeginDragDropTarget())
 				{
-					const char *path = static_cast<const char *>(payload->Data);
-					if (path && path[0])
+					if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_TEXTURE"))
 					{
-						AssetHandle handle = AssetManager::importAsset(std::filesystem::path(path));
-						if (static_cast<uint64_t>(handle) != 0)
+						const char *path = static_cast<const char *>(payload->Data);
+						if (path && path[0])
 						{
-							component.textureHandle = handle;
-							component.texture = AssetManager::getAsset<Texture2D>(handle);
+							AssetHandle handle = EditorAssetManager::importAsset(std::filesystem::path(path));
+							if (static_cast<uint64_t>(handle) != 0)
+							{
+								component.textureHandle = handle;
+								component.texture = EditorAssetManager::getAsset<Texture2D>(handle);
+							}
 						}
 					}
+					ImGui::EndDragDropTarget();
 				}
-				ImGui::EndDragDropTarget();
-			}
 
 			ImGui::DragFloat("Tiling Factor", &component.tilingFactor, 0.1f, 0.0f, 100.0f); });
         drawComponent<TextComponent>("Text", entity, [](auto &component)

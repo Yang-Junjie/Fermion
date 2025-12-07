@@ -3,7 +3,7 @@
 #include <imgui.h>
 
 #include "Asset/AssetRegistry.hpp"
-#include "Asset/AssetManager.hpp"
+#include "Asset/EditorAssetManager.hpp"
 #include "Asset/AssetTypes.hpp"
 #include "Asset/Asset.hpp"
 #include "Renderer/Texture.hpp"
@@ -69,7 +69,7 @@ namespace Fermion
 
                 ImGui::TableNextColumn();
 
-                bool loaded = AssetManager::isAssetLoaded(handle);
+                bool loaded = EditorAssetManager::isAssetLoaded(handle);
                 ImGui::TextUnformatted(loaded ? "Loaded" : "Unloaded");
                 ImGui::SameLine();
 
@@ -79,12 +79,12 @@ namespace Fermion
                 if (loaded)
                 {
                     if (ImGui::SmallButton("Unload"))
-                        AssetManager::unloadAsset(handle);
+                        EditorAssetManager::unloadAsset(handle);
                 }
                 else
                 {
                     if (ImGui::SmallButton("Load"))
-                        AssetManager::getAsset<Asset>(handle);
+                        EditorAssetManager::getAsset<Asset>(handle);
                 }
 
                 ImGui::PopID();

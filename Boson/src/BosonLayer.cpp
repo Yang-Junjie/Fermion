@@ -834,13 +834,13 @@ namespace Fermion
 	        if (path.empty())
 	            return;
 
-	        SceneSerializer serializer(m_editorScene);
-	        serializer.serialize(path);
-	        m_editorScenePath = path;
-
-	        AssetHandle handle = AssetManager::importAsset(path);
-	        if (static_cast<uint64_t>(handle) != 0)
-	            m_editorSceneHandle = handle;
+		        SceneSerializer serializer(m_editorScene);
+		        serializer.serialize(path);
+		        m_editorScenePath = path;
+	
+		        AssetHandle handle = EditorAssetManager::importAsset(path);
+		        if (static_cast<uint64_t>(handle) != 0)
+		            m_editorSceneHandle = handle;
 
 	        Log::Info(std::format("Scene saved successfully! Path: {}",
 	                              path.string()));
@@ -850,12 +850,12 @@ namespace Fermion
 	    {
 	        if (!m_editorScenePath.empty())
 	        {
-	            SceneSerializer serializer(m_editorScene);
-	            serializer.serialize(m_editorScenePath);
-
-	            AssetHandle handle = AssetManager::importAsset(m_editorScenePath);
-	            if (static_cast<uint64_t>(handle) != 0)
-	                m_editorSceneHandle = handle;
+		            SceneSerializer serializer(m_editorScene);
+		            serializer.serialize(m_editorScenePath);
+	
+		            AssetHandle handle = EditorAssetManager::importAsset(m_editorScenePath);
+		            if (static_cast<uint64_t>(handle) != 0)
+		                m_editorSceneHandle = handle;
 
 	            Log::Info(std::format("Scene saved successfully! Path: {}",
 	                                  m_editorScenePath.string()));
@@ -892,12 +892,12 @@ namespace Fermion
 	            return;
 	        }
 
-	        if (m_sceneState != SceneState::Edit)
-	        {
-	            onSceneStop();
-	        }
-
-	        AssetHandle handle = AssetManager::importAsset(path);
+		        if (m_sceneState != SceneState::Edit)
+		        {
+		            onSceneStop();
+		        }
+	
+		        AssetHandle handle = EditorAssetManager::importAsset(path);
 	        if (static_cast<uint64_t>(handle) == 0)
 	        {
 	            Log::Error(std::format("Scene open failed (invalid asset handle)! Path: {}",
@@ -905,7 +905,7 @@ namespace Fermion
 	            return;
 	        }
 
-	        auto sceneAsset = AssetManager::getAsset<SceneAsset>(handle);
+		        auto sceneAsset = EditorAssetManager::getAsset<SceneAsset>(handle);
 	        if (!sceneAsset || !sceneAsset->scene)
 	        {
 	            Log::Error(std::format("Scene open failed (asset load failed)! Path: {}",
