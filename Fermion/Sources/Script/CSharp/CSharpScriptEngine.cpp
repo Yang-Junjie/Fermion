@@ -93,7 +93,10 @@ namespace Fermion
 
         if (exception)
         {
-            Log::Error("CSharpScriptClass::invokeMethod: script exception!");
+            MonoString *excStr = mono_object_to_string(exception, nullptr);
+            char *cstr = mono_string_to_utf8(excStr);
+            Log::Error(std::format("CSharpScriptClass::invokeMethod: Script exception: {}", cstr));
+            mono_free(cstr);
         }
     }
 
@@ -169,8 +172,8 @@ namespace Fermion
             return;
 
         if (m_rootDomain)
-            mono_domain_set(m_rootDomain,true);
-            
+            mono_domain_set(m_rootDomain, true);
+
         if (m_appDomain)
         {
             mono_domain_unload(m_appDomain);

@@ -32,10 +32,13 @@ namespace Fermion
             return str;
         }
     }
-#define FM_ADD_INTERNAL_CALL(Name) mono_add_internal_call("Fermion.InternalCalls::" #Name, (void*)Name)
+#define FM_ADD_INTERNAL_CALL(Name) mono_add_internal_call("Fermion.InternalCalls::" #Name, (void *)Name)
     static std::unordered_map<MonoType *, std::function<bool(Entity)>> s_entityHasComponentFuncs;
     static std::unordered_map<MonoType *, std::function<void(Entity)>> s_entitycomponentFactories;
 
+#pragma region AssetHandle
+
+#pragma endregin
 #pragma region Scene
     extern "C" uint64_t Scene_CreateEntity(MonoString *tag)
     {
@@ -138,6 +141,15 @@ namespace Fermion
         FERMION_ASSERT(entity, "Entity is null!");
 
         entity.getComponent<SpriteRendererComponent>().color = *color;
+    }
+    extern "C" void SpriteRendererComponent_SetTexture(UUID entityID, uint64_t textureID)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        entity.getComponent<SpriteRendererComponent>().textureHandle = textureID;
     }
 #pragma region
 
@@ -422,6 +434,7 @@ namespace Fermion
         FM_ADD_INTERNAL_CALL(TransformComponent_SetTranslation);
 
         FM_ADD_INTERNAL_CALL(SpriteRendererComponent_SetColor);
+        FM_ADD_INTERNAL_CALL(SpriteRendererComponent_SetTexture);
 
         FM_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetType);
         FM_ADD_INTERNAL_CALL(Rigidbody2DComponent_SetType);

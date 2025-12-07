@@ -14,11 +14,20 @@ namespace Sandbox
 
         public void OnCreate()
         {
+            if (!HasComponent<TransformComponent>())
+            {
+                Utils.Log("CameraController requires TransformComponent!");
+                return;
+            }
+
             m_Transform = GetComponent<TransformComponent>();
         }
 
         public void OnUpdate(float ts)
         {
+
+            if (m_Transform == null)
+                return;
             Vector3 translation = m_Transform.Translation;
 
             float speed = MoveSpeed * ts;

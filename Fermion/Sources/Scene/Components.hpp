@@ -68,6 +68,7 @@ namespace Fermion
         SpriteRendererComponent(const glm::vec4 &color) : color(color) {}
         SpriteRendererComponent(const SpriteRendererComponent &) = default;
     };
+    
     struct TextComponent
     {
         std::string textString;

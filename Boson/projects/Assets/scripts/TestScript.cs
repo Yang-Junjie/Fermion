@@ -1,7 +1,6 @@
 ﻿using System;
 using Fermion;
 
-
 namespace Sandbox
 {
     public class TestScript : Entity
@@ -19,22 +18,10 @@ namespace Sandbox
         public void OnCreate()
         {
             m_Rigidbody = GetComponent<Rigidbody2DComponent>();
-            // m_Sensor = GetComponent<BoxSensor2DComponent>();
             m_Sensor = AddComponent<BoxSensor2DComponent>();
 
             m_Sensor.Size = new Vector2(0.5f, 0.1f);
             m_Sensor.Offset = new Vector2(0, -0.55f);
-            // Utils.Log("[TestScript] Created");
-            for (int j = 0; j < 316 ;j++)
-            {
-                for (int i = 0; i < 316; i++)
-                {
-
-                    Entity testEngtity = Scene.CreateEntity($"TestEntity{i}{j}");
-                    testEngtity.GetComponent<TransformComponent>().Translation = new Vector3(i, j, 0);
-                    testEngtity.AddComponent<SpriteRendererComponent>().Color = new Vector4(i / 316.0f, j / 316.0f, 0, 1);
-                }
-            }
         }
 
         public void OnUpdate(float ts)
@@ -42,15 +29,10 @@ namespace Sandbox
             Time += ts;
 
             if (m_Sensor.SensorBegin)
-            {
                 groundContactCount++;
-                Utils.Log($"[TestScript]m_Sensor begin : {m_Sensor.SensorBegin}{ts}");
-            }
 
             if (m_Sensor.SensorEnd)
-            {
                 groundContactCount--;
-            }
 
             if (groundContactCount < 0)
                 groundContactCount = 0;
@@ -62,19 +44,14 @@ namespace Sandbox
             else if (Input.IsKeyDown(KeyCode.D))
                 velocity.X = 0.1f;
 
-
-
             if (IsGrounded && Input.IsKeyDown(KeyCode.W))
             {
-
                 m_Rigidbody.ApplyLinearImpulse(new Vector2(0, JumpImpulse), true);
             }
 
             m_Rigidbody.ApplyLinearImpulse(velocity.XY, true);
 
-
             velocity *= MoveSpeed * ts;
-
         }
     }
 }

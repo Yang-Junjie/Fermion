@@ -1,6 +1,6 @@
 ﻿#include "SceneRenderer.hpp"
 #include "Renderer2D.hpp"
-
+#include "Project/Project.hpp"
 namespace Fermion
 {
     void SceneRenderer::beginScene(const Camera &camera, const glm::mat4 &transform)
@@ -27,11 +27,23 @@ namespace Fermion
 
     void SceneRenderer::drawSprite(const glm::mat4 &transform, SpriteRendererComponent &sprite, int objectID)
     {
-        if (sprite.texture)
-            Renderer2D::drawQuad(transform, sprite.texture,
+        // if (sprite.texture)
+        //     Renderer2D::drawQuad(transform, sprite.texture,
+        //                          sprite.tilingFactor, sprite.color, objectID);
+        // else
+        //     Renderer2D::drawQuad(transform, sprite.color, objectID);
+
+        if (static_cast<uint64_t>(sprite.textureHandle) != 0)
+        {
+            auto texture = Project::getRuntimeAssetManager().getAsset<Texture2D>(sprite.textureHandle);
+            Renderer2D::drawQuad(transform, texture,
                                  sprite.tilingFactor, sprite.color, objectID);
+        }
         else
+        {
+
             Renderer2D::drawQuad(transform, sprite.color, objectID);
+        }
     }
 
     void SceneRenderer::drawString(const std::string &string, const glm::mat4 &transform, const TextComponent &component, int objectID)

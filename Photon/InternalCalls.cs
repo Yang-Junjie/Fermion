@@ -36,6 +36,8 @@ namespace Fermion
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void SpriteRendererComponent_SetColor(ulong entityID, ref Vector4 translation);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SpriteRendererComponent_SetTexture(ulong entityID, ulong uuid);
 
 
         [MethodImpl(MethodImplOptions.InternalCall)]

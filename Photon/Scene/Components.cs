@@ -28,19 +28,23 @@ namespace Fermion
 	}
 
 	public class SpriteRendererComponent : Component
-    {
-        public Vector4 Color
-        {
-            get
-            {
-                return new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-            }
+	{
+		public Vector4 Color
+		{
+			get
+			{
+				return new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+			}
 			set
-            {
-                InternalCalls.SpriteRendererComponent_SetColor(Entity.ID, ref value);
-            }
-        }
-    }
+			{
+				InternalCalls.SpriteRendererComponent_SetColor(Entity.ID, ref value);
+			}
+		}
+		public void SetTexture(ulong uuid)
+		{
+			InternalCalls.SpriteRendererComponent_SetTexture(Entity.ID, uuid);
+		}
+	}
 	public class Rigidbody2DComponent : Component
 	{
 		public enum BodyType { Static = 0, Dynamic = 1, Kinematic = 2 }
