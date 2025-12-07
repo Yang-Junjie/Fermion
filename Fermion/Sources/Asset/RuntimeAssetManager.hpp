@@ -14,6 +14,6 @@ namespace Fermion
         using AssetManagerBase::isAssetLoaded;
         using AssetManagerBase::reloadAsset;
         using AssetManagerBase::unloadAsset;
-        using AssetManagerBase::importAsset;
+        static AssetHandle importAsset(const std::filesystem::path &) = delete;
     };
 }

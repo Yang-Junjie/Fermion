@@ -1,8 +1,8 @@
 ﻿#include "InspectorPanel.hpp"
 #include "Scene/Scene.hpp"
 #include "Scene/Components.hpp"
-#include "Asset/EditorAssetManager.hpp"
 #include "Script/ScriptManager.hpp"
+#include "Project/Project.hpp"
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -299,11 +299,12 @@ namespace Fermion
 						const char *path = static_cast<const char *>(payload->Data);
 						if (path && path[0])
 						{
-							AssetHandle handle = EditorAssetManager::importAsset(std::filesystem::path(path));
+							auto &editorAssets = Project::getEditorAssetManager();
+							AssetHandle handle = editorAssets.importAsset(std::filesystem::path(path));
 							if (static_cast<uint64_t>(handle) != 0)
 							{
 								component.textureHandle = handle;
-								component.texture = EditorAssetManager::getAsset<Texture2D>(handle);
+								component.texture = editorAssets.getAsset<Texture2D>(handle);
 							}
 						}
 					}
@@ -379,7 +380,6 @@ namespace Fermion
                             }
                             else
                             {
-                                // 修复第380行的语法错误
                                 component.scriptClassNames.erase(
                                     std::remove(component.scriptClassNames.begin(), component.scriptClassNames.end(), name), 
                                     component.scriptClassNames.end());
@@ -387,7 +387,6 @@ namespace Fermion
                         }
 
                         ImGui::SameLine();
-                        // 修复第386行，将item改为name
                         ImGui::Text("%s", name.c_str());
                     }
                 }

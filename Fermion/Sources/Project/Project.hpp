@@ -1,8 +1,12 @@
-#pragma once
+﻿#pragma once
 
 #include <string>
 #include <memory>
 #include <filesystem>
+
+#include "Asset/Asset.hpp"
+#include "Asset/EditorAssetManager.hpp"
+#include "Asset/RuntimeAssetManager.hpp"
 
 namespace Fermion
 {
@@ -15,28 +19,26 @@ namespace Fermion
 
 		std::filesystem::path startScene;
 		std::filesystem::path assetDirectory;
-		std::filesystem::path scriptDirectory ;
+		std::filesystem::path scriptDirectory;
 	};
 
 	class Project
 	{
 	public:
-		static const std::filesystem::path &getProjectDirectory()
-		{
-
-			return s_activeProject->m_projectDirectory;
-		}
-		static const std::filesystem::path &getProjectPath()
-		{
-			return s_activeProject->m_projectPath;
-		}
-
+		static const std::filesystem::path &getProjectDirectory() { return s_activeProject->m_projectDirectory; }
+		static const std::filesystem::path &getProjectPath() { return s_activeProject->m_projectPath; }
 		ProjectConfig &getConfig() { return m_config; }
 
 		static std::shared_ptr<Project> getActive() { return s_activeProject; }
 		static bool saveActive(const std::filesystem::path &path);
 		static std::shared_ptr<Project> newProject();
 		static std::shared_ptr<Project> loadProject(const std::filesystem::path &path);
+
+		static void initEditorAssets();
+		static void initRuntimeAssets();
+
+		static EditorAssetManager &getEditorAssetManager();
+		static RuntimeAssetManager &getRuntimeAssetManager();
 
 	private:
 		ProjectConfig m_config;

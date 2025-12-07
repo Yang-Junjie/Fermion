@@ -37,8 +37,7 @@ message("=========================")
 # build boson
 option(BUILD_BOSON "Build Boson" ON)
 
-# build game
-option(BUILD_GAME "Build Fermion" ON)
+
 set(YAML_BUILD_SHARED_LIBS OFF CACHE BOOL "Build yaml-cpp as static library" FORCE)
 
 option(BUILD_NEUTRINO "Build Neutrino" ON)
@@ -91,12 +90,6 @@ add_subdirectory(Fermion/external/msdf-atlas-gen)
 
 # Fermion 
 add_subdirectory(Fermion)
-
-# Game
-if(BUILD_GAME)
-    add_subdirectory(game)
-    message("BUILD GAME:${BUILD_GAME}")
-endif()
 
 # Boson
 if(BUILD_BOSON)

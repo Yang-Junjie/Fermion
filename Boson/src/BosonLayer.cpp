@@ -757,19 +757,19 @@ namespace Fermion
         m_contentBrowserPanel.setBaseDirectory(Project::getActive()->getConfig().assetDirectory);
     }
 
-    void BosonLayer::openProject()
-    {
-        std::filesystem::path path = FileDialogs::openFile(
-            "Project (*.fmproj)\0*.fmproj\0", "../Boson/assets/project/");
-        if (path.empty())
-        {
-            Log::Warn("Project Selection directory is empty!");
-            return;
-        }
-
-        openProject(path);
-    }
-
+	    void BosonLayer::openProject()
+	    {
+	        std::filesystem::path path = FileDialogs::openFile(
+	            "Project (*.fmproj)\0*.fmproj\0", "../Boson/assets/project/");
+	        if (path.empty())
+	        {
+	            Log::Warn("Project Selection directory is empty!");
+	            return;
+	        }
+	
+	        openProject(path);
+	    }
+	
 	    void BosonLayer::openProject(const std::filesystem::path &path)
 	    {
 	        auto project = Project::loadProject(path);
@@ -834,13 +834,14 @@ namespace Fermion
 	        if (path.empty())
 	            return;
 
-		        SceneSerializer serializer(m_editorScene);
-		        serializer.serialize(path);
-		        m_editorScenePath = path;
-	
-		        AssetHandle handle = EditorAssetManager::importAsset(path);
-		        if (static_cast<uint64_t>(handle) != 0)
-		            m_editorSceneHandle = handle;
+	        SceneSerializer serializer(m_editorScene);
+	        serializer.serialize(path);
+	        m_editorScenePath = path;
+
+	        auto &editorAssets = Project::getEditorAssetManager();
+	        AssetHandle handle = editorAssets.importAsset(path);
+	        if (static_cast<uint64_t>(handle) != 0)
+	            m_editorSceneHandle = handle;
 
 	        Log::Info(std::format("Scene saved successfully! Path: {}",
 	                              path.string()));
@@ -850,21 +851,22 @@ namespace Fermion
 	    {
 	        if (!m_editorScenePath.empty())
 	        {
-		            SceneSerializer serializer(m_editorScene);
-		            serializer.serialize(m_editorScenePath);
-	
-		            AssetHandle handle = EditorAssetManager::importAsset(m_editorScenePath);
-		            if (static_cast<uint64_t>(handle) != 0)
-		                m_editorSceneHandle = handle;
+	            SceneSerializer serializer(m_editorScene);
+	            serializer.serialize(m_editorScenePath);
+
+	            auto &editorAssets = Project::getEditorAssetManager();
+	            AssetHandle handle = editorAssets.importAsset(m_editorScenePath);
+	            if (static_cast<uint64_t>(handle) != 0)
+	                m_editorSceneHandle = handle;
 
 	            Log::Info(std::format("Scene saved successfully! Path: {}",
 	                                  m_editorScenePath.string()));
 	        }
 	        else
 	        {
-            saveSceneAs();
-        }
-    }
+	            saveSceneAs();
+	        }
+	    }
 
 	    void BosonLayer::openScene()
 	    {
@@ -891,13 +893,14 @@ namespace Fermion
 	            Log::Warn("openScene called with empty path");
 	            return;
 	        }
-
-		        if (m_sceneState != SceneState::Edit)
-		        {
-		            onSceneStop();
-		        }
 	
-		        AssetHandle handle = EditorAssetManager::importAsset(path);
+	        if (m_sceneState != SceneState::Edit)
+	        {
+	            onSceneStop();
+	        }
+	
+	        auto &editorAssets = Project::getEditorAssetManager();
+	        AssetHandle handle = editorAssets.importAsset(path);
 	        if (static_cast<uint64_t>(handle) == 0)
 	        {
 	            Log::Error(std::format("Scene open failed (invalid asset handle)! Path: {}",
@@ -905,16 +908,16 @@ namespace Fermion
 	            return;
 	        }
 
-		        auto sceneAsset = EditorAssetManager::getAsset<SceneAsset>(handle);
+	        auto sceneAsset = editorAssets.getAsset<SceneAsset>(handle);
 	        if (!sceneAsset || !sceneAsset->scene)
 	        {
 	            Log::Error(std::format("Scene open failed (asset load failed)! Path: {}",
 	                                   path.string()));
 	            return;
 	        }
-
+	
 	        std::shared_ptr<Scene> newScene = sceneAsset->scene;
-
+	
 	        if (newScene)
 	        {
 	            m_editorSceneHandle = handle;
