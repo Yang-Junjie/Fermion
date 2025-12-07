@@ -3,6 +3,7 @@
 #include "AssetMetadata.hpp"
 #include "AssetRegistry.hpp"
 #include "AssetExtensions.hpp"
+#include "Loader/AssetLoader.hpp"
 
 #include <unordered_map>
 #include <filesystem>
@@ -10,10 +11,10 @@
 
 namespace Fermion
 {
-    class AssetManager
-    {
-    public:
-        static void init(const std::filesystem::path& assetDirectory);
+	    class AssetManager
+	    {
+	    public:
+	        static void init(const std::filesystem::path& assetDirectory);
         static void shutdown();
 
         template <typename T>
@@ -38,9 +39,20 @@ namespace Fermion
         static void unloadAsset(AssetHandle handle);
         static AssetHandle importAsset(const std::filesystem::path& path);
 
-    private:
-        static std::shared_ptr<Asset> loadAssetInternal(AssetHandle handle);
-        static std::unordered_map<AssetHandle, std::shared_ptr<Asset>> s_loadedAssets;
-        static std::filesystem::path s_assetDirectory;
+	    private:
+	        struct AssetTypeHash
+	        {
+	            std::size_t operator()(AssetType type) const noexcept
+	            {
+	                return static_cast<std::size_t>(type);
+	            }
+	        };
+            
+	        static void ensureDefaultLoaders();
+
+	        static std::shared_ptr<Asset> loadAssetInternal(AssetHandle handle);
+	        static std::unordered_map<AssetHandle, std::shared_ptr<Asset>> s_loadedAssets;
+	        static std::unordered_map<AssetType, std::unique_ptr<AssetLoader>, AssetTypeHash> s_assetLoaders;
+	        static std::filesystem::path s_assetDirectory;
     };
 }

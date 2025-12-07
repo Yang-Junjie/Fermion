@@ -2,6 +2,7 @@
 #include "Core/Application.hpp"
 #include "GameLayer.hpp"
 #include "SandBox2D.hpp"
+#include "Asset/AssetManager.hpp"
 
 namespace Fermion
 {
@@ -11,7 +12,6 @@ namespace Fermion
         GameApp(const ApplicationSpecification& spec) : Application(spec)
         {
             Log::Info("GameApp constructor called");
-            // pushLayer(std::make_unique<GameLayer>());
             pushLayer(std::make_unique<SandBox2D>());
         };
         ~GameApp() = default;

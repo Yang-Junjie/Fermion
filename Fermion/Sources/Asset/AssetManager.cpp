@@ -3,14 +3,30 @@
 #include "Renderer/Font.hpp"
 #include "Scene/SceneSerializer.hpp"
 #include "Asset/SceneAsset.hpp"
-#include "Project/Project.hpp"
-#include "Asset/AssetSerialzer.hpp"
+#include "Asset/AssetSerializer.hpp"
 #include "Asset/Importer/TextureImporter.hpp"
+#include "Asset/Importer/FontImporter.hpp"
+#include "Asset/Importer/SceneImporter.hpp"
+#include "Asset/Importer/ShaderImporter.hpp"
+#include "Asset/Loader/TextureLoader.hpp"
+#include "Asset/Loader/FontLoader.hpp"
+	#include "Asset/Loader/SceneLoader.hpp"
+	
+	namespace Fermion
+	{
+	    std::unordered_map<AssetHandle, std::shared_ptr<Asset>> AssetManager::s_loadedAssets;
+	    std::filesystem::path AssetManager::s_assetDirectory;
+	    std::unordered_map<AssetType, std::unique_ptr<AssetLoader>, AssetManager::AssetTypeHash> AssetManager::s_assetLoaders;
+	
+	    void AssetManager::ensureDefaultLoaders()
+	    {
+	        if (!s_assetLoaders.empty())
+	            return;
 
-namespace Fermion
-{
-    std::unordered_map<AssetHandle, std::shared_ptr<Asset>> AssetManager::s_loadedAssets;
-    std::filesystem::path AssetManager::s_assetDirectory;
+	        s_assetLoaders.emplace(AssetType::Texture, std::make_unique<TextureLoader>());
+	        s_assetLoaders.emplace(AssetType::Font, std::make_unique<FontLoader>());
+	        s_assetLoaders.emplace(AssetType::Scene, std::make_unique<SceneLoader>());
+	    }
 
     static AssetType GetAssetTypeFromPath(const std::filesystem::path &path)
     {
@@ -28,33 +44,42 @@ namespace Fermion
         return metaPath;
     }
 
-    void AssetManager::init(const std::filesystem::path &assetDirectory)
-    {
-        s_assetDirectory = assetDirectory;
+	    void AssetManager::init(const std::filesystem::path &assetDirectory)
+	    {
+	        s_assetDirectory = assetDirectory;
+	
+	        s_assetLoaders.clear();
+	        ensureDefaultLoaders();
 
         for (auto &p : std::filesystem::recursive_directory_iterator(assetDirectory))
         {
             if (!p.is_regular_file())
                 continue;
-            auto ext = p.path().extension().string();
-            AssetType t = GetAssetTypeFromExtension(ext);
-            if (t == AssetType::None)
+
+            AssetType type = GetAssetTypeFromPath(p.path());
+            if (type == AssetType::None)
                 continue;
-            auto metaPath = p.path().string() + ".meta";
-            AssetHandle handle;
-            AssetType metaType;
-            if (!AssetSerializer::deserializeMeta(metaPath, handle, metaType))
+
+            auto metaPath = GetMetaPath(p.path());
+
+            AssetMetadata meta = AssetSerializer::deserializeMeta(metaPath);
+
+            if (meta.Type == AssetType::None)
             {
-                handle = AssetHandle();
-                AssetSerializer::serializeMeta(metaPath, handle, t);
+                meta.Handle = AssetHandle();
+                meta.Type = type;
+                meta.Name = p.path().stem().string();
+                meta.FilePath = std::filesystem::absolute(p.path());
+
+                AssetSerializer::serializeMeta(metaPath, meta);
             }
-            AssetMetadata meta;
-            meta.Handle = handle;
-            meta.Type = t;
-            meta.FilePath = std::filesystem::absolute(p.path());
-            meta.Name = p.path().stem().string();
-            meta.isMemoryAsset = false;
-            AssetRegistry::set(handle, meta);
+            else
+            {
+
+                meta.FilePath = std::filesystem::absolute(p.path());
+            }
+
+            AssetRegistry::set(meta.Handle, meta);
         }
     }
 
@@ -62,6 +87,7 @@ namespace Fermion
     {
         s_loadedAssets.clear();
         AssetRegistry::clear();
+        s_assetLoaders.clear();
         s_assetDirectory.clear();
     }
 
@@ -82,6 +108,23 @@ namespace Fermion
             loadAssetInternal(handle);
     }
 
+    static std::unique_ptr<AssetImporter> CreateImporter(AssetType type)
+    {
+        switch (type)
+        {
+        case AssetType::Texture:
+            return std::make_unique<TextureImporter>();
+        case AssetType::Font:
+            return std::make_unique<FontImporter>();
+        case AssetType::Scene:
+            return std::make_unique<SceneImporter>();
+        case AssetType::Shader:
+            return std::make_unique<ShaderImporter>();
+        default:
+            return nullptr;
+        }
+    }
+
     AssetHandle AssetManager::importAsset(const std::filesystem::path &path)
     {
         if (path.empty())
@@ -95,93 +138,69 @@ namespace Fermion
         if (type == AssetType::None)
             return AssetHandle(0);
 
-        std::filesystem::path metaPath = GetMetaPath(absolutePath);
-        AssetHandle handle;
-        AssetType metaType;
-        AssetMetadata metadata;
+        auto metaPath = GetMetaPath(absolutePath);
 
-        if (type == AssetType::Texture)
+        AssetMetadata metadata = AssetSerializer::deserializeMeta(metaPath);
+
+        auto importer = CreateImporter(type);
+        if (importer)
         {
-            TextureImporter importer;
-
-            if (AssetSerializer::deserializeMeta(metaPath, handle, metaType))
+            if (metadata.Type != type)
             {
-                metadata.Handle = handle;
-                metadata.Type = metaType;
-                metadata.FilePath = absolutePath;
-                metadata.Name = absolutePath.stem().string();
-                metadata.isMemoryAsset = false;
+                metadata = importer->importAsset(absolutePath);
+                importer->writeMetadata(metadata);
             }
             else
             {
-                metadata = importer.importAsset(absolutePath);
-                handle = metadata.Handle;
-
-                if (static_cast<uint64_t>(handle) == 0)
-                    handle = AssetHandle(1);
-
-                metadata.Handle = handle;
-                importer.writeMetadata(metadata);
+                metadata.FilePath = absolutePath;
+                metadata.Name = absolutePath.stem().string();
+                importer->writeMetadata(metadata);
             }
         }
         else
         {
-            if (!AssetSerializer::deserializeMeta(metaPath, handle, metaType))
+            if (metadata.Type == AssetType::None)
             {
-                handle = AssetHandle{};
-                if ((uint64_t)handle == 0)
-                    handle = AssetHandle(1);
-                AssetSerializer::serializeMeta(metaPath, handle, type);
-                metaType = type;
+                metadata.Handle = UUID();
+                if (static_cast<uint64_t>(metadata.Handle) == 0)
+                    metadata.Handle = UUID(1);
+
+                metadata.Type = type;
+                metadata.FilePath = absolutePath;
+                metadata.Name = absolutePath.stem().string();
+
+                AssetSerializer::serializeMeta(metaPath, metadata);
             }
-
-            if ((uint64_t)handle == 0)
-                return AssetHandle(0);
-
-            metadata.Handle = handle;
-            metadata.Type = metaType;
-            metadata.FilePath = absolutePath;
-            metadata.Name = absolutePath.stem().string();
-            metadata.isMemoryAsset = false;
+            else
+            {
+                metadata.FilePath = absolutePath;
+                metadata.Name = absolutePath.stem().string();
+                AssetSerializer::serializeMeta(metaPath, metadata);
+            }
         }
 
-        if (static_cast<uint64_t>(metadata.Handle) == 0)
-            return AssetHandle(0);
+        if (!AssetRegistry::exists(metadata.Handle))
+            AssetRegistry::set(metadata.Handle, metadata);
 
-        if (AssetRegistry::exists(metadata.Handle))
-            return metadata.Handle;
-
-        AssetRegistry::set(metadata.Handle, metadata);
         return metadata.Handle;
     }
 
-    std::shared_ptr<Asset> AssetManager::loadAssetInternal(AssetHandle handle)
-    {
-        auto &metadata = AssetRegistry::get(handle);
-        std::shared_ptr<Asset> asset;
+	    std::shared_ptr<Asset> AssetManager::loadAssetInternal(AssetHandle handle)
+	    {
+	        auto &metadata = AssetRegistry::get(handle);
+	        std::shared_ptr<Asset> asset;
+	
+	        ensureDefaultLoaders();
 
-        switch (metadata.Type)
-        {
-        case AssetType::Texture:
-            asset = Texture2D::create(metadata.FilePath.string());
-            break;
-        case AssetType::Font:
-            asset = std::make_shared<Font>(metadata.FilePath);
-            break;
-        case AssetType::Scene:
-        {
-            auto scene = std::make_shared<Scene>();
-            SceneSerializer serializer(scene);
-            serializer.deserialize(metadata.FilePath);
-            asset = std::make_shared<SceneAsset>(scene);
-            break;
-        }
-        default:
-            break;
-        }
+        auto loaderIt = s_assetLoaders.find(metadata.Type);
+        if (loaderIt == s_assetLoaders.end() || !loaderIt->second)
+            return nullptr;
+
+        asset = loaderIt->second->load(metadata);
 
         if (asset)
             asset->handle = handle;
+
         return asset;
     }
 }

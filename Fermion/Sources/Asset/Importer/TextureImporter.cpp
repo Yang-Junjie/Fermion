@@ -1,6 +1,6 @@
 #include "TextureImporter.hpp"
 #include "Core/UUID.hpp"
-#include "Asset/AssetSerialzer.hpp"
+#include "Asset/AssetSerializer.hpp"
 
 namespace Fermion
 {
@@ -13,35 +13,7 @@ namespace Fermion
         m_Metadata.Type = AssetType::Texture;
         m_Metadata.FilePath = assetPath;
         m_Metadata.Name = assetPath.stem().string();
-        m_Metadata.isMemoryAsset = false;
 
         return m_Metadata;
-    }
-
-    void TextureImporter::writeMetadata(const AssetMetadata& metadata)
-    {
-        auto metaPath = metadata.FilePath;
-        metaPath += ".meta";
-        AssetSerializer::serializeMeta(metaPath, metadata.Handle, metadata.Type);
-    }
-
-    void TextureImporter::loadMetadata(const std::filesystem::path& metaFilePath)
-    {
-        AssetHandle handle;
-        AssetType type;
-        if (!AssetSerializer::deserializeMeta(metaFilePath, handle, type))
-        {
-            m_Metadata = AssetMetadata{};
-            return;
-        }
-
-        std::filesystem::path assetPath = metaFilePath;
-        assetPath.replace_extension();
-
-        m_Metadata.Handle = handle;
-        m_Metadata.Type = type;
-        m_Metadata.FilePath = assetPath;
-        m_Metadata.Name = assetPath.stem().string();
-        m_Metadata.isMemoryAsset = false;
     }
 }

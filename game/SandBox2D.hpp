@@ -13,12 +13,17 @@ public:
     }
     virtual ~SandBox2D() = default;
 
-    virtual void onAttach() override
-    {
-        FM_PROFILE_FUNCTION();
+	    virtual void onAttach() override
+	    {
+	        FM_PROFILE_FUNCTION();
 
-        m_checkerboardTexture = Fermion::Texture2D::create("../game/assets/textures/Checkerboard.png");
-        m_spriteSheet = Fermion::Texture2D::create("../game/assets/game/RPGpack_sheet_2X.png");
+	        Fermion::AssetHandle checkerHandle = Fermion::AssetManager::importAsset("../game/assets/textures/Checkerboard.png");
+	        if (static_cast<uint64_t>(checkerHandle) != 0)
+	            m_checkerboardTexture = Fermion::AssetManager::getAsset<Fermion::Texture2D>(checkerHandle);
+
+	        Fermion::AssetHandle sheetHandle = Fermion::AssetManager::importAsset("../game/assets/game/RPGpack_sheet_2X.png");
+	        if (static_cast<uint64_t>(sheetHandle) != 0)
+	            m_spriteSheet = Fermion::AssetManager::getAsset<Fermion::Texture2D>(sheetHandle);
 
         // m_textureStairs = Fermion::SubTexture2D::createFromCoords(m_spriteSheet, {7, 6}, {128, 128});
         // m_textureBarrel = Fermion::SubTexture2D::createFromCoords(m_spriteSheet, {8, 2}, {128, 128});

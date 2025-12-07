@@ -95,10 +95,15 @@ public:
 
         m_squareShader = Fermion::Shader::create("FlatShader", flatColorShaderVertexSrc, flatColorShaderFragmentSrc);
 
-        auto textureShader = m_shaderLibrary.load("../Boson/Resources/shaders/Texture.glsl");
+	        auto textureShader = m_shaderLibrary.load("../Boson/Resources/shaders/Texture.glsl");
+	
+	        Fermion::AssetHandle checkerHandle = Fermion::AssetManager::importAsset("../game/assets/textures/Checkerboard.png");
+	        if (static_cast<uint64_t>(checkerHandle) != 0)
+	            m_Texture = Fermion::AssetManager::getAsset<Fermion::Texture2D>(checkerHandle);
 
-        m_Texture = Fermion::Texture2D::create("../game/assets/textures/Checkerboard.png");
-        m_logoTexture = Fermion::Texture2D::create("../game/assets/textures/pslogo.png");
+	        Fermion::AssetHandle logoHandle = Fermion::AssetManager::importAsset("../game/assets/textures/pslogo.png");
+	        if (static_cast<uint64_t>(logoHandle) != 0)
+	            m_logoTexture = Fermion::AssetManager::getAsset<Fermion::Texture2D>(logoHandle);
 
         textureShader->bind();
         textureShader->setInt("u_Texture", 0);

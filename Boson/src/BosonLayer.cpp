@@ -4,6 +4,7 @@
 #include "Utils/PlatformUtils.hpp"
 #include "Renderer/Font.hpp"
 #include "Project/ProjectSerializer.hpp"
+#include "Asset/SceneAsset.hpp"
 
 #include "imgui/ConsolePanel.hpp"
 #include "Math/Math.hpp"
@@ -769,14 +770,15 @@ namespace Fermion
         openProject(path);
     }
 
-    void BosonLayer::openProject(const std::filesystem::path &path)
-    {
-        auto project = Project::loadProject(path);
-        FERMION_ASSERT(project != nullptr, "Failed to load project!");
-        auto lastScene = Project::getActive()->getConfig().startScene;
-        openScene(lastScene);
-        m_contentBrowserPanel.setBaseDirectory(Project::getActive()->getConfig().assetDirectory);
-    }
+	    void BosonLayer::openProject(const std::filesystem::path &path)
+	    {
+	        auto project = Project::loadProject(path);
+	        FERMION_ASSERT(project != nullptr, "Failed to load project!");
+	        auto lastScene = Project::getActive()->getConfig().startScene;
+	        if (!lastScene.empty())
+	            openScene(lastScene);
+	        m_contentBrowserPanel.setBaseDirectory(Project::getActive()->getConfig().assetDirectory);
+	    }
 
     void BosonLayer::saveProject()
     {
@@ -806,83 +808,131 @@ namespace Fermion
         }
     }
 
-    void BosonLayer::newScene()
-    {
-        m_activeScene = std::make_shared<Scene>();
-        m_activeScene->onViewportResize(static_cast<uint32_t>(m_viewportSize.x), static_cast<uint32_t>(m_viewportSize.y));
-        m_editorScene = m_activeScene;
-        m_editorScenePath.clear();
-        m_sceneHierarchyPanel.setContext(m_activeScene);
-        m_viewportRenderer->setScene(m_activeScene);
-    }
+	    void BosonLayer::newScene()
+	    {
+	        m_activeScene = std::make_shared<Scene>();
+	        m_activeScene->onViewportResize(static_cast<uint32_t>(m_viewportSize.x), static_cast<uint32_t>(m_viewportSize.y));
+	        m_editorScene = m_activeScene;
+	        m_editorScenePath.clear();
+	        m_editorSceneHandle = AssetHandle{};
+	        m_sceneHierarchyPanel.setContext(m_activeScene);
+	        m_viewportRenderer->setScene(m_activeScene);
+	    }
 
-    void BosonLayer::saveSceneAs()
-    {
+	    void BosonLayer::saveSceneAs()
+	    {
+	        std::string defaultDir = "../Boson/assets/scenes/";
+	        if (auto project = Project::getActive())
+	        {
+	            const auto &assetDir = project->getConfig().assetDirectory;
+	            if (!assetDir.empty())
+	                defaultDir = assetDir.string();
+	        }
 
-        auto path = FileDialogs::saveFile(
-            "Scene (*.fermion)\0*.fermion\0", "../Boson/assets/scenes/");
-        if (path.empty())
-            return;
+	        auto path = FileDialogs::saveFile(
+	            "Scene (*.fermion)\0*.fermion\0", defaultDir);
+	        if (path.empty())
+	            return;
 
-        SceneSerializer serializer(m_editorScene);
-        serializer.serialize(path);
-        m_editorScenePath = path;
-        Log::Info(std::format("Scene saved successfully! Path: {}",
-                              path.string()));
-    }
+	        SceneSerializer serializer(m_editorScene);
+	        serializer.serialize(path);
+	        m_editorScenePath = path;
 
-    void BosonLayer::saveScene()
-    {
-        if (!m_editorScenePath.empty())
-        {
-            SceneSerializer serializer(m_editorScene);
-            serializer.serialize(m_editorScenePath);
-            Log::Info(std::format("Scene saved successfully! Path: {}",
-                                  m_editorScenePath.string()));
-        }
-        else
-        {
+	        AssetHandle handle = AssetManager::importAsset(path);
+	        if (static_cast<uint64_t>(handle) != 0)
+	            m_editorSceneHandle = handle;
+
+	        Log::Info(std::format("Scene saved successfully! Path: {}",
+	                              path.string()));
+	    }
+
+	    void BosonLayer::saveScene()
+	    {
+	        if (!m_editorScenePath.empty())
+	        {
+	            SceneSerializer serializer(m_editorScene);
+	            serializer.serialize(m_editorScenePath);
+
+	            AssetHandle handle = AssetManager::importAsset(m_editorScenePath);
+	            if (static_cast<uint64_t>(handle) != 0)
+	                m_editorSceneHandle = handle;
+
+	            Log::Info(std::format("Scene saved successfully! Path: {}",
+	                                  m_editorScenePath.string()));
+	        }
+	        else
+	        {
             saveSceneAs();
         }
     }
 
-    void BosonLayer::openScene()
-    {
+	    void BosonLayer::openScene()
+	    {
+	        std::string defaultDir = "../Boson/assets/scenes/";
+	        if (auto project = Project::getActive())
+	        {
+	            const auto &assetDir = project->getConfig().assetDirectory;
+	            if (!assetDir.empty())
+	                defaultDir = assetDir.string();
+	        }
 
-        std::filesystem::path path = FileDialogs::openFile(
-            "Scene (*.fermion)\0*.fermion\0", "../Boson/assets/scenes/");
-        if (!path.empty())
-        {
-            openScene(path);
+	        std::filesystem::path path = FileDialogs::openFile(
+	            "Scene (*.fermion)\0*.fermion\0", defaultDir);
+	        if (!path.empty())
+	        {
+	            openScene(path);
         }
     }
 
-    void BosonLayer::openScene(const std::filesystem::path &path)
-    {
-        if (m_sceneState != SceneState::Edit)
-        {
-            onSceneStop();
-        }
+	    void BosonLayer::openScene(const std::filesystem::path &path)
+	    {
+	        if (path.empty())
+	        {
+	            Log::Warn("openScene called with empty path");
+	            return;
+	        }
 
-        std::shared_ptr<Scene> newScene = std::make_shared<Scene>();
-        SceneSerializer serializer(newScene);
-        if (serializer.deserialize(path))
-        {
-            m_editorScene = newScene;
-            m_editorScene->onViewportResize(static_cast<uint32_t>(m_viewportSize.x), static_cast<uint32_t>(m_viewportSize.y));
-            m_activeScene = m_editorScene;
-            m_editorScenePath = path;
-            m_sceneHierarchyPanel.setContext(m_activeScene);
-            m_viewportRenderer->setScene(m_activeScene);
-            Log::Info(std::format("Scene opened successfully! Path: {}",
-                                  path.string()));
-        }
-        else
-        {
-            Log::Error(std::format("Scene open failed! Path: {}",
-                                   path.string()));
-        }
-    }
+	        if (m_sceneState != SceneState::Edit)
+	        {
+	            onSceneStop();
+	        }
+
+	        AssetHandle handle = AssetManager::importAsset(path);
+	        if (static_cast<uint64_t>(handle) == 0)
+	        {
+	            Log::Error(std::format("Scene open failed (invalid asset handle)! Path: {}",
+	                                   path.string()));
+	            return;
+	        }
+
+	        auto sceneAsset = AssetManager::getAsset<SceneAsset>(handle);
+	        if (!sceneAsset || !sceneAsset->scene)
+	        {
+	            Log::Error(std::format("Scene open failed (asset load failed)! Path: {}",
+	                                   path.string()));
+	            return;
+	        }
+
+	        std::shared_ptr<Scene> newScene = sceneAsset->scene;
+
+	        if (newScene)
+	        {
+	            m_editorSceneHandle = handle;
+	            m_editorScene = newScene;
+	            m_editorScene->onViewportResize(static_cast<uint32_t>(m_viewportSize.x), static_cast<uint32_t>(m_viewportSize.y));
+	            m_activeScene = m_editorScene;
+	            m_editorScenePath = path;
+	            m_sceneHierarchyPanel.setContext(m_activeScene);
+	            m_viewportRenderer->setScene(m_activeScene);
+	            Log::Info(std::format("Scene opened successfully! Path: {}",
+	                                  path.string()));
+	        }
+	        else
+	        {
+	            Log::Error(std::format("Scene open failed! Path: {}",
+	                                   path.string()));
+	        }
+	    }
 
     void BosonLayer::onScenePlay()
     {

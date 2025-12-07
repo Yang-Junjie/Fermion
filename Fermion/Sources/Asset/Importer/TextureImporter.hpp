@@ -8,9 +8,6 @@ namespace Fermion
     {
     public:
         AssetMetadata importAsset(const std::filesystem::path& assetPath) override;
-        void writeMetadata(const AssetMetadata& metadata) override;
-        void loadMetadata(const std::filesystem::path& metaFilePath) override;
-
     private:
         AssetMetadata m_Metadata;
     };

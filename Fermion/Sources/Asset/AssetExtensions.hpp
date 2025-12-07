@@ -16,8 +16,15 @@ namespace Fermion
             // Fonts
             {".ttf", AssetType::Font},
             {".ttc", AssetType::Font},
-            {".otf", AssetType::Font}};
-    inline static AssetType GetAssetTypeFromExtension(const std::string &extension){
-        return s_AssetExtensionMap[extension];
+            {".otf", AssetType::Font},
+            // Shaders
+            {".glsl", AssetType::Shader},
+            {".vert", AssetType::Shader},
+            {".frag", AssetType::Shader}};
+
+    inline static AssetType GetAssetTypeFromExtension(const std::string &extension)
+    {
+        auto it = s_AssetExtensionMap.find(extension);
+        return it != s_AssetExtensionMap.end() ? it->second : AssetType::None;
     }
 }
