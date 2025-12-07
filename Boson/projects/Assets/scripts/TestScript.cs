@@ -25,14 +25,14 @@ namespace Sandbox
             m_Sensor.Size = new Vector2(0.5f, 0.1f);
             m_Sensor.Offset = new Vector2(0, -0.55f);
             // Utils.Log("[TestScript] Created");
-            for (int j = 0; j < 10; j++)
+            for (int j = 0; j < 316 ;j++)
             {
-                for (int i = 0; i < 10; i++)
+                for (int i = 0; i < 316; i++)
                 {
 
                     Entity testEngtity = Scene.CreateEntity($"TestEntity{i}{j}");
                     testEngtity.GetComponent<TransformComponent>().Translation = new Vector3(i, j, 0);
-                    testEngtity.AddComponent<SpriteRendererComponent>().Color = new Vector4(i / 10.0f, j / 10.0f, 0, 1);
+                    testEngtity.AddComponent<SpriteRendererComponent>().Color = new Vector4(i / 316.0f, j / 316.0f, 0, 1);
                 }
             }
         }

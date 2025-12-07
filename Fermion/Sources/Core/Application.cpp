@@ -16,6 +16,7 @@ namespace Fermion
         FM_PROFILE_FUNCTION();
         s_instance = this;
         
+        Renderer::setConfig(spec.rendererConfig);
         WindowProps windowProps;
         windowProps.title = spec.name;
         windowProps.width = spec.windowWidth;
@@ -25,7 +26,7 @@ namespace Fermion
         m_window->setEventCallback([this](IEvent &event)
                                    { this->onEvent(event); });
         m_window->setVSync(false);
-        Renderer::init(spec.rendererConfig);
+        Renderer::init();
         ScriptManager::init();
         ScriptManager::loadScript("Sandbox.dll");
         m_imGuiLayer = std::make_unique<ImGuiLayer>(m_window->getNativeWindow());

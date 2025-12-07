@@ -1,91 +1,33 @@
 Scene: Name
 Entities:
-  - Entity: 13995839978119638108
+  - Entity: 2316227568653609106
     TagComponent:
-      Tag: green square
+      Tag: Empty Entity
     TransformComponent:
-      Translation: [0, -1.39, 0]
+      Translation: [0, 0, -9.313226e-10]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [0, 1, 0, 1]
-      TextureHandle: 13888088843903060952
+    CircleRendererComponent:
+      Color: [1, 1, 1, 1]
+      Thickness: 1
+      Fade: 0.005
     Rigidbody2DComponent:
       BodyType: 1
       FixedRotation: false
-    BoxCollider2DComponent:
+    CircleCollider2DComponent:
       Offset: [0, 0]
-      Size: [0.5, 0.5]
+      Radius: 0.5
       Density: 1
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
-    ScriptContainerComponent:
-      ScriptClassNames:
-        - Sandbox.TestScript
-  - Entity: 17674460285504380402
+  - Entity: 8740280834779800862
     TagComponent:
-      Tag: red square
+      Tag: w1
     TransformComponent:
-      Translation: [2.470167, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 0.99999994, 1]
-    SpriteRendererComponent:
-      Color: [1, 0, 0, 1]
-    Rigidbody2DComponent:
-      BodyType: 1
-      FixedRotation: false
-    BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      RestitutionThreshold: 0.5
-  - Entity: 13479184233855098003
-    TagComponent:
-      Tag: camera
-    TransformComponent:
-      Translation: [0, 0, 18.32]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    CameraComponent:
-      Camera:
-        ProjectionType: 1
-        PerspectiveFOV: 0.7853982
-        PerspectiveNear: 0.01
-        PerspectiveFar: 100
-        OrthographicSize: 10
-        OrthographicNear: -100
-        OrthographicFar: 100
-      Primary: true
-      FixedAspectRatio: false
-  - Entity: 15104107341039513431
-    TagComponent:
-      Tag: w4
-    TransformComponent:
-      Translation: [0.028575659, -3.0454814, 0]
+      Translation: [0.028575659, 1.0394804, 0]
       Rotation: [0, 0, 0]
       Scale: [18.58993, 0.24451688, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-    Rigidbody2DComponent:
-      BodyType: 0
-      FixedRotation: false
-    BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      RestitutionThreshold: 0.5
-  - Entity: 9216546242010597335
-    TagComponent:
-      Tag: w3
-    TransformComponent:
-      Translation: [9.216879, -0.94522727, 0]
-      Rotation: [0, -0, -0.015401964]
-      Scale: [0.3403103, 4.204738, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
     Rigidbody2DComponent:
@@ -117,11 +59,30 @@ Entities:
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
-  - Entity: 8740280834779800862
+  - Entity: 9216546242010597335
     TagComponent:
-      Tag: w1
+      Tag: w3
     TransformComponent:
-      Translation: [0.028575659, 1.0394804, 0]
+      Translation: [9.216879, -0.94522727, 0]
+      Rotation: [0, -0, -0.015401964]
+      Scale: [0.3403103, 4.204738, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+    Rigidbody2DComponent:
+      BodyType: 0
+      FixedRotation: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+  - Entity: 15104107341039513431
+    TagComponent:
+      Tag: w4
+    TransformComponent:
+      Translation: [0.028575659, -3.0454814, 0]
       Rotation: [0, 0, 0]
       Scale: [18.58993, 0.24451688, 1]
     SpriteRendererComponent:
@@ -136,24 +97,67 @@ Entities:
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
-  - Entity: 2316227568653609106
+  - Entity: 13479184233855098003
     TagComponent:
-      Tag: Empty Entity
+      Tag: camera
     TransformComponent:
-      Translation: [0, 0, -9.313226e-10]
+      Translation: [56.7367, 41.580956, 450]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    CircleRendererComponent:
-      Color: [1, 1, 1, 1]
-      Thickness: 1
-      Fade: 0.005
+    CameraComponent:
+      Camera:
+        ProjectionType: 1
+        PerspectiveFOV: 0.7853982
+        PerspectiveNear: 0.01
+        PerspectiveFar: 500
+        OrthographicSize: 10
+        OrthographicNear: -100
+        OrthographicFar: 100
+      Primary: true
+      FixedAspectRatio: false
+    ScriptContainerComponent:
+      ScriptClassNames:
+        - Sandbox.CameraController
+        - Sandbox.CameraController
+  - Entity: 17674460285504380402
+    TagComponent:
+      Tag: red square
+    TransformComponent:
+      Translation: [2.470167, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 0.99999994, 1]
+    SpriteRendererComponent:
+      Color: [1, 0, 0, 1]
     Rigidbody2DComponent:
       BodyType: 1
       FixedRotation: false
-    CircleCollider2DComponent:
+    BoxCollider2DComponent:
       Offset: [0, 0]
-      Radius: 0.5
+      Size: [0.5, 0.5]
       Density: 1
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
+  - Entity: 13995839978119638108
+    TagComponent:
+      Tag: green square
+    TransformComponent:
+      Translation: [-5.2033477, -0.1820361, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0, 1, 0, 1]
+      TextureHandle: 13888088843903060952
+    Rigidbody2DComponent:
+      BodyType: 1
+      FixedRotation: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+    ScriptContainerComponent:
+      ScriptClassNames:
+        - Sandbox.TestScript
