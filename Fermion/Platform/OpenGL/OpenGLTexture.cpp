@@ -38,95 +38,91 @@ namespace Fermion
 
 	}
 
-	OpenGLTexture2D::OpenGLTexture2D(const TextureSpecification &specification)
-		: m_specification(specification), m_width(m_specification.Width), m_height(m_specification.Height)
+	OpenGLTexture2D::OpenGLTexture2D(const TextureSpecification &specification, bool generateMipmap)
+		: m_specification(specification), m_width(m_specification.Width), m_height(m_specification.Height), m_generateMipmap(generateMipmap)
 	{
-		FM_PROFILE_FUNCTION();
-
 		m_internalFormat = Utils::fermionImageFormatToGLInternalFormat(m_specification.Format);
 		m_dataFormat = Utils::fermionImageFormatToGLDataFormat(m_specification.Format);
 
+		int levels = generateMipmap ? 1 + (int)std::floor(std::log2(std::max(m_width, m_height))) : 1;
+
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_rendererID);
-		glTextureStorage2D(m_rendererID, 1, m_internalFormat, m_width, m_height);
+		glTextureStorage2D(m_rendererID, levels, m_internalFormat, m_width, m_height);
 
-		glTextureParameteri(m_rendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTextureParameteri(m_rendererID, GL_TEXTURE_MIN_FILTER, generateMipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
 		glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
 		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+		if (generateMipmap)
+			glGenerateTextureMipmap(m_rendererID);
 	}
 
-	OpenGLTexture2D::OpenGLTexture2D(uint32_t width, uint32_t height)
-		: m_width(width), m_height(height)
+	OpenGLTexture2D::OpenGLTexture2D(uint32_t width, uint32_t height, bool generateMipmap)
+		: m_width(width), m_height(height), m_generateMipmap(generateMipmap)
 	{
-		FM_PROFILE_FUNCTION();
-
 		m_internalFormat = GL_RGBA8;
 		m_dataFormat = GL_RGBA;
 
+		int levels = generateMipmap ? 1 + (int)std::floor(std::log2(std::max(m_width, m_height))) : 1;
+
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_rendererID);
-		glTextureStorage2D(m_rendererID, 1, m_internalFormat, m_width, m_height);
+		glTextureStorage2D(m_rendererID, levels, m_internalFormat, m_width, m_height);
 
-		glTextureParameteri(m_rendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTextureParameteri(m_rendererID, GL_TEXTURE_MIN_FILTER, generateMipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
 		glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
 		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+		if (generateMipmap)
+			glGenerateTextureMipmap(m_rendererID);
 	}
 
-	OpenGLTexture2D::OpenGLTexture2D(const std::string &path)
-		: m_path(path)
+	OpenGLTexture2D::OpenGLTexture2D(const std::string &path, bool generateMipmap)
+		: m_path(path), m_generateMipmap(generateMipmap)
 	{
-		FM_PROFILE_FUNCTION();
-
 		int width, height, channels;
 		stbi_set_flip_vertically_on_load(1);
-		stbi_uc *data = nullptr;
-		{
-			data = stbi_load(path.c_str(), &width, &height, &channels, 0);
-		}
-		if (data)
-		{
-			Log::Info(std::format("Loaded texture:{}", path));
-
-			m_isLoaded = true;
-
-			m_width = width;
-			m_height = height;
-
-			GLenum internalFormat = 0, dataFormat = 0;
-			if (channels == 4)
-			{
-				internalFormat = GL_RGBA8;
-				dataFormat = GL_RGBA;
-			}
-			else if (channels == 3)
-			{
-				internalFormat = GL_RGB8;
-				dataFormat = GL_RGB;
-			}
-
-			m_internalFormat = internalFormat;
-			m_dataFormat = dataFormat;
-
-			glCreateTextures(GL_TEXTURE_2D, 1, &m_rendererID);
-			glTextureStorage2D(m_rendererID, 1, internalFormat, m_width, m_height);
-
-			glTextureParameteri(m_rendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-			glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-			glTextureSubImage2D(m_rendererID, 0, 0, 0, m_width, m_height, dataFormat, GL_UNSIGNED_BYTE, data);
-
-			stbi_image_free(data);
-		}
-		else
+		stbi_uc *data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+		if (!data)
 		{
 			Log::Error(std::format("Failed to load texture image: {}", path));
+			return;
 		}
+
+		m_isLoaded = true;
+		m_width = width;
+		m_height = height;
+
+		if (channels == 4)
+		{
+			m_internalFormat = GL_RGBA8;
+			m_dataFormat = GL_RGBA;
+		}
+		else if (channels == 3)
+		{
+			m_internalFormat = GL_RGB8;
+			m_dataFormat = GL_RGB;
+		}
+
+		int levels = generateMipmap ? 1 + (int)std::floor(std::log2(std::max(m_width, m_height))) : 1;
+
+		glCreateTextures(GL_TEXTURE_2D, 1, &m_rendererID);
+		glTextureStorage2D(m_rendererID, levels, m_internalFormat, m_width, m_height);
+
+		glTextureSubImage2D(m_rendererID, 0, 0, 0, m_width, m_height, m_dataFormat, GL_UNSIGNED_BYTE, data);
+
+		glTextureParameteri(m_rendererID, GL_TEXTURE_MIN_FILTER, generateMipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
+		glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+		if (generateMipmap)
+			glGenerateTextureMipmap(m_rendererID);
+
+		stbi_image_free(data);
 	}
+
 	OpenGLTexture2D::~OpenGLTexture2D()
 	{
 		FM_PROFILE_FUNCTION();
