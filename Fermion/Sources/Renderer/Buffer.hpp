@@ -35,11 +35,12 @@ namespace Fermion {
 		uint32_t size;
 		size_t offset;
 		bool normalized;
+		uint32_t divisor = 0;
 
 		BufferElement() = default;
 
-		BufferElement(ShaderDataType type, const std::string& name, bool normalized = false)
-			: name(name), type(type), size(ShaderDataTypeSize(type)), offset(0), normalized(normalized)
+		BufferElement(ShaderDataType type, const std::string& name, bool normalized = false, uint32_t divisor = 0)
+			: name(name), type(type), size(ShaderDataTypeSize(type)), offset(0), normalized(normalized), divisor(divisor)
 		{
 		}
 

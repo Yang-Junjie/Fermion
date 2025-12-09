@@ -37,6 +37,9 @@ namespace Fermion {
 		{
 			s_rendererAPI->drawLines(vertexArray, vertexCount);
 		}
+		static void drawIndexedInstanced(const std::shared_ptr<VertexArray>& vertexArray, uint32_t indexCount, uint32_t instanceCount){
+			s_rendererAPI->drawIndexedInstanced(vertexArray, indexCount, instanceCount);
+		}
 
 		static void setLineWidth(float width)
 		{

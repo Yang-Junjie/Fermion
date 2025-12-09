@@ -77,6 +77,7 @@ namespace Fermion {
 						element.normalized ? GL_TRUE : GL_FALSE,
 						layout.getStride(),
 						(const void*)element.offset);
+					glVertexAttribDivisor(m_vertexBufferIndex, element.divisor);
 					m_vertexBufferIndex++;
 					break;
 				}
@@ -92,6 +93,7 @@ namespace Fermion {
 						ShaderDataTypeToOpenGLBaseType(element.type),
 						layout.getStride(),
 						(const void*)element.offset);
+					glVertexAttribDivisor(m_vertexBufferIndex, element.divisor);
 					m_vertexBufferIndex++;
 					break;
 				}
@@ -108,7 +110,7 @@ namespace Fermion {
 							element.normalized ? GL_TRUE : GL_FALSE,
 							layout.getStride(),
 							(const void*)(element.offset + sizeof(float) * count * i));
-						glVertexAttribDivisor(m_vertexBufferIndex, 1);
+						glVertexAttribDivisor(m_vertexBufferIndex, element.divisor);
 						m_vertexBufferIndex++;
 					}
 					break;

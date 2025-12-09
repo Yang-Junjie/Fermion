@@ -11,6 +11,16 @@
 
 namespace Fermion
 {
+    struct QuadInstanceData
+    {
+        glm::mat4 transform;
+        glm::vec4 color;
+        float texIndex;
+        float tilingFactor;
+
+        int objectID;
+    };
+
     struct QuadVertices
     {
         glm::vec3 position;
@@ -67,6 +77,10 @@ namespace Fermion
         std::shared_ptr<Shader> QuadShader;
         std::shared_ptr<Texture2D> WhiteTexture;
 
+        std::shared_ptr<VertexArray> QuadInstanceVertexArray;
+        std::shared_ptr<VertexBuffer> QuadInstanceVertexBuffer;
+        std::shared_ptr<Shader> QuadInstanceShader;
+
         std::shared_ptr<VertexArray> CircleVertexArray;
         std::shared_ptr<VertexBuffer> CircleVertexBuffer;
         std::shared_ptr<Shader> CircleShader;
@@ -82,6 +96,10 @@ namespace Fermion
         uint32_t QuadIndexCount = 0;
         QuadVertices *QuadVertexBufferBase = nullptr;
         QuadVertices *QuadVertexBufferPtr = nullptr;
+
+        uint32_t QuadInstanceCount = 0;
+        QuadInstanceData *QuadInstanceVertexBufferBase = nullptr;
+        QuadInstanceData *QuadInstanceVertexBufferPtr = nullptr;
 
         uint32_t CircleIndexCount = 0;
         CircleVertices *CircleVertexBufferBase = nullptr;
@@ -143,6 +161,18 @@ namespace Fermion
         s_Data.QuadVertexArray->setIndexBuffer(quadIB);
         delete[] quadIndeices;
 
+        s_Data.QuadInstanceVertexArray = VertexArray::create();
+        s_Data.QuadInstanceVertexBuffer = VertexBuffer::create(Renderer2DData::MaxQuads * sizeof(QuadInstanceData));
+        s_Data.QuadInstanceVertexBuffer->setLayout({{ShaderDataType::Mat4, "a_Transform", false, 1},
+                                                    {ShaderDataType::Float4, "a_Color", false, 1},
+                                                    {ShaderDataType::Float, "a_TexIndex", false, 1},
+                                                    {ShaderDataType::Float, "a_TilingFactor", false, 1},
+                                                    {ShaderDataType::Int, "a_ObjectID", false, 1}});
+        s_Data.QuadInstanceVertexArray->addVertexBuffer(s_Data.QuadInstanceVertexBuffer);
+        s_Data.QuadInstanceVertexArray->setIndexBuffer(quadIB);
+        s_Data.QuadInstanceVertexBufferBase = new QuadInstanceData[Renderer2DData::MaxQuads];
+        s_Data.QuadInstanceVertexBufferPtr = s_Data.QuadInstanceVertexBufferBase;
+
         s_Data.CircleVertexArray = VertexArray::create();
         s_Data.CircleVertexBuffer = VertexBuffer::create(s_Data.MaxVertices * sizeof(CircleVertices));
         s_Data.CircleVertexBuffer->setLayout({{ShaderDataType::Float3, "a_WorldPosition"},
@@ -182,6 +212,7 @@ namespace Fermion
 
         std::filesystem::path shaderBase = config.ShaderPath;
         s_Data.QuadShader = Shader::create((shaderBase / "Quad.glsl").string());
+        s_Data.QuadInstanceShader = Shader::create((shaderBase / "QuadInstance.glsl").string());
         s_Data.CircleShader = Shader::create((shaderBase / "Circle.glsl").string());
         s_Data.LineShader = Shader::create((shaderBase / "Line.glsl").string());
         s_Data.TextShader = Shader::create((shaderBase / "Text.glsl").string());
@@ -191,6 +222,9 @@ namespace Fermion
         for (uint32_t i = 0; i < s_Data.MaxTextureSlots; i++)
             samplers[i] = i;
         s_Data.QuadShader->setIntArray("u_Textures", samplers, s_Data.MaxTextureSlots);
+
+        s_Data.QuadInstanceShader->bind();
+        s_Data.QuadInstanceShader->setIntArray("u_Textures", samplers, s_Data.MaxTextureSlots);
 
         s_Data.TextShader->bind();
         s_Data.TextShader->setInt("u_Atlas", 0);
@@ -206,6 +240,11 @@ namespace Fermion
     void Renderer2D::shutdown()
     {
         FM_PROFILE_FUNCTION();
+        delete[] s_Data.QuadVertexBufferBase;
+        delete[] s_Data.QuadInstanceVertexBufferBase;
+        delete[] s_Data.CircleVertexBufferBase;
+        delete[] s_Data.LineVertexBufferBase;
+        delete[] s_Data.TextVertexBufferBase;
     }
 
     void Renderer2D::beginScene(const OrthographicCamera &camera)
@@ -216,6 +255,9 @@ namespace Fermion
 
         s_Data.QuadShader->bind();
         s_Data.QuadShader->setMat4("u_ViewProjection", viewProj);
+
+        s_Data.QuadInstanceShader->bind();
+        s_Data.QuadInstanceShader->setMat4("u_ViewProjection", viewProj);
 
         s_Data.CircleShader->bind();
         s_Data.CircleShader->setMat4("u_ViewProjection", viewProj);
@@ -228,6 +270,8 @@ namespace Fermion
 
         s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
         s_Data.QuadIndexCount = 0;
+        s_Data.QuadInstanceVertexBufferPtr = s_Data.QuadInstanceVertexBufferBase;
+        s_Data.QuadInstanceCount = 0;
 
         s_Data.CircleVertexBufferPtr = s_Data.CircleVertexBufferBase;
         s_Data.CircleIndexCount = 0;
@@ -251,6 +295,9 @@ namespace Fermion
         s_Data.QuadShader->bind();
         s_Data.QuadShader->setMat4("u_ViewProjection", viewProj);
 
+        s_Data.QuadInstanceShader->bind();
+        s_Data.QuadInstanceShader->setMat4("u_ViewProjection", viewProj);
+
         s_Data.CircleShader->bind();
         s_Data.CircleShader->setMat4("u_ViewProjection", viewProj);
 
@@ -262,6 +309,8 @@ namespace Fermion
 
         s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
         s_Data.QuadIndexCount = 0;
+        s_Data.QuadInstanceVertexBufferPtr = s_Data.QuadInstanceVertexBufferBase;
+        s_Data.QuadInstanceCount = 0;
 
         s_Data.CircleVertexBufferPtr = s_Data.CircleVertexBufferBase;
         s_Data.CircleIndexCount = 0;
@@ -285,6 +334,9 @@ namespace Fermion
         s_Data.QuadShader->bind();
         s_Data.QuadShader->setMat4("u_ViewProjection", viewProj);
 
+        s_Data.QuadInstanceShader->bind();
+        s_Data.QuadInstanceShader->setMat4("u_ViewProjection", viewProj);
+
         s_Data.CircleShader->bind();
         s_Data.CircleShader->setMat4("u_ViewProjection", viewProj);
 
@@ -296,6 +348,8 @@ namespace Fermion
 
         s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
         s_Data.QuadIndexCount = 0;
+        s_Data.QuadInstanceVertexBufferPtr = s_Data.QuadInstanceVertexBufferBase;
+        s_Data.QuadInstanceCount = 0;
 
         s_Data.CircleVertexBufferPtr = s_Data.CircleVertexBufferBase;
         s_Data.CircleIndexCount = 0;
@@ -318,20 +372,14 @@ namespace Fermion
     void Renderer2D::flush()
     {
         FM_PROFILE_FUNCTION();
-        // if (s_Data.QuadIndexCount == 0)
-        //     return;
-        // for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
-        // {
-        //     s_Data.TextureSlots[i]->bind(i);
-        // }
-        // RenderCommand::drawIndexed(s_Data.QuadVertexArray, s_Data.QuadIndexCount);
-        // s_Data.stats.drawCalls++;
+
+        // TODO: 1，实例化渲染有问题2，当数量大的时候切换为实例化渲染
         if (s_Data.QuadIndexCount)
         {
+            // Log::Info("Renderer2D: Batch rendering 1 batch");
             uint32_t dataSize = (uint32_t)((uint8_t *)s_Data.QuadVertexBufferPtr - (uint8_t *)s_Data.QuadVertexBufferBase);
             s_Data.QuadVertexBuffer->setData(s_Data.QuadVertexBufferBase, dataSize);
 
-            // Bind textures
             for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
                 s_Data.TextureSlots[i]->bind(i);
 
@@ -340,6 +388,22 @@ namespace Fermion
             s_Data.stats.drawCalls++;
         }
 
+        // if (s_Data.QuadInstanceCount)
+        // {
+        //     // Log::Info("Renderer2D: Instance rendering");
+        //     uint32_t dataSize = s_Data.QuadInstanceCount * sizeof(QuadInstanceData);
+        //     s_Data.QuadInstanceVertexBuffer->setData(s_Data.QuadInstanceVertexBufferBase, dataSize);
+
+        //     for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
+        //         s_Data.TextureSlots[i]->bind(i);
+
+        //     s_Data.QuadInstanceShader->bind();
+        //     RenderCommand::drawIndexedInstanced(
+        //         s_Data.QuadInstanceVertexArray, 6, s_Data.QuadInstanceCount);
+
+        //     s_Data.stats.drawCalls++;
+        // }
+        
         if (s_Data.CircleIndexCount)
         {
             uint32_t dataSize = (uint32_t)((uint8_t *)s_Data.CircleVertexBufferPtr - (uint8_t *)s_Data.CircleVertexBufferBase);
@@ -379,6 +443,8 @@ namespace Fermion
         endScene();
         s_Data.QuadIndexCount = 0;
         s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
+        s_Data.QuadInstanceCount = 0;
+        s_Data.QuadInstanceVertexBufferPtr = s_Data.QuadInstanceVertexBufferBase;
 
         s_Data.CircleIndexCount = 0;
         s_Data.CircleVertexBufferPtr = s_Data.CircleVertexBufferBase;
@@ -598,6 +664,46 @@ namespace Fermion
         s_Data.QuadIndexCount += 6;
 
         s_Data.stats.quadCount++;
+    }
+
+    void Renderer2D::drawQuadInstanced(const glm::mat4 &transform, const glm::vec4 &color, const std::shared_ptr<Texture2D> &texture, float tilingFactor, int objectID)
+    {
+        FM_PROFILE_FUNCTION();
+        if (s_Data.QuadInstanceCount >= Renderer2DData::MaxQuads)
+            flushAndReset();
+
+        float textureIndex = 0.0f;
+        for (uint32_t i = 1; i < s_Data.TextureSlotIndex; i++)
+        {
+            if (*s_Data.TextureSlots[i].get() == *texture.get())
+            {
+                textureIndex = (float)i;
+                break;
+            }
+        }
+        if (textureIndex == 0.0f)
+        {
+            textureIndex = (float)s_Data.TextureSlotIndex;
+            s_Data.TextureSlots[s_Data.TextureSlotIndex] = texture;
+            s_Data.TextureSlotIndex++;
+        }
+
+        QuadInstanceData instance;
+        instance.transform = transform;
+        instance.color = color;
+        instance.texIndex = textureIndex;
+        instance.tilingFactor = tilingFactor;
+        instance.objectID = objectID;
+
+        *s_Data.QuadInstanceVertexBufferPtr = instance;
+        s_Data.QuadInstanceVertexBufferPtr++;
+        s_Data.QuadInstanceCount++;
+        s_Data.stats.quadCount++;
+    }
+
+    void Renderer2D::drawQuadInstanced(const glm::mat4 &transform, const glm::vec4 &color, int objectID)
+    {
+        drawQuadInstanced(transform, color, s_Data.WhiteTexture, 1.0f, objectID);
     }
 
     void Renderer2D::drawRotatedQuad(const glm::vec2 &position, const glm::vec2 &size, float radians, const glm::vec4 &color)

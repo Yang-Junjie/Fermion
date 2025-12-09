@@ -33,6 +33,17 @@ namespace Fermion
         // else
         //     Renderer2D::drawQuad(transform, sprite.color, objectID);
 
+        // if (static_cast<uint64_t>(sprite.textureHandle) != 0)
+        // {
+        //     auto texture = Project::getRuntimeAssetManager().getAsset<Texture2D>(sprite.textureHandle);
+        //     Renderer2D::drawQuadInstanced(transform, sprite.color, texture,
+        //                                   sprite.tilingFactor, objectID);
+        // }
+        // else
+        // {
+
+        //     Renderer2D::drawQuadInstanced(transform, sprite.color, objectID);
+        // }
         if (static_cast<uint64_t>(sprite.textureHandle) != 0)
         {
             auto texture = Project::getRuntimeAssetManager().getAsset<Texture2D>(sprite.textureHandle);

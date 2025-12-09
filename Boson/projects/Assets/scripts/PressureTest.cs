@@ -7,8 +7,8 @@ namespace Sandbox
     {
         public void OnCreate()
         {
-            float width = 316.0f;
-            float height = 316.0f;
+            float width = 10.0f;
+            float height = 10.0f;
 
             for (float j = -width; j < width; j++)
             {
