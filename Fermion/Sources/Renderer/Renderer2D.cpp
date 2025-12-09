@@ -388,21 +388,21 @@ namespace Fermion
             s_Data.stats.drawCalls++;
         }
 
-        // if (s_Data.QuadInstanceCount)
-        // {
-        //     // Log::Info("Renderer2D: Instance rendering");
-        //     uint32_t dataSize = s_Data.QuadInstanceCount * sizeof(QuadInstanceData);
-        //     s_Data.QuadInstanceVertexBuffer->setData(s_Data.QuadInstanceVertexBufferBase, dataSize);
+        if (s_Data.QuadInstanceCount)
+        {
+            // Log::Info("Renderer2D: Instance rendering");
+            uint32_t dataSize = s_Data.QuadInstanceCount * sizeof(QuadInstanceData);
+            s_Data.QuadInstanceVertexBuffer->setData(s_Data.QuadInstanceVertexBufferBase, dataSize);
 
-        //     for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
-        //         s_Data.TextureSlots[i]->bind(i);
+            for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
+                s_Data.TextureSlots[i]->bind(i);
 
-        //     s_Data.QuadInstanceShader->bind();
-        //     RenderCommand::drawIndexedInstanced(
-        //         s_Data.QuadInstanceVertexArray, 6, s_Data.QuadInstanceCount);
+            s_Data.QuadInstanceShader->bind();
+            RenderCommand::drawIndexedInstanced(
+                s_Data.QuadInstanceVertexArray, 6, s_Data.QuadInstanceCount);
 
-        //     s_Data.stats.drawCalls++;
-        // }
+            s_Data.stats.drawCalls++;
+        }
         
         if (s_Data.CircleIndexCount)
         {

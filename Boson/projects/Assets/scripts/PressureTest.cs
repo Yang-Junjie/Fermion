@@ -7,12 +7,12 @@ namespace Sandbox
     {
         public void OnCreate()
         {
-            float width = 10.0f;
-            float height = 10.0f;
+            float width = 316.0f;
+            float height = 316.0f;
 
-            for (float j = -width; j < width; j++)
+            for (float j = 0; j < width; j++)
             {
-                for (float i = -height; i < height; i++)
+                for (float i = 0; i < height; i++)
                 {
                     Entity testEntity = Scene.CreateEntity($"TestEntity{i}{j}");
                     testEntity.GetComponent<TransformComponent>().Translation = new Vector3(i, j, 0);
