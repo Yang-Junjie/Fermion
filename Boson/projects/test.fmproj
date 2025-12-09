@@ -6,4 +6,4 @@ Directories:
   AssetDirectory: Assets
   ScriptDirectory: Assets/scripts
 Runtime:
-  StartScene: Assets/scenes/example.fermion
+  StartScene: Assets/scenes/press.fermion

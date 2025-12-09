@@ -373,7 +373,7 @@ namespace Fermion
     {
         FM_PROFILE_FUNCTION();
 
-        // TODO: 1，实例化渲染有问题2，当数量大的时候切换为实例化渲染
+        // TODO:，当数量大的时候切换为实例化渲染
         if (s_Data.QuadIndexCount)
         {
             // Log::Info("Renderer2D: Batch rendering 1 batch");

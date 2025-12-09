@@ -7,8 +7,8 @@ namespace Sandbox
     {
         public void OnCreate()
         {
-            float width = 316.0f;
-            float height = 316.0f;
+            float width = 200.0f;
+            float height = 1000.0f;
 
             for (float j = 0; j < width; j++)
             {
@@ -20,7 +20,7 @@ namespace Sandbox
                     SpriteRendererComponent sprite = testEntity.AddComponent<SpriteRendererComponent>();
 
                     sprite.Color = new Vector4(i / height, j / width, 0, 1);
-                    // sprite.SetTexture(10348572890839182050);
+                    sprite.SetTexture(10348572890839182050);
                 }
             }
         }
