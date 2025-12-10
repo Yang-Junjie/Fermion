@@ -57,7 +57,7 @@ void NeutrinoLayer::onEvent(Fermion::IEvent &event)
         });
 }
 
-bool NeutrinoLayer::onKeyPressedEvent(Fermion::KeyPressedEvent &e)
+bool NeutrinoLayer::onKeyPressedEvent(const Fermion::KeyPressedEvent &e)
 {
     if (e.getKeyCode() == Fermion::KeyCode::Escape)
     {
@@ -106,14 +106,12 @@ void NeutrinoLayer::loadScene(const std::string_view &filepath)
         m_sceneRenderer->setScene(m_runtimeScene);
 }
 
-void NeutrinoLayer::onScenePlay()
-{
+void NeutrinoLayer::onScenePlay() const {
     if (m_runtimeScene)
         m_runtimeScene->onRuntimeStart();
 }
 
-void NeutrinoLayer::onSceneStop()
-{
+void NeutrinoLayer::onSceneStop() const {
     if (m_runtimeScene && m_runtimeScene->isRunning())
         m_runtimeScene->onRuntimeStop();
 }

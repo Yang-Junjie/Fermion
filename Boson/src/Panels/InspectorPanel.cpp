@@ -96,7 +96,7 @@ namespace Fermion
     template <typename T, typename UIFunction>
     static void drawComponent(const std::string &name, Entity entity, UIFunction uiFunction)
     {
-         
+
         if (!entity.hasComponent<T>())
             return;
 
@@ -346,50 +346,74 @@ namespace Fermion
         drawComponent<ScriptContainerComponent>("Scripts Container", entity, [](auto &component)
                                                 {
             static std::unordered_map<std::string, bool> checkedState;
-            for (auto &name : ScriptManager::getALLEntityClasses())
+
+            auto allClasses = ScriptManager::getALLEntityClasses();
+
+            // 初始化checked状态
+            for (auto& name : allClasses)
             {
                 size_t dotPos = name.find('.');
-                if (dotPos != std::string::npos)
-                {
-                    std::string namespaceName = name.substr(0, dotPos);
-                    if (namespaceName != "Fermion")
-                    {
-                        if (checkedState.find(name) == checkedState.end())
-                            checkedState[name] = false;
-                    }
-                }
+                if (dotPos == std::string::npos)
+                    continue;
+
+                std::string namespaceName = name.substr(0, dotPos);
+                if (namespaceName == "Fermion")
+                    continue;
+
+                if (checkedState.find(name) == checkedState.end())
+                    checkedState[name] = false;
+
+                bool isInComponent = std::find(
+                    component.scriptClassNames.begin(),
+                    component.scriptClassNames.end(),
+                    name
+                ) != component.scriptClassNames.end();
+
+                checkedState[name] = isInComponent;
             }
-            for (auto name : ScriptManager::getALLEntityClasses())
+
+            // 渲染和更新选中状态
+            for (auto& name : allClasses)
             {
                 size_t dotPos = name.find('.');
-                if (dotPos != std::string::npos)
+                if (dotPos == std::string::npos)
+                    continue;
+
+                std::string namespaceName = name.substr(0, dotPos);
+                if (namespaceName == "Fermion")
+                    continue;
+
+                bool checked = checkedState[name];
+                std::string label = "##checkbox_" + name;
+
+                if (ImGui::Checkbox(label.c_str(), &checked))
                 {
-                    std::string namespaceName = name.substr(0, dotPos);
-                    if (namespaceName != "Fermion")
+                    checkedState[name] = checked;
+
+                    if (checked)
                     {
-                        bool checked = checkedState[name];
-                        std::string label = "##checkbox_" + name;
-
-                        if (ImGui::Checkbox(label.c_str(), &checked))
+                        
+                        if (std::find(component.scriptClassNames.begin(),
+                                    component.scriptClassNames.end(),
+                                    name) == component.scriptClassNames.end())
                         {
-                            checkedState[name] = checked;
-
-                            if (checked)
-                            {
-                                component.scriptClassNames.push_back(name);
-                            }
-                            else
-                            {
-                                component.scriptClassNames.erase(
-                                    std::remove(component.scriptClassNames.begin(), component.scriptClassNames.end(), name), 
-                                    component.scriptClassNames.end());
-                            }
+                            component.scriptClassNames.push_back(name);
                         }
-
-                        ImGui::SameLine();
-                        ImGui::Text("%s", name.c_str());
+                    }
+                    else
+                    {
+                        
+                        component.scriptClassNames.erase(
+                            std::remove(component.scriptClassNames.begin(),
+                                        component.scriptClassNames.end(),
+                                        name),
+                            component.scriptClassNames.end()
+                        );
                     }
                 }
+
+                ImGui::SameLine();
+                ImGui::Text("%s", name.c_str());
             } });
 
         drawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto &component)
@@ -438,10 +462,10 @@ namespace Fermion
 			ImGui::DragFloat("Friction", &component.friction, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Restitution", &component.restitution, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Restitution Threshold", &component.restitutionThreshold, 0.01f, 0.0f); });
-        drawComponent<BoxSensor2DComponent>("Box Sensor 2D",entity,[](auto &component){
+        drawComponent<BoxSensor2DComponent>("Box Sensor 2D", entity, [](auto &component)
+                                            {
             ImGui::DragFloat2("Offset", glm::value_ptr(component.offset), 0.01f);
-            ImGui::DragFloat2("Size", glm::value_ptr(component.size), 0.01f);
-        });
+            ImGui::DragFloat2("Size", glm::value_ptr(component.size), 0.01f); });
     }
     template <typename T>
     inline void InspectorPanel::displayAddComponentEntry(const std::string &entryName)

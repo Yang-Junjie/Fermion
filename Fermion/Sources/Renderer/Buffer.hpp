@@ -22,10 +22,8 @@ namespace Fermion {
 			case ShaderDataType::Int3:     return 4 * 3;
 			case ShaderDataType::Int4:     return 4 * 4;
 			case ShaderDataType::Bool:     return 1;
+			default: return 0;
 		}
-
-	
-		return 0;
 	}
 
 	struct BufferElement
@@ -118,7 +116,7 @@ namespace Fermion {
 		static std::shared_ptr<VertexBuffer> create(float* vertices, uint32_t size);
 	};
 
-	// Currently Hazel only supports 32-bit index buffers
+	// Currently only supports 32-bit index buffers
 	class IndexBuffer
 	{
 	public:

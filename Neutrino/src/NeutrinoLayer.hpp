@@ -9,14 +9,15 @@ class NeutrinoLayer : public Fermion::Layer
 {
 public:
     explicit NeutrinoLayer();
-    virtual ~NeutrinoLayer() = default;
+
+    ~NeutrinoLayer() override = default;
 
     void onAttach() override;
     void onDetach() override;
     void onUpdate(Fermion::Timestep dt) override;
 
     void onEvent(Fermion::IEvent &event) override;
-    bool onKeyPressedEvent(Fermion::KeyPressedEvent &e);
+    bool onKeyPressedEvent(const Fermion::KeyPressedEvent &e);
 
     void onImGuiRender() override;
 
@@ -24,8 +25,8 @@ private:
     void openProject();
     void loadScene(const std::string_view &filepath);
 
-    void onScenePlay();
-    void onSceneStop();
+    void onScenePlay() const;
+    void onSceneStop() const;
 
 private:
     std::shared_ptr<Fermion::Scene> m_runtimeScene;

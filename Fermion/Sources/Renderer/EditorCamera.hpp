@@ -20,9 +20,9 @@ namespace Fermion
 		void onEvent(IEvent &e);
 
 		inline float getDistance() const { return m_distance; }
-		inline void setDistance(float distance) { m_distance = distance; }
+		inline void setDistance(const float distance) { m_distance = distance; }
 
-		inline void setViewportSize(float width, float height)
+		inline void setViewportSize(const float width, const float height)
 		{
 			m_viewportWidth = width;
 			m_viewportHeight = height;
