@@ -265,6 +265,13 @@ namespace Fermion
                 }
             }
         }
+        // Debug draw
+        {
+            std::shared_ptr<DebugRenderer> debugRenderer = renderer->GetDebugRenderer();
+            for (auto &&func : debugRenderer->GetRenderQueue())
+                func(renderer);
+            debugRenderer->ClearRenderQueue();
+        }
 
         renderer->endScene();
     }
@@ -513,6 +520,14 @@ namespace Fermion
                             renderer->drawCircle(transform.getTransform(), circle.color, circle.thickness, circle.fade, (int)entity);
                         }
                     }
+                }
+
+                // Debug draw
+                {
+                    std::shared_ptr<DebugRenderer> debugRenderer = renderer->GetDebugRenderer();
+                    for (auto &&func : debugRenderer->GetRenderQueue())
+                        func(renderer);
+                    debugRenderer->ClearRenderQueue();
                 }
 
                 renderer->endScene();

@@ -7,8 +7,8 @@ namespace Sandbox
     {
         public void OnCreate()
         {
-            float width = 200.0f;
-            float height = 1000.0f;
+            float width = 10.0f;
+            float height = 10.0f;
 
             for (float j = 0; j < width; j++)
             {
@@ -23,11 +23,13 @@ namespace Sandbox
                     sprite.SetTexture(10348572890839182050);
                 }
             }
+
         }
 
         public void OnUpdate(float ts)
         {
-
+            DebugRenderer.DrawLine(new Vector3(0, 0, 0), new Vector3(-10, -100, 0), new Vector4(1, 1, 1, 1));
+            DebugRenderer.SetLineWidth(10);
         }
     }
 }

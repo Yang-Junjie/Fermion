@@ -71,6 +71,14 @@ namespace Fermion
             auto *csharpEngine = dynamic_cast<CSharpScriptEngine *>(s_scriptEngine.get());
             return csharpEngine ? csharpEngine->getAppImage() : nullptr;
         }
+        // void setSceneRenderer(const std::shared_ptr<SceneRenderer>& renderer)
+        // {
+        //     s_scriptEngine->setSceneRenderer(renderer);
+        // }
+        // std::shared_ptr<SceneRenderer> getSceneRenderer() const
+        // {
+        //     return s_scriptEngine->getSceneRenderer();
+        // }
 
     private:
         inline static std::shared_ptr<IScriptEngine> s_scriptEngine;

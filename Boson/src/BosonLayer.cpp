@@ -5,6 +5,7 @@
 #include "Renderer/Font.hpp"
 #include "Project/ProjectSerializer.hpp"
 #include "Asset/SceneAsset.hpp"
+#include "Script/ScriptManager.hpp"
 
 #include "imgui/ConsolePanel.hpp"
 #include "Math/Math.hpp"
@@ -49,6 +50,7 @@ namespace Fermion
 
         m_sceneHierarchyPanel.setContext(m_activeScene);
         m_viewportRenderer->setScene(m_activeScene);
+        ScriptManager::get()->setSceneRenderer(m_viewportRenderer);
     }
 
     void BosonLayer::onDetach()

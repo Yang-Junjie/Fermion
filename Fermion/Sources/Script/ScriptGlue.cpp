@@ -9,6 +9,8 @@
 #include "Core/Input.hpp"
 
 #include "Scene/Scene.hpp"
+#include "Renderer/SceneRenderer.hpp"
+#include "Renderer/DebugRenderer.hpp"
 #include "Scene/Entity.hpp"
 #include "Scene/Components.hpp"
 #include "Physics/Physics2D.hpp"
@@ -36,9 +38,9 @@ namespace Fermion
     static std::unordered_map<MonoType *, std::function<bool(Entity)>> s_entityHasComponentFuncs;
     static std::unordered_map<MonoType *, std::function<void(Entity)>> s_entitycomponentFactories;
 
-#pragma region AssetHandle
+// #pragma region AssetHandle
 
-#pragma endregin
+// #pragma endregin
 #pragma region Scene
     extern "C" uint64_t Scene_CreateEntity(MonoString *tag)
     {
@@ -277,10 +279,24 @@ namespace Fermion
 #pragma endregion
 
 #pragma region Input
-    extern "C" bool
-    Input_IsKeyDown(KeyCode keycode)
+    extern "C" bool Input_IsKeyDown(KeyCode keycode)
     {
         return Input::isKeyPressed(keycode);
+    }
+#pragma endregion
+
+#pragma region DebugDraw
+    extern "C" void DebugRenderer_DrawLine(glm::vec3 *start, glm::vec3 *end, glm::vec4 *color)
+    {
+        std::shared_ptr<SceneRenderer> renderer = ScriptManager::get()->getSceneRenderer();
+        std::shared_ptr<DebugRenderer> debugRenderer = renderer->GetDebugRenderer();
+        debugRenderer->DrawLine(*start, *end, *color);
+    }
+    extern "C" void DebugRenderer_SetLineWidth(float width)
+    {
+        std::shared_ptr<SceneRenderer> renderer = ScriptManager::get()->getSceneRenderer();
+        std::shared_ptr<DebugRenderer> debugRenderer = renderer->GetDebugRenderer();
+        debugRenderer->SetLineWidth(width);
     }
 #pragma endregion
 
@@ -449,6 +465,9 @@ namespace Fermion
         FM_ADD_INTERNAL_CALL(BoxSensor2D_GetOffset);
 
         FM_ADD_INTERNAL_CALL(Input_IsKeyDown);
+
+        FM_ADD_INTERNAL_CALL(DebugRenderer_DrawLine);
+        FM_ADD_INTERNAL_CALL(DebugRenderer_SetLineWidth);
     }
 
 }

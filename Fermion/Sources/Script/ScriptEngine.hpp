@@ -119,7 +119,7 @@ namespace Fermion
 
         virtual ScriptHandle getManagedInstance(UUID uuid, std::string className) = 0;
         virtual bool entityClassExists(const std::string &fullClassName) = 0;
-        
+
         virtual void onRuntimeStart(Scene *scene) = 0;
         virtual void onRuntimeStop() = 0;
 
@@ -127,8 +127,14 @@ namespace Fermion
         virtual void onUpdateEntity(Entity entity, Timestep ts) = 0;
 
         virtual const std::vector<std::string> &getALLEntityClasses() const = 0;
+        void setSceneRenderer(std::shared_ptr<SceneRenderer> renderer) { m_renderer = renderer; }
+        std::shared_ptr<SceneRenderer> getSceneRenderer() const
+        {
+            return m_renderer;
+        }
 
     protected:
+        std::shared_ptr<SceneRenderer> m_renderer = nullptr;
         Scene *m_scene = nullptr;
     };
 }

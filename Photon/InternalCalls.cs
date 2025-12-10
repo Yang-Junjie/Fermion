@@ -75,5 +75,14 @@ namespace Fermion
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern bool Input_IsKeyDown(KeyCode keycode);
 
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static unsafe extern void DebugRenderer_DrawLine(Vector3* start, Vector3* end, Vector4* color);
+
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static unsafe extern void DebugRenderer_SetLineWidth(float width);
+
+
     }
 }

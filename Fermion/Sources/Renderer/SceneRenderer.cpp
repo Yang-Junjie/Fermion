@@ -3,6 +3,11 @@
 #include "Project/Project.hpp"
 namespace Fermion
 {
+    SceneRenderer::SceneRenderer()
+    {
+        m_debugRenderer = std::make_shared<DebugRenderer>();
+    }
+
     void SceneRenderer::beginScene(const Camera &camera, const glm::mat4 &transform)
     {
         beginScene({camera, glm::inverse(transform)});
@@ -18,6 +23,7 @@ namespace Fermion
     {
         m_sceneData.sceneCamera = camera;
         Renderer2D::beginScene(camera.camera, camera.view);
+
     }
 
     void SceneRenderer::endScene()
@@ -73,6 +79,16 @@ namespace Fermion
     void SceneRenderer::drawRect(const glm::mat4 &transform, const glm::vec4 &color, int objectId)
     {
         Renderer2D::drawRect(transform, color, objectId);
+    }
+
+    void SceneRenderer::DrawLine(const glm::vec3 &start, const glm::vec3 &end, const glm::vec4 &color)
+    {
+        Renderer2D::drawLine(start, end, color);
+    }
+
+    void SceneRenderer::SetLineWidth(float thickness)
+    {
+        Renderer2D::setLineWidth(thickness);
     }
 
     SceneRenderer::Statistics SceneRenderer::getStatistics() const

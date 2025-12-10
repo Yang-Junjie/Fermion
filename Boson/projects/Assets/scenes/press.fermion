@@ -1,10 +1,20 @@
 Scene: Name
 Entities:
+  - Entity: 18295920508468473622
+    TagComponent:
+      Tag: Script
+    TransformComponent:
+      Translation: [1.8847084, -7.450581e-09, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    ScriptContainerComponent:
+      ScriptClassNames:
+        - Sandbox.PressureTest
   - Entity: 6495055141249091889
     TagComponent:
       Tag: Empty Entity
     TransformComponent:
-      Translation: [0, 0, 300]
+      Translation: [0, 0, 20]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     CameraComponent:
@@ -21,13 +31,3 @@ Entities:
     ScriptContainerComponent:
       ScriptClassNames:
         - Sandbox.CameraController
-  - Entity: 18295920508468473622
-    TagComponent:
-      Tag: Script
-    TransformComponent:
-      Translation: [1.8847084, -7.450581e-09, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    ScriptContainerComponent:
-      ScriptClassNames:
-        - Sandbox.PressureTest
