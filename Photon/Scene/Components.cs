@@ -108,5 +108,15 @@ namespace Fermion
 			=> InternalCalls.BoxSensor2D_SensorEnd(Entity.ID);
 	}
 
+	public class TextComponent : Component
+	{
+		public string Text
+		{
+			set
+			{
+				InternalCalls.TextComponent_SetText(Entity.ID, value);
+			}
+		}
+	}
 
 }

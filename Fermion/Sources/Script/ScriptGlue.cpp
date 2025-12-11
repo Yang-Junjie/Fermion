@@ -300,6 +300,17 @@ namespace Fermion
     }
 #pragma endregion
 
+#pragma region TextComponent
+    extern "C" void TextComponent_SetText(UUID entityID, MonoString *string)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+        entity.getComponent<TextComponent>().textString = Utils::monoStringToString(string);
+    }
+#pragma endregion
+
     template <typename... Components>
     static void RegisterComponent()
     {
@@ -468,6 +479,8 @@ namespace Fermion
 
         FM_ADD_INTERNAL_CALL(DebugRenderer_DrawLine);
         FM_ADD_INTERNAL_CALL(DebugRenderer_SetLineWidth);
+
+        FM_ADD_INTERNAL_CALL(TextComponent_SetText);
     }
 
 }

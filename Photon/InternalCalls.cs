@@ -83,6 +83,9 @@ namespace Fermion
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static unsafe extern void DebugRenderer_SetLineWidth(float width);
 
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void TextComponent_SetText(ulong entityID, string s);
+
 
     }
 }

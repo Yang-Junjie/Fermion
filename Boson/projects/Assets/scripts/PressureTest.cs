@@ -5,11 +5,15 @@ namespace Sandbox
 {
     public class PressureTest : Entity
     {
+        private TextComponent text;
         public void OnCreate()
         {
+
             float width = 10.0f;
             float height = 10.0f;
 
+            text = AddComponent<TextComponent>();
+            text.Text = "Pressure Test";
             for (float j = 0; j < width; j++)
             {
                 for (float i = 0; i < height; i++)
