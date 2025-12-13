@@ -1,5 +1,6 @@
 ﻿#include "SceneRenderer.hpp"
 #include "Renderer2D.hpp"
+#include "Renderer3D.hpp"
 #include "Project/Project.hpp"
 namespace Fermion
 {
@@ -17,18 +18,20 @@ namespace Fermion
     {
 
         beginScene({camera, camera.getViewMatrix()});
+
     }
 
     void SceneRenderer::beginScene(const SceneRendererCamera &camera)
     {
         m_sceneData.sceneCamera = camera;
         Renderer2D::beginScene(camera.camera, camera.view);
-
+        Renderer3D::BeginScene(camera.camera, camera.view);
     }
 
     void SceneRenderer::endScene()
     {
         Renderer2D::endScene();
+        Renderer3D::EndScene();
     }
 
     void SceneRenderer::drawSprite(const glm::mat4 &transform, SpriteRendererComponent &sprite, int objectID)
@@ -79,6 +82,11 @@ namespace Fermion
     void SceneRenderer::drawRect(const glm::mat4 &transform, const glm::vec4 &color, int objectId)
     {
         Renderer2D::drawRect(transform, color, objectId);
+    }
+
+    void SceneRenderer::DrawCube(const glm::mat4 &transform, const glm::vec4 &color, int objectId)
+    {
+        Renderer3D::DrawCube(transform, color, objectId);
     }
 
     void SceneRenderer::DrawLine(const glm::vec3 &start, const glm::vec3 &end, const glm::vec4 &color)

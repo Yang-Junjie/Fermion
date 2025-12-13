@@ -272,7 +272,7 @@ namespace Fermion
                 func(renderer);
             debugRenderer->ClearRenderQueue();
         }
-
+        renderer->DrawCube(glm::mat4(1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
         renderer->endScene();
     }
 
@@ -529,6 +529,7 @@ namespace Fermion
                         func(renderer);
                     debugRenderer->ClearRenderQueue();
                 }
+                renderer->DrawCube(glm::mat4(1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
                 renderer->endScene();
             }

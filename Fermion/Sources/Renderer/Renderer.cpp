@@ -1,6 +1,7 @@
 ﻿
 #include "Renderer/Renderer.hpp"
 #include "Renderer/Renderer2D.hpp"
+#include "Renderer/Renderer3D.hpp"
 #include "OpenGLShader.hpp"
 #include "Renderer.hpp"
 namespace Fermion
@@ -12,6 +13,7 @@ namespace Fermion
 
         RenderCommand::init();
         Renderer2D::init(s_config);
+        Renderer3D::Init(s_config);
 
         
     }

@@ -1,0 +1,29 @@
+Scene: Name
+Entities:
+  - Entity: 453566212955610190
+    TagComponent:
+      Tag: box
+    TransformComponent:
+      Translation: [-1.7903132, 0.34228724, -1.8031616]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+  - Entity: 18415657991614262539
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [-2.881117, 0.92701477, 2.483245]
+      Rotation: [-0.2570718, -0.9579456, 2.5905972e-08]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Camera:
+        ProjectionType: 0
+        PerspectiveFOV: 0.7853982
+        PerspectiveNear: 0.01
+        PerspectiveFar: 100
+        OrthographicSize: 10
+        OrthographicNear: -100
+        OrthographicFar: 100
+      Primary: true
+      FixedAspectRatio: false
