@@ -18,7 +18,6 @@ namespace Fermion
     {
 
         beginScene({camera, camera.getViewMatrix()});
-
     }
 
     void SceneRenderer::beginScene(const SceneRendererCamera &camera)
@@ -94,6 +93,16 @@ namespace Fermion
         Renderer3D::DrawMesh(mesh, transform, objectId);
     }
 
+    void SceneRenderer::DrawMesh(MeshComponent &meshComponent, glm::mat4 transform, int objectId)
+    {
+        if (static_cast<uint64_t>(meshComponent.meshHandle) != 0)
+        {
+            // Log::Error(std::format("{}",std::to_string(meshComponent.meshHandle)));
+            auto mesh = Project::getRuntimeAssetManager().getAsset<Mesh>(meshComponent.meshHandle);
+            Renderer3D::DrawMesh(mesh, transform, objectId);
+        }
+
+    }
 
     void SceneRenderer::DrawLine(const glm::vec3 &start, const glm::vec3 &end, const glm::vec4 &color)
     {

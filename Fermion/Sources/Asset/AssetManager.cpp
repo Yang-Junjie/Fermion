@@ -8,25 +8,28 @@
 #include "Asset/Importer/FontImporter.hpp"
 #include "Asset/Importer/SceneImporter.hpp"
 #include "Asset/Importer/ShaderImporter.hpp"
+#include "Asset/Importer/MeshImporter.hpp"
 #include "Asset/Loader/TextureLoader.hpp"
 #include "Asset/Loader/FontLoader.hpp"
-	#include "Asset/Loader/SceneLoader.hpp"
-	
-	namespace Fermion
-	{
-	    std::unordered_map<AssetHandle, std::shared_ptr<Asset>> AssetManager::s_loadedAssets;
-	    std::filesystem::path AssetManager::s_assetDirectory;
-	    std::unordered_map<AssetType, std::unique_ptr<AssetLoader>, AssetManager::AssetTypeHash> AssetManager::s_assetLoaders;
-	
-	    void AssetManager::ensureDefaultLoaders()
-	    {
-	        if (!s_assetLoaders.empty())
-	            return;
+#include "Asset/Loader/MeshLoader.hpp"
+#include "Asset/Loader/SceneLoader.hpp"
 
-	        s_assetLoaders.emplace(AssetType::Texture, std::make_unique<TextureLoader>());
-	        s_assetLoaders.emplace(AssetType::Font, std::make_unique<FontLoader>());
-	        s_assetLoaders.emplace(AssetType::Scene, std::make_unique<SceneLoader>());
-	    }
+namespace Fermion
+{
+    std::unordered_map<AssetHandle, std::shared_ptr<Asset>> AssetManager::s_loadedAssets;
+    std::filesystem::path AssetManager::s_assetDirectory;
+    std::unordered_map<AssetType, std::unique_ptr<AssetLoader>, AssetManager::AssetTypeHash> AssetManager::s_assetLoaders;
+
+    void AssetManager::ensureDefaultLoaders()
+    {
+        if (!s_assetLoaders.empty())
+            return;
+
+        s_assetLoaders.emplace(AssetType::Texture, std::make_unique<TextureLoader>());
+        s_assetLoaders.emplace(AssetType::Font, std::make_unique<FontLoader>());
+        s_assetLoaders.emplace(AssetType::Scene, std::make_unique<SceneLoader>());
+        s_assetLoaders.emplace(AssetType::Mesh, std::make_unique<MeshLoader>());
+    }
 
     static AssetType GetAssetTypeFromPath(const std::filesystem::path &path)
     {
@@ -44,12 +47,12 @@
         return metaPath;
     }
 
-	    void AssetManager::init(const std::filesystem::path &assetDirectory)
-	    {
-	        s_assetDirectory = assetDirectory;
-	
-	        s_assetLoaders.clear();
-	        ensureDefaultLoaders();
+    void AssetManager::init(const std::filesystem::path &assetDirectory)
+    {
+        s_assetDirectory = assetDirectory;
+
+        s_assetLoaders.clear();
+        ensureDefaultLoaders();
 
         for (auto &p : std::filesystem::recursive_directory_iterator(assetDirectory))
         {
@@ -120,6 +123,8 @@
             return std::make_unique<SceneImporter>();
         case AssetType::Shader:
             return std::make_unique<ShaderImporter>();
+        case AssetType::Mesh:
+            return std::make_unique<MeshImporter>();
         default:
             return nullptr;
         }
@@ -185,12 +190,12 @@
         return metadata.Handle;
     }
 
-	    std::shared_ptr<Asset> AssetManager::loadAssetInternal(AssetHandle handle)
-	    {
-	        auto &metadata = AssetRegistry::get(handle);
-	        std::shared_ptr<Asset> asset;
-	
-	        ensureDefaultLoaders();
+    std::shared_ptr<Asset> AssetManager::loadAssetInternal(AssetHandle handle)
+    {
+        auto &metadata = AssetRegistry::get(handle);
+        std::shared_ptr<Asset> asset;
+
+        ensureDefaultLoaders();
 
         auto loaderIt = s_assetLoaders.find(metadata.Type);
         if (loaderIt == s_assetLoaders.end() || !loaderIt->second)

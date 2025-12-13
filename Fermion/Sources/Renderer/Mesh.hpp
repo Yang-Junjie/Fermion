@@ -4,6 +4,7 @@
 #include "VertexArray.hpp"
 #include "Renderer/Material.hpp"
 #include "Renderer/Texture.hpp"
+#include "Asset/Asset.hpp"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -25,7 +26,7 @@ namespace Fermion
         uint32_t IndexCount = 0;
     };
 
-    class Mesh
+    class Mesh : public Asset
     {
     public:
         Mesh(const std::string &path)
@@ -41,7 +42,7 @@ namespace Fermion
         const std::vector<uint32_t> &getIndices() const { return m_indices; }
         const std::vector<std::shared_ptr<Material>> &getMaterials() const { return m_Materials; }
         const std::vector<SubMesh> &getSubMeshes() const { return m_SubMeshes; }
-
+        const std::string& getPath() const {return m_ModelPath;}
     private:
         std::vector<Vertex> m_vertices;
         std::vector<uint32_t> m_indices;

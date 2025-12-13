@@ -74,11 +74,13 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Asset/Loader/TextureLoader.cpp
     ${FERMION_DIR}/Asset/Loader/FontLoader.cpp
     ${FERMION_DIR}/Asset/Loader/SceneLoader.cpp
+    ${FERMION_DIR}/Asset/Loader/MeshLoader.cpp
     ${FERMION_DIR}/Asset/Importer/TextureImporter.cpp
     ${FERMION_DIR}/Asset/Importer/FontImporter.cpp
     ${FERMION_DIR}/Asset/Importer/SceneImporter.cpp
     ${FERMION_DIR}/Asset/Importer/ShaderImporter.cpp
     ${FERMION_DIR}/Asset/Importer/AssetImporter.cpp
+    ${FERMION_DIR}/Asset/Importer/MeshImporter.cpp
 
     # ${FERMION_DIR}/Script/ScriptEngine.cpp
     ${FERMION_DIR}/Script/ScriptGlue.cpp

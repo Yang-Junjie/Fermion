@@ -20,7 +20,11 @@ namespace Fermion
             // Shaders
             {".glsl", AssetType::Shader},
             {".vert", AssetType::Shader},
-            {".frag", AssetType::Shader}};
+            {".frag", AssetType::Shader},
+            
+            // Mesh
+            {".obj", AssetType::Mesh},
+        };
 
     inline static AssetType GetAssetTypeFromExtension(const std::string &extension)
     {

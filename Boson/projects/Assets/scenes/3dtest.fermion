@@ -27,3 +27,12 @@ Entities:
         OrthographicFar: 100
       Primary: true
       FixedAspectRatio: false
+  - Entity: 4866263028042920325
+    TagComponent:
+      Tag: obj
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      MeshHandle: 6460136860035206027

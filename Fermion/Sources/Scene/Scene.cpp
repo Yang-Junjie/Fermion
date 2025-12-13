@@ -15,7 +15,7 @@ namespace Fermion
 {
     Scene::Scene()
     {
-        m_TestMesh = std::make_shared<Mesh>("../Boson/projects/Assets/Mesh/Lamborghini_Aventador.obj");
+        // m_TestMesh = std::make_shared<Mesh>("../Boson/projects/Assets/Mesh/Lamborghini_Aventador.obj");
     }
 
     Scene::~Scene()
@@ -239,6 +239,20 @@ namespace Fermion
         if (showRenderEntities)
         {
             {
+
+                auto group = m_registry.group<>(entt::get<TransformComponent, MeshComponent>);
+                for (auto entity : group)
+                {
+                    auto &transform = group.get<TransformComponent>(entity);
+                    auto &mesh = group.get<MeshComponent>(entity);
+                    // if (mesh.m_Mesh == nullptr)
+                    // {
+                    //     Log::Error("Mesh is null");
+                    // }
+                    renderer->DrawMesh(mesh, transform.getTransform());
+                }
+            }
+            {
                 auto group = m_registry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
                 for (auto entity : group)
                 {
@@ -275,7 +289,7 @@ namespace Fermion
         }
         // renderer->DrawCube(glm::mat4(1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
-        renderer->DrawMesh(m_TestMesh, glm::mat4(1.0f));
+        // renderer->DrawMesh(m_TestMesh, glm::mat4(1.0f));
 
         renderer->endScene();
     }
@@ -480,7 +494,7 @@ namespace Fermion
                 }
             }
         }
-        // Renderer2D
+
         {
             Camera *mainCamera = nullptr;
             glm::mat4 cameraTransform;
@@ -505,6 +519,19 @@ namespace Fermion
                 renderer->beginScene(*mainCamera, cameraTransform);
                 if (showRenderEntities)
                 {
+                    {
+                        auto group = m_registry.group<>(entt::get<TransformComponent, MeshComponent>);
+                        for (auto entity : group)
+                        {
+                            auto &transform = group.get<TransformComponent>(entity);
+                            auto &mesh = group.get<MeshComponent>(entity);
+                            // if (mesh.m_Mesh == nullptr)
+                            // {
+                            //     Log::Error("Mesh is null");
+                            // }
+                            renderer->DrawMesh(mesh, transform.getTransform());
+                        }
+                    }
                     {
                         auto group = m_registry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
                         for (auto entity : group)

@@ -2,6 +2,7 @@
 #include "fmpch.hpp"
 #include "Core/UUID.hpp"
 // #include "Scene/ScriptableEntity.hpp"
+#include "Renderer/Mesh.hpp"
 #include "Renderer/Texture.hpp"
 #include "Renderer/SceneCamera.hpp"
 #include "Renderer/Font.hpp"
@@ -68,7 +69,15 @@ namespace Fermion
         SpriteRendererComponent(const glm::vec4 &color) : color(color) {}
         SpriteRendererComponent(const SpriteRendererComponent &) = default;
     };
-    
+    struct MeshComponent
+    {
+        std::shared_ptr<Mesh> m_Mesh = nullptr;
+        AssetHandle meshHandle = AssetHandle(0);
+        // std::string meshPath;
+        MeshComponent() = default;
+        MeshComponent(const MeshComponent &) = default;
+    };
+
     struct TextComponent
     {
         std::string textString;
@@ -108,7 +117,6 @@ namespace Fermion
     struct ScriptContainerComponent
     {
         std::vector<std::string> scriptClassNames;
-        
     };
 
     class ScriptableEntity;
@@ -159,7 +167,7 @@ namespace Fermion
         glm::vec2 offset = {0.0f, 0.0f};
         glm::vec2 size = {0.5f, 0.5f};
 
-        // TODO: move into physics material component in the future 
+        // TODO: move into physics material component in the future
         float density = 1.0f;
         float friction = 0.5f;
         float restitution = 0.0f;
@@ -209,12 +217,12 @@ namespace Fermion
     {
     };
     using AllComponents =
-        ComponentGroup<TransformComponent, SpriteRendererComponent,
+        ComponentGroup<TransformComponent, SpriteRendererComponent,MeshComponent,
                        CircleRendererComponent,
                        CameraComponent,
                        ScriptComponent,
                        ScriptContainerComponent,
                        NativeScriptComponent,
-                       Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent,BoxSensor2DComponent,
+                       Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, BoxSensor2DComponent,
                        TextComponent>;
 }

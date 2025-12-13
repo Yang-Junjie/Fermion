@@ -107,6 +107,18 @@ namespace Fermion
 				}
 			}
 
+			// .obj
+			if (!isDirectory && (path.extension() == ".obj"))
+			{
+				if (ImGui::BeginDragDropSource())
+				{
+					std::string fullPath = path.string();
+					ImGui::SetDragDropPayload("FERMION_MODEL", fullPath.c_str(), fullPath.size() + 1);
+					ImGui::Text("%s", filename.c_str());
+					ImGui::EndDragDropSource();
+				}
+			}
+
 			if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 			{
 				if (isDirectory)

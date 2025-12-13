@@ -154,6 +154,7 @@ namespace Fermion
         {
 
             displayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
+            displayAddComponentEntry<MeshComponent>("Mesh");
             displayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
             displayAddComponentEntry<CameraComponent>("Camera");
             displayAddComponentEntry<TextComponent>("Text");
@@ -312,6 +313,26 @@ namespace Fermion
 				}
 
 			ImGui::DragFloat("Tiling Factor", &component.tilingFactor, 0.1f, 0.0f, 100.0f); });
+        drawComponent<MeshComponent>("Mesh", entity, [](auto &component)
+                                     {
+	        ImGui::Text("Mesh Handle: %s", std::to_string(component.meshHandle).c_str());
+            ImGui::Button("Change or Add");
+
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("FERMION_MODEL"))
+                {
+                    auto path = std::string(static_cast<const char*>(payload->Data));
+                    auto& editorAssets = Project::getEditorAssetManager();
+                    AssetHandle handle = editorAssets.importAsset(std::filesystem::path(path));
+                    if(static_cast<uint64_t>(handle) != 0){
+                        // component.meshPath = path;
+                        component.meshHandle = handle;
+                        component.m_Mesh = editorAssets.getAsset<Mesh>(handle);
+                    }
+                }
+                ImGui::EndDragDropTarget();
+            } });
         drawComponent<TextComponent>("Text", entity, [](auto &component)
                                      {
 			char buffer[1024]; 

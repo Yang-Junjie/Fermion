@@ -140,6 +140,17 @@ namespace Fermion
 				out << YAML::Key << "TextureHandle" << YAML::Value << static_cast<uint64_t>(sprite.textureHandle);
 			out << YAML::EndMap;
 		}
+		if (entity.hasComponent<MeshComponent>())
+		{
+			out << YAML::Key << "MeshComponent";
+			out << YAML::BeginMap;
+			auto &mesh = entity.getComponent<MeshComponent>();
+			{
+				if (static_cast<uint64_t>(mesh.meshHandle) != 0)
+					out << YAML::Key << "MeshHandle" << YAML::Value << static_cast<uint64_t>(mesh.meshHandle);
+			}
+			out << YAML::EndMap;
+		}
 		if (entity.hasComponent<CircleRendererComponent>())
 		{
 			out << YAML::Key << "CircleRendererComponent";
@@ -202,7 +213,8 @@ namespace Fermion
 			out << YAML::Key << "RestitutionThreshold" << YAML::Value << cc.restitutionThreshold;
 			out << YAML::EndMap;
 		}
-		if(entity.hasComponent<BoxSensor2DComponent>()){
+		if (entity.hasComponent<BoxSensor2DComponent>())
+		{
 			out << YAML::Key << "BoxSensor2DComponent";
 			out << YAML::BeginMap;
 			auto &cc = entity.getComponent<BoxSensor2DComponent>();
@@ -351,6 +363,22 @@ namespace Fermion
 						}
 					}
 				}
+				auto meshComponent = entity["MeshComponent"];
+				if (meshComponent)
+				{
+					auto &src = deserializedEntity.addComponent<MeshComponent>();
+					if (auto n = meshComponent["meshHandle"]; n)
+					{
+						uint64_t handleValue = n.as<uint64_t>();
+						if (handleValue != 0)
+						{
+							src.meshHandle = AssetHandle(handleValue);
+							auto &runtimeAssets = Project::getRuntimeAssetManager();
+							src.m_Mesh = runtimeAssets.getAsset<Mesh>(src.meshHandle);
+						}
+					}
+				}
+
 				auto circleRendererComponent = entity["CircleRendererComponent"];
 				if (circleRendererComponent && circleRendererComponent.IsMap())
 				{
@@ -433,7 +461,8 @@ namespace Fermion
 						cc.restitutionThreshold = n.as<float>();
 				}
 				auto boxSensor2DComponent = entity["BoxSensor2DComponent"];
-				if (boxSensor2DComponent && boxSensor2DComponent.IsMap()) { 
+				if (boxSensor2DComponent && boxSensor2DComponent.IsMap())
+				{
 					auto &bs2c = deserializedEntity.addComponent<BoxSensor2DComponent>();
 					if (auto n = boxSensor2DComponent["SensorBegin"]; n)
 						bs2c.sensorBegin = n.as<bool>();

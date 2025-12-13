@@ -79,7 +79,7 @@ namespace Fermion
         int m_stepFrames = 0;
 
 
-        std::shared_ptr<Mesh> m_TestMesh  =nullptr;
+        // std::shared_ptr<Mesh> m_TestMesh  =nullptr;
 
 
         b2WorldId m_physicsWorld = b2_nullWorldId;

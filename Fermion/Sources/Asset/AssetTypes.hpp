@@ -8,7 +8,8 @@ namespace Fermion
         Texture,
         Scene,
         Font,
-        Shader
+        Shader,
+        Mesh
     };
 
     namespace AssetUtils
@@ -27,6 +28,8 @@ namespace Fermion
                 return "Font";
             case AssetType::Shader:
                 return "Shader";
+            case AssetType::Mesh:
+                return "Mesh";
             }
             return "None";
         }
@@ -41,6 +44,8 @@ namespace Fermion
                 return AssetType::Font;
             if (str == "Shader")
                 return AssetType::Shader;
+            if (str == "Mesh")
+                return AssetType::Mesh;
             return AssetType::None;
         }
     }
