@@ -28,3 +28,6 @@
 [submodule "Fermion/external/freetype"]
 	path = Fermion/external/freetype
 	url = https://github.com/freetype/freetype.git
+[submodule "Fermion/external/assimp"]
+	path = Fermion/external/assimp
+	url = https://github.com/assimp/assimp.git

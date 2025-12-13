@@ -27,6 +27,8 @@ namespace Fermion
         std::shared_ptr<IndexBuffer> CubeIB;
         std::shared_ptr<Shader> CubeShader;
 
+        std::shared_ptr<Shader> MeshShader;
+
         uint32_t IndexCount = 0;
 
         CubeVertex *VertexBufferBase = nullptr;
@@ -185,6 +187,7 @@ namespace Fermion
         s_Data.VertexBufferBase = new CubeVertex[Renderer3DData::MaxVertices];
 
         s_Data.CubeShader = Shader::create(config.ShaderPath + "Cube.glsl");
+        s_Data.MeshShader = Shader::create(config.ShaderPath + "Mesh.glsl");
     }
     void Renderer3D::Flush()
     {
@@ -220,6 +223,9 @@ namespace Fermion
         s_Data.CubeShader->bind();
         s_Data.CubeShader->setMat4("u_ViewProjection", s_Data.ViewProjection);
 
+        s_Data.MeshShader->bind();
+        s_Data.MeshShader->setMat4("u_ViewProjection", s_Data.ViewProjection);
+
         s_Data.IndexCount = 0;
         s_Data.VertexBufferPtr = s_Data.VertexBufferBase;
     }
@@ -228,6 +234,9 @@ namespace Fermion
         s_Data.ViewProjection = camera.getViewProjection();
         s_Data.CubeShader->bind();
         s_Data.CubeShader->setMat4("u_ViewProjection", s_Data.ViewProjection);
+
+        s_Data.MeshShader->bind();
+        s_Data.MeshShader->setMat4("u_ViewProjection", s_Data.ViewProjection);
 
         s_Data.IndexCount = 0;
         s_Data.VertexBufferPtr = s_Data.VertexBufferBase;
@@ -257,6 +266,35 @@ namespace Fermion
         }
 
         s_Data.IndexCount += 36;
+    }
+    void Renderer3D::DrawMesh(const std::shared_ptr<Mesh> &mesh, const glm::mat4 &transform, int objectID)
+    {
+        if (!mesh)
+            return;
+
+        auto &submeshes = mesh->getSubMeshes();
+        auto &materials = mesh->getMaterials();
+        auto va = mesh->getVertexArray();
+        va->bind();
+
+        for (auto &submesh : submeshes)
+        {
+            // 绑定材质
+            if (submesh.MaterialIndex < materials.size())
+            {
+                auto material = materials[submesh.MaterialIndex];
+                material->bind(s_Data.MeshShader);
+            }
+
+            // 设置模型矩阵
+            s_Data.MeshShader->setMat4("u_Model", transform);
+
+            // 绘制
+            RenderCommand::drawIndexed(
+                va,
+                submesh.IndexCount,
+                submesh.IndexOffset);
+        }
     }
 
 }

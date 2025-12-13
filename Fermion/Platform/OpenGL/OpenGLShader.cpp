@@ -246,6 +246,11 @@ namespace Fermion
     {
         uploadIntArray(name, values, count);
     }
+    void OpenGLShader::setBool(const std::string &name, bool value)
+    {
+        FM_PROFILE_FUNCTION();
+        uploadBool(name, value);
+    }
     void OpenGLShader::setFloat(const std::string &name, float value)
     {
         FM_PROFILE_FUNCTION();
@@ -291,6 +296,11 @@ namespace Fermion
     {
         GLint location = glGetUniformLocation(m_rendererID, name.c_str());
         glUniform1iv(location, count, values);
+    }
+
+    void OpenGLShader::uploadBool(const std::string &name, bool value)
+    {
+        glUniform1i(getUniformLocation(name), (int)value);
     }
 
     void OpenGLShader::uploadFloat(const std::string &name, float value)

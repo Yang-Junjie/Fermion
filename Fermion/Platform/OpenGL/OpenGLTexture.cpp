@@ -82,8 +82,11 @@ namespace Fermion
 		: m_path(path), m_generateMipmap(generateMipmap)
 	{
 		int width, height, channels;
+
+
 		stbi_set_flip_vertically_on_load(1);
-		stbi_uc *data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+
+		stbi_uc *data = stbi_load(path.c_str(), &width, &height, &channels, 4);
 		if (!data)
 		{
 			Log::Error(std::format("Failed to load texture image: {}", path));
@@ -93,19 +96,11 @@ namespace Fermion
 		m_isLoaded = true;
 		m_width = width;
 		m_height = height;
-
-		if (channels == 4)
-		{
-			m_internalFormat = GL_RGBA8;
-			m_dataFormat = GL_RGBA;
-		}
-		else if (channels == 3)
-		{
-			m_internalFormat = GL_RGB8;
-			m_dataFormat = GL_RGB;
-		}
+		m_internalFormat = GL_RGBA8;
+		m_dataFormat = GL_RGBA;
 
 		int levels = generateMipmap ? 1 + (int)std::floor(std::log2(std::max(m_width, m_height))) : 1;
+
 
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_rendererID);
 		glTextureStorage2D(m_rendererID, levels, m_internalFormat, m_width, m_height);
@@ -124,10 +119,12 @@ namespace Fermion
 
 		glPixelStorei(GL_UNPACK_ALIGNMENT, previousAlignment);
 
+
 		glTextureParameteri(m_rendererID, GL_TEXTURE_MIN_FILTER, generateMipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
 		glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
 
 		if (generateMipmap)
 			glGenerateTextureMipmap(m_rendererID);

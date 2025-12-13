@@ -89,6 +89,12 @@ namespace Fermion
         Renderer3D::DrawCube(transform, color, objectId);
     }
 
+    void SceneRenderer::DrawMesh(const std::shared_ptr<Mesh> &mesh, const glm::mat4 &transform, int objectId)
+    {
+        Renderer3D::DrawMesh(mesh, transform, objectId);
+    }
+
+
     void SceneRenderer::DrawLine(const glm::vec3 &start, const glm::vec3 &end, const glm::vec4 &color)
     {
         Renderer2D::drawLine(start, end, color);

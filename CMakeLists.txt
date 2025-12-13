@@ -65,12 +65,18 @@ if(USE_GLFW)
     add_subdirectory(Fermion/external/GLFW)
 endif()
 
+set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
+
 # 第三方库
 add_subdirectory(Fermion/external/spdlog)
 add_subdirectory(Fermion/external/entt)
 add_subdirectory(Fermion/external/glm)
 add_subdirectory(Fermion/external/yaml-cpp)
 add_subdirectory(Fermion/external/box2d)
+add_subdirectory(Fermion/external/assimp)
 add_subdirectory(Fermion/external/freetype)
 if(TARGET freetype AND NOT TARGET Freetype::Freetype)
     add_library(Freetype::Freetype ALIAS freetype)

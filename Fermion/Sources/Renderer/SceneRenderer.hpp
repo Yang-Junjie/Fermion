@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include "Scene/Components.hpp"
 #include "Scene/Scene.hpp"
+#include "Renderer/Mesh.hpp"
+#include "Renderer/Material.hpp"
 #include "Renderer/Camera.hpp"
 #include "Renderer/EditorCamera.hpp"
 #include "Renderer/DebugRenderer.hpp"
@@ -47,9 +49,11 @@ namespace Fermion
         void drawRect(const glm::vec3 &position, const glm::vec2 &size, const glm::vec4 &color, int objectId = -1);
         void drawRect(const glm::mat4 &transform, const glm::vec4 &color, int objectId = -1);
         void DrawCube(const glm::mat4 &transform, const glm::vec4 &color, int objectId = -1);
+        void DrawMesh(const std::shared_ptr<Mesh> &mesh, const glm::mat4 &transform, int objectId = -1);
+       
         void DrawLine(const glm::vec3 &start, const glm::vec3 &end, const glm::vec4 &color);
         void SetLineWidth(float thickness);
-        
+
         void setScene(std::shared_ptr<Scene> scene) { m_scene = scene; }
         std::shared_ptr<Scene> getScene() const { return m_scene; }
         std::shared_ptr<DebugRenderer> GetDebugRenderer() const { return m_debugRenderer; }

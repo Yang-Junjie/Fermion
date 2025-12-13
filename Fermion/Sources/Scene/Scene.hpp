@@ -2,6 +2,8 @@
 #include <entt/entt.hpp>
 #include "Core/Timestep.hpp"
 #include "Core/UUID.hpp"
+#include "Renderer/Mesh.hpp"
+#include "Renderer/Material.hpp"
 #include "Renderer/EditorCamera.hpp"
 #include "Components.hpp"
 #include <box2d/box2d.h>
@@ -63,13 +65,10 @@ namespace Fermion
         b2WorldId getPhysicsWorld() const { return m_physicsWorld; }
         bool isPhysicsWorldValid() const { return B2_IS_NON_NULL(m_physicsWorld); }
 
-
     private:
         void onPhysics2DStart();
         void onPhysics2DStop();
         void onRenderEditor(std::shared_ptr<SceneRenderer> renderer, EditorCamera &camera, bool showRenderEntities = true);
-
-      
 
     private:
         entt::registry m_registry;
@@ -79,14 +78,17 @@ namespace Fermion
         bool m_isPaused = false;
         int m_stepFrames = 0;
 
+
+        std::shared_ptr<Mesh> m_TestMesh  =nullptr;
+
+
         b2WorldId m_physicsWorld = b2_nullWorldId;
         std::unordered_map<UUID, entt::entity> m_entityMap;
-        std::unordered_map<UUID,b2BodyId> m_physicsBodyMap;
+        std::unordered_map<UUID, b2BodyId> m_physicsBodyMap;
         friend class Entity;
         friend class SceneRenderer;
         friend class SceneSerializer;
         friend class SceneHierarchyPanel;
     };
 
-    
 }

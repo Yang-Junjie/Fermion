@@ -25,6 +25,7 @@ namespace Fermion
 		virtual void clear() = 0;
 
 		virtual void drawIndexed(const std::shared_ptr<VertexArray> &vertexArray, uint32_t indexCount = 0) = 0;
+		virtual void drawIndexed(const std::shared_ptr<VertexArray> &vertexArray, uint32_t indexCount, uint32_t indexOffset) = 0;
 		virtual void drawIndexedInstanced(const std::shared_ptr<VertexArray> &vertexArray, uint32_t indexCount, uint32_t instanceCount) = 0;
 		virtual void drawLines(const std::shared_ptr<VertexArray> &vertexArray, uint32_t vertexCount) = 0;
 

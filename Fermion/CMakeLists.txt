@@ -60,6 +60,7 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Renderer/SubTexture2D.cpp
     ${FERMION_DIR}/Renderer/EditorCamera.cpp
     ${FERMION_DIR}/Renderer/Font.cpp
+    ${FERMION_DIR}/Renderer/Mesh.cpp
 
     ${FERMION_DIR}/Project/ProJect.cpp
     ${FERMION_DIR}/Project/ProjectSerializer.cpp
@@ -184,6 +185,7 @@ endif()
 
 
 target_link_libraries(engine PRIVATE opengl32)
+target_link_libraries(engine PUBLIC assimp)
 
 
 

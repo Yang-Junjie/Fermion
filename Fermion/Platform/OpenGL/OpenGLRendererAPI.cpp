@@ -34,12 +34,20 @@ namespace Fermion
         // glBindTexture(GL_TEXTURE_2D, 0);
     }
 
+    void OpenGLRendererAPI::drawIndexed(const std::shared_ptr<VertexArray> &vertexArray, uint32_t indexCount, uint32_t indexOffset)
+    {
+        vertexArray->bind();
+
+        uint32_t count = indexCount ? indexCount : vertexArray->getIndexBuffer()->getCount();
+
+        glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, (void *)(indexOffset * sizeof(uint32_t)));
+    }
+
     void OpenGLRendererAPI::drawIndexedInstanced(const std::shared_ptr<VertexArray> &vertexArray, uint32_t indexCount, uint32_t instanceCount)
     {
         vertexArray->bind();
         uint32_t count = indexCount ? indexCount : vertexArray->getIndexBuffer()->getCount();
         glDrawElementsInstanced(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr, instanceCount);
-
     }
 
     void OpenGLRendererAPI::drawLines(const std::shared_ptr<VertexArray> &vertexArray, uint32_t vertexCount)

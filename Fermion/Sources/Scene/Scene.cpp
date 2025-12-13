@@ -15,6 +15,7 @@ namespace Fermion
 {
     Scene::Scene()
     {
+        m_TestMesh = std::make_shared<Mesh>("../Boson/projects/Assets/Mesh/Lamborghini_Aventador.obj");
     }
 
     Scene::~Scene()
@@ -272,7 +273,10 @@ namespace Fermion
                 func(renderer);
             debugRenderer->ClearRenderQueue();
         }
-        renderer->DrawCube(glm::mat4(1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+        // renderer->DrawCube(glm::mat4(1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+        renderer->DrawMesh(m_TestMesh, glm::mat4(1.0f));
+
         renderer->endScene();
     }
 
@@ -529,7 +533,7 @@ namespace Fermion
                         func(renderer);
                     debugRenderer->ClearRenderQueue();
                 }
-                renderer->DrawCube(glm::mat4(1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+                // renderer->DrawCube(glm::mat4(1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
                 renderer->endScene();
             }

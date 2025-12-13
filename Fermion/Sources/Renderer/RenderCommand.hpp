@@ -2,7 +2,8 @@
 
 #include "Renderer/RendererAPI.hpp"
 
-namespace Fermion {
+namespace Fermion
+{
 
 	class RenderCommand
 	{
@@ -17,7 +18,7 @@ namespace Fermion {
 			s_rendererAPI->setViewport(x, y, width, height);
 		}
 
-		static void setClearColor(const glm::vec4& color)
+		static void setClearColor(const glm::vec4 &color)
 		{
 			s_rendererAPI->setClearColor(color);
 		}
@@ -27,24 +28,30 @@ namespace Fermion {
 			s_rendererAPI->clear();
 		}
 
-		static void drawIndexed(const std::shared_ptr<VertexArray>& vertexArray, uint32_t indexCount = 0)
+		static void drawIndexed(const std::shared_ptr<VertexArray> &vertexArray, uint32_t indexCount = 0)
 		{
 			s_rendererAPI->drawIndexed(vertexArray, indexCount);
-			
 		}
 
-		static void drawLines(const std::shared_ptr<VertexArray>& vertexArray, uint32_t vertexCount)
+		static void drawLines(const std::shared_ptr<VertexArray> &vertexArray, uint32_t vertexCount)
 		{
 			s_rendererAPI->drawLines(vertexArray, vertexCount);
 		}
-		static void drawIndexedInstanced(const std::shared_ptr<VertexArray>& vertexArray, uint32_t indexCount, uint32_t instanceCount){
+		static void drawIndexedInstanced(const std::shared_ptr<VertexArray> &vertexArray, uint32_t indexCount, uint32_t instanceCount)
+		{
 			s_rendererAPI->drawIndexedInstanced(vertexArray, indexCount, instanceCount);
+		}
+		
+		static void drawIndexed(const std::shared_ptr<VertexArray> &vertexArray, uint32_t indexCount, uint32_t indexOffset)
+		{
+			s_rendererAPI->drawIndexed(vertexArray, indexCount, indexOffset);
 		}
 
 		static void setLineWidth(float width)
 		{
 			s_rendererAPI->setLineWidth(width);
 		}
+
 	private:
 		static std::unique_ptr<RendererAPI> s_rendererAPI;
 	};
