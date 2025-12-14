@@ -10,5 +10,3 @@ out
 cmake-build-debug
 cmake-build-release
 .idea
-Photon/csbuild.bat
-Boson/projects/Assets/scripts/csbuild.bat
