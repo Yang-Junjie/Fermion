@@ -1,14 +1,14 @@
 Scene: Name
 Entities:
-  - Entity: 453566212955610190
+  - Entity: 4866263028042920325
     TagComponent:
-      Tag: box
+      Tag: obj
     TransformComponent:
-      Translation: [-1.7903132, 0.34228724, -1.8031616]
+      Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
+    MeshComponent:
+      MeshHandle: 6460136860035206027
   - Entity: 18415657991614262539
     TagComponent:
       Tag: Empty Entity
@@ -27,12 +27,12 @@ Entities:
         OrthographicFar: 100
       Primary: true
       FixedAspectRatio: false
-  - Entity: 4866263028042920325
+  - Entity: 453566212955610190
     TagComponent:
-      Tag: obj
+      Tag: box
     TransformComponent:
-      Translation: [0, 0, 0]
+      Translation: [-1.7903132, 0.34228724, -1.8031616]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    MeshComponent:
-      MeshHandle: 6460136860035206027
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]

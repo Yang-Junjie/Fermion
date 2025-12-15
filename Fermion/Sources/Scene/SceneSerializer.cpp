@@ -367,7 +367,7 @@ namespace Fermion
 				if (meshComponent)
 				{
 					auto &src = deserializedEntity.addComponent<MeshComponent>();
-					if (auto n = meshComponent["meshHandle"]; n)
+					if (auto n = meshComponent["MeshHandle"]; n)
 					{
 						uint64_t handleValue = n.as<uint64_t>();
 						if (handleValue != 0)
