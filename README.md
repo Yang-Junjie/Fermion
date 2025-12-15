@@ -13,7 +13,6 @@ Fermion 是一款基于 Hazel2D 扩展而来的的轻量级游戏引擎。
 ## TODO
 - 将 mono 以源码编译入引擎
 - 3D渲染
-  - fix:Mesh 保存加载失败
   - Material 优化
   - 优化架构
   - 优化渲染
