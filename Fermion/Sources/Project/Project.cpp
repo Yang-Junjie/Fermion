@@ -2,7 +2,7 @@
 #include "Project.hpp"
 
 #include "ProjectSerializer.hpp"
-
+#include "Script/ScriptManager.hpp"
 namespace Fermion
 {
 
@@ -17,6 +17,7 @@ namespace Fermion
 		std::shared_ptr<Project> project = std::make_shared<Project>();
 
 		ProjectSerializer serializer(project);
+
 		s_assetManager = std::make_unique<EditorAssetManager>();
 		if (serializer.deserialize(path))
 		{
@@ -26,11 +27,12 @@ namespace Fermion
 
 			initEditorAssets();
 			initRuntimeAssets();
+			ScriptManager::loadScript(project->getConfig().name+".dll");
 
 			return s_activeProject;
 		}
 
-		return nullptr;
+				return nullptr;
 	}
 
 	bool Project::saveActive(const std::filesystem::path &path)

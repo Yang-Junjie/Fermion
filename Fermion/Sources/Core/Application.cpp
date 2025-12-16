@@ -28,7 +28,6 @@ namespace Fermion
         m_window->setVSync(false);
         Renderer::init();
         ScriptManager::init();
-        ScriptManager::loadScript("Sandbox.dll");
         m_imGuiLayer = std::make_unique<ImGuiLayer>(m_window->getNativeWindow());
         m_imGuiLayerRaw = m_imGuiLayer.get();
         pushOverlay(std::move(m_imGuiLayer));

@@ -26,7 +26,7 @@ namespace Fermion
         spec.name = "Neutrino";
         spec.windowWidth = 1920;
         spec.windowHeight = 1080;
-        spec.rendererConfig.ShaderPath = "../Resources/shaders";
+        spec.rendererConfig.ShaderPath = "../Resources/shaders/";
         Log::Info("start preparing to create the Neutrino Application");
         return new Fermion::Neutrino(spec);
     }
