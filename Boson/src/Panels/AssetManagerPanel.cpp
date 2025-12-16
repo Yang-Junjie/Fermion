@@ -32,7 +32,7 @@ namespace Fermion
         
         ImGui::Begin("Asset Manager");
 
-        auto &editorAssets = Project::getEditorAssetManager();
+        auto editorAssets = Project::getEditorAssetManager();
 
         const auto &registry = AssetRegistry::getRegistry();
 
@@ -71,7 +71,7 @@ namespace Fermion
 
                 ImGui::TableNextColumn();
 
-                bool loaded = editorAssets.isAssetLoaded(handle);
+                bool loaded = editorAssets->isAssetLoaded(handle);
                 ImGui::TextUnformatted(loaded ? "Loaded" : "Unloaded");
                 ImGui::SameLine();
 
@@ -81,12 +81,12 @@ namespace Fermion
                 if (loaded)
                 {
                     if (ImGui::SmallButton("Unload"))
-                        editorAssets.unloadAsset(handle);
+                        editorAssets->unloadAsset(handle);
                 }
                 else
                 {
                     if (ImGui::SmallButton("Load"))
-                        editorAssets.getAsset<Asset>(handle);
+                        editorAssets->getAsset<Asset>(handle);
                 }
 
                 ImGui::PopID();

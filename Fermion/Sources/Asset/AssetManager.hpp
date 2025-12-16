@@ -11,10 +11,10 @@
 
 namespace Fermion
 {
-	    class AssetManager
-	    {
-	    public:
-	        static void init(const std::filesystem::path& assetDirectory);
+    class AssetManager
+    {
+    public:
+        static void init(const std::filesystem::path &assetDirectory);
         static void shutdown();
 
         template <typename T>
@@ -28,7 +28,8 @@ namespace Fermion
                 return nullptr;
 
             auto asset = loadAssetInternal(handle);
-            if (!asset) return nullptr;
+            if (!asset)
+                return nullptr;
 
             s_loadedAssets[handle] = asset;
             return std::dynamic_pointer_cast<T>(asset);
@@ -37,22 +38,25 @@ namespace Fermion
         static bool isAssetLoaded(AssetHandle handle);
         static void reloadAsset(AssetHandle handle);
         static void unloadAsset(AssetHandle handle);
-        static AssetHandle importAsset(const std::filesystem::path& path);
+        static AssetHandle importAsset(const std::filesystem::path &path);
+        static AssetHandle addMemoryOnlyAsset(std::shared_ptr<Asset> asset);
+        static std::shared_ptr<Asset> getAssetMetadata(AssetHandle handle);
 
-	    private:
-	        struct AssetTypeHash
-	        {
-	            std::size_t operator()(AssetType type) const noexcept
-	            {
-	                return static_cast<std::size_t>(type);
-	            }
-	        };
-            
-	        static void ensureDefaultLoaders();
+    private:
+        struct AssetTypeHash
+        {
+            std::size_t operator()(AssetType type) const noexcept
+            {
+                return static_cast<std::size_t>(type);
+            }
+        };
 
-	        static std::shared_ptr<Asset> loadAssetInternal(AssetHandle handle);
-	        static std::unordered_map<AssetHandle, std::shared_ptr<Asset>> s_loadedAssets;
-	        static std::unordered_map<AssetType, std::unique_ptr<AssetLoader>, AssetTypeHash> s_assetLoaders;
-	        static std::filesystem::path s_assetDirectory;
+        static void ensureDefaultLoaders();
+
+        static std::shared_ptr<Asset> loadAssetInternal(AssetHandle handle);
+        static std::unordered_map<AssetHandle, std::shared_ptr<Asset>> s_loadedAssets;
+        static std::unordered_map<AssetHandle, std::shared_ptr<Asset>> s_MemoryOnly;
+        static std::unordered_map<AssetType, std::unique_ptr<AssetLoader>, AssetTypeHash> s_assetLoaders;
+        static std::filesystem::path s_assetDirectory;
     };
 }

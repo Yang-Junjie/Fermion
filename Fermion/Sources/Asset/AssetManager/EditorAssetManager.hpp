@@ -7,12 +7,13 @@ namespace Fermion
     class EditorAssetManager : public AssetManagerBase
     {
     public:
-        using AssetManagerBase::init;
-        using AssetManagerBase::shutdown;
+        virtual ~EditorAssetManager() override = default;
         using AssetManagerBase::getAsset;
+        using AssetManagerBase::importAsset;
+        using AssetManagerBase::init;
         using AssetManagerBase::isAssetLoaded;
         using AssetManagerBase::reloadAsset;
+        using AssetManagerBase::shutdown;
         using AssetManagerBase::unloadAsset;
-        using AssetManagerBase::importAsset;
     };
 }

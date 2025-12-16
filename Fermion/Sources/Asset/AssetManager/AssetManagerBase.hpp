@@ -1,47 +1,50 @@
 ﻿#pragma once
 
-#include "AssetManager.hpp"
+#include "../AssetManager.hpp"
 
+// 现在EditorAssetManager和RuntimeAssetManager的实现没有任何差异，后期划分职责
 namespace Fermion
 {
     class AssetManagerBase
     {
     public:
-        static void init(const std::filesystem::path &assetDirectory)
+        AssetManagerBase() = default;
+        virtual ~AssetManagerBase() = default;
+        
+        void init(const std::filesystem::path &assetDirectory)
         {
             AssetManager::init(assetDirectory);
         }
 
-        static void shutdown()
+        void shutdown()
         {
             AssetManager::shutdown();
         }
 
         template <typename T>
-        static std::shared_ptr<T> getAsset(AssetHandle handle)
+        std::shared_ptr<T> getAsset(AssetHandle handle)
         {
             return AssetManager::getAsset<T>(handle);
         }
 
-        static bool isAssetLoaded(AssetHandle handle)
+        bool isAssetLoaded(AssetHandle handle)
         {
             return AssetManager::isAssetLoaded(handle);
         }
 
-        static void reloadAsset(AssetHandle handle)
+        void reloadAsset(AssetHandle handle)
         {
             AssetManager::reloadAsset(handle);
         }
 
-        static void unloadAsset(AssetHandle handle)
+        void unloadAsset(AssetHandle handle)
         {
             AssetManager::unloadAsset(handle);
         }
 
-        static AssetHandle importAsset(const std::filesystem::path &path)
+        AssetHandle importAsset(const std::filesystem::path &path)
         {
             return AssetManager::importAsset(path);
         }
     };
 }
-

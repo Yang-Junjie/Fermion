@@ -54,7 +54,7 @@ namespace Fermion
         // }
         if (static_cast<uint64_t>(sprite.textureHandle) != 0)
         {
-            auto texture = Project::getRuntimeAssetManager().getAsset<Texture2D>(sprite.textureHandle);
+            auto texture = Project::getRuntimeAssetManager()->getAsset<Texture2D>(sprite.textureHandle);
             Renderer2D::drawQuad(transform, texture,
                                  sprite.tilingFactor, sprite.color, objectID);
         }
@@ -98,7 +98,7 @@ namespace Fermion
         if (static_cast<uint64_t>(meshComponent.meshHandle) != 0)
         {
             // Log::Error(std::format("{}",std::to_string(meshComponent.meshHandle)));
-            auto mesh = Project::getRuntimeAssetManager().getAsset<Mesh>(meshComponent.meshHandle);
+            auto mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
             Renderer3D::DrawMesh(mesh, transform, objectId);
         }
 

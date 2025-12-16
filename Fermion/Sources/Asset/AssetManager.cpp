@@ -190,6 +190,16 @@ namespace Fermion
         return metadata.Handle;
     }
 
+    AssetHandle AssetManager::addMemoryOnlyAsset(std::shared_ptr<Asset> asset)
+    {
+        return AssetHandle();
+    }
+
+    std::shared_ptr<Asset> AssetManager::getAssetMetadata(AssetHandle handle)
+    {
+        return std::shared_ptr<Asset>();
+    }
+
     std::shared_ptr<Asset> AssetManager::loadAssetInternal(AssetHandle handle)
     {
         auto &metadata = AssetRegistry::get(handle);

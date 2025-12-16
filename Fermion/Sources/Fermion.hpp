@@ -48,5 +48,5 @@
 
 // Asset system
 #include "Asset/AssetManager.hpp"
-#include "Asset/RuntimeAssetManager.hpp"
-#include "Asset/EditorAssetManager.hpp"
+#include "Asset/AssetManager/RuntimeAssetManager.hpp"
+#include "Asset/AssetManager/EditorAssetManager.hpp"

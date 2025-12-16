@@ -840,8 +840,8 @@ namespace Fermion
 	        serializer.serialize(path);
 	        m_editorScenePath = path;
 
-	        auto &editorAssets = Project::getEditorAssetManager();
-	        AssetHandle handle = editorAssets.importAsset(path);
+	        auto editorAssets = Project::getEditorAssetManager();
+	        AssetHandle handle = editorAssets->importAsset(path);
 	        if (static_cast<uint64_t>(handle) != 0)
 	            m_editorSceneHandle = handle;
 
@@ -856,8 +856,8 @@ namespace Fermion
 	            SceneSerializer serializer(m_editorScene);
 	            serializer.serialize(m_editorScenePath);
 
-	            auto &editorAssets = Project::getEditorAssetManager();
-	            AssetHandle handle = editorAssets.importAsset(m_editorScenePath);
+	            auto editorAssets = Project::getEditorAssetManager();
+	            AssetHandle handle = editorAssets->importAsset(m_editorScenePath);
 	            if (static_cast<uint64_t>(handle) != 0)
 	                m_editorSceneHandle = handle;
 
@@ -901,8 +901,8 @@ namespace Fermion
 	            onSceneStop();
 	        }
 	
-	        auto &editorAssets = Project::getEditorAssetManager();
-	        AssetHandle handle = editorAssets.importAsset(path);
+	        auto editorAssets = Project::getEditorAssetManager();
+	        AssetHandle handle = editorAssets->importAsset(path);
 	        if (static_cast<uint64_t>(handle) == 0)
 	        {
 	            Log::Error(std::format("Scene open failed (invalid asset handle)! Path: {}",
@@ -910,7 +910,7 @@ namespace Fermion
 	            return;
 	        }
 
-	        auto sceneAsset = editorAssets.getAsset<SceneAsset>(handle);
+	        auto sceneAsset = editorAssets->getAsset<SceneAsset>(handle);
 	        if (!sceneAsset || !sceneAsset->scene)
 	        {
 	            Log::Error(std::format("Scene open failed (asset load failed)! Path: {}",

@@ -11,5 +11,7 @@ namespace Fermion
         AssetType Type;
         std::filesystem::path FilePath;
         std::string Name;
+
+        bool MemoryOnly = false;
     };
 }

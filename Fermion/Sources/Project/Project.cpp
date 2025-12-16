@@ -3,81 +3,76 @@
 
 #include "ProjectSerializer.hpp"
 
-namespace Fermion {
+namespace Fermion
+{
 
-		std::shared_ptr<Project> Project::newProject()
+	std::shared_ptr<Project> Project::newProject()
+	{
+		s_activeProject = std::make_shared<Project>();
+		return s_activeProject;
+	}
+
+	std::shared_ptr<Project> Project::loadProject(const std::filesystem::path &path)
+	{
+		std::shared_ptr<Project> project = std::make_shared<Project>();
+
+		ProjectSerializer serializer(project);
+		s_assetManager = std::make_unique<EditorAssetManager>();
+		if (serializer.deserialize(path))
 		{
-			s_activeProject = std::make_shared<Project>();
+			project->m_projectDirectory = path.parent_path();
+			project->m_projectPath = path;
+			s_activeProject = project;
+
+			initEditorAssets();
+			initRuntimeAssets();
+
 			return s_activeProject;
 		}
 
-		std::shared_ptr<Project> Project::loadProject(const std::filesystem::path& path)
+		return nullptr;
+	}
+
+	bool Project::saveActive(const std::filesystem::path &path)
+	{
+		ProjectSerializer serializer(s_activeProject);
+		s_assetManager = std::make_unique<EditorAssetManager>();
+		if (serializer.serialize(path))
 		{
-			std::shared_ptr<Project> project = std::make_shared<Project>();
+			s_activeProject->m_projectDirectory = path.parent_path();
+			s_activeProject->m_projectPath = path;
 
-			ProjectSerializer serializer(project);
-			if (serializer.deserialize(path))
-			{
-				project->m_projectDirectory = path.parent_path();
-				project->m_projectPath = path;
-				s_activeProject = project;
+			initEditorAssets();
+			initRuntimeAssets();
 
-				initEditorAssets();
-				initRuntimeAssets();
-
-				return s_activeProject;
-			}
-
-			return nullptr;
+			return true;
 		}
 
-		bool Project::saveActive(const std::filesystem::path& path)
+		return false;
+	}
+
+	void Project::initEditorAssets()
+	{
+		if (!s_activeProject)
+			return;
+
+		const auto &config = s_activeProject->getConfig();
+		if (!config.assetDirectory.empty())
 		{
-			ProjectSerializer serializer(s_activeProject);
-			if (serializer.serialize(path))
-			{
-				s_activeProject->m_projectDirectory = path.parent_path();
-				s_activeProject->m_projectPath = path;
-
-				initEditorAssets();
-				initRuntimeAssets();
-
-				return true;
-			}
-
-			return false;
+			getEditorAssetManager()->init(config.assetDirectory);
 		}
+	}
 
-		EditorAssetManager &Project::getEditorAssetManager()
+	void Project::initRuntimeAssets()
+	{
+		if (!s_activeProject)
+			return;
+
+		const auto &config = s_activeProject->getConfig();
+		if (!config.assetDirectory.empty())
 		{
-			static EditorAssetManager s_editorAssetManager;
-			return s_editorAssetManager;
+			getRuntimeAssetManager()->init(config.assetDirectory);
 		}
-
-		RuntimeAssetManager &Project::getRuntimeAssetManager()
-		{
-			static RuntimeAssetManager s_runtimeAssetManager;
-			return s_runtimeAssetManager;
-		}
-
-		void Project::initEditorAssets()
-		{
-			if (!s_activeProject)
-				return;
-
-			const auto& config = s_activeProject->getConfig();
-			if (!config.assetDirectory.empty())
-				EditorAssetManager::init(config.assetDirectory);
-		}
-
-		void Project::initRuntimeAssets()
-		{
-			if (!s_activeProject)
-				return;
-
-			const auto& config = s_activeProject->getConfig();
-			if (!config.assetDirectory.empty())
-				RuntimeAssetManager::init(config.assetDirectory);
-		}
+	}
 
 }

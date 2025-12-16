@@ -5,8 +5,8 @@
 #include <filesystem>
 
 #include "Asset/Asset.hpp"
-#include "Asset/EditorAssetManager.hpp"
-#include "Asset/RuntimeAssetManager.hpp"
+#include "Asset/AssetManager/EditorAssetManager.hpp"
+#include "Asset/AssetManager/RuntimeAssetManager.hpp"
 
 namespace Fermion
 {
@@ -37,13 +37,15 @@ namespace Fermion
 		static void initEditorAssets();
 		static void initRuntimeAssets();
 
-		static EditorAssetManager &getEditorAssetManager();
-		static RuntimeAssetManager &getRuntimeAssetManager();
+		inline static std::shared_ptr<AssetManagerBase> getAssetManager() { return s_assetManager; }
+		inline static std::shared_ptr<EditorAssetManager> getEditorAssetManager() { return std::dynamic_pointer_cast<EditorAssetManager>(s_assetManager); }
+		inline static std::shared_ptr<RuntimeAssetManager> getRuntimeAssetManager() { return std::dynamic_pointer_cast<RuntimeAssetManager>(s_assetManager); }
 
 	private:
 		ProjectConfig m_config;
 		std::filesystem::path m_projectDirectory;
 		std::filesystem::path m_projectPath;
+		inline static std::shared_ptr<AssetManagerBase> s_assetManager;
 
 		inline static std::shared_ptr<Project> s_activeProject;
 	};

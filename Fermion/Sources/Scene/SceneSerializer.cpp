@@ -358,8 +358,8 @@ namespace Fermion
 						if (handleValue != 0)
 						{
 							src.textureHandle = AssetHandle(handleValue);
-							auto &runtimeAssets = Project::getRuntimeAssetManager();
-							src.texture = runtimeAssets.getAsset<Texture2D>(src.textureHandle);
+							auto runtimeAssets = Project::getRuntimeAssetManager();
+							src.texture = runtimeAssets->getAsset<Texture2D>(src.textureHandle);
 						}
 					}
 				}
@@ -373,8 +373,8 @@ namespace Fermion
 						if (handleValue != 0)
 						{
 							src.meshHandle = AssetHandle(handleValue);
-							auto &runtimeAssets = Project::getRuntimeAssetManager();
-							src.m_Mesh = runtimeAssets.getAsset<Mesh>(src.meshHandle);
+							auto runtimeAssets = Project::getRuntimeAssetManager();
+							src.m_Mesh = runtimeAssets->getAsset<Mesh>(src.meshHandle);
 						}
 					}
 				}
@@ -410,8 +410,8 @@ namespace Fermion
 						if (handleValue != 0)
 						{
 							tc.fontHandle = AssetHandle(handleValue);
-							auto &runtimeAssets = Project::getRuntimeAssetManager();
-							tc.fontAsset = runtimeAssets.getAsset<Font>(tc.fontHandle);
+							auto runtimeAssets = Project::getRuntimeAssetManager();
+							tc.fontAsset = runtimeAssets->getAsset<Font>(tc.fontHandle);
 						}
 					}
 				}

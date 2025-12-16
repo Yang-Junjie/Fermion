@@ -300,12 +300,12 @@ namespace Fermion
 						const char *path = static_cast<const char *>(payload->Data);
 						if (path && path[0])
 						{
-							auto &editorAssets = Project::getEditorAssetManager();
-							AssetHandle handle = editorAssets.importAsset(std::filesystem::path(path));
+							auto editorAssets = Project::getEditorAssetManager();
+							AssetHandle handle = editorAssets->importAsset(std::filesystem::path(path));
 							if (static_cast<uint64_t>(handle) != 0)
 							{
 								component.textureHandle = handle;
-								component.texture = editorAssets.getAsset<Texture2D>(handle);
+								component.texture = editorAssets->getAsset<Texture2D>(handle);
 							}
 						}
 					}
@@ -323,12 +323,12 @@ namespace Fermion
                 if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("FERMION_MODEL"))
                 {
                     auto path = std::string(static_cast<const char*>(payload->Data));
-                    auto& editorAssets = Project::getEditorAssetManager();
-                    AssetHandle handle = editorAssets.importAsset(std::filesystem::path(path));
+                    auto editorAssets = Project::getEditorAssetManager();
+                    AssetHandle handle = editorAssets->importAsset(std::filesystem::path(path));
                     if(static_cast<uint64_t>(handle) != 0){
                         // component.meshPath = path;
                         component.meshHandle = handle;
-                        component.m_Mesh = editorAssets.getAsset<Mesh>(handle);
+                        component.m_Mesh = editorAssets->getAsset<Mesh>(handle);
                     }
                 }
                 ImGui::EndDragDropTarget();
