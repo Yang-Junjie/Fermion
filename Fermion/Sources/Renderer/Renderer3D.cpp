@@ -3,6 +3,7 @@
 #include "Renderer/VertexArray.hpp"
 #include "Renderer/Shader.hpp"
 #include "Renderer/RenderCommand.hpp"
+#include "glad/glad.h"
 
 #include "glm/gtc/matrix_transform.hpp"
 namespace Fermion
@@ -28,6 +29,11 @@ namespace Fermion
         std::shared_ptr<Shader> CubeShader;
 
         std::shared_ptr<Shader> MeshShader;
+
+        std::shared_ptr<Shader> OutlineShader;
+        float OutlineWidth = 0.05f;
+        float Epsilon = 0.15f;
+        glm::vec4 OutlineColor = {1.0f, 0.0f, 0.0f, 0.8f};
 
         uint32_t IndexCount = 0;
 
@@ -188,6 +194,7 @@ namespace Fermion
 
         s_Data.CubeShader = Shader::create(config.ShaderPath + "Cube.glsl");
         s_Data.MeshShader = Shader::create(config.ShaderPath + "Mesh.glsl");
+        s_Data.OutlineShader = Shader::create(config.ShaderPath + "Outline.glsl");
     }
     void Renderer3D::Flush()
     {
@@ -226,17 +233,26 @@ namespace Fermion
         s_Data.MeshShader->bind();
         s_Data.MeshShader->setMat4("u_ViewProjection", s_Data.ViewProjection);
 
+        s_Data.OutlineShader->bind();
+        s_Data.OutlineShader->setMat4("u_View", view);
+        s_Data.OutlineShader->setMat4("u_Projection", camera.getProjection());
+
         s_Data.IndexCount = 0;
         s_Data.VertexBufferPtr = s_Data.VertexBufferBase;
     }
     void Renderer3D::BeginScene(const EditorCamera &camera)
     {
         s_Data.ViewProjection = camera.getViewProjection();
+
         s_Data.CubeShader->bind();
         s_Data.CubeShader->setMat4("u_ViewProjection", s_Data.ViewProjection);
 
         s_Data.MeshShader->bind();
         s_Data.MeshShader->setMat4("u_ViewProjection", s_Data.ViewProjection);
+
+        s_Data.OutlineShader->bind();
+        s_Data.OutlineShader->setMat4("u_View", camera.getViewMatrix());
+        s_Data.OutlineShader->setMat4("u_Projection", camera.getProjection());
 
         s_Data.IndexCount = 0;
         s_Data.VertexBufferPtr = s_Data.VertexBufferBase;
@@ -269,9 +285,6 @@ namespace Fermion
     }
     void Renderer3D::DrawMesh(const std::shared_ptr<Mesh> &mesh, const glm::mat4 &transform, int objectID)
     {
-        if (!mesh)
-            return;
-
         s_Data.MeshShader->bind();
         auto &submeshes = mesh->getSubMeshes();
         auto &materials = mesh->getMaterials();
@@ -298,4 +311,34 @@ namespace Fermion
         }
     }
 
+    void Renderer3D::DrawMeshOutline(const std::shared_ptr<Mesh> &mesh, const glm::mat4 &transform, int objectID)
+    {
+        if (!mesh || !s_Data.OutlineShader)
+            return;
+
+        auto &submeshes = mesh->getSubMeshes();
+        auto va = mesh->getVertexArray();
+        va->bind();
+
+        s_Data.OutlineShader->bind();
+        s_Data.OutlineShader->setMat4("u_Model", transform);
+        s_Data.OutlineShader->setFloat("u_OutlineWidth", s_Data.OutlineWidth);
+        s_Data.OutlineShader->setFloat("u_Epsilon", s_Data.Epsilon);
+        s_Data.OutlineShader->setFloat4("u_OutlineColor", s_Data.OutlineColor);
+        s_Data.OutlineShader->setInt("u_ObjectID", -1);
+        
+        // TODO(Yang): 移动到渲染器后端实现中
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_FRONT);
+        glDepthFunc(GL_LEQUAL);
+        glDepthMask(GL_FALSE);
+
+        for (auto &submesh : submeshes)
+        {
+            RenderCommand::drawIndexed(va, submesh.IndexCount, submesh.IndexOffset);
+        }
+        glDepthMask(GL_TRUE);
+        glCullFace(GL_BACK);
+        glDepthFunc(GL_LESS);
+    }
 }

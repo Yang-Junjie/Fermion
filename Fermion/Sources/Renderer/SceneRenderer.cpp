@@ -88,20 +88,21 @@ namespace Fermion
         Renderer3D::DrawCube(transform, color, objectId);
     }
 
-    void SceneRenderer::DrawMesh(const std::shared_ptr<Mesh> &mesh, const glm::mat4 &transform, int objectId)
-    {
-        Renderer3D::DrawMesh(mesh, transform, objectId);
-    }
+    // void SceneRenderer::DrawMesh(const std::shared_ptr<Mesh> &mesh, const glm::mat4 &transform, int objectId, bool drawOutline)
+    // {
+    //     Renderer3D::DrawMesh(mesh, transform, objectId);
+    // }
 
-    void SceneRenderer::DrawMesh(MeshComponent &meshComponent, glm::mat4 transform, int objectId)
+    void SceneRenderer::DrawMesh(MeshComponent &meshComponent, glm::mat4 transform, int objectId, bool drawOutline)
     {
         if (static_cast<uint64_t>(meshComponent.meshHandle) != 0)
         {
             // Log::Error(std::format("{}",std::to_string(meshComponent.meshHandle)));
             auto mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
             Renderer3D::DrawMesh(mesh, transform, objectId);
+            if (drawOutline)
+                Renderer3D::DrawMeshOutline(mesh, transform, objectId);
         }
-
     }
 
     void SceneRenderer::DrawLine(const glm::vec3 &start, const glm::vec3 &end, const glm::vec4 &color)
