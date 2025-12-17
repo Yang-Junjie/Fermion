@@ -6,6 +6,7 @@
 #include "Panels/ContentBrowserPanel.hpp"
 #include "Panels/AssetManagerPanel.hpp"
 #include "Panels/InspectorPanel.hpp"
+#include "Panels/MenuBarPanel.hpp"
 
 #include "Renderer/SceneRenderer.hpp"
 
@@ -63,6 +64,7 @@ namespace Fermion
         SceneHierarchyPanel m_sceneHierarchyPanel;
         ContentBrowserPanel m_contentBrowserPanel;
         AssetManagerPanel m_assetManagerPanel;
+        MenuBarPanel m_menuBarPanel;
         bool m_showAboutWindow = false;
 
         std::shared_ptr<Framebuffer> m_framebuffer;

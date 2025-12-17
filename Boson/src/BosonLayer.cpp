@@ -51,6 +51,30 @@ namespace Fermion
         m_sceneHierarchyPanel.setContext(m_activeScene);
         m_viewportRenderer->setScene(m_activeScene);
         ScriptManager::get()->setSceneRenderer(m_viewportRenderer);
+
+        MenuBarCallbacks callbacks;
+        callbacks.NewScene = [this]()
+        { newScene(); };
+        callbacks.OpenScene = [this]()
+        { openScene(); };
+        callbacks.SaveScene = [this]()
+        { saveScene(); };
+        callbacks.SaveSceneAs = [this]()
+        { saveSceneAs(); };
+        callbacks.NewProject = [this]()
+        { newProject(); };
+        callbacks.OpenProject = [this]()
+        { openProject(); };
+        callbacks.SaveProject = [this]()
+        { saveProject(); };
+        callbacks.ExitApplication = [this]()
+        {
+            saveProject();
+            Application::get().close();
+        };
+        callbacks.ShowAbout = [this]()
+        { m_showAboutWindow = true; };
+        m_menuBarPanel.SetCallbacks(callbacks);
     }
 
     void BosonLayer::onDetach()
@@ -124,12 +148,16 @@ namespace Fermion
             static bool opt_padding = false;
             static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
-            ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+            ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
             if (opt_fullscreen)
             {
                 const ImGuiViewport *viewport = ImGui::GetMainViewport();
-                ImGui::SetNextWindowPos(viewport->WorkPos);
-                ImGui::SetNextWindowSize(viewport->WorkSize);
+                ImVec2 dockspacePos = viewport->WorkPos;
+                dockspacePos.y += m_menuBarPanel.GetMenuBarHeight();
+                ImVec2 dockspaceSize = viewport->WorkSize;
+                dockspaceSize.y -= m_menuBarPanel.GetMenuBarHeight();
+                ImGui::SetNextWindowPos(dockspacePos);
+                ImGui::SetNextWindowSize(dockspaceSize);
                 ImGui::SetNextWindowViewport(viewport->ID);
                 ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
                 ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
@@ -165,117 +193,6 @@ namespace Fermion
                     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
                 }
                 style.WindowMinSize.x = minWinSizeX;
-                // Show demo options and help
-                if (ImGui::BeginMenuBar())
-                {
-                    if (ImGui::BeginMenu("File"))
-                    {
-                        if (ImGui::MenuItem("New Scene", "Ctrl+N"))
-                            newScene();
-                        if (ImGui::MenuItem("Open Scene...", "Ctrl+Shift+O"))
-                            openScene();
-                        if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
-                            saveScene();
-                        if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S"))
-                            saveSceneAs();
-                        ImGui::Separator();
-                        if (ImGui::MenuItem("new project"))
-                            newProject();
-                        if (ImGui::MenuItem("open project"))
-                            openProject();
-                        if (ImGui::MenuItem("save project"))
-                            saveProject();
-                        if (ImGui::MenuItem("Exit"))
-                        {
-                            saveProject();
-                            Application::get().close();
-                        }
-                        ImGui::EndMenu();
-                    }
-
-                    // 先进行简单复制
-                    // 后期使用AssetsManager复制使用到的Assets，
-                    // 后期使用ShaderPack打包Shader二进制,并需要对shader支持二进制加载
-                    if (ImGui::BeginMenu("Build"))
-                    {
-                        if (ImGui::MenuItem("Build Project"))
-                        {
-                            auto project = Project::getActive();
-                            FERMION_ASSERT(project != nullptr, "No active project to build!");
-
-                            const auto projectFile = project->getProjectPath();
-                            const auto projectDir = projectFile.parent_path();
-
-                            {
-                                ProjectSerializer serializer(project);
-                                const auto runtimeFile = projectDir / "Project.fdat";
-                                serializer.sertializeRuntime(runtimeFile);
-                            }
-
-                            {
-                                std::filesystem::path shaderSrcDir = "../Boson/Resources/shaders";
-                                std::filesystem::path shaderDstDir = projectDir / "Resources" / "shaders";
-
-                                std::error_code ec;
-
-                                std::filesystem::create_directories(shaderDstDir, ec);
-                                if (ec)
-                                {
-                                    Log::Error(std::format("Failed to create shader output dir: {} ({})",
-                                                           shaderDstDir.string(), ec.message()));
-                                }
-                                else
-                                {
-                                    if (!std::filesystem::exists(shaderSrcDir) ||
-                                        !std::filesystem::is_directory(shaderSrcDir))
-                                    {
-                                        Log::Error(std::format("Shader source dir not found: {}",
-                                                               shaderSrcDir.string()));
-                                    }
-                                    else
-                                    {
-                                        for (const auto &entry : std::filesystem::directory_iterator(shaderSrcDir))
-                                        {
-                                            if (!entry.is_regular_file())
-                                                continue;
-
-                                            const auto &srcPath = entry.path();
-                                            auto dstPath = shaderDstDir / srcPath.filename();
-
-                                            std::filesystem::copy_file(
-                                                srcPath,
-                                                dstPath,
-                                                std::filesystem::copy_options::overwrite_existing,
-                                                ec);
-
-                                            if (ec)
-                                            {
-                                                Log::Error(std::format("Failed to copy shader {} -> {}: {}",
-                                                                       srcPath.string(),
-                                                                       dstPath.string(),
-                                                                       ec.message()));
-                                                ec.clear();
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        ImGui::EndMenu();
-                    }
-
-                    if (ImGui::BeginMenu("Help"))
-                    {
-                        if (ImGui::MenuItem("about"))
-                        {
-                            m_showAboutWindow = true;
-                        }
-                        ImGui::EndMenu();
-                    }
-
-                    ImGui::EndMenuBar();
-                }
-
                 ImGui::End();
             }
             // Scene Hierarchy
@@ -283,7 +200,9 @@ namespace Fermion
             m_sceneHierarchyPanel.onImGuiRender();
             m_contentBrowserPanel.onImGuiRender();
             m_assetManagerPanel.onImGuiRender();
+            m_menuBarPanel.OnImGuiRender();
             ConsolePanel::get().onImGuiRender();
+            // ImGui::ShowDemoWindow();
 
             onUIToolPanel();
             onHelpPanel();
@@ -492,9 +411,10 @@ namespace Fermion
             ImGui::Text("This is free and open-source software under the MIT License.");
             ImGui::SeparatorText("From");
             ImGui::Text("This engine was written based on TheCherno's game engine tutorial series.");
-            ImGui::Text("Hazel Engine: https://github.com/TheCherno/Hazel");
+            ImGui::Text("Hazel Engine: ");
+            ImGui::TextLinkOpenURL("https: // github.com/TheCherno/Hazel");
             ImGui::Text("TheCherno's game engine tutorial series:");
-            ImGui::Text("https://www.youtube.com/watch?v=JxIZbV_XjAs&list=PLlrATfBNZ98dC-V-N3m0Go4deliWHPFwT");
+            ImGui::TextLinkOpenURL("https://www.youtube.com/watch?v=JxIZbV_XjAs&list=PLlrATfBNZ98dC-V-N3m0Go4deliWHPFwT");
 
             ImGui::Spacing();
             if (ImGui::Button("Close", ImVec2(-1, 0)))

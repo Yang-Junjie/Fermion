@@ -7,6 +7,7 @@ set(BOSON_SOUCES
     ${CMAKE_CURRENT_LIST_DIR}/src/Panels/ContentBrowserPanel.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/Panels/AssetManagerPanel.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/Panels/InspectorPanel.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/Panels/MenuBarPanel.cpp
 
 )
 
