@@ -71,7 +71,7 @@ namespace Fermion
     };
     struct MeshComponent
     {
-        std::shared_ptr<Mesh> m_Mesh = nullptr;
+        // std::shared_ptr<Mesh> m_Mesh = nullptr;delete
         AssetHandle meshHandle = AssetHandle(0);
         // std::string meshPath;
         MeshComponent() = default;

@@ -249,7 +249,7 @@ namespace Fermion
                     // {
                     //     Log::Error("Mesh is null");
                     // }
-                    renderer->DrawMesh(mesh, transform.getTransform());
+                    renderer->DrawMesh(mesh, transform.getTransform(), (int)entity);
                 }
             }
             {
@@ -529,7 +529,7 @@ namespace Fermion
                             // {
                             //     Log::Error("Mesh is null");
                             // }
-                            renderer->DrawMesh(mesh, transform.getTransform());
+                            renderer->DrawMesh(mesh, transform.getTransform(), (int)entity);
                         }
                     }
                     {

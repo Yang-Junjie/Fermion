@@ -272,10 +272,14 @@ namespace Fermion
         if (!mesh)
             return;
 
+        s_Data.MeshShader->bind();
         auto &submeshes = mesh->getSubMeshes();
         auto &materials = mesh->getMaterials();
         auto va = mesh->getVertexArray();
         va->bind();
+
+        s_Data.MeshShader->setMat4("u_Model", transform);
+        s_Data.MeshShader->setInt("u_ObjectID", objectID);
 
         for (auto &submesh : submeshes)
         {
@@ -285,9 +289,6 @@ namespace Fermion
                 auto material = materials[submesh.MaterialIndex];
                 material->bind(s_Data.MeshShader);
             }
-
-            // 设置模型矩阵
-            s_Data.MeshShader->setMat4("u_Model", transform);
 
             // 绘制
             RenderCommand::drawIndexed(

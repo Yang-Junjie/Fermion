@@ -359,7 +359,7 @@ namespace Fermion
 						{
 							src.textureHandle = AssetHandle(handleValue);
 							auto runtimeAssets = Project::getRuntimeAssetManager();
-							src.texture = runtimeAssets->getAsset<Texture2D>(src.textureHandle);
+							// src.texture = runtimeAssets->getAsset<Texture2D>(src.textureHandle);delete
 						}
 					}
 				}
@@ -374,7 +374,7 @@ namespace Fermion
 						{
 							src.meshHandle = AssetHandle(handleValue);
 							auto runtimeAssets = Project::getRuntimeAssetManager();
-							src.m_Mesh = runtimeAssets->getAsset<Mesh>(src.meshHandle);
+							// src.m_Mesh = runtimeAssets->getAsset<Mesh>(src.meshHandle);delete
 						}
 					}
 				}
