@@ -48,6 +48,8 @@ namespace Fermion
         }
 
         {
+            // glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+            // glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
             m_window = glfwCreateWindow(static_cast<int>(props.width), static_cast<int>(props.height), m_data.title.c_str(), nullptr, nullptr);
             if (m_window)
             {
@@ -198,7 +200,18 @@ namespace Fermion
         glfwSetWindowPos(m_window, x, y);
     }
 
-
+    void GLFWWindow::setMaximized()
+    {
+        glfwMaximizeWindow(m_window);
+    }
+    void GLFWWindow::setRestored()
+    {
+        glfwRestoreWindow(m_window);
+    }
+    void GLFWWindow::setMinimized()
+    {
+        glfwIconifyWindow(m_window);
+    }
     bool GLFWWindow::isVSync() const
     {
         return m_data.VSync;

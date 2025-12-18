@@ -25,7 +25,11 @@ namespace Fermion
 
         void getWindowPos(int *x, int *y) const override;
         void setWindowPos(int x, int y) override;
-        
+
+        virtual void setMaximized() override;
+        virtual void setRestored() override;
+        virtual void setMinimized() override;
+
         void setVSync(bool enabled) override;
         bool isVSync() const override;
 

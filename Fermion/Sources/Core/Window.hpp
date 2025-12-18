@@ -37,7 +37,10 @@ namespace Fermion
 
         virtual void getWindowPos(int *x, int *y) const = 0;
         virtual void setWindowPos(int x, int y) = 0;
-       
+
+        virtual void setMaximized() = 0;
+        virtual void setRestored() = 0;
+        virtual void setMinimized() = 0;
 
         virtual void setVSync(bool enabled) = 0;
         virtual bool isVSync() const = 0;
