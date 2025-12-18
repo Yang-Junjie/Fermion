@@ -3,6 +3,7 @@
 #include "Core/UUID.hpp"
 // #include "Scene/ScriptableEntity.hpp"
 #include "Renderer/Mesh.hpp"
+#include "Renderer/Material.hpp"
 #include "Renderer/Texture.hpp"
 #include "Renderer/SceneCamera.hpp"
 #include "Renderer/Font.hpp"
@@ -78,6 +79,16 @@ namespace Fermion
         MeshComponent(const MeshComponent &) = default;
     };
 
+    struct MaterialComponent
+    {
+        std::shared_ptr<Material> MaterialInstance;
+        bool overrideMaterial = false;
+        MaterialComponent()
+        {
+            MaterialInstance = std::make_shared<Material>();
+        }
+        MaterialComponent(const MaterialComponent &) = default;
+    };
     struct TextComponent
     {
         std::string textString;
@@ -217,7 +228,7 @@ namespace Fermion
     {
     };
     using AllComponents =
-        ComponentGroup<TransformComponent, SpriteRendererComponent,MeshComponent,
+        ComponentGroup<TransformComponent, SpriteRendererComponent, MeshComponent, MaterialComponent,
                        CircleRendererComponent,
                        CameraComponent,
                        ScriptComponent,

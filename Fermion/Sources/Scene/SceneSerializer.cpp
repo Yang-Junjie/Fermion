@@ -151,6 +151,17 @@ namespace Fermion
 			}
 			out << YAML::EndMap;
 		}
+		if (entity.hasComponent<MaterialComponent>())
+		{
+			out << YAML::Key << "MaterialComponent";
+			out << YAML::BeginMap;
+			auto &materialComponent = entity.getComponent<MaterialComponent>();
+			{
+				out << YAML::Key << "AmbientColor" << YAML::Value << materialComponent.MaterialInstance->getAmbientColor();
+				out << YAML::Key << "DiffuseColor" << YAML::Value << materialComponent.MaterialInstance->getDiffuseColor();
+			}
+			out << YAML::EndMap;
+		}
 		if (entity.hasComponent<CircleRendererComponent>())
 		{
 			out << YAML::Key << "CircleRendererComponent";
@@ -376,6 +387,20 @@ namespace Fermion
 							auto runtimeAssets = Project::getRuntimeAssetManager();
 							// src.m_Mesh = runtimeAssets->getAsset<Mesh>(src.meshHandle);delete
 						}
+					}
+				}
+
+				auto materialComponent = entity["MaterialComponent"];
+				if (materialComponent)
+				{
+					auto &mc = deserializedEntity.addComponent<MaterialComponent>();
+					if (auto n = materialComponent["AmbientColor"]; n)
+					{
+						mc.MaterialInstance->setAmbientColor(n.as<glm::vec4>());
+					}
+					if (auto n = materialComponent["DiffuseColor"]; n)
+					{
+						mc.MaterialInstance->setDiffuseColor(n.as<glm::vec4>());
 					}
 				}
 

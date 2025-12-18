@@ -240,16 +240,22 @@ namespace Fermion
         {
             {
 
-                auto group = m_registry.group<>(entt::get<TransformComponent, MeshComponent>);
-                for (auto entity : group)
+                auto view = m_registry.view<TransformComponent, MeshComponent>();
+
+                for (auto entity : view)
                 {
-                    auto &transform = group.get<TransformComponent>(entity);
-                    auto &mesh = group.get<MeshComponent>(entity);
-                    // if (mesh.m_Mesh == nullptr)
-                    // {
-                    //     Log::Error("Mesh is null");
-                    // }
-                    renderer->DrawMesh(mesh, transform.getTransform(), (int)entity);
+                    auto &transform = view.get<TransformComponent>(entity);
+                    auto &mesh = view.get<MeshComponent>(entity);
+
+                    if (m_registry.any_of<MaterialComponent>(entity))
+                    {
+                        auto &material = m_registry.get<MaterialComponent>(entity);
+                        renderer->DrawMesh(mesh, material, transform.getTransform(), (int)entity);
+                    }
+                    else
+                    {
+                        renderer->DrawMesh(mesh, transform.getTransform(), (int)entity);
+                    }
                 }
             }
             {
@@ -520,16 +526,22 @@ namespace Fermion
                 if (showRenderEntities)
                 {
                     {
-                        auto group = m_registry.group<>(entt::get<TransformComponent, MeshComponent>);
-                        for (auto entity : group)
+                        auto view = m_registry.view<TransformComponent, MeshComponent>();
+
+                        for (auto entity : view)
                         {
-                            auto &transform = group.get<TransformComponent>(entity);
-                            auto &mesh = group.get<MeshComponent>(entity);
-                            // if (mesh.m_Mesh == nullptr)
-                            // {
-                            //     Log::Error("Mesh is null");
-                            // }
-                            renderer->DrawMesh(mesh, transform.getTransform(), (int)entity);
+                            auto &transform = view.get<TransformComponent>(entity);
+                            auto &mesh = view.get<MeshComponent>(entity);
+
+                            if (m_registry.any_of<MaterialComponent>(entity))
+                            {
+                                auto &material = m_registry.get<MaterialComponent>(entity);
+                                renderer->DrawMesh(mesh, material, transform.getTransform(), (int)entity);
+                            }
+                            else
+                            {
+                                renderer->DrawMesh(mesh, transform.getTransform(), (int)entity);
+                            }
                         }
                     }
                     {

@@ -311,10 +311,26 @@ namespace Fermion
         }
     }
 
+    void Renderer3D::DrawMesh(const std::shared_ptr<Mesh> &mesh, const std::shared_ptr<Material> &material, const glm::mat4 &transform, int objectID)
+    {
+        s_Data.MeshShader->bind();
+        auto &subMeshs = mesh->getSubMeshes();
+
+        auto va = mesh->getVertexArray();
+        va->bind();
+
+        s_Data.MeshShader->setMat4("u_Model", transform);
+        s_Data.MeshShader->setInt("u_ObjectID", objectID);
+
+        for (auto &submesh : subMeshs)
+        {
+            material->bind(s_Data.MeshShader);
+            RenderCommand::drawIndexed(va, submesh.IndexCount, submesh.IndexOffset);
+        }
+    }
+
     void Renderer3D::DrawMeshOutline(const std::shared_ptr<Mesh> &mesh, const glm::mat4 &transform, int objectID)
     {
-        if (!mesh || !s_Data.OutlineShader)
-            return;
 
         auto &submeshes = mesh->getSubMeshes();
         auto va = mesh->getVertexArray();
@@ -326,7 +342,7 @@ namespace Fermion
         s_Data.OutlineShader->setFloat("u_Epsilon", s_Data.Epsilon);
         s_Data.OutlineShader->setFloat4("u_OutlineColor", s_Data.OutlineColor);
         s_Data.OutlineShader->setInt("u_ObjectID", -1);
-        
+
         // TODO(Yang): 移动到渲染器后端实现中
         glEnable(GL_CULL_FACE);
         glCullFace(GL_FRONT);

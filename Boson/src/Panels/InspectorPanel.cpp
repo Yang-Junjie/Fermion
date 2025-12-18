@@ -26,10 +26,11 @@ namespace Fermion
         }
         ImGui::End();
     }
-    static void drawVec3Control(const std::string &label, glm::vec3 &values, float resetValue = 0.0f, float columnWidth = 100.0f)
+    static bool drawVec3Control(const std::string &label, glm::vec3 &values, float resetValue = 0.0f, float columnWidth = 100.0f)
     {
         ImGuiIO &io = ImGui::GetIO();
         auto boldFont = io.Fonts->Fonts[0];
+        bool changed = false;
 
         ImGui::PushID(label.c_str());
         ImGui::Columns(2);
@@ -54,7 +55,7 @@ namespace Fermion
         ImGui::PopStyleColor(3);
 
         ImGui::SameLine();
-        ImGui::DragFloat("##X", &values.x, 0.01f);
+        changed |= ImGui::DragFloat("##X", &values.x, 0.01f);
         ImGui::PopItemWidth();
         ImGui::SameLine();
 
@@ -70,7 +71,7 @@ namespace Fermion
         ImGui::PopStyleColor(3);
 
         ImGui::SameLine();
-        ImGui::DragFloat("##Y", &values.y, 0.01f);
+        changed |= ImGui::DragFloat("##Y", &values.y, 0.01f);
         ImGui::PopItemWidth();
         ImGui::SameLine();
 
@@ -86,12 +87,13 @@ namespace Fermion
         ImGui::PopStyleColor(3);
 
         ImGui::SameLine();
-        ImGui::DragFloat("##Z", &values.z, 0.01f);
+        changed |= ImGui::DragFloat("##Z", &values.z, 0.01f);
         ImGui::PopItemWidth();
         ImGui::PopStyleVar();
 
         ImGui::Columns(1);
         ImGui::PopID();
+        return changed;
     }
     template <typename T, typename UIFunction>
     static void drawComponent(const std::string &name, Entity entity, UIFunction uiFunction)
@@ -155,6 +157,7 @@ namespace Fermion
 
             displayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
             displayAddComponentEntry<MeshComponent>("Mesh");
+            displayAddComponentEntry<MaterialComponent>("Material");
             displayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
             displayAddComponentEntry<CameraComponent>("Camera");
             displayAddComponentEntry<TextComponent>("Text");
@@ -326,13 +329,27 @@ namespace Fermion
                     auto editorAssets = Project::getEditorAssetManager();
                     AssetHandle handle = editorAssets->importAsset(std::filesystem::path(path));
                     if(static_cast<uint64_t>(handle) != 0){
-                        // component.meshPath = path;delete
                         component.meshHandle = handle;
-                        // component.m_Mesh = editorAssets->getAsset<Mesh>(handle);delete
                     }
                 }
                 ImGui::EndDragDropTarget();
             } });
+        drawComponent<MaterialComponent>("Material", entity, [](auto &component)
+                                         {
+                bool overrideMaterial = component.overrideMaterial;
+                if (ImGui::Checkbox("Override Material", &overrideMaterial))
+                {
+                    component.overrideMaterial = overrideMaterial;
+                }
+                auto materialInstance = component.MaterialInstance;
+                glm::vec3 ambient = glm::vec3(materialInstance->getAmbientColor());
+                if(drawVec3Control("Ambient",ambient,0.0f)){
+                    materialInstance->setAmbientColor(glm::vec4(ambient,1.0f));
+                }
+                glm::vec3 diffuse = glm::vec3(materialInstance->getDiffuseColor());
+                if(drawVec3Control("Diffuse",diffuse,0.0f)){
+                    materialInstance->setDiffuseColor(glm::vec4(diffuse,1.0f));
+                } });
         drawComponent<TextComponent>("Text", entity, [](auto &component)
                                      {
 			char buffer[1024]; 

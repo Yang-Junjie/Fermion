@@ -105,6 +105,24 @@ namespace Fermion
         }
     }
 
+    void SceneRenderer::DrawMesh(MeshComponent &meshComponent, MaterialComponent &materialComponent, glm::mat4 transform, int objectId, bool drawOutline)
+    {
+        if (static_cast<uint64_t>(meshComponent.meshHandle) != 0)
+        {
+            auto mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
+            if (materialComponent.overrideMaterial)
+            {
+                Renderer3D::DrawMesh(mesh, materialComponent.MaterialInstance, transform, objectId);
+            }
+            else
+            {
+                Renderer3D::DrawMesh(mesh, transform, objectId);
+            }
+            if (drawOutline)
+                Renderer3D::DrawMeshOutline(mesh, transform, objectId);
+        }
+    }
+
     void SceneRenderer::DrawLine(const glm::vec3 &start, const glm::vec3 &end, const glm::vec4 &color)
     {
         Renderer2D::drawLine(start, end, color);
