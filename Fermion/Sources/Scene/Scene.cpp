@@ -309,7 +309,7 @@ namespace Fermion
     void Scene::onUpdateSimulation(std::shared_ptr<SceneRenderer> renderer, Timestep ts, EditorCamera &camera, bool showRenderEntities)
     {
         FM_PROFILE_FUNCTION();
-        if (!m_isPaused || m_stepFrames-- > 0)
+
         // Scripts
         {
 
@@ -332,6 +332,7 @@ namespace Fermion
                     nsc.instance->onUpdate(ts);
                 });
         }
+        if (!m_isPaused || m_stepFrames-- > 0)
         {
             if (B2_IS_NON_NULL(m_physicsWorld))
             {
