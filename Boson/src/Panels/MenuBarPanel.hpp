@@ -1,7 +1,7 @@
 #pragma once
 
 #include <functional>
-
+#include <imgui.h>
 namespace Fermion
 {
     // TODO(Yang):迁移函数从BosonLayer to MenuBarPanel
@@ -34,5 +34,9 @@ namespace Fermion
     private:
         MenuBarCallbacks m_Callbacks;
         float m_MenuBarHeight = 35.0f;
+
+        inline static bool m_Dragging = false;
+        inline static ImVec2 m_DragStartMouse;
+        inline static ImVec2 m_DragStartWindow;
     };
 }

@@ -34,6 +34,11 @@ namespace Fermion
         virtual uint32_t getHeight() const = 0;
 
         virtual void setEventCallback(const EventCallbackFn &callback) = 0;
+
+        virtual void getWindowPos(int *x, int *y) const = 0;
+        virtual void setWindowPos(int x, int y) = 0;
+       
+
         virtual void setVSync(bool enabled) = 0;
         virtual bool isVSync() const = 0;
 

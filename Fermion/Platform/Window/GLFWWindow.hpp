@@ -22,6 +22,10 @@ namespace Fermion
         unsigned int getHeight() const override { return m_data.height; }
 
         void setEventCallback(const EventCallbackFn &callback) override { m_data.eventCallback = callback; }
+
+        void getWindowPos(int *x, int *y) const override;
+        void setWindowPos(int x, int y) override;
+        
         void setVSync(bool enabled) override;
         bool isVSync() const override;
 

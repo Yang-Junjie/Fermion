@@ -2,16 +2,17 @@
 #include "fmpch.hpp"
 #include "Project/Project.hpp"
 #include "Project/ProjectSerializer.hpp"
-#include <imgui.h>
+#include "Core/Application.hpp"
 
 namespace Fermion
 {
     void MenuBarPanel::OnImGuiRender()
     {
+
         ImGuiViewport *viewport = ImGui::GetMainViewport();
         ImGui::SetNextWindowPos(viewport->WorkPos);
         ImGui::SetNextWindowSize(ImVec2(viewport->WorkSize.x, m_MenuBarHeight));
-
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
         ImGui::Begin("##CustomMenuBar", nullptr,
                      ImGuiWindowFlags_NoTitleBar |
                          ImGuiWindowFlags_NoResize |
@@ -26,7 +27,7 @@ namespace Fermion
         float x = barPos.x + 10.0f;
         float y = barPos.y;
         float itemWidth = 60.0f;
-        float itemHeight = barSize.y;
+        float itemHeight = ImGui::GetWindowHeight();
 
         auto drawItem = [&](const char *label, const char *popupName)
         {
@@ -157,7 +158,30 @@ namespace Fermion
                 invoke(m_Callbacks.ShowAbout);
             ImGui::EndPopup();
         }
+        ImGui::SetCursorScreenPos(barPos);
+        ImGui::InvisibleButton("##MenuBarDrag", barSize);
+        if (ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+        {
+            if (!m_Dragging)
+            {
+                m_Dragging = true;
+                m_DragStartMouse = ImGui::GetIO().MousePos;
+                int winX, winY;
+                Application::get().getWindow().getWindowPos(&winX, &winY);
+                m_DragStartWindow = ImVec2((float)winX, (float)winY);
+            }
+
+            float newPosX = m_DragStartWindow.x + (ImGui::GetIO().MousePos.x - m_DragStartMouse.x);
+            float newPosY = m_DragStartWindow.y + (ImGui::GetIO().MousePos.y - m_DragStartMouse.y);
+            Application::get().getWindow().setWindowPos((int)newPosX, (int)newPosY);
+        }
+        else
+        {
+            m_Dragging = false;
+        }
 
         ImGui::End();
+        ImGui::PopStyleVar();
     }
+
 }

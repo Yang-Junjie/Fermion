@@ -150,8 +150,7 @@ namespace Fermion
 
 			MouseMovedEvent event((float)xPos, (float)yPos);
 			data.eventCallback(event); 
-            Log::Trace(std::format("Mouse moved: {}, {}", xPos, yPos));
-        });
+            Log::Trace(std::format("Mouse moved: {}, {}", xPos, yPos)); });
     }
 
     void GLFWWindow::shutdown()
@@ -188,6 +187,17 @@ namespace Fermion
 
         m_data.VSync = enabled;
     }
+
+    void GLFWWindow::getWindowPos(int *x, int *y) const
+    {
+        glfwGetWindowPos(m_window, x, y);
+    }
+
+    void GLFWWindow::setWindowPos(int x, int y)
+    {
+        glfwSetWindowPos(m_window, x, y);
+    }
+
 
     bool GLFWWindow::isVSync() const
     {

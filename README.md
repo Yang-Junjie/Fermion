@@ -59,7 +59,7 @@ git submodule update --init --recursive
 ```bash
 mkdir build
 cd build
-cmake .. -DUSE_GLFW=ON -DBUILD_GAME=ON -DBUILD_BOSON=ON
+cmake .. 
 cmake --build . --config Release
 ```
 

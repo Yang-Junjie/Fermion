@@ -116,7 +116,8 @@ namespace Fermion
     }
     void ImGuiLayer::setDarkThemeColors()
     {
-        auto &colors = ImGui::GetStyle().Colors;
+        ImGuiStyle &style = ImGui::GetStyle();
+        auto &colors = style.Colors;
         colors[ImGuiCol_WindowBg] = ImVec4{0.145f, 0.145f, 0.149f, 1.0f};
 
         // Headers
@@ -145,5 +146,8 @@ namespace Fermion
         colors[ImGuiCol_TitleBg] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
         colors[ImGuiCol_TitleBgActive] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
         colors[ImGuiCol_TitleBgCollapsed] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
+
+        style.WindowBorderSize = 0.0f;
+        style.FrameRounding = 3.0f;
     }
 }
