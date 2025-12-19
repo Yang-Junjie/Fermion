@@ -250,11 +250,11 @@ namespace Fermion
                     if (m_registry.any_of<MaterialComponent>(entity))
                     {
                         auto &material = m_registry.get<MaterialComponent>(entity);
-                        renderer->DrawMesh(mesh, material, transform.getTransform(), (int)entity);
+                        renderer->SubmitMesh(mesh, material, transform.getTransform(), (int)entity);
                     }
                     else
                     {
-                        renderer->DrawMesh(mesh, transform.getTransform(), (int)entity);
+                        renderer->SubmitMesh(mesh, transform.getTransform(), (int)entity);
                     }
                 }
             }
@@ -295,7 +295,7 @@ namespace Fermion
         }
         // renderer->DrawCube(glm::mat4(1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
-        // renderer->DrawMesh(m_TestMesh, glm::mat4(1.0f));
+        // renderer->SubmitMesh(m_TestMesh, glm::mat4(1.0f));
 
         renderer->endScene();
     }
@@ -537,11 +537,11 @@ namespace Fermion
                             if (m_registry.any_of<MaterialComponent>(entity))
                             {
                                 auto &material = m_registry.get<MaterialComponent>(entity);
-                                renderer->DrawMesh(mesh, material, transform.getTransform(), (int)entity);
+                                renderer->SubmitMesh(mesh, material, transform.getTransform(), (int)entity);
                             }
                             else
                             {
-                                renderer->DrawMesh(mesh, transform.getTransform(), (int)entity);
+                                renderer->SubmitMesh(mesh, transform.getTransform(), (int)entity);
                             }
                         }
                     }

@@ -24,34 +24,22 @@ namespace Fermion
     {
         m_sceneData.sceneCamera = camera;
         Renderer2D::beginScene(camera.camera, camera.view);
-        Renderer3D::BeginScene(camera.camera, camera.view);
+        Renderer3D::SetCamera(camera.camera, camera.view);
     }
 
     void SceneRenderer::endScene()
     {
         Renderer2D::endScene();
-        Renderer3D::EndScene();
+
+        m_RenderGraph.Reset();
+        GeometryPass();
+        OutlinePass();
+        m_RenderGraph.Execute();
+        s_MeshDrawList.clear();
     }
 
     void SceneRenderer::drawSprite(const glm::mat4 &transform, SpriteRendererComponent &sprite, int objectID)
     {
-        // if (sprite.texture)
-        //     Renderer2D::drawQuad(transform, sprite.texture,
-        //                          sprite.tilingFactor, sprite.color, objectID);
-        // else
-        //     Renderer2D::drawQuad(transform, sprite.color, objectID);
-
-        // if (static_cast<uint64_t>(sprite.textureHandle) != 0)
-        // {
-        //     auto texture = Project::getRuntimeAssetManager().getAsset<Texture2D>(sprite.textureHandle);
-        //     Renderer2D::drawQuadInstanced(transform, sprite.color, texture,
-        //                                   sprite.tilingFactor, objectID);
-        // }
-        // else
-        // {
-
-        //     Renderer2D::drawQuadInstanced(transform, sprite.color, objectID);
-        // }
         if (static_cast<uint64_t>(sprite.textureHandle) != 0)
         {
             auto texture = Project::getRuntimeAssetManager()->getAsset<Texture2D>(sprite.textureHandle);
@@ -83,44 +71,40 @@ namespace Fermion
         Renderer2D::drawRect(transform, color, objectId);
     }
 
-    void SceneRenderer::DrawCube(const glm::mat4 &transform, const glm::vec4 &color, int objectId)
+   
+
+    void SceneRenderer::SubmitMesh(MeshComponent &meshComponent, glm::mat4 transform, int objectId, bool drawOutline)
     {
-        Renderer3D::DrawCube(transform, color, objectId);
+        // if (static_cast<uint64_t>(meshComponent.meshHandle) != 0)
+        // {
+        //     // Log::Error(std::format("{}",std::to_string(meshComponent.meshHandle)));
+        //     auto mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
+        //     Renderer3D::DrawMesh(mesh, transform, objectId);
+        //     if (drawOutline)
+        //         Renderer3D::DrawMeshOutline(mesh, transform, objectId);
+        // }
+        auto mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
+        s_MeshDrawList.push_back({mesh, nullptr, transform, objectId, drawOutline});
     }
 
-    // void SceneRenderer::DrawMesh(const std::shared_ptr<Mesh> &mesh, const glm::mat4 &transform, int objectId, bool drawOutline)
-    // {
-    //     Renderer3D::DrawMesh(mesh, transform, objectId);
-    // }
-
-    void SceneRenderer::DrawMesh(MeshComponent &meshComponent, glm::mat4 transform, int objectId, bool drawOutline)
+    void SceneRenderer::SubmitMesh(MeshComponent &meshComponent, MaterialComponent &materialComponent, glm::mat4 transform, int objectId, bool drawOutline)
     {
-        if (static_cast<uint64_t>(meshComponent.meshHandle) != 0)
-        {
-            // Log::Error(std::format("{}",std::to_string(meshComponent.meshHandle)));
-            auto mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
-            Renderer3D::DrawMesh(mesh, transform, objectId);
-            if (drawOutline)
-                Renderer3D::DrawMeshOutline(mesh, transform, objectId);
-        }
-    }
-
-    void SceneRenderer::DrawMesh(MeshComponent &meshComponent, MaterialComponent &materialComponent, glm::mat4 transform, int objectId, bool drawOutline)
-    {
-        if (static_cast<uint64_t>(meshComponent.meshHandle) != 0)
-        {
-            auto mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
-            if (materialComponent.overrideMaterial)
-            {
-                Renderer3D::DrawMesh(mesh, materialComponent.MaterialInstance, transform, objectId);
-            }
-            else
-            {
-                Renderer3D::DrawMesh(mesh, transform, objectId);
-            }
-            if (drawOutline)
-                Renderer3D::DrawMeshOutline(mesh, transform, objectId);
-        }
+        // if (static_cast<uint64_t>(meshComponent.meshHandle) != 0)
+        // {
+        //     auto mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
+        //     if (materialComponent.overrideMaterial)
+        //     {
+        //         Renderer3D::DrawMesh(mesh, materialComponent.MaterialInstance, transform, objectId);
+        //     }
+        //     else
+        //     {
+        //         Renderer3D::DrawMesh(mesh, transform, objectId);
+        //     }
+        //     if (drawOutline)
+        //         Renderer3D::DrawMeshOutline(mesh, transform, objectId);
+        // }
+        auto mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
+        s_MeshDrawList.push_back({mesh, materialComponent.MaterialInstance, transform, objectId, drawOutline});
     }
 
     void SceneRenderer::DrawLine(const glm::vec3 &start, const glm::vec3 &end, const glm::vec4 &color)
@@ -142,5 +126,35 @@ namespace Fermion
         result.lineCount = stats2D.lineCount;
         result.circleCount = stats2D.circleCount;
         return result;
+    }
+    void SceneRenderer::GeometryPass()
+    {
+        m_RenderGraph.AddPass({ .Name = "GeometryPass",.Execute = [this]()
+        {
+            for (auto &mesh : s_MeshDrawList)
+            {
+                if (mesh.material)
+                {
+                    Renderer3D::DrawMesh(mesh.mesh, mesh.material, mesh.transform, mesh.objectID);
+                }
+                else
+                {
+                    Renderer3D::DrawMesh(mesh.mesh, mesh.transform, mesh.objectID);
+                }
+            }
+        }});
+    }
+    void SceneRenderer::OutlinePass()
+    {
+        m_RenderGraph.AddPass({ .Name = "OutlinePass",.Execute = [this]()
+        {
+            for (auto &mesh : s_MeshDrawList)
+            {
+                if (mesh.drawOutline)
+                {
+                    Renderer3D::DrawMeshOutline(mesh.mesh, mesh.transform, mesh.objectID);
+                }
+            }
+        }});
     }
 }

@@ -6,6 +6,9 @@
 #include "Renderer/Camera.hpp"
 #include "Renderer/EditorCamera.hpp"
 #include "Renderer/DebugRenderer.hpp"
+
+#include "Renderer/RenderPass.hpp"
+#include "Renderer/RenderGraph.hpp"
 #include <vector>
 
 namespace Fermion
@@ -37,6 +40,17 @@ namespace Fermion
                 return quadCount * 6 + circleCount * 6;
             }
         };
+
+        struct MeshDrawCommand
+        {
+            std::shared_ptr<Mesh> mesh;
+            std::shared_ptr<Material> material;
+            glm::mat4 transform;
+
+            int objectID = -1;
+            bool drawOutline = false;
+        };
+
         SceneRenderer();
         void beginScene(const Camera &camera, const glm::mat4 &transform);
         void beginScene(const EditorCamera &camera);
@@ -49,10 +63,10 @@ namespace Fermion
         void drawRect(const glm::vec3 &position, const glm::vec2 &size, const glm::vec4 &color, int objectId = -1);
         void drawRect(const glm::mat4 &transform, const glm::vec4 &color, int objectId = -1);
 
-        void DrawCube(const glm::mat4 &transform, const glm::vec4 &color, int objectId = -1);
+       
         // void DrawMesh(const std::shared_ptr<Mesh> &mesh, const glm::mat4 &transform, int objectId = -1, bool drawOutline = false);
-        void DrawMesh(MeshComponent &meshComponent, glm::mat4 transform, int objectId = -1, bool drawOutline = false);
-        void DrawMesh(MeshComponent &meshComponent, MaterialComponent &materialComponent, glm::mat4 transform, int objectId = -1, bool drawOutline = false);
+        void SubmitMesh(MeshComponent &meshComponent, glm::mat4 transform, int objectId = -1, bool drawOutline = false);
+        void SubmitMesh(MeshComponent &meshComponent, MaterialComponent &materialComponent, glm::mat4 transform, int objectId = -1, bool drawOutline = false);
 
         void DrawLine(const glm::vec3 &start, const glm::vec3 &end, const glm::vec4 &color);
         void SetLineWidth(float thickness);
@@ -64,10 +78,16 @@ namespace Fermion
         Statistics getStatistics() const;
 
     private:
+        void GeometryPass();
+        void OutlinePass();
+        
+    private:
         std::shared_ptr<DebugRenderer> m_debugRenderer;
 
         std::shared_ptr<Scene> m_scene;
+        std::vector<MeshDrawCommand> s_MeshDrawList;
 
+        RenderGraph m_RenderGraph;
         struct SceneInfo
         {
             SceneRendererCamera sceneCamera;

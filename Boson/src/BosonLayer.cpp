@@ -641,7 +641,7 @@ namespace Fermion
                 const TransformComponent &transform = selectedEntity.getComponent<TransformComponent>();
                 if (selectedEntity.hasComponent<MeshComponent>())
                 {
-                    m_viewportRenderer->DrawMesh(selectedEntity.getComponent<MeshComponent>(), transform.getTransform(), -1, true);
+                    m_viewportRenderer->SubmitMesh(selectedEntity.getComponent<MeshComponent>(), transform.getTransform(), -1, true);
                 }
 
                 m_viewportRenderer->drawRect(transform.getTransform(), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
