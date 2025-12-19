@@ -28,13 +28,46 @@ namespace Fermion
         glm::vec4 OutlineColor = {1.0f, 0.0f, 0.0f, 0.8f};
 
         glm::mat4 ViewProjection;
+
+        std::shared_ptr<Shader> SkyBoxShader;
+        std::shared_ptr<VertexArray> cubeVA;
     };
 
     static Renderer3DData s_Data;
+
     void Renderer3D::Init(const RendererConfig &config)
     {
         s_Data.MeshShader = Shader::create(config.ShaderPath + "Mesh.glsl");
         s_Data.OutlineShader = Shader::create(config.ShaderPath + "Outline.glsl");
+
+        s_Data.SkyBoxShader = Shader::create(config.ShaderPath + "Skybox.glsl");
+
+        float skyboxVertices[] = {
+            -1.0f, 1.0f, -1.0f,
+            -1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f, 1.0f, -1.0f,
+            -1.0f, 1.0f, 1.0f,
+            -1.0f, -1.0f, 1.0f,
+            1.0f, -1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f};
+
+        uint32_t skyboxIndices[] = {
+            0, 1, 2, 2, 3, 0,
+            4, 5, 6, 6, 7, 4,
+            4, 5, 1, 1, 0, 4,
+            3, 2, 6, 6, 7, 3,
+            4, 0, 3, 3, 7, 4,
+            1, 5, 6, 6, 2, 1};
+
+        auto vertexBuffer = VertexBuffer::create(skyboxVertices, sizeof(skyboxVertices));
+        vertexBuffer->setLayout({{ShaderDataType::Float3, "a_Position"}});
+
+        auto indexBuffer = IndexBuffer::create(skyboxIndices, sizeof(skyboxIndices) / sizeof(uint32_t));
+
+        s_Data.cubeVA = VertexArray::create();
+        s_Data.cubeVA->addVertexBuffer(vertexBuffer);
+        s_Data.cubeVA->setIndexBuffer(indexBuffer);
     }
 
     void Renderer3D::Shutdown()
@@ -51,8 +84,6 @@ namespace Fermion
         s_Data.OutlineShader->bind();
         s_Data.OutlineShader->setMat4("u_View", view);
         s_Data.OutlineShader->setMat4("u_Projection", camera.getProjection());
-
-       
     }
     void Renderer3D::SetCamera(const EditorCamera &camera)
     {
@@ -64,7 +95,6 @@ namespace Fermion
         s_Data.OutlineShader->bind();
         s_Data.OutlineShader->setMat4("u_View", camera.getViewMatrix());
         s_Data.OutlineShader->setMat4("u_Projection", camera.getProjection());
-
     }
     void Renderer3D::DrawMesh(const std::shared_ptr<Mesh> &mesh, const glm::mat4 &transform, int objectID)
     {
@@ -108,6 +138,7 @@ namespace Fermion
         for (auto &submesh : subMeshs)
         {
             material->bind(s_Data.MeshShader);
+            glEnable(GL_DEPTH_TEST);
             RenderCommand::drawIndexed(va, submesh.IndexCount, submesh.IndexOffset);
         }
     }
@@ -137,7 +168,30 @@ namespace Fermion
             RenderCommand::drawIndexed(va, submesh.IndexCount, submesh.IndexOffset);
         }
         glDepthMask(GL_TRUE);
+        glDepthFunc(GL_LESS);
         glCullFace(GL_BACK);
+        glDisable(GL_CULL_FACE);
+    }
+    void Renderer3D::DrawSkybox(const std::shared_ptr<TextureCube> &cubemap, const glm::mat4 &view, const glm::mat4 &projection)
+    {
+        if (!cubemap)
+            return;
+
+        glDepthFunc(GL_LEQUAL);
+        glDepthMask(GL_FALSE);
+
+        s_Data.SkyBoxShader->bind();
+        s_Data.SkyBoxShader->setMat4("u_View", glm::mat4(glm::mat3(view)));
+        s_Data.SkyBoxShader->setMat4("u_Projection", projection);
+
+        cubemap->bind(0);
+        s_Data.SkyBoxShader->setInt("u_Cubemap", 0);
+
+        s_Data.cubeVA->bind();
+        RenderCommand::drawIndexed(s_Data.cubeVA, 36);
+
+        glDepthMask(GL_TRUE);
         glDepthFunc(GL_LESS);
     }
+
 }

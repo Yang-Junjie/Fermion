@@ -44,5 +44,29 @@ namespace Fermion
 		uint32_t m_rendererID;
 		GLenum m_internalFormat, m_dataFormat;
 	};
+	class OpenGLTextureCube : public TextureCube
+	{
+	public:
+		OpenGLTextureCube(const std::string &path);
+		virtual ~OpenGLTextureCube();
 
+		virtual const TextureSpecification &getSpecification() const override { return m_specification; }
+		virtual void bind(uint32_t slot = 0) const override;
+
+		virtual uint32_t getWidth() const override { return m_width; }
+		virtual uint32_t getHeight() const override { return m_height; }
+		virtual uint32_t getRendererID() const override { return m_rendererID; }
+		virtual const std::string &getPath() const override { return m_path; }
+
+		virtual void setData(void *data, uint32_t size) override;
+		virtual bool isLoaded() const override { return m_isLoaded; }
+		virtual bool operator==(const Texture &other) const override { return m_rendererID == other.getRendererID(); }
+
+	private:
+		std::string m_path;
+		uint32_t m_rendererID = 0;
+		uint32_t m_width = 0, m_height = 0;
+		TextureSpecification m_specification;
+		bool m_isLoaded = false;
+	};
 }

@@ -89,6 +89,7 @@ namespace Fermion
         }
         MaterialComponent(const MaterialComponent &) = default;
     };
+
     struct TextComponent
     {
         std::string textString;

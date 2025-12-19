@@ -38,4 +38,15 @@ namespace Fermion
         }
         return nullptr;
     }
+    std::shared_ptr<TextureCube> TextureCube::create(const std::string &path)
+    {
+        switch (Renderer::getAPI())
+        {
+        case RendererAPI::API::None:
+            return nullptr;
+        case RendererAPI::API::OpenGL:
+            return std::make_shared<OpenGLTextureCube>(path);
+        }
+        return nullptr;
+    }
 }

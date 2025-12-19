@@ -83,7 +83,6 @@ namespace Fermion
 	{
 		int width, height, channels;
 
-
 		stbi_set_flip_vertically_on_load(1);
 
 		stbi_uc *data = stbi_load(path.c_str(), &width, &height, &channels, 4);
@@ -100,7 +99,6 @@ namespace Fermion
 		m_dataFormat = GL_RGBA;
 
 		int levels = generateMipmap ? 1 + (int)std::floor(std::log2(std::max(m_width, m_height))) : 1;
-
 
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_rendererID);
 		glTextureStorage2D(m_rendererID, levels, m_internalFormat, m_width, m_height);
@@ -119,12 +117,10 @@ namespace Fermion
 
 		glPixelStorei(GL_UNPACK_ALIGNMENT, previousAlignment);
 
-
 		glTextureParameteri(m_rendererID, GL_TEXTURE_MIN_FILTER, generateMipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
 		glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
 
 		if (generateMipmap)
 			glGenerateTextureMipmap(m_rendererID);
@@ -167,4 +163,66 @@ namespace Fermion
 
 		glBindTextureUnit(slot, m_rendererID);
 	}
+
+	OpenGLTextureCube::OpenGLTextureCube(const std::string &path)
+		: m_path(path)
+	{
+		glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &m_rendererID);
+
+		// 文件名规则为: right, left, top, bottom, front, back
+		std::vector<std::string> faces = {
+			"right.jpg", "left.jpg",
+			"top.jpg", "bottom.jpg",
+			"front.jpg", "back.jpg"};
+
+		stbi_set_flip_vertically_on_load(false); 
+
+		int width, height, channels;
+		for (uint32_t i = 0; i < faces.size(); i++)
+		{
+			std::string facePath = path + "/" + faces[i];
+			stbi_uc *data = stbi_load(facePath.c_str(), &width, &height, &channels, 4);
+			if (!data)
+			{
+				Log::Error(std::format("Failed to load cubemap texture at path: {}", facePath));
+				continue;
+			}
+
+			glTextureStorage2D(m_rendererID, 1, GL_RGBA8, width, height);
+			glTextureSubImage3D(
+				m_rendererID,
+				0,
+				0, 0, i, // xoffset, yoffset, zoffset = face index
+				width, height, 1,
+				GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+			stbi_image_free(data);
+		}
+
+		glTextureParameteri(m_rendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+		m_width = width;
+		m_height = height;
+		m_isLoaded = true;
+	}
+
+	OpenGLTextureCube::~OpenGLTextureCube()
+	{
+		glDeleteTextures(1, &m_rendererID);
+	}
+
+	void OpenGLTextureCube::bind(uint32_t slot) const
+	{
+		glBindTextureUnit(slot, m_rendererID);
+	}
+
+	void OpenGLTextureCube::setData(void *data, uint32_t size)
+	{
+		FERMION_ASSERT(false, "OpenGLTextureCube::setData not implemented");
+	}
+
 }

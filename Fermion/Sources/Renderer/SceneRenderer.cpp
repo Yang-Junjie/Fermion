@@ -7,6 +7,7 @@ namespace Fermion
     SceneRenderer::SceneRenderer()
     {
         m_debugRenderer = std::make_shared<DebugRenderer>();
+        m_skybox = TextureCube::create("../Boson/projects/Assets/textures/skybox");
     }
 
     void SceneRenderer::beginScene(const Camera &camera, const glm::mat4 &transform)
@@ -29,13 +30,8 @@ namespace Fermion
 
     void SceneRenderer::endScene()
     {
+        FlushDrawList();
         Renderer2D::endScene();
-
-        m_RenderGraph.Reset();
-        GeometryPass();
-        OutlinePass();
-        m_RenderGraph.Execute();
-        s_MeshDrawList.clear();
     }
 
     void SceneRenderer::drawSprite(const glm::mat4 &transform, SpriteRendererComponent &sprite, int objectID)
@@ -71,38 +67,14 @@ namespace Fermion
         Renderer2D::drawRect(transform, color, objectId);
     }
 
-   
-
     void SceneRenderer::SubmitMesh(MeshComponent &meshComponent, glm::mat4 transform, int objectId, bool drawOutline)
     {
-        // if (static_cast<uint64_t>(meshComponent.meshHandle) != 0)
-        // {
-        //     // Log::Error(std::format("{}",std::to_string(meshComponent.meshHandle)));
-        //     auto mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
-        //     Renderer3D::DrawMesh(mesh, transform, objectId);
-        //     if (drawOutline)
-        //         Renderer3D::DrawMeshOutline(mesh, transform, objectId);
-        // }
         auto mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
         s_MeshDrawList.push_back({mesh, nullptr, transform, objectId, drawOutline});
     }
 
     void SceneRenderer::SubmitMesh(MeshComponent &meshComponent, MaterialComponent &materialComponent, glm::mat4 transform, int objectId, bool drawOutline)
     {
-        // if (static_cast<uint64_t>(meshComponent.meshHandle) != 0)
-        // {
-        //     auto mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
-        //     if (materialComponent.overrideMaterial)
-        //     {
-        //         Renderer3D::DrawMesh(mesh, materialComponent.MaterialInstance, transform, objectId);
-        //     }
-        //     else
-        //     {
-        //         Renderer3D::DrawMesh(mesh, transform, objectId);
-        //     }
-        //     if (drawOutline)
-        //         Renderer3D::DrawMeshOutline(mesh, transform, objectId);
-        // }
         auto mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
         s_MeshDrawList.push_back({mesh, materialComponent.MaterialInstance, transform, objectId, drawOutline});
     }
@@ -129,32 +101,54 @@ namespace Fermion
     }
     void SceneRenderer::GeometryPass()
     {
-        m_RenderGraph.AddPass({ .Name = "GeometryPass",.Execute = [this]()
-        {
-            for (auto &mesh : s_MeshDrawList)
-            {
-                if (mesh.material)
-                {
-                    Renderer3D::DrawMesh(mesh.mesh, mesh.material, mesh.transform, mesh.objectID);
-                }
-                else
-                {
-                    Renderer3D::DrawMesh(mesh.mesh, mesh.transform, mesh.objectID);
-                }
-            }
-        }});
+        m_RenderGraph.AddPass(
+            {.Name = "GeometryPass",
+             .Execute = [this]()
+             {
+                 for (auto &mesh : s_MeshDrawList)
+                 {
+                     if (mesh.material)
+                     {
+                         Renderer3D::DrawMesh(mesh.mesh, mesh.material, mesh.transform, mesh.objectID);
+                     }
+                     else
+                     {
+                         Renderer3D::DrawMesh(mesh.mesh, mesh.transform, mesh.objectID);
+                     }
+                 }
+             }});
     }
     void SceneRenderer::OutlinePass()
     {
-        m_RenderGraph.AddPass({ .Name = "OutlinePass",.Execute = [this]()
-        {
-            for (auto &mesh : s_MeshDrawList)
-            {
-                if (mesh.drawOutline)
-                {
-                    Renderer3D::DrawMeshOutline(mesh.mesh, mesh.transform, mesh.objectID);
-                }
-            }
-        }});
+        m_RenderGraph.AddPass(
+            {.Name = "OutlinePass",
+             .Execute = [this]()
+             {
+                 for (auto &mesh : s_MeshDrawList)
+                 {
+                     if (mesh.drawOutline)
+                     {
+                         Renderer3D::DrawMeshOutline(mesh.mesh, mesh.transform, mesh.objectID);
+                     }
+                 }
+             }});
+    }
+    void SceneRenderer::FlushDrawList()
+    {
+        m_RenderGraph.Reset();
+        SkyboxPass();
+        OutlinePass();
+        GeometryPass();
+        m_RenderGraph.Execute();
+        s_MeshDrawList.clear();
+    }
+    void SceneRenderer::SkyboxPass()
+    {
+        m_RenderGraph.AddPass(
+            {.Name = "SkyboxPass",
+             .Execute = [this]()
+             {
+                 Renderer3D::DrawSkybox(m_skybox, m_sceneData.sceneCamera.view, m_sceneData.sceneCamera.camera.getProjection());
+             }});
     }
 }
