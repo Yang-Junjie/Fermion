@@ -3,6 +3,7 @@
 #include "Renderer/VertexArray.hpp"
 #include "Renderer/Shader.hpp"
 #include "Renderer/RenderCommand.hpp"
+#include "Renderer/Pipeline.hpp"
 #include "glad/glad.h"
 
 #include "glm/gtc/matrix_transform.hpp"
@@ -20,16 +21,15 @@ namespace Fermion
     struct Renderer3DData
     {
 
-        std::shared_ptr<Shader> MeshShader;
+        std::shared_ptr<Pipeline> MeshPipeline;
+        std::shared_ptr<Pipeline> OutlinePipeline;
+        std::shared_ptr<Pipeline> SkyboxPipeline;
 
-        std::shared_ptr<Shader> OutlineShader;
         float OutlineWidth = 0.05f;
         float Epsilon = 0.15f;
         glm::vec4 OutlineColor = {1.0f, 0.0f, 0.0f, 0.8f};
 
         glm::mat4 ViewProjection;
-
-        std::shared_ptr<Shader> SkyBoxShader;
         std::shared_ptr<VertexArray> cubeVA;
     };
 
@@ -37,10 +37,41 @@ namespace Fermion
 
     void Renderer3D::Init(const RendererConfig &config)
     {
-        s_Data.MeshShader = Shader::create(config.ShaderPath + "Mesh.glsl");
-        s_Data.OutlineShader = Shader::create(config.ShaderPath + "Outline.glsl");
+        // Mesh Pipeline
+        {
+            PipelineSpecification meshSpec;
+            meshSpec.Shader = Shader::create(config.ShaderPath + "Mesh.glsl");
+            meshSpec.DepthTest = true;
+            meshSpec.DepthWrite = true;
+            meshSpec.DepthOperator = DepthCompareOperator::Less;
+            meshSpec.Cull = CullMode::Back;
 
-        s_Data.SkyBoxShader = Shader::create(config.ShaderPath + "Skybox.glsl");
+            s_Data.MeshPipeline = Pipeline::Create(meshSpec);
+        }
+
+        // Outline Pipeline
+        {
+            PipelineSpecification outlineSpec;
+            outlineSpec.Shader = Shader::create(config.ShaderPath + "Outline.glsl");
+            outlineSpec.DepthTest = true;
+            outlineSpec.DepthWrite = false;
+            outlineSpec.DepthOperator = DepthCompareOperator::LessOrEqual;
+            outlineSpec.Cull = CullMode::Front;
+
+            s_Data.OutlinePipeline = Pipeline::Create(outlineSpec);
+        }
+
+        // Skybox Pipeline
+        {
+            PipelineSpecification skyboxSpec;
+            skyboxSpec.Shader = Shader::create(config.ShaderPath + "Skybox.glsl");
+            skyboxSpec.DepthTest = true;
+            skyboxSpec.DepthWrite = false;
+            skyboxSpec.DepthOperator = DepthCompareOperator::LessOrEqual;
+            skyboxSpec.Cull = CullMode::None;
+
+            s_Data.SkyboxPipeline = Pipeline::Create(skyboxSpec);
+        }
 
         float skyboxVertices[] = {
             -1.0f, 1.0f, -1.0f,
@@ -78,120 +109,97 @@ namespace Fermion
     {
         s_Data.ViewProjection = camera.getProjection() * view;
 
-        s_Data.MeshShader->bind();
-        s_Data.MeshShader->setMat4("u_ViewProjection", s_Data.ViewProjection);
+        s_Data.MeshPipeline->Bind();
+        auto meshShader = s_Data.MeshPipeline->GetShader();
+        meshShader->setMat4("u_ViewProjection", s_Data.ViewProjection);
 
-        s_Data.OutlineShader->bind();
-        s_Data.OutlineShader->setMat4("u_View", view);
-        s_Data.OutlineShader->setMat4("u_Projection", camera.getProjection());
+        s_Data.OutlinePipeline->Bind();
+        auto outlineShader = s_Data.OutlinePipeline->GetShader();
+        outlineShader->setMat4("u_View", view);
+        outlineShader->setMat4("u_Projection", camera.getProjection());
     }
     void Renderer3D::SetCamera(const EditorCamera &camera)
     {
         s_Data.ViewProjection = camera.getViewProjection();
 
-        s_Data.MeshShader->bind();
-        s_Data.MeshShader->setMat4("u_ViewProjection", s_Data.ViewProjection);
+        s_Data.MeshPipeline->Bind();
+        auto meshShader = s_Data.MeshPipeline->GetShader();
+        meshShader->setMat4("u_ViewProjection", s_Data.ViewProjection);
 
-        s_Data.OutlineShader->bind();
-        s_Data.OutlineShader->setMat4("u_View", camera.getViewMatrix());
-        s_Data.OutlineShader->setMat4("u_Projection", camera.getProjection());
+        s_Data.OutlinePipeline->Bind();
+        auto outlineShader = s_Data.OutlinePipeline->GetShader();
+        outlineShader->setMat4("u_View", camera.getViewMatrix());
+        outlineShader->setMat4("u_Projection", camera.getProjection());
     }
     void Renderer3D::DrawMesh(const std::shared_ptr<Mesh> &mesh, const glm::mat4 &transform, int objectID)
     {
-        s_Data.MeshShader->bind();
+        s_Data.MeshPipeline->Bind();
+        auto meshShader = s_Data.MeshPipeline->GetShader();
+        meshShader->setMat4("u_Model", transform);
+        meshShader->setInt("u_ObjectID", objectID);
+
         auto &submeshes = mesh->getSubMeshes();
         auto &materials = mesh->getMaterials();
-        auto va = mesh->getVertexArray();
-        va->bind();
-
-        s_Data.MeshShader->setMat4("u_Model", transform);
-        s_Data.MeshShader->setInt("u_ObjectID", objectID);
 
         for (auto &submesh : submeshes)
         {
-            // 绑定材质
             if (submesh.MaterialIndex < materials.size())
             {
                 auto material = materials[submesh.MaterialIndex];
-                material->bind(s_Data.MeshShader);
+                material->bind(meshShader);
             }
-
-            // 绘制
-            RenderCommand::drawIndexed(
-                va,
-                submesh.IndexCount,
-                submesh.IndexOffset);
+            RenderCommand::drawIndexed(mesh->getVertexArray(), submesh.IndexCount,
+                                       submesh.IndexOffset);
         }
     }
 
     void Renderer3D::DrawMesh(const std::shared_ptr<Mesh> &mesh, const std::shared_ptr<Material> &material, const glm::mat4 &transform, int objectID)
     {
-        s_Data.MeshShader->bind();
+        s_Data.MeshPipeline->Bind();
+        auto meshShader = s_Data.MeshPipeline->GetShader();
+        meshShader->setMat4("u_Model", transform);
+        meshShader->setInt("u_ObjectID", objectID);
+
         auto &subMeshs = mesh->getSubMeshes();
-
-        auto va = mesh->getVertexArray();
-        va->bind();
-
-        s_Data.MeshShader->setMat4("u_Model", transform);
-        s_Data.MeshShader->setInt("u_ObjectID", objectID);
 
         for (auto &submesh : subMeshs)
         {
-            material->bind(s_Data.MeshShader);
-            glEnable(GL_DEPTH_TEST);
-            RenderCommand::drawIndexed(va, submesh.IndexCount, submesh.IndexOffset);
+            material->bind(meshShader);
+            RenderCommand::drawIndexed(mesh->getVertexArray(), submesh.IndexCount, submesh.IndexOffset);
         }
     }
 
     void Renderer3D::DrawMeshOutline(const std::shared_ptr<Mesh> &mesh, const glm::mat4 &transform, int objectID)
     {
 
+        s_Data.OutlinePipeline->Bind();
+        auto outlineShader = s_Data.OutlinePipeline->GetShader();
+        outlineShader->setMat4("u_Model", transform);
+        outlineShader->setFloat("u_OutlineWidth", s_Data.OutlineWidth);
+        outlineShader->setFloat("u_Epsilon", s_Data.Epsilon);
+        outlineShader->setFloat4("u_OutlineColor", s_Data.OutlineColor);
+        outlineShader->setInt("u_ObjectID", -1);
+
         auto &submeshes = mesh->getSubMeshes();
-        auto va = mesh->getVertexArray();
-        va->bind();
-
-        s_Data.OutlineShader->bind();
-        s_Data.OutlineShader->setMat4("u_Model", transform);
-        s_Data.OutlineShader->setFloat("u_OutlineWidth", s_Data.OutlineWidth);
-        s_Data.OutlineShader->setFloat("u_Epsilon", s_Data.Epsilon);
-        s_Data.OutlineShader->setFloat4("u_OutlineColor", s_Data.OutlineColor);
-        s_Data.OutlineShader->setInt("u_ObjectID", -1);
-
-        // TODO(Yang): 移动到渲染器后端实现中
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_FRONT);
-        glDepthFunc(GL_LEQUAL);
-        glDepthMask(GL_FALSE);
 
         for (auto &submesh : submeshes)
         {
-            RenderCommand::drawIndexed(va, submesh.IndexCount, submesh.IndexOffset);
+            RenderCommand::drawIndexed(mesh->getVertexArray(), submesh.IndexCount, submesh.IndexOffset);
         }
-        glDepthMask(GL_TRUE);
-        glDepthFunc(GL_LESS);
-        glCullFace(GL_BACK);
-        glDisable(GL_CULL_FACE);
     }
     void Renderer3D::DrawSkybox(const std::shared_ptr<TextureCube> &cubemap, const glm::mat4 &view, const glm::mat4 &projection)
     {
-        if (!cubemap)
-            return;
 
-        glDepthFunc(GL_LEQUAL);
-        glDepthMask(GL_FALSE);
-
-        s_Data.SkyBoxShader->bind();
-        s_Data.SkyBoxShader->setMat4("u_View", glm::mat4(glm::mat3(view)));
-        s_Data.SkyBoxShader->setMat4("u_Projection", projection);
+        s_Data.SkyboxPipeline->Bind();
+        auto skyBoxShader = s_Data.SkyboxPipeline->GetShader();
+        skyBoxShader->bind();
+        skyBoxShader->setMat4("u_View", glm::mat4(glm::mat3(view)));
+        skyBoxShader->setMat4("u_Projection", projection);
 
         cubemap->bind(0);
-        s_Data.SkyBoxShader->setInt("u_Cubemap", 0);
+        skyBoxShader->setInt("u_Cubemap", 0);
 
-        s_Data.cubeVA->bind();
         RenderCommand::drawIndexed(s_Data.cubeVA, 36);
-
-        glDepthMask(GL_TRUE);
-        glDepthFunc(GL_LESS);
     }
 
 }

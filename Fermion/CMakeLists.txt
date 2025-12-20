@@ -46,6 +46,7 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Renderer/RenderCommand.cpp
     ${FERMION_DIR}/Renderer/Renderer2D.cpp
     ${FERMION_DIR}/Renderer/Renderer3D.cpp
+    ${FERMION_DIR}/Renderer/Pipeline.cpp
     ${FERMION_DIR}/Renderer/DebugRenderer.cpp
     ${FERMION_DIR}/Renderer/GraphicsContext.cpp
     ${FERMION_DIR}/Renderer/Buffer.cpp
@@ -96,6 +97,7 @@ set(PLATFORM_SOURCES
     ${PLATFORM_DIR}/OpenGL/OpenGLVertexArray.cpp
     ${PLATFORM_DIR}/OpenGL/OpenGLTexture.cpp
     ${PLATFORM_DIR}/OpenGL/OpenGLShader.cpp
+    ${PLATFORM_DIR}/OpenGL/OpenGLPipeline.cpp
     ${PLATFORM_DIR}/OpenGL/OpenGLFrameBuffer.cpp
 
     ${PLATFORM_DEPENDENCIES_SOURCE}
