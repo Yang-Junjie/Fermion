@@ -24,8 +24,9 @@ namespace Fermion
     void SceneRenderer::beginScene(const SceneRendererCamera &camera)
     {
         m_sceneData.sceneCamera = camera;
+        m_sceneData.sceneEnvironmentLight = m_scene->m_environmentLight;
         Renderer2D::beginScene(camera.camera, camera.view);
-        Renderer3D::SetCamera(camera.camera, camera.view);
+        Renderer3D::SetCamera(camera.camera, camera.view,m_sceneData.sceneEnvironmentLight);
     }
 
     void SceneRenderer::endScene()

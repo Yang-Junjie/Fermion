@@ -158,9 +158,11 @@ namespace Fermion
             displayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
             displayAddComponentEntry<MeshComponent>("Mesh");
             displayAddComponentEntry<MaterialComponent>("Material");
+            displayAddComponentEntry<PointLightComponent>("PointLight");
             displayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
             displayAddComponentEntry<CameraComponent>("Camera");
             displayAddComponentEntry<TextComponent>("Text");
+
             // displayAddComponentEntry<ScriptComponent>("Script");
             // bool hasScriptComponent = m_selectedEntity.hasComponent<ScriptComponent>();
             // bool hasScriptContainerComponent = m_selectedEntity.hasComponent<ScriptContainerComponent>();
@@ -350,6 +352,11 @@ namespace Fermion
                 if(drawVec3Control("Diffuse",diffuse,0.0f)){
                     materialInstance->setDiffuseColor(glm::vec4(diffuse,1.0f));
                 } });
+        drawComponent<PointLightComponent>("Point Light", entity, [](auto &component)
+                                           {
+                                               ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
+                                               ImGui::DragFloat("Intensity", &component.intensity, 0.1f, 0.0f);
+                                               ImGui::DragFloat("Range", &component.range, 0.1f, 0.0f); });
         drawComponent<TextComponent>("Text", entity, [](auto &component)
                                      {
 			char buffer[1024]; 

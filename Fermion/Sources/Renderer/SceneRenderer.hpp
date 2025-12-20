@@ -93,6 +93,7 @@ namespace Fermion
         struct SceneInfo
         {
             SceneRendererCamera sceneCamera;
+            EnvironmentLight sceneEnvironmentLight;
         } m_sceneData;
     };
 }

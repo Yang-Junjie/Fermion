@@ -1,4 +1,3 @@
-
 #type vertex
 #version 330 core
 
@@ -9,8 +8,9 @@ layout(location = 3) in vec2 a_TexCoords;
 
 uniform mat4 u_Model;
 uniform mat4 u_ViewProjection;
-uniform int u_ObjectID = -1;
+uniform int u_ObjectID;
 
+out vec3 v_WorldPos;
 out vec3 v_Normal;
 out vec4 v_Color;
 out vec2 v_TexCoords;
@@ -18,10 +18,13 @@ flat out int v_ObjectID;
 
 void main() {
     vec4 worldPos = u_Model * vec4(a_Position, 1.0);
+    v_WorldPos = worldPos.xyz;
+
     v_Normal = mat3(transpose(inverse(u_Model))) * a_Normal;
     v_Color = a_Color;
     v_TexCoords = a_TexCoords;
     v_ObjectID = u_ObjectID;
+
     gl_Position = u_ViewProjection * worldPos;
 }
 
@@ -31,39 +34,70 @@ void main() {
 layout(location = 0) out vec4 o_Color;
 layout(location = 1) out int o_ObjectID;
 
+in vec3 v_WorldPos;
 in vec3 v_Normal;
 in vec4 v_Color;
 in vec2 v_TexCoords;
 flat in int v_ObjectID;
 
-uniform bool u_UseTexture = false;
+#define MAX_POINT_LIGHTS 16
+
+struct PointLight {
+    vec3 position;
+    vec3 color;
+    float intensity;
+    float range;
+};
+
+uniform int u_PointLightCount;
+uniform PointLight u_PointLights[MAX_POINT_LIGHTS];
+
+uniform bool u_UseTexture;
 uniform sampler2D u_Texture;
-uniform vec4 u_Kd = vec4(1.0); // 漫反射
-uniform vec4 u_Ka = vec4(0.0); // 环境光
-uniform bool u_FlipUV = false;
+
+uniform vec4 u_Kd; // diffuse
+uniform vec4 u_Ka; // ambient
+uniform bool u_FlipUV;
 
 void main() {
     vec3 normal = normalize(v_Normal);
-    vec3 lightDir = normalize(vec3(0.5, 1.0, 0.3));
-    float diff = max(dot(normal, lightDir), 0.0);
 
     vec2 uv = v_TexCoords;
     if(u_FlipUV)
         uv.y = 1.0 - uv.y;
 
-    vec3 color;
+    vec3 baseColor;
+    if(u_UseTexture)
+        baseColor = texture(u_Texture, uv).rgb;
+    else
+        baseColor = u_Kd.rgb;
 
-    if(u_UseTexture) {
-        // 贴图材质直接用纹理颜色，不受 Kd 影响
-        color = texture(u_Texture, uv).rgb;
-    } else {
-        // 无贴图用 Kd + Ka
-        color = vec3(u_Kd) + vec3(u_Ka);
+    // Ambient
+    vec3 result = u_Ka.rgb * baseColor;
+
+    // Point lights
+    for(int i = 0; i < u_PointLightCount; i++) {
+        PointLight light = u_PointLights[i];
+
+        vec3 L = light.position - v_WorldPos;
+        float distance = length(L);
+        if(distance > light.range)
+            continue;
+
+        vec3 lightDir = normalize(L);
+        float NdotL = max(dot(normal, lightDir), 0.0);
+
+        float attenuation = 1.0 - distance / light.range;
+
+        vec3 diffuse = light.color *
+            light.intensity *
+            NdotL *
+            attenuation *
+            baseColor;
+
+        result += diffuse;
     }
 
-    vec3 ambient = 0.3 * color;
-    vec3 diffuse = diff * color;
-
-    o_Color = vec4(ambient + diffuse, u_Kd.a);
+    o_Color = vec4(result, u_Kd.a);
     o_ObjectID = v_ObjectID;
 }

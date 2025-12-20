@@ -241,7 +241,6 @@ namespace Fermion
             {
 
                 auto view = m_registry.view<TransformComponent, MeshComponent>();
-
                 for (auto entity : view)
                 {
                     auto &transform = view.get<TransformComponent>(entity);
@@ -258,6 +257,23 @@ namespace Fermion
                     }
                 }
             }
+            // Point Lights
+            {
+                auto pointLights = m_registry.group<PointLightComponent>(entt::get<TransformComponent>);
+                m_environmentLight.pointLights.resize(pointLights.size());
+                uint32_t i = 0;
+                for (auto entity : pointLights)
+                {
+                    auto &transform = pointLights.get<TransformComponent>(entity);
+                    auto &pointLight = pointLights.get<PointLightComponent>(entity);
+                    m_environmentLight.pointLights[i++] = {
+                        .position = transform.translation,
+                        .color = pointLight.color,
+                        .intensity = pointLight.intensity,
+                        .range = pointLight.range};
+                }
+            }
+
             {
                 auto group = m_registry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
                 for (auto entity : group)
@@ -293,9 +309,6 @@ namespace Fermion
                 func(renderer);
             debugRenderer->ClearRenderQueue();
         }
-        // renderer->DrawCube(glm::mat4(1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-
-        // renderer->SubmitMesh(m_TestMesh, glm::mat4(1.0f));
 
         renderer->endScene();
     }
@@ -545,6 +558,23 @@ namespace Fermion
                             }
                         }
                     }
+                    // Point Lights
+                    {
+                        auto pointLights = m_registry.group<PointLightComponent>(entt::get<TransformComponent>);
+                        m_environmentLight.pointLights.resize(pointLights.size());
+                        uint32_t i = 0;
+                        for (auto entity : pointLights)
+                        {
+                            auto &transform = pointLights.get<TransformComponent>(entity);
+                            auto &pointLight = pointLights.get<PointLightComponent>(entity);
+                            m_environmentLight.pointLights[i++] = {
+                                .position = transform.translation,
+                                .color = pointLight.color,
+                                .intensity = pointLight.intensity,
+                                .range = pointLight.range};
+                        }
+                    }
+
                     {
                         auto group = m_registry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
                         for (auto entity : group)

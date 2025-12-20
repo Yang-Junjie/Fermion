@@ -4,7 +4,6 @@
 #include "Renderer/Shader.hpp"
 #include "Renderer/RenderCommand.hpp"
 #include "Renderer/Pipeline.hpp"
-#include "glad/glad.h"
 
 #include "glm/gtc/matrix_transform.hpp"
 namespace Fermion
@@ -31,6 +30,8 @@ namespace Fermion
 
         glm::mat4 ViewProjection;
         std::shared_ptr<VertexArray> cubeVA;
+
+        uint32_t maxLights = 16;
     };
 
     static Renderer3DData s_Data;
@@ -104,27 +105,48 @@ namespace Fermion
     void Renderer3D::Shutdown()
     {
     }
+    static void UploadLights(const EnvironmentLight &env, Shader &shader, uint32_t maxLights)
+    {
+        uint32_t count = std::min(
+            (uint32_t)env.pointLights.size(),
+            (uint32_t)maxLights);
 
-    void Renderer3D::SetCamera(const Camera &camera, const glm::mat4 &view)
+        shader.setInt("u_PointLightCount", count);
+
+        for (uint32_t i = 0; i < count; i++)
+        {
+            const auto &l = env.pointLights[i];
+            std::string base = "u_PointLights[" + std::to_string(i) + "]";
+
+            shader.setFloat3(base + ".position", l.position);
+            shader.setFloat3(base + ".color", l.color);
+            shader.setFloat(base + ".intensity", l.intensity);
+            shader.setFloat(base + ".range", l.range);
+        }
+    }
+
+    void Renderer3D::SetCamera(const Camera &camera, const glm::mat4 &view, const EnvironmentLight &envLight)
     {
         s_Data.ViewProjection = camera.getProjection() * view;
 
         s_Data.MeshPipeline->Bind();
         auto meshShader = s_Data.MeshPipeline->GetShader();
         meshShader->setMat4("u_ViewProjection", s_Data.ViewProjection);
+        UploadLights(envLight, *meshShader,s_Data.maxLights);
 
         s_Data.OutlinePipeline->Bind();
         auto outlineShader = s_Data.OutlinePipeline->GetShader();
         outlineShader->setMat4("u_View", view);
         outlineShader->setMat4("u_Projection", camera.getProjection());
     }
-    void Renderer3D::SetCamera(const EditorCamera &camera)
+    void Renderer3D::SetCamera(const EditorCamera &camera, const EnvironmentLight &envLight)
     {
         s_Data.ViewProjection = camera.getViewProjection();
 
         s_Data.MeshPipeline->Bind();
         auto meshShader = s_Data.MeshPipeline->GetShader();
         meshShader->setMat4("u_ViewProjection", s_Data.ViewProjection);
+        UploadLights(envLight, *meshShader,s_Data.maxLights);
 
         s_Data.OutlinePipeline->Bind();
         auto outlineShader = s_Data.OutlinePipeline->GetShader();

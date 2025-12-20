@@ -224,6 +224,16 @@ namespace Fermion
         CircleCollider2DComponent(const CircleCollider2DComponent &) = default;
     };
 
+    struct PointLightComponent
+    {
+        glm::vec3 color{1.0f, 1.0f, 1.0f};
+        float intensity = 1.0f;
+        float range = 10.0f;
+
+        PointLightComponent() = default;
+        PointLightComponent(const PointLightComponent &) = default;
+    };
+
     template <typename... Component>
     struct ComponentGroup
     {
@@ -236,5 +246,6 @@ namespace Fermion
                        ScriptContainerComponent,
                        NativeScriptComponent,
                        Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, BoxSensor2DComponent,
-                       TextComponent>;
+                       TextComponent,
+                       PointLightComponent>;
 }

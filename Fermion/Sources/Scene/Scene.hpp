@@ -12,6 +12,18 @@ namespace Fermion
 
     class Entity;
     class SceneRenderer;
+
+    struct PointLight
+    {
+        glm::vec3 position = {0.0f, 0.0f, 0.0f};
+        glm::vec3 color{1.0f, 1.0f, 1.0f};
+        float intensity = 1.0f;
+        float range = 10.0f;
+    };
+    struct EnvironmentLight
+    {
+        std::vector<PointLight> pointLights;
+    };
     class Scene
     {
     public:
@@ -78,10 +90,7 @@ namespace Fermion
         bool m_isPaused = false;
         int m_stepFrames = 0;
 
-
-        // std::shared_ptr<Mesh> m_TestMesh  =nullptr;
-
-
+        EnvironmentLight m_environmentLight;
         b2WorldId m_physicsWorld = b2_nullWorldId;
         std::unordered_map<UUID, entt::entity> m_entityMap;
         std::unordered_map<UUID, b2BodyId> m_physicsBodyMap;

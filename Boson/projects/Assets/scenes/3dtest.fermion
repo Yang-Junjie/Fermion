@@ -1,29 +1,24 @@
 Scene: Name
 Entities:
-  - Entity: 6531917417202799299
+  - Entity: 5449681077286385480
     TagComponent:
-      Tag: car
+      Tag: point light 1
     TransformComponent:
-      Translation: [-1.5390024, -0.3609776, 0.73304445]
-      Rotation: [0, 0.7744658, 0]
-      Scale: [0.01, 0.01, 0.01]
-    MeshComponent:
-      MeshHandle: 16584299943829371167
-  - Entity: 4866263028042920325
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 453566212955610190
     TagComponent:
-      Tag: obj
+      Tag: box
     TransformComponent:
-      Translation: [-1.4294434, -0.39902046, 0]
-      Rotation: [0, 0, 1.5707964]
-      Scale: [0.046872836, 5.6532946, 7.970279]
-    MeshComponent:
-      MeshHandle: 6460136860035206027
-    MaterialComponent:
-      AmbientColor: [0.01, 0.01, 0.01, 1]
-      DiffuseColor: [0.2, 0.2, 0.2, 1]
+      Translation: [-1.7903132, 0.34228724, -1.8031616]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
   - Entity: 18415657991614262539
     TagComponent:
-      Tag: Empty Entity
+      Tag: camera
     TransformComponent:
       Translation: [-2.881117, 0.92701477, 2.483245]
       Rotation: [-0.2570718, -0.9579456, 2.5905972e-08]
@@ -39,12 +34,24 @@ Entities:
         OrthographicFar: 100
       Primary: true
       FixedAspectRatio: false
-  - Entity: 453566212955610190
+  - Entity: 4866263028042920325
     TagComponent:
-      Tag: box
+      Tag: obj
     TransformComponent:
-      Translation: [-1.7903132, 0.34228724, -1.8031616]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
+      Translation: [-1.4294434, -0.39902046, 0]
+      Rotation: [0, 0, 1.5707964]
+      Scale: [0.046872836, 5.6532946, 7.970279]
+    MeshComponent:
+      MeshHandle: 6460136860035206027
+    MaterialComponent:
+      AmbientColor: [0.01, 0.01, 0.01, 1]
+      DiffuseColor: [0.2, 0.2, 0.2, 1]
+  - Entity: 6531917417202799299
+    TagComponent:
+      Tag: car
+    TransformComponent:
+      Translation: [-1.5390024, -0.3609776, 0.73304445]
+      Rotation: [0, 0.7744658, 0]
+      Scale: [0.01, 0.01, 0.01]
+    MeshComponent:
+      MeshHandle: 16584299943829371167
