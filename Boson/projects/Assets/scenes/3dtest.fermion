@@ -1,16 +1,5 @@
 Scene: Name
 Entities:
-  - Entity: 5449681077286385480
-    TagComponent:
-      Tag: point light 1
-    TransformComponent:
-      Translation: [0.53, 4.47, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    PointLightComponent:
-      Color: [0.95366794, 0.9200455, 0.7511516]
-      Intensity: 5.2
-      Range: 10.5
   - Entity: 18083371750882497292
     TagComponent:
       Tag: point light 2
@@ -18,6 +7,8 @@ Entities:
       Translation: [-2.7744832, 2.12648, 3.481872]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 0, 0, 1]
     PointLightComponent:
       Color: [1, 0, 0]
       Intensity: 3.2
@@ -29,6 +20,8 @@ Entities:
       Translation: [5.1479063, 5.2297196, 10.267936]
       Rotation: [-0.4927335, 0.6783251, 0.043075908]
       Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.93436295, 0.17677137, 0.17677137, 0.47058824]
     CameraComponent:
       Camera:
         ProjectionType: 1
@@ -61,3 +54,19 @@ Entities:
       Scale: [0.01, 0.01, 0.01]
     MeshComponent:
       MeshHandle: 16584299943829371167
+    ScriptContainerComponent:
+      ScriptClassNames:
+        - Sandbox.ObjController
+  - Entity: 5449681077286385480
+    TagComponent:
+      Tag: point light 1
+    TransformComponent:
+      Translation: [0.53, 4.47, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.65637064, 0.5232981, 0.25089073, 1]
+    PointLightComponent:
+      Color: [0.95366794, 0.9200455, 0.7511516]
+      Intensity: 5.2
+      Range: 10.5

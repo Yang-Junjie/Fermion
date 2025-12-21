@@ -447,6 +447,7 @@ namespace Fermion
         ImGui::Separator();
         ImGui::Checkbox("showPhysicsColliders", &m_showPhysicsColliders);
         ImGui::Checkbox("showRenderEntities", &m_showRenderEntities);
+        ImGui::Checkbox("showSkybox", &m_viewportRenderer->getSceneInfo().showSkybox);
         ImGui::Image((ImTextureID)s_Font->getAtlasTexture()->getRendererID(), {512, 512}, {0, 1}, {1, 0});
         ImGui::End();
     }

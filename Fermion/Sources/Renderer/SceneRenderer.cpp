@@ -139,14 +139,14 @@ namespace Fermion
             {.Name = "SkyboxPass",
              .Execute = [this]()
              {
-                
                  Renderer3D::DrawSkybox(m_skybox, m_sceneData.sceneCamera.view, m_sceneData.sceneCamera.camera.getProjection());
              }});
     }
     void SceneRenderer::FlushDrawList()
     {
         m_RenderGraph.Reset();
-        SkyboxPass();
+        if (m_sceneData.showSkybox)
+            SkyboxPass();
         OutlinePass();
         GeometryPass();
         m_RenderGraph.Execute();

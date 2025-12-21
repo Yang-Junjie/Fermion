@@ -3,7 +3,7 @@
 #include "Renderer/VertexArray.hpp"
 #include "Renderer/Shader.hpp"
 #include "Renderer/RenderCommand.hpp"
-
+#include "glad/glad.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include "Renderer2D.hpp"
 #include "Renderer/MSDFData.hpp"
@@ -373,6 +373,8 @@ namespace Fermion
     {
         FM_PROFILE_FUNCTION();
 
+        glDisable(GL_CULL_FACE);
+        // glFrontFace(GL_CCW); 
         // TODO:，当数量大的时候切换为实例化渲染
         if (s_Data.QuadIndexCount)
         {
@@ -403,7 +405,7 @@ namespace Fermion
 
             s_Data.stats.drawCalls++;
         }
-        
+
         if (s_Data.CircleIndexCount)
         {
             uint32_t dataSize = (uint32_t)((uint8_t *)s_Data.CircleVertexBufferPtr - (uint8_t *)s_Data.CircleVertexBufferBase);
@@ -436,6 +438,7 @@ namespace Fermion
             RenderCommand::drawIndexed(s_Data.TextVertexArray, s_Data.TextIndexCount);
             s_Data.stats.drawCalls++;
         }
+        glEnable(GL_CULL_FACE);
     }
 
     void Renderer2D::flushAndReset()

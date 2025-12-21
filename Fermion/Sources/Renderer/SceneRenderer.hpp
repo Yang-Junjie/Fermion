@@ -21,9 +21,13 @@ namespace Fermion
         {
             Camera camera;
             glm::mat4 view;
-            
         };
-
+        struct SceneInfo
+        {
+            SceneRendererCamera sceneCamera;
+            EnvironmentLight sceneEnvironmentLight;
+            bool showSkybox = true;
+        };
         struct Statistics
         {
             uint32_t drawCalls = 0;
@@ -73,6 +77,7 @@ namespace Fermion
         void setScene(std::shared_ptr<Scene> scene) { m_scene = scene; }
         std::shared_ptr<Scene> getScene() const { return m_scene; }
         std::shared_ptr<DebugRenderer> GetDebugRenderer() const { return m_debugRenderer; }
+        SceneInfo &getSceneInfo() { return m_sceneData; }
 
         Statistics getStatistics() const;
 
@@ -90,10 +95,6 @@ namespace Fermion
         std::shared_ptr<TextureCube> m_skybox;
 
         RenderGraph m_RenderGraph;
-        struct SceneInfo
-        {
-            SceneRendererCamera sceneCamera;
-            EnvironmentLight sceneEnvironmentLight;
-        } m_sceneData;
+        SceneInfo m_sceneData;
     };
 }
