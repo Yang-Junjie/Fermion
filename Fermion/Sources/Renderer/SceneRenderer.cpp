@@ -17,7 +17,6 @@ namespace Fermion
 
     void SceneRenderer::beginScene(const EditorCamera &camera)
     {
-
         beginScene({camera, camera.getViewMatrix()});
     }
 
@@ -26,7 +25,7 @@ namespace Fermion
         m_sceneData.sceneCamera = camera;
         m_sceneData.sceneEnvironmentLight = m_scene->m_environmentLight;
         Renderer2D::beginScene(camera.camera, camera.view);
-        Renderer3D::SetCamera(camera.camera, camera.view,m_sceneData.sceneEnvironmentLight);
+        Renderer3D::SetCamera(camera.camera, camera.view, m_sceneData.sceneEnvironmentLight);
     }
 
     void SceneRenderer::endScene()
@@ -134,6 +133,16 @@ namespace Fermion
                  }
              }});
     }
+    void SceneRenderer::SkyboxPass()
+    {
+        m_RenderGraph.AddPass(
+            {.Name = "SkyboxPass",
+             .Execute = [this]()
+             {
+                
+                 Renderer3D::DrawSkybox(m_skybox, m_sceneData.sceneCamera.view, m_sceneData.sceneCamera.camera.getProjection());
+             }});
+    }
     void SceneRenderer::FlushDrawList()
     {
         m_RenderGraph.Reset();
@@ -143,13 +152,5 @@ namespace Fermion
         m_RenderGraph.Execute();
         s_MeshDrawList.clear();
     }
-    void SceneRenderer::SkyboxPass()
-    {
-        m_RenderGraph.AddPass(
-            {.Name = "SkyboxPass",
-             .Execute = [this]()
-             {
-                 Renderer3D::DrawSkybox(m_skybox, m_sceneData.sceneCamera.view, m_sceneData.sceneCamera.camera.getProjection());
-             }});
-    }
+
 }

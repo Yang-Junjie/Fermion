@@ -4,28 +4,34 @@ Entities:
     TagComponent:
       Tag: point light 1
     TransformComponent:
-      Translation: [0, 0, 0]
+      Translation: [0.53, 4.47, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-  - Entity: 453566212955610190
+    PointLightComponent:
+      Color: [0.95366794, 0.9200455, 0.7511516]
+      Intensity: 5.2
+      Range: 10.5
+  - Entity: 18083371750882497292
     TagComponent:
-      Tag: box
+      Tag: point light 2
     TransformComponent:
-      Translation: [-1.7903132, 0.34228724, -1.8031616]
+      Translation: [-2.7744832, 2.12648, 3.481872]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
+    PointLightComponent:
+      Color: [1, 0, 0]
+      Intensity: 3.2
+      Range: 10
   - Entity: 18415657991614262539
     TagComponent:
       Tag: camera
     TransformComponent:
-      Translation: [-2.881117, 0.92701477, 2.483245]
-      Rotation: [-0.2570718, -0.9579456, 2.5905972e-08]
+      Translation: [5.1479063, 5.2297196, 10.267936]
+      Rotation: [-0.4927335, 0.6783251, 0.043075908]
       Scale: [1, 1, 1]
     CameraComponent:
       Camera:
-        ProjectionType: 0
+        ProjectionType: 1
         PerspectiveFOV: 0.7853982
         PerspectiveNear: 0.01
         PerspectiveFar: 100

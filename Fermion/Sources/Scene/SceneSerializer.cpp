@@ -162,6 +162,18 @@ namespace Fermion
 			}
 			out << YAML::EndMap;
 		}
+		if (entity.hasComponent<PointLightComponent>())
+		{
+			out << YAML::Key << "PointLightComponent";
+			out << YAML::BeginMap;
+			auto &pointLightComponent = entity.getComponent<PointLightComponent>();
+			{
+				out << YAML::Key << "Color" << YAML::Value << pointLightComponent.color;
+				out << YAML::Key << "Intensity" << YAML::Value << pointLightComponent.intensity;
+				out << YAML::Key << "Range" << YAML::Value << pointLightComponent.range;
+			}
+			out << YAML::EndMap;
+		}
 		if (entity.hasComponent<CircleRendererComponent>())
 		{
 			out << YAML::Key << "CircleRendererComponent";
@@ -370,7 +382,6 @@ namespace Fermion
 						{
 							src.textureHandle = AssetHandle(handleValue);
 							auto runtimeAssets = Project::getRuntimeAssetManager();
-							// src.texture = runtimeAssets->getAsset<Texture2D>(src.textureHandle);delete
 						}
 					}
 				}
@@ -385,9 +396,20 @@ namespace Fermion
 						{
 							src.meshHandle = AssetHandle(handleValue);
 							auto runtimeAssets = Project::getRuntimeAssetManager();
-							// src.m_Mesh = runtimeAssets->getAsset<Mesh>(src.meshHandle);delete
 						}
 					}
+				}
+
+				auto pointLightComponent = entity["PointLightComponent"];
+				if (pointLightComponent)
+				{
+					auto &plc = deserializedEntity.addComponent<PointLightComponent>();
+					if (auto n = pointLightComponent["Color"]; n)
+						plc.color = n.as<glm::vec3>();
+					if (auto n = pointLightComponent["Intensity"]; n)
+						plc.intensity = n.as<float>();
+					if (auto n = pointLightComponent["Range"]; n)
+						plc.range = n.as<float>();
 				}
 
 				auto materialComponent = entity["MaterialComponent"];
@@ -395,13 +417,9 @@ namespace Fermion
 				{
 					auto &mc = deserializedEntity.addComponent<MaterialComponent>();
 					if (auto n = materialComponent["AmbientColor"]; n)
-					{
 						mc.MaterialInstance->setAmbientColor(n.as<glm::vec4>());
-					}
 					if (auto n = materialComponent["DiffuseColor"]; n)
-					{
 						mc.MaterialInstance->setDiffuseColor(n.as<glm::vec4>());
-					}
 				}
 
 				auto circleRendererComponent = entity["CircleRendererComponent"];
