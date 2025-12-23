@@ -18,10 +18,8 @@ namespace Fermion
 
             s_Logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
 
-            // 调用 SetLevel 来统一设置 logger 和 sink
             SetLevel(level);
 
-            // 错误及以上等级立即刷新
             s_Logger->flush_on(spdlog::level::err);
 
             s_Logger->info("log initialized!");

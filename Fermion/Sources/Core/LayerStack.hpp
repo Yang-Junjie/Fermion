@@ -1,10 +1,4 @@
-﻿/*
-    LayerStack.hpp
-    本头文件定义了 LayerStack 类，用于管理 Layer 的生命周期。
-    是一个栈结构，保证了层之间的调用顺序。
-    除了提供pop和push方法，还有pushOverlay，popOverlay这一般用于ui层
-*/
-#pragma once
+﻿#pragma once
 #include "Layer.hpp"
 #include "fmpch.hpp"
 namespace Fermion
@@ -15,7 +9,7 @@ namespace Fermion
         LayerStack() = default;
         ~LayerStack() = default;
 
-        // 因为 LayerStack 负责管理 Layer 的生命周期，所以这里使用 unique_ptr
+
         void pushLayer(std::unique_ptr<Layer> layer);
         void pushOverlay(std::unique_ptr<Layer> overlay);
         void popLayer(Layer *layer);
