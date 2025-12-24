@@ -1,5 +1,4 @@
-﻿#include "Renderer/Texture.hpp"
-#include "Renderer/Renderer.hpp"
+﻿#include "../Renderer.hpp"
 #include "OpenGLTexture.hpp"
 #include "Texture.hpp"
 namespace Fermion

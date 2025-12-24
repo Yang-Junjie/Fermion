@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "Scene/Entity.hpp"
-#include "Renderer/Texture.hpp"
+#include "Renderer/Texture/Texture.hpp"
 #include <memory>
 
 namespace Fermion

@@ -1,5 +1,5 @@
-#include "SceneCamera.hpp"
 #include "fmpch.hpp"
+#include "SceneCamera.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 namespace Fermion
 {

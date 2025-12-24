@@ -2,7 +2,7 @@
 
 #include <filesystem>
 
-#include "Renderer/Texture.hpp"
+#include "../Texture/Texture.hpp"
 #include "Asset/Asset.hpp"
 
 namespace Fermion

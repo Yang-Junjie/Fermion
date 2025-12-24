@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "AssetImporter.hpp"
-#include "Renderer/Texture.hpp"
+#include "Renderer/Texture/Texture.hpp"
 
 namespace Fermion
 {

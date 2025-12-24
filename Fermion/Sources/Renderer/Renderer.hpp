@@ -1,9 +1,9 @@
 ﻿#pragma once
 #include "fmpch.hpp"
-#include "Renderer/RenderCommand.hpp"
-#include "Renderer/OrthographicCamera.hpp"
-#include "Renderer/Shader.hpp"
-#include "Renderer/RendererConfig.hpp"
+#include "RenderCommand.hpp"
+#include "Camera/OrthographicCamera.hpp"
+#include "Shader.hpp"
+#include "RendererConfig.hpp"
 namespace Fermion
 {
 

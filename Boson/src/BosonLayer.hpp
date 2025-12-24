@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "Fermion.hpp"
 
-#include "Renderer/EditorCamera.hpp"
+#include "Renderer/Camera/EditorCamera.hpp"
 #include "Panels/SceneHierarchyPanel.hpp"
 #include "Panels/ContentBrowserPanel.hpp"
 #include "Panels/AssetManagerPanel.hpp"

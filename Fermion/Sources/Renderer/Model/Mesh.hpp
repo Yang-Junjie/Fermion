@@ -1,9 +1,9 @@
 #pragma once
 #include "fmpch.hpp"
-#include "Buffer.hpp"
-#include "VertexArray.hpp"
-#include "Renderer/Material.hpp"
-#include "Renderer/Texture.hpp"
+#include "../Buffer.hpp"
+#include "../VertexArray.hpp"
+#include "../Texture/Texture.hpp"
+#include "Material.hpp"
 #include "Asset/Asset.hpp"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>

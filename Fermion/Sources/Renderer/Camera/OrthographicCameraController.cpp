@@ -1,5 +1,5 @@
 #include "fmpch.hpp"
-#include "Renderer/OrthographicCameraController.hpp"
+#include "OrthographicCameraController.hpp"
 
 #include "Core/Input.hpp"
 #include "Core/KeyCodes.hpp"

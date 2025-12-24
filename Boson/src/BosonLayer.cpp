@@ -2,7 +2,7 @@
 #include "BosonLayer.hpp"
 #include "Scene/SceneSerializer.hpp"
 #include "Utils/PlatformUtils.hpp"
-#include "Renderer/Font.hpp"
+#include "Renderer/Font/Font.hpp"
 #include "Project/ProjectSerializer.hpp"
 #include "Asset/SceneAsset.hpp"
 #include "Script/ScriptManager.hpp"

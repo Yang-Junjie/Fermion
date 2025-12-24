@@ -1,9 +1,9 @@
 #pragma once
-#include "Renderer/Camera.hpp"
-#include "Renderer/EditorCamera.hpp"
-#include "Renderer/RendererConfig.hpp"
-#include "Renderer/Mesh.hpp"
-#include "Renderer/Material.hpp"
+#include "Camera/Camera.hpp"
+#include "Camera/EditorCamera.hpp"
+#include "RendererConfig.hpp"
+#include "Model/Mesh.hpp"
+#include "Model/Material.hpp"
 #include "Scene/Scene.hpp"
 namespace Fermion
 {

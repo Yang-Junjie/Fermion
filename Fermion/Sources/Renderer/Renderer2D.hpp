@@ -1,11 +1,11 @@
 ﻿#pragma once
-#include "Renderer/OrthographicCameraController.hpp"
-#include "Renderer/Texture.hpp"
-#include "Renderer/SubTexture2D.hpp"
-#include "Renderer/Camera.hpp"
-#include "Renderer/EditorCamera.hpp"
-#include "Renderer/Font.hpp"
-#include "Renderer/RendererConfig.hpp"
+#include "Texture/Texture.hpp"
+#include "Texture/SubTexture2D.hpp"
+#include "Camera/OrthographicCameraController.hpp"
+#include "Camera/Camera.hpp"
+#include "Camera/EditorCamera.hpp"
+#include "Font/Font.hpp"
+#include "RendererConfig.hpp"
 
 namespace Fermion
 {

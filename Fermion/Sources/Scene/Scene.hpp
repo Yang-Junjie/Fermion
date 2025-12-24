@@ -2,9 +2,9 @@
 #include <entt/entt.hpp>
 #include "Core/Timestep.hpp"
 #include "Core/UUID.hpp"
-#include "Renderer/Mesh.hpp"
-#include "Renderer/Material.hpp"
-#include "Renderer/EditorCamera.hpp"
+#include "Renderer/Model/Mesh.hpp"
+#include "Renderer/Model/Material.hpp"
+#include "Renderer/Camera/EditorCamera.hpp"
 #include "Components.hpp"
 #include <box2d/box2d.h>
 namespace Fermion

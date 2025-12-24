@@ -1,12 +1,12 @@
 ﻿#include "fmpch.hpp"
-#include "Renderer/Renderer2D.hpp"
-#include "Renderer/VertexArray.hpp"
-#include "Renderer/Shader.hpp"
-#include "Renderer/RenderCommand.hpp"
+#include "Renderer2D.hpp"
+#include "VertexArray.hpp"
+#include "Shader.hpp"
+#include "RenderCommand.hpp"
 #include "glad/glad.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include "Renderer2D.hpp"
-#include "Renderer/MSDFData.hpp"
+#include "Font/MSDFData.hpp"
 #include <filesystem>
 
 namespace Fermion

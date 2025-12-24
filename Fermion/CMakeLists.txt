@@ -52,16 +52,16 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Renderer/Buffer.cpp
     ${FERMION_DIR}/Renderer/FrameBuffer.cpp
     ${FERMION_DIR}/Renderer/VertexArray.cpp
-    ${FERMION_DIR}/Renderer/OrthographicCamera.cpp
-    ${FERMION_DIR}/Renderer/OrthographicCameraController.cpp
-    ${FERMION_DIR}/Renderer/SceneCamera.cpp
+    ${FERMION_DIR}/Renderer/Camera/OrthographicCamera.cpp
+    ${FERMION_DIR}/Renderer/Camera/OrthographicCameraController.cpp
+    ${FERMION_DIR}/Renderer/Camera/SceneCamera.cpp
+    ${FERMION_DIR}/Renderer/Camera/EditorCamera.cpp
     ${FERMION_DIR}/Renderer/SceneRenderer.cpp
     ${FERMION_DIR}/Renderer/Shader.cpp
-    ${FERMION_DIR}/Renderer/Texture.cpp
-    ${FERMION_DIR}/Renderer/SubTexture2D.cpp
-    ${FERMION_DIR}/Renderer/EditorCamera.cpp
-    ${FERMION_DIR}/Renderer/Font.cpp
-    ${FERMION_DIR}/Renderer/Mesh.cpp
+    ${FERMION_DIR}/Renderer/Texture/Texture.cpp
+    ${FERMION_DIR}/Renderer/Texture/SubTexture2D.cpp
+    ${FERMION_DIR}/Renderer/Font/Font.cpp
+    ${FERMION_DIR}/Renderer/Model/Mesh.cpp
 
     ${FERMION_DIR}/Project/ProJect.cpp
     ${FERMION_DIR}/Project/ProjectSerializer.cpp

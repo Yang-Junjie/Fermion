@@ -1,6 +1,6 @@
 # Fermion
 
-Fermion 是一款基于 Hazel2D 扩展而来的的轻量级游戏引擎。
+Fermion 是一款 C++ 偏现代引擎架构，自研游戏引擎。
 
 ## 命名哲学
 
@@ -63,6 +63,8 @@ cd build
 cmake .. 
 cmake --build . --config Release
 ```
+## 参考
+- [Hazel](https://github.com/TheCherno/Hazel.git) 跟着这个教程走的，后期自己进行扩展
 
 ## 许可证
 

@@ -1,14 +1,14 @@
 ﻿#pragma once
 #include "Scene/Components.hpp"
 #include "Scene/Scene.hpp"
-#include "Renderer/Mesh.hpp"
-#include "Renderer/Material.hpp"
-#include "Renderer/Camera.hpp"
-#include "Renderer/EditorCamera.hpp"
-#include "Renderer/DebugRenderer.hpp"
+#include "Model/Mesh.hpp"
+#include "Model/Material.hpp"
+#include "Camera/Camera.hpp"
+#include "Camera/EditorCamera.hpp"
+#include "DebugRenderer.hpp"
 
-#include "Renderer/RenderPass.hpp"
-#include "Renderer/RenderGraph.hpp"
+#include "RenderPass.hpp"
+#include "RenderGraph.hpp"
 #include <vector>
 
 namespace Fermion

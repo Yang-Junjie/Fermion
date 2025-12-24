@@ -29,8 +29,8 @@
 // Renderer
 #include "Renderer/Buffer.hpp"
 #include "Renderer/GraphicsContext.hpp"
-#include "Renderer/OrthographicCamera.hpp"
-#include "Renderer/OrthographicCameraController.hpp"
+#include "Renderer/Camera/OrthographicCamera.hpp"
+#include "Renderer/Camera/OrthographicCameraController.hpp"
 #include "Renderer/RenderCommand.hpp"
 #include "Renderer/Renderer.hpp"
 #include "Renderer/RendererConfig.hpp"
@@ -39,8 +39,8 @@
 #include "Renderer/SceneRenderer.hpp"
 #include "Renderer/Shader.hpp"
 #include "Renderer/VertexArray.hpp"
-#include "Renderer/Texture.hpp"
-#include "Renderer/SubTexture2D.hpp"
+#include "Renderer/Texture/Texture.hpp"
+#include "Renderer/Texture/SubTexture2D.hpp"
 #include "Renderer/Framebuffer.hpp"
 
 // Project

@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Renderer/Texture.hpp"
+#include "Texture.hpp"
 #include <glm/glm.hpp>
 namespace Fermion
 {

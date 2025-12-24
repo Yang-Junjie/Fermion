@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Renderer/Mesh.hpp"
+#include "Renderer/Model/Mesh.hpp"
 #include "AssetLoader.hpp"
 
 namespace Fermion

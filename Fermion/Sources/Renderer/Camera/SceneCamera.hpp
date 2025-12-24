@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Renderer/Camera.hpp"
+#include "Camera.hpp"
 namespace Fermion
 {
     class SceneCamera : public Camera
