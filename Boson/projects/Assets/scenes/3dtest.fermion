@@ -1,24 +1,69 @@
 Scene: Name
 Entities:
-  - Entity: 18083371750882497292
+  - Entity: 10805386570865572971
     TagComponent:
-      Tag: point light 2
+      Tag: wall2
     TransformComponent:
-      Translation: [-2.7744832, 2.12648, 3.481872]
+      Translation: [-7.225917, 4.9429846, -0.71330893]
       Rotation: [0, 0, 0]
+      Scale: [0.1291333, 5.570305, 8.615625]
+    MeshComponent:
+      MeshHandle: 6460136860035206027
+  - Entity: 6392940558973327213
+    TagComponent:
+      Tag: wall
+    TransformComponent:
+      Translation: [-1.4872234, 4.1506176, -8.085113]
+      Rotation: [0, 0, 0]
+      Scale: [5.660114, 6.3982654, 0.15751807]
+    MeshComponent:
+      MeshHandle: 6460136860035206027
+  - Entity: 5449681077286385480
+    TagComponent:
+      Tag: point light 1
+    TransformComponent:
+      Translation: [-0.82417154, 4.4542003, -0.68561757]
+      Rotation: [0, -0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
-      Color: [1, 0, 0, 1]
+      Color: [0, 0.13127398, 1, 1]
     PointLightComponent:
-      Color: [1, 0, 0]
-      Intensity: 3.2
-      Range: 10
+      Color: [0.03826713, 0.31169114, 0.5830116]
+      Intensity: 5.2
+      Range: 10.5
+    ScriptContainerComponent:
+      ScriptClassNames:
+        - Sandbox.XAxisMove
+  - Entity: 6531917417202799299
+    TagComponent:
+      Tag: car
+    TransformComponent:
+      Translation: [-1.5390024, -0.3609776, 0.73304445]
+      Rotation: [0, 0.7744658, 0]
+      Scale: [0.01, 0.01, 0.01]
+    MeshComponent:
+      MeshHandle: 16584299943829371167
+    ScriptContainerComponent:
+      ScriptClassNames:
+        - Sandbox.ObjController
+  - Entity: 4866263028042920325
+    TagComponent:
+      Tag: obj
+    TransformComponent:
+      Translation: [-1.4294434, -0.39902046, 0]
+      Rotation: [0, 0, 1.5707964]
+      Scale: [0.0851513, 5.653195, 7.970279]
+    MeshComponent:
+      MeshHandle: 6460136860035206027
+    MaterialComponent:
+      AmbientColor: [0.01, 0.01, 0.01, 1]
+      DiffuseColor: [0.2, 0.2, 0.2, 1]
   - Entity: 18415657991614262539
     TagComponent:
       Tag: camera
     TransformComponent:
-      Translation: [5.1479063, 5.2297196, 10.267936]
-      Rotation: [-0.4927335, 0.6783251, 0.043075908]
+      Translation: [8.977794, 8.803601, 15.206821]
+      Rotation: [-0.2961477, 0.6783256, 0.043076396]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
       Color: [0.93436295, 0.17677137, 0.17677137, 0.47058824]
@@ -33,40 +78,19 @@ Entities:
         OrthographicFar: 100
       Primary: true
       FixedAspectRatio: false
-  - Entity: 4866263028042920325
+  - Entity: 18083371750882497292
     TagComponent:
-      Tag: obj
+      Tag: point light 2
     TransformComponent:
-      Translation: [-1.4294434, -0.39902046, 0]
-      Rotation: [0, 0, 1.5707964]
-      Scale: [0.046872836, 5.6532946, 7.970279]
-    MeshComponent:
-      MeshHandle: 6460136860035206027
-    MaterialComponent:
-      AmbientColor: [0.01, 0.01, 0.01, 1]
-      DiffuseColor: [0.2, 0.2, 0.2, 1]
-  - Entity: 6531917417202799299
-    TagComponent:
-      Tag: car
-    TransformComponent:
-      Translation: [-1.5390024, -0.3609776, 0.73304445]
-      Rotation: [0, 0.7744658, 0]
-      Scale: [0.01, 0.01, 0.01]
-    MeshComponent:
-      MeshHandle: 16584299943829371167
-    ScriptContainerComponent:
-      ScriptClassNames:
-        - Sandbox.ObjController
-  - Entity: 5449681077286385480
-    TagComponent:
-      Tag: point light 1
-    TransformComponent:
-      Translation: [0.53, 4.47, 0]
+      Translation: [-2.7722564, 2.0990446, 5.8732452]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
-      Color: [0.65637064, 0.5232981, 0.25089073, 1]
+      Color: [1, 0, 0, 1]
     PointLightComponent:
-      Color: [0.95366794, 0.9200455, 0.7511516]
-      Intensity: 5.2
-      Range: 10.5
+      Color: [1, 0, 0]
+      Intensity: 3.2
+      Range: 10
+    ScriptContainerComponent:
+      ScriptClassNames:
+        - Sandbox.XAxisMove

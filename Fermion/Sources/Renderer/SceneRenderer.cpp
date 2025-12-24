@@ -69,14 +69,20 @@ namespace Fermion
 
     void SceneRenderer::SubmitMesh(MeshComponent &meshComponent, glm::mat4 transform, int objectId, bool drawOutline)
     {
-        auto mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
-        s_MeshDrawList.push_back({mesh, nullptr, transform, objectId, drawOutline});
+        if (static_cast<uint64_t>(meshComponent.meshHandle) != 0)
+        {
+            auto mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
+            s_MeshDrawList.push_back({mesh, nullptr, transform, objectId, drawOutline});
+        }
     }
 
     void SceneRenderer::SubmitMesh(MeshComponent &meshComponent, MaterialComponent &materialComponent, glm::mat4 transform, int objectId, bool drawOutline)
     {
-        auto mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
-        s_MeshDrawList.push_back({mesh, materialComponent.MaterialInstance, transform, objectId, drawOutline});
+        if (static_cast<uint64_t>(meshComponent.meshHandle) != 0)
+        {
+            auto mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
+            s_MeshDrawList.push_back({mesh, materialComponent.MaterialInstance, transform, objectId, drawOutline});
+        }
     }
 
     void SceneRenderer::DrawLine(const glm::vec3 &start, const glm::vec3 &end, const glm::vec4 &color)
