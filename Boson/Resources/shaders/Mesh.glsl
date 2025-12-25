@@ -41,6 +41,7 @@ in vec2 v_TexCoords;
 flat in int v_ObjectID;
 
 #define MAX_POINT_LIGHTS 16
+#define MAX_SPOT_LIGHTS 16
 
 struct PointLight {
     vec3 position;
@@ -49,8 +50,23 @@ struct PointLight {
     float range;
 };
 
+struct SpotLight {
+    vec3 position;
+    vec3 direction;
+
+    vec3 color;
+    float intensity;
+
+    float range;
+    float innerConeAngle;
+    float outerConeAngle;
+};
+
 uniform int u_PointLightCount;
 uniform PointLight u_PointLights[MAX_POINT_LIGHTS];
+
+uniform int u_SpotLightCount;
+uniform SpotLight u_SpotLights[MAX_SPOT_LIGHTS];
 
 uniform bool u_UseTexture;
 uniform sampler2D u_Texture;
@@ -59,7 +75,8 @@ uniform vec4 u_Kd; // diffuse
 uniform vec4 u_Ka; // ambient
 uniform bool u_FlipUV;
 
-void main() {
+void main()
+{
     vec3 normal = normalize(v_Normal);
 
     vec2 uv = v_TexCoords;
@@ -76,7 +93,8 @@ void main() {
     vec3 result = u_Ka.rgb * baseColor;
 
     // Point lights
-    for(int i = 0; i < u_PointLightCount; i++) {
+    for(int i = 0; i < u_PointLightCount; i++)
+    {
         PointLight light = u_PointLights[i];
 
         vec3 L = light.position - v_WorldPos;
@@ -89,13 +107,43 @@ void main() {
 
         float attenuation = 1.0 - distance / light.range;
 
-        vec3 diffuse = light.color *
-            light.intensity *
-            NdotL *
-            attenuation *
-            baseColor;
+        result += light.color *
+                  light.intensity *
+                  NdotL *
+                  attenuation *
+                  baseColor;
+    }
 
-        result += diffuse;
+    // Spot lights
+    for(int i = 0; i < u_SpotLightCount; i++)
+    {
+        SpotLight light = u_SpotLights[i];
+
+        vec3 L = light.position - v_WorldPos;
+        float distance = length(L);
+        if(distance > light.range)
+            continue;
+
+        vec3 lightDir = normalize(L);
+
+        float theta = dot(lightDir, normalize(light.direction));
+        float innerCos = light.innerConeAngle;
+        float outerCos = light.outerConeAngle;
+
+        if(theta < outerCos)
+            continue;
+
+        float spot = clamp((theta - outerCos) / (innerCos - outerCos), 0.0, 1.0);
+
+        float NdotL = max(dot(normal, lightDir), 0.0);
+        float attenuation = 1.0 - distance / light.range;
+
+        result += light.color *
+                  light.intensity *
+                  NdotL *
+                  attenuation *
+                  spot *
+                  baseColor;
     }
 
     o_Color = vec4(result, u_Kd.a);

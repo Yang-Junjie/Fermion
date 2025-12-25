@@ -109,58 +109,13 @@ namespace Fermion
     {
     }
 
-    std::vector<const PointLight *> SelectTopLightsForMesh(
-        const glm::vec3 &meshPosition,
-        const glm::vec3 &meshNormal)
-    {
-        const auto &lights = s_Data.EnvLight.pointLights;
-        struct ScoredLight
-        {
-            const PointLight *light;
-            float score;
-        };
-
-        std::vector<ScoredLight> candidates;
-        candidates.reserve(lights.size());
-
-        for (const auto &light : lights)
-        {
-            glm::vec3 dir = light.position - meshPosition;
-            float dist = glm::length(dir);
-
-
-            float score = light.intensity / (dist * dist + 1.0f);
-
-            score *= std::max(glm::dot(glm::normalize(dir), meshNormal), 0.0f);
-
-            candidates.push_back({&light, score});
-        }
-
-        uint32_t count = std::min(s_Data.maxLights, (uint32_t)candidates.size());
-        std::partial_sort(
-            candidates.begin(),
-            candidates.begin() + count,
-            candidates.end(),
-            [](const ScoredLight &a, const ScoredLight &b)
-            {
-                return a.score > b.score;
-            });
-
-        std::vector<const PointLight *> topLights;
-        topLights.reserve(count);
-        for (uint32_t i = 0; i < count; i++)
-            topLights.push_back(candidates[i].light);
-
-        return topLights;
-    }
-
     void Renderer3D::SetCamera(const Camera &camera,
                                const glm::mat4 &view,
                                const EnvironmentLight &envLight)
     {
         s_Data.ViewProjection = camera.getProjection() * view;
         s_Data.CameraPosition = glm::vec3(glm::inverse(view)[3]);
-        s_Data.EnvLight = envLight; 
+        s_Data.EnvLight = envLight;
 
         s_Data.MeshPipeline->Bind();
         auto meshShader = s_Data.MeshPipeline->GetShader();
@@ -198,20 +153,41 @@ namespace Fermion
         meshShader->setMat4("u_Model", transform);
         meshShader->setInt("u_ObjectID", objectID);
 
-        glm::vec3 meshPosition = glm::vec3(transform[3]);
-        glm::vec3 meshNormal = glm::vec3(0.0f, 1.0f, 0.0f);// TODO: Get from mesh
+        const auto &pointLights = s_Data.EnvLight.pointLights;
+        uint32_t pointCount = std::min(s_Data.maxLights, (uint32_t)pointLights.size());
 
-        auto topLights = SelectTopLightsForMesh(meshPosition, meshNormal);
+        meshShader->setInt("u_PointLightCount", pointCount);
 
-        meshShader->setInt("u_PointLightCount", topLights.size());
-        for (uint32_t i = 0; i < topLights.size(); i++)
+        for (uint32_t i = 0; i < pointCount; i++)
         {
-            const auto &l = *topLights[i];
+            const auto &l = pointLights[i];
             std::string base = "u_PointLights[" + std::to_string(i) + "]";
+
             meshShader->setFloat3(base + ".position", l.position);
             meshShader->setFloat3(base + ".color", l.color);
             meshShader->setFloat(base + ".intensity", l.intensity);
             meshShader->setFloat(base + ".range", l.range);
+        }
+
+        const auto &spotLights = s_Data.EnvLight.spotLights;
+        uint32_t spotCount = std::min(s_Data.maxLights, (uint32_t)spotLights.size());
+
+        meshShader->setInt("u_SpotLightCount", spotCount);
+
+        for (uint32_t i = 0; i < spotCount; i++)
+        {
+            const auto &l = spotLights[i];
+            std::string base = "u_SpotLights[" + std::to_string(i) + "]";
+
+            meshShader->setFloat3(base + ".position", l.position);
+            meshShader->setFloat3(base + ".direction", glm::normalize(l.direction));
+
+            meshShader->setFloat3(base + ".color", l.color);
+            meshShader->setFloat(base + ".intensity", l.intensity);
+
+            meshShader->setFloat(base + ".range", l.range);
+            meshShader->setFloat(base + ".innerConeAngle", l.innerConeAngle);
+            meshShader->setFloat(base + ".outerConeAngle", l.outerConeAngle);
         }
 
         auto &submeshes = mesh->getSubMeshes();
@@ -239,20 +215,41 @@ namespace Fermion
         meshShader->setMat4("u_Model", transform);
         meshShader->setInt("u_ObjectID", objectID);
 
-        glm::vec3 meshPosition = glm::vec3(transform[3]);
-        glm::vec3 meshNormal = glm::vec3(0.0f, 1.0f, 0.0f);// TODO: Get from mesh
+        const auto &pointLights = s_Data.EnvLight.pointLights;
+        uint32_t pointCount = std::min(s_Data.maxLights, (uint32_t)pointLights.size());
 
-        auto topLights = SelectTopLightsForMesh(meshPosition, meshNormal);
+        meshShader->setInt("u_PointLightCount", pointCount);
 
-        meshShader->setInt("u_PointLightCount", topLights.size());
-        for (uint32_t i = 0; i < topLights.size(); i++)
+        for (uint32_t i = 0; i < pointCount; i++)
         {
-            const auto &l = *topLights[i];
+            const auto &l = pointLights[i];
             std::string base = "u_PointLights[" + std::to_string(i) + "]";
+
             meshShader->setFloat3(base + ".position", l.position);
             meshShader->setFloat3(base + ".color", l.color);
             meshShader->setFloat(base + ".intensity", l.intensity);
             meshShader->setFloat(base + ".range", l.range);
+        }
+
+        const auto &spotLights = s_Data.EnvLight.spotLights;
+        uint32_t spotCount = std::min(s_Data.maxLights, (uint32_t)spotLights.size());
+
+        meshShader->setInt("u_SpotLightCount", spotCount);
+
+        for (uint32_t i = 0; i < spotCount; i++)
+        {
+            const auto &l = spotLights[i];
+            std::string base = "u_SpotLights[" + std::to_string(i) + "]";
+
+            meshShader->setFloat3(base + ".position", l.position);
+            meshShader->setFloat3(base + ".direction", glm::normalize(l.direction));
+
+            meshShader->setFloat3(base + ".color", l.color);
+            meshShader->setFloat(base + ".intensity", l.intensity);
+
+            meshShader->setFloat(base + ".range", l.range);
+            meshShader->setFloat(base + ".innerConeAngle", l.innerConeAngle);
+            meshShader->setFloat(base + ".outerConeAngle", l.outerConeAngle);
         }
 
         auto &submeshes = mesh->getSubMeshes();

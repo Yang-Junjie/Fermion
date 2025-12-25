@@ -13,7 +13,7 @@ Entities:
     TagComponent:
       Tag: wall
     TransformComponent:
-      Translation: [-1.4872234, 4.1506176, -8.085113]
+      Translation: [-1.8578986, 4.1506176, -7.8730335]
       Rotation: [0, 0, 0]
       Scale: [5.660114, 6.3982654, 0.15751807]
     MeshComponent:
@@ -22,7 +22,7 @@ Entities:
     TagComponent:
       Tag: point light 1
     TransformComponent:
-      Translation: [-0.82417154, 4.4542003, -0.68561757]
+      Translation: [-1.103147, 4.2909927, -0.66132545]
       Rotation: [0, -0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -94,3 +94,18 @@ Entities:
     ScriptContainerComponent:
       ScriptClassNames:
         - Sandbox.XAxisMove
+  - Entity: 6803040298486315258
+    TagComponent:
+      Tag: spot light
+    TransformComponent:
+      Translation: [1.8950677, 0.51016176, 0.15259476]
+      Rotation: [0.51952535, -0, 0]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0, 0.5366795, 0.107750244, 1]
+    SpotLightComponent:
+      Color: [0.26254833, 1, 0]
+      Intensity: 9.7
+      Range: 14.9
+      Angle: 34
+      Softness: 0.7

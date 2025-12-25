@@ -274,6 +274,32 @@ namespace Fermion
                 }
             }
 
+            // Spot Lights
+            {
+                auto spotLights = m_registry.group<SpotLightComponent>(entt::get<TransformComponent>);
+                m_environmentLight.spotLights.clear();
+                m_environmentLight.spotLights.reserve(spotLights.size());
+
+                for (auto entity : spotLights)
+                {
+                    auto &transform = spotLights.get<TransformComponent>(entity);
+                    auto &spotLight = spotLights.get<SpotLightComponent>(entity);
+
+                    float outerRad = glm::radians(spotLight.angle);
+                    float innerRad = outerRad * (1.0f - spotLight.softness);
+
+                    innerRad = glm::clamp(innerRad, 0.0f, outerRad - 0.001f);
+
+                    m_environmentLight.spotLights.push_back({.position = transform.translation,
+                                                             .direction = transform.getForward(),
+                                                             .color = spotLight.color,
+                                                             .intensity = spotLight.intensity,
+                                                             .range = spotLight.range,
+                                                             .innerConeAngle = glm::cos(innerRad),
+                                                             .outerConeAngle = glm::cos(outerRad)});
+                }
+            }
+
             {
                 auto group = m_registry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
                 for (auto entity : group)
@@ -575,39 +601,65 @@ namespace Fermion
                         }
                     }
 
+                    // Spot Lights
                     {
-                        auto group = m_registry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
-                        for (auto entity : group)
-                        {
-                            auto &transform = group.get<TransformComponent>(entity);
-                            auto &sprite = group.get<SpriteRendererComponent>(entity);
+                        auto spotLights = m_registry.group<SpotLightComponent>(entt::get<TransformComponent>);
+                        m_environmentLight.spotLights.clear();
+                        m_environmentLight.spotLights.reserve(spotLights.size());
 
-                            renderer->drawSprite(transform.getTransform(), sprite, (int)entity);
-                        }
-                    }
-                    {
-                        auto group = m_registry.group<>(entt::get<TransformComponent, CircleRendererComponent>);
-                        for (auto entity : group)
+                        for (auto entity : spotLights)
                         {
-                            auto &transform = group.get<TransformComponent>(entity);
-                            auto &circle = group.get<CircleRendererComponent>(entity);
-                            renderer->drawCircle(transform.getTransform(), circle.color, circle.thickness, circle.fade, (int)entity);
+                            auto &transform = spotLights.get<TransformComponent>(entity);
+                            auto &spotLight = spotLights.get<SpotLightComponent>(entity);
+
+                            float outerRad = glm::radians(spotLight.angle);
+                            float innerRad = outerRad * (1.0f - spotLight.softness);
+
+                            innerRad = glm::clamp(innerRad, 0.0f, outerRad - 0.001f);
+
+                            m_environmentLight.spotLights.push_back({.position = transform.translation,
+                                                                     .direction = transform.getForward(),
+                                                                     .color = spotLight.color,
+                                                                     .intensity = spotLight.intensity,
+                                                                     .range = spotLight.range,
+                                                                     .innerConeAngle = glm::cos(innerRad),
+                                                                     .outerConeAngle = glm::cos(outerRad)});
                         }
                     }
                 }
+            }
 
-                // Debug draw
+            {
+                auto group = m_registry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
+                for (auto entity : group)
                 {
-                    std::shared_ptr<DebugRenderer> debugRenderer = renderer->GetDebugRenderer();
-                    for (auto &&func : debugRenderer->GetRenderQueue())
-                        func(renderer);
-                    debugRenderer->ClearRenderQueue();
-                }
-                // renderer->DrawCube(glm::mat4(1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+                    auto &transform = group.get<TransformComponent>(entity);
+                    auto &sprite = group.get<SpriteRendererComponent>(entity);
 
-                renderer->endScene();
+                    renderer->drawSprite(transform.getTransform(), sprite, (int)entity);
+                }
+            }
+            {
+                auto group = m_registry.group<>(entt::get<TransformComponent, CircleRendererComponent>);
+                for (auto entity : group)
+                {
+                    auto &transform = group.get<TransformComponent>(entity);
+                    auto &circle = group.get<CircleRendererComponent>(entity);
+                    renderer->drawCircle(transform.getTransform(), circle.color, circle.thickness, circle.fade, (int)entity);
+                }
             }
         }
+
+        // Debug draw
+        {
+            std::shared_ptr<DebugRenderer> debugRenderer = renderer->GetDebugRenderer();
+            for (auto &&func : debugRenderer->GetRenderQueue())
+                func(renderer);
+            debugRenderer->ClearRenderQueue();
+        }
+        // renderer->DrawCube(glm::mat4(1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+        renderer->endScene();
     }
 
     void Scene::onViewportResize(uint32_t width, uint32_t height)
@@ -691,5 +743,4 @@ namespace Fermion
     {
         m_stepFrames = frames;
     }
-
 }

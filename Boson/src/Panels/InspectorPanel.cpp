@@ -158,7 +158,8 @@ namespace Fermion
             displayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
             displayAddComponentEntry<MeshComponent>("Mesh");
             displayAddComponentEntry<MaterialComponent>("Material");
-            displayAddComponentEntry<PointLightComponent>("PointLight");
+            displayAddComponentEntry<PointLightComponent>("Point Light");
+            displayAddComponentEntry<SpotLightComponent>("Spot Light");
             displayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
             displayAddComponentEntry<CameraComponent>("Camera");
             displayAddComponentEntry<TextComponent>("Text");
@@ -354,9 +355,21 @@ namespace Fermion
                 } });
         drawComponent<PointLightComponent>("Point Light", entity, [](auto &component)
                                            {
-                                               ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
-                                               ImGui::DragFloat("Intensity", &component.intensity, 0.1f, 0.0f);
-                                               ImGui::DragFloat("Range", &component.range, 0.1f, 0.0f); });
+                ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
+                ImGui::DragFloat("Intensity", &component.intensity, 0.1f, 0.0f);
+                ImGui::DragFloat("Range", &component.range, 0.1f, 0.0f); });
+        drawComponent<SpotLightComponent>("Spot Light", entity, [](auto &c)
+                                          {
+                ImGui::ColorEdit4("Color", glm::value_ptr(c.color));
+                ImGui::DragFloat("Intensity", &c.intensity, 0.1f, 0.0f, 100.0f);
+                ImGui::DragFloat("Range", &c.range, 0.1f, 0.0f, 1000.0f);
+
+                ImGui::Separator();
+                ImGui::Text("Cone");
+
+                ImGui::DragFloat("Angle (deg)", &c.angle, 0.5f, 1.0f, 89.0f);
+                ImGui::DragFloat("Softness", &c.softness, 0.01f, 0.0f, 1.0f, "%.3f"); });
+
         drawComponent<TextComponent>("Text", entity, [](auto &component)
                                      {
 			char buffer[1024]; 

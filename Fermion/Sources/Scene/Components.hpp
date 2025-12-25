@@ -57,6 +57,10 @@ namespace Fermion
             glm::mat4 rotationMatrix = glm::toMat4(glm::quat(rotation));
             return glm::translate(glm::mat4(1.0f), translation) * rotationMatrix * glm::scale(glm::mat4(1.0f), scale);
         }
+        glm::vec3 getForward() const
+        {
+            return glm::normalize(glm::rotate(glm::quat(rotation), glm::vec3(0.0f, 0.0f, -1.0f)));
+        }
     };
 
     struct SpriteRendererComponent
@@ -70,6 +74,7 @@ namespace Fermion
         SpriteRendererComponent(const glm::vec4 &color) : color(color) {}
         SpriteRendererComponent(const SpriteRendererComponent &) = default;
     };
+
     struct MeshComponent
     {
         // std::shared_ptr<Mesh> m_Mesh = nullptr;delete
@@ -234,6 +239,20 @@ namespace Fermion
         PointLightComponent(const PointLightComponent &) = default;
     };
 
+    struct SpotLightComponent
+    {
+        glm::vec3 color{1.0f, 1.0f, 1.0f};
+        float intensity = 1.0f;
+
+        float range = 10.0f;
+
+        float angle = 30.0f;
+        float softness = 0.2f;
+
+        SpotLightComponent() = default;
+        SpotLightComponent(const SpotLightComponent &) = default;
+    };
+
     template <typename... Component>
     struct ComponentGroup
     {
@@ -247,5 +266,9 @@ namespace Fermion
                        NativeScriptComponent,
                        Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, BoxSensor2DComponent,
                        TextComponent,
-                       PointLightComponent>;
+
+                       /* Lighting */
+                       PointLightComponent,
+                       SpotLightComponent
+                       /************/>;
 }

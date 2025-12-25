@@ -20,9 +20,23 @@ namespace Fermion
         float intensity = 1.0f;
         float range = 10.0f;
     };
+    struct SpotLight
+    {
+        glm::vec3 position = {0.0f, 0.0f, 0.0f};
+        glm::vec3 direction{0.0f, -1.0f, 0.0f};
+
+        glm::vec3 color{1.0f, 1.0f, 1.0f};
+        float intensity = 1.0f;
+
+        float range = 10.0f;
+
+        float innerConeAngle = glm::radians(15.0f);
+        float outerConeAngle = glm::radians(25.0f);
+    };
     struct EnvironmentLight
     {
         std::vector<PointLight> pointLights;
+        std::vector<SpotLight> spotLights;
     };
     class Scene
     {

@@ -174,6 +174,20 @@ namespace Fermion
 			}
 			out << YAML::EndMap;
 		}
+		if (entity.hasComponent<SpotLightComponent>())
+		{
+			out << YAML::Key << "SpotLightComponent";
+			out << YAML::BeginMap;
+			auto &spotLightComponent = entity.getComponent<SpotLightComponent>();
+			{
+				out << YAML::Key << "Color" << YAML::Value << spotLightComponent.color;
+				out << YAML::Key << "Intensity" << YAML::Value << spotLightComponent.intensity;
+				out << YAML::Key << "Range" << YAML::Value << spotLightComponent.range;
+				out << YAML::Key << "Angle" << YAML::Value << spotLightComponent.angle;
+				out << YAML::Key << "Softness" << YAML::Value << spotLightComponent.softness;
+			}
+			out << YAML::EndMap;
+		}
 		if (entity.hasComponent<CircleRendererComponent>())
 		{
 			out << YAML::Key << "CircleRendererComponent";
@@ -410,6 +424,24 @@ namespace Fermion
 						plc.intensity = n.as<float>();
 					if (auto n = pointLightComponent["Range"]; n)
 						plc.range = n.as<float>();
+				}
+
+				auto spotLightComponent = entity["SpotLightComponent"];
+				if (spotLightComponent)
+				{
+					auto &splc = deserializedEntity.addComponent<SpotLightComponent>();
+					if (auto n = spotLightComponent["Color"]; n)
+						splc.color = n.as<glm::vec3>();
+					if (auto n = spotLightComponent["Intensity"]; n)
+						splc.intensity = n.as<float>();
+
+					if (auto n = spotLightComponent["Range"])
+						splc.range = n.as<float>();
+
+					if (auto n = spotLightComponent["Angle"]; n)
+						splc.angle = n.as<float>();
+					if (auto n = spotLightComponent["Softness"]; n)
+						splc.softness = n.as<float>();
 				}
 
 				auto materialComponent = entity["MaterialComponent"];

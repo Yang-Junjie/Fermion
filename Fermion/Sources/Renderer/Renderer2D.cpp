@@ -373,6 +373,7 @@ namespace Fermion
     {
         FM_PROFILE_FUNCTION();
 
+        
         glDisable(GL_CULL_FACE);
         // glFrontFace(GL_CCW); 
         // TODO:，当数量大的时候切换为实例化渲染
