@@ -53,9 +53,9 @@ namespace Fermion
 			m_position += getRightDirection() * speed * dt;
 
 		if (Input::isKeyPressed(KeyCode::Space))
-			m_position += getUpDirection() * speed * dt;
+			m_position.y += speed * dt;
 		if (Input::isKeyPressed(KeyCode::LeftShift))
-			m_position -= getUpDirection() * speed * dt;
+			m_position.y -= speed * dt;
 	}
 
 	void EditorCamera::onUpdate(Timestep ts)
