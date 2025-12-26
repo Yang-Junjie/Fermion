@@ -463,6 +463,13 @@ namespace Fermion
         m_viewportFocused = ImGui::IsWindowFocused();
         m_viewportHovered = ImGui::IsWindowHovered();
 
+        ImGuiIO &io = ImGui::GetIO();
+        
+        if (m_viewportFocused && m_viewportHovered)
+            io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableKeyboard;
+        else
+            io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
         Application::get().getImGuiLayer()->blockEvents(!m_viewportFocused || !m_viewportHovered);
 
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
