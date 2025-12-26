@@ -9,7 +9,9 @@
 
 #include "RenderPass.hpp"
 #include "RenderGraph.hpp"
+#include "RenderDrawCommand.hpp"
 #include <vector>
+#include "RenderCommandQueue.hpp"
 
 namespace Fermion
 {
@@ -44,16 +46,6 @@ namespace Fermion
             {
                 return quadCount * 6 + circleCount * 6;
             }
-        };
-
-        struct MeshDrawCommand
-        {
-            std::shared_ptr<Mesh> mesh;
-            std::shared_ptr<Material> material;
-            glm::mat4 transform;
-
-            int objectID = -1;
-            bool drawOutline = false;
         };
 
         SceneRenderer();
@@ -95,6 +87,7 @@ namespace Fermion
         std::shared_ptr<TextureCube> m_skybox;
 
         RenderGraph m_RenderGraph;
+        RenderCommandQueue m_CommandQueue;
         SceneInfo m_sceneData;
     };
 }

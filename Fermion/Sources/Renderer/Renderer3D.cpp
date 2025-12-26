@@ -293,4 +293,49 @@ namespace Fermion
         RenderCommand::drawIndexed(s_Data.cubeVA, 36);
     }
 
+    void Renderer3D::RecordGeometryPass(CommandBuffer &commandBuffer, const std::vector<MeshDrawCommand> &drawCommands)
+    {
+        const auto *commands = &drawCommands;
+        commandBuffer.Record(
+            [commands](RendererAPI &)
+            {
+                for (auto &mesh : *commands)
+                {
+                    if (mesh.material)
+                    {
+                        Renderer3D::DrawMesh(mesh.mesh, mesh.material, mesh.transform, mesh.objectID);
+                    }
+                    else
+                    {
+                        Renderer3D::DrawMesh(mesh.mesh, mesh.transform, mesh.objectID);
+                    }
+                }
+            });
+    }
+
+    void Renderer3D::RecordOutlinePass(CommandBuffer &commandBuffer, const std::vector<MeshDrawCommand> &drawCommands)
+    {
+        const auto *commands = &drawCommands;
+        commandBuffer.Record(
+            [commands](RendererAPI &)
+            {
+                for (auto &mesh : *commands)
+                {
+                    if (mesh.drawOutline)
+                    {
+                        Renderer3D::DrawMeshOutline(mesh.mesh, mesh.transform, mesh.objectID);
+                    }
+                }
+            });
+    }
+
+    void Renderer3D::RecordSkyboxPass(CommandBuffer &commandBuffer, const std::shared_ptr<TextureCube> &cubemap, const glm::mat4 &view, const glm::mat4 &projection)
+    {
+        commandBuffer.Record(
+            [cubemap, view, projection](RendererAPI &)
+            {
+                Renderer3D::DrawSkybox(cubemap, view, projection);
+            });
+    }
+
 }

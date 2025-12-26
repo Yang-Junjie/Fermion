@@ -46,6 +46,9 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Renderer/RenderCommand.cpp
     ${FERMION_DIR}/Renderer/Renderer2D.cpp
     ${FERMION_DIR}/Renderer/Renderer3D.cpp
+    ${FERMION_DIR}/Renderer/CommandBuffer.cpp
+    ${FERMION_DIR}/Renderer/RenderCommandQueue.cpp
+    ${FERMION_DIR}/Renderer/RendererBackend.cpp
     ${FERMION_DIR}/Renderer/Pipeline.cpp
     ${FERMION_DIR}/Renderer/DebugRenderer.cpp
     ${FERMION_DIR}/Renderer/GraphicsContext.cpp

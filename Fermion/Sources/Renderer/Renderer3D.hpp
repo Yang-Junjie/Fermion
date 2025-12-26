@@ -1,7 +1,11 @@
 #pragma once
+#include <vector>
+
 #include "Camera/Camera.hpp"
 #include "Camera/EditorCamera.hpp"
 #include "RendererConfig.hpp"
+#include "Renderer/RenderDrawCommand.hpp"
+#include "Renderer/CommandBuffer.hpp"
 #include "Model/Mesh.hpp"
 #include "Model/Material.hpp"
 #include "Scene/Scene.hpp"
@@ -20,6 +24,10 @@ namespace Fermion
         static void DrawMesh(const std::shared_ptr<Mesh> &mesh, const std::shared_ptr<Material> &material, const glm::mat4 &transform, int objectID = -1);
         static void DrawMeshOutline(const std::shared_ptr<Mesh> &mesh, const glm::mat4 &transform, int objectID = -1);
         static void DrawSkybox(const std::shared_ptr<TextureCube> &cubemap, const glm::mat4 &view, const glm::mat4 &projection);
+
+        static void RecordGeometryPass(CommandBuffer &commandBuffer, const std::vector<MeshDrawCommand> &drawCommands);
+        static void RecordOutlinePass(CommandBuffer &commandBuffer, const std::vector<MeshDrawCommand> &drawCommands);
+        static void RecordSkyboxPass(CommandBuffer &commandBuffer, const std::shared_ptr<TextureCube> &cubemap, const glm::mat4 &view, const glm::mat4 &projection);
 
     };
 

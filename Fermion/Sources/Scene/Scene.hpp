@@ -94,8 +94,10 @@ namespace Fermion
     private:
         void onPhysics2DStart();
         void onPhysics2DStop();
-        void onRenderEditor(std::shared_ptr<SceneRenderer> renderer, EditorCamera &camera, bool showRenderEntities = true);
 
+        void onScriptStart(Timestep ts);
+        void onRenderEditor(std::shared_ptr<SceneRenderer> renderer, EditorCamera &camera, bool showRenderEntities = true);
+    
     private:
         entt::registry m_registry;
         uint32_t m_viewportWidth = 0, m_viewportHeight = 0;

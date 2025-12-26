@@ -1,4 +1,7 @@
-﻿#pragma once
+﻿
+
+// 暂时或可能以后都没用
+#pragma once
 #include "fmpch.hpp"
 #include "RenderCommand.hpp"
 #include "Camera/OrthographicCamera.hpp"

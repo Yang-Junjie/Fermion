@@ -15,7 +15,6 @@ namespace Fermion
 {
     Scene::Scene()
     {
-        // m_TestMesh = std::make_shared<Mesh>("../Boson/projects/Assets/Mesh/Lamborghini_Aventador.obj");
     }
 
     Scene::~Scene()
@@ -260,26 +259,24 @@ namespace Fermion
             // Point Lights
             {
                 auto pointLights = m_registry.group<PointLightComponent>(entt::get<TransformComponent>);
-                m_environmentLight.pointLights.resize(pointLights.size());
-                uint32_t i = 0;
+                m_environmentLight.pointLights.clear();
+                m_environmentLight.pointLights.reserve(pointLights.size());
                 for (auto entity : pointLights)
                 {
                     auto &transform = pointLights.get<TransformComponent>(entity);
                     auto &pointLight = pointLights.get<PointLightComponent>(entity);
-                    m_environmentLight.pointLights[i++] = {
-                        .position = transform.translation,
-                        .color = pointLight.color,
-                        .intensity = pointLight.intensity,
-                        .range = pointLight.range};
+                    m_environmentLight.pointLights.push_back(
+                        {.position = transform.translation,
+                         .color = pointLight.color,
+                         .intensity = pointLight.intensity,
+                         .range = pointLight.range});  
                 }
             }
-
             // Spot Lights
             {
                 auto spotLights = m_registry.group<SpotLightComponent>(entt::get<TransformComponent>);
                 m_environmentLight.spotLights.clear();
                 m_environmentLight.spotLights.reserve(spotLights.size());
-
                 for (auto entity : spotLights)
                 {
                     auto &transform = spotLights.get<TransformComponent>(entity);
@@ -290,13 +287,14 @@ namespace Fermion
 
                     innerRad = glm::clamp(innerRad, 0.0f, outerRad - 0.001f);
 
-                    m_environmentLight.spotLights.push_back({.position = transform.translation,
-                                                             .direction = transform.getForward(),
-                                                             .color = spotLight.color,
-                                                             .intensity = spotLight.intensity,
-                                                             .range = spotLight.range,
-                                                             .innerConeAngle = glm::cos(innerRad),
-                                                             .outerConeAngle = glm::cos(outerRad)});
+                    m_environmentLight.spotLights.push_back(
+                        {.position = transform.translation,
+                         .direction = transform.getForward(),
+                         .color = spotLight.color,
+                         .intensity = spotLight.intensity,
+                         .range = spotLight.range,
+                         .innerConeAngle = glm::cos(innerRad),
+                         .outerConeAngle = glm::cos(outerRad)});
                 }
             }
 
@@ -348,96 +346,77 @@ namespace Fermion
     void Scene::onUpdateSimulation(std::shared_ptr<SceneRenderer> renderer, Timestep ts, EditorCamera &camera, bool showRenderEntities)
     {
         FM_PROFILE_FUNCTION();
+        onScriptStart(ts);
 
-        // Scripts
+        // Physics2D
         {
-
-            auto view = m_registry.view<ScriptContainerComponent>();
-            for (auto e : view)
+            if (!m_isPaused || m_stepFrames-- > 0)
             {
-                Entity entity = {e, this};
-
-                ScriptManager::onUpdateEntity(entity, ts);
-            }
-            m_registry.view<NativeScriptComponent>().each(
-                [=](auto entity, auto &nsc)
+                if (B2_IS_NON_NULL(m_physicsWorld))
                 {
-                    if (!nsc.instance)
+                    b2World_Step(m_physicsWorld, ts.getSeconds(), 4);
+                    b2SensorEvents sensorEvents = b2World_GetSensorEvents(m_physicsWorld);
                     {
-                        nsc.instance = nsc.instantiateScript();
-                        nsc.instance->m_entity = Entity{entity, this};
-                        nsc.instance->onCreate();
-                    }
-                    nsc.instance->onUpdate(ts);
-                });
-        }
-        if (!m_isPaused || m_stepFrames-- > 0)
-        {
-            if (B2_IS_NON_NULL(m_physicsWorld))
-            {
-                b2World_Step(m_physicsWorld, ts.getSeconds(), 4);
+                        auto view = m_registry.view<BoxSensor2DComponent>();
+                        for (auto e : view)
+                        {
+                            Entity entity{e, this};
+                            auto &bs2d = entity.getComponent<BoxSensor2DComponent>();
 
-                b2SensorEvents sensorEvents = b2World_GetSensorEvents(m_physicsWorld);
-                {
-                    auto view = m_registry.view<BoxSensor2DComponent>();
+                            if (!bs2d.runtimeFixture)
+                                continue;
+
+                            uint64_t storedShapeId = (uint64_t)(uintptr_t)bs2d.runtimeFixture;
+                            b2ShapeId myShapeId = b2LoadShapeId(storedShapeId);
+
+                            if (!b2Shape_IsValid(myShapeId))
+                                continue;
+
+                            bs2d.sensorBegin = false;
+                            for (int i = 0; i < sensorEvents.beginCount; ++i)
+                            {
+                                b2SensorBeginTouchEvent *begin = sensorEvents.beginEvents + i;
+                                if (B2_ID_EQUALS(begin->sensorShapeId, myShapeId))
+                                {
+                                    bs2d.sensorBegin = true;
+                                    break;
+                                }
+                            }
+                            bs2d.sensorEnd = false;
+                            for (int i = 0; i < sensorEvents.endCount; ++i)
+                            {
+                                b2SensorEndTouchEvent *end = sensorEvents.endEvents + i;
+                                if (b2Shape_IsValid(end->sensorShapeId) && B2_ID_EQUALS(end->sensorShapeId, myShapeId))
+                                {
+                                    bs2d.sensorEnd = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    auto view = m_registry.view<Rigidbody2DComponent>();
                     for (auto e : view)
                     {
                         Entity entity{e, this};
-                        auto &bs2d = entity.getComponent<BoxSensor2DComponent>();
+                        auto &transform = entity.getComponent<TransformComponent>();
+                        auto &rb2d = entity.getComponent<Rigidbody2DComponent>();
 
-                        if (!bs2d.runtimeFixture)
+                        if (!rb2d.runtimeBody)
                             continue;
 
-                        uint64_t storedShapeId = (uint64_t)(uintptr_t)bs2d.runtimeFixture;
-                        b2ShapeId myShapeId = b2LoadShapeId(storedShapeId);
-
-                        if (!b2Shape_IsValid(myShapeId))
+                        uint64_t storedId = (uint64_t)(uintptr_t)rb2d.runtimeBody;
+                        b2BodyId bodyId = b2LoadBodyId(storedId);
+                        if (!b2Body_IsValid(bodyId))
                             continue;
 
-                        bs2d.sensorBegin = false;
-                        for (int i = 0; i < sensorEvents.beginCount; ++i)
-                        {
-                            b2SensorBeginTouchEvent *begin = sensorEvents.beginEvents + i;
-                            if (B2_ID_EQUALS(begin->sensorShapeId, myShapeId))
-                            {
-                                bs2d.sensorBegin = true;
-                                break;
-                            }
-                        }
-                        bs2d.sensorEnd = false;
-                        for (int i = 0; i < sensorEvents.endCount; ++i)
-                        {
-                            b2SensorEndTouchEvent *end = sensorEvents.endEvents + i;
-                            if (b2Shape_IsValid(end->sensorShapeId) && B2_ID_EQUALS(end->sensorShapeId, myShapeId))
-                            {
-                                bs2d.sensorEnd = true;
-                                break;
-                            }
-                        }
+                        b2Transform xf = b2Body_GetTransform(bodyId);
+
+                        transform.translation.x = xf.p.x;
+                        transform.translation.y = xf.p.y;
+
+                        float angle = atan2f(xf.q.s, xf.q.c);
+                        transform.rotation.z = angle;
                     }
-                }
-                auto view = m_registry.view<Rigidbody2DComponent>();
-                for (auto e : view)
-                {
-                    Entity entity{e, this};
-                    auto &transform = entity.getComponent<TransformComponent>();
-                    auto &rb2d = entity.getComponent<Rigidbody2DComponent>();
-
-                    if (!rb2d.runtimeBody)
-                        continue;
-
-                    uint64_t storedId = (uint64_t)(uintptr_t)rb2d.runtimeBody;
-                    b2BodyId bodyId = b2LoadBodyId(storedId);
-                    if (!b2Body_IsValid(bodyId))
-                        continue;
-
-                    b2Transform xf = b2Body_GetTransform(bodyId);
-
-                    transform.translation.x = xf.p.x;
-                    transform.translation.y = xf.p.y;
-
-                    float angle = atan2f(xf.q.s, xf.q.c);
-                    transform.rotation.z = angle;
                 }
             }
         }
@@ -447,27 +426,9 @@ namespace Fermion
     void Scene::onUpdateRuntime(std::shared_ptr<SceneRenderer> renderer, Timestep ts, bool showRenderEntities)
     {
         FM_PROFILE_FUNCTION();
-        // Scripts
-        {
-            auto view = m_registry.view<ScriptContainerComponent>();
-            for (auto e : view)
-            {
-                Entity entity = {e, this};
 
-                ScriptManager::onUpdateEntity(entity, ts);
-            }
-            m_registry.view<NativeScriptComponent>().each(
-                [=](auto entity, auto &nsc)
-                {
-                    if (!nsc.instance)
-                    {
-                        nsc.instance = nsc.instantiateScript();
-                        nsc.instance->m_entity = Entity{entity, this};
-                        nsc.instance->onCreate();
-                    }
-                    nsc.instance->onUpdate(ts);
-                });
-        }
+        onScriptStart(ts);
+
         // Physics2D
         {
             if (B2_IS_NON_NULL(m_physicsWorld))
@@ -476,11 +437,9 @@ namespace Fermion
                 b2SensorEvents sensorEvents = b2World_GetSensorEvents(m_physicsWorld);
                 {
                     auto view = m_registry.view<BoxSensor2DComponent>();
-
                     for (auto e : view)
                     {
                         Entity entity{e, this};
-
                         auto &bs2d = entity.getComponent<BoxSensor2DComponent>();
 
                         if (!bs2d.runtimeFixture)
@@ -587,26 +546,24 @@ namespace Fermion
                     // Point Lights
                     {
                         auto pointLights = m_registry.group<PointLightComponent>(entt::get<TransformComponent>);
-                        m_environmentLight.pointLights.resize(pointLights.size());
-                        uint32_t i = 0;
+                        m_environmentLight.pointLights.clear();
+                        m_environmentLight.pointLights.reserve(pointLights.size());
                         for (auto entity : pointLights)
                         {
                             auto &transform = pointLights.get<TransformComponent>(entity);
                             auto &pointLight = pointLights.get<PointLightComponent>(entity);
-                            m_environmentLight.pointLights[i++] = {
-                                .position = transform.translation,
-                                .color = pointLight.color,
-                                .intensity = pointLight.intensity,
-                                .range = pointLight.range};
+                            m_environmentLight.pointLights.push_back(
+                                {.position = transform.translation,
+                                 .color = pointLight.color,
+                                 .intensity = pointLight.intensity,
+                                 .range = pointLight.range});
                         }
                     }
-
                     // Spot Lights
                     {
                         auto spotLights = m_registry.group<SpotLightComponent>(entt::get<TransformComponent>);
                         m_environmentLight.spotLights.clear();
                         m_environmentLight.spotLights.reserve(spotLights.size());
-
                         for (auto entity : spotLights)
                         {
                             auto &transform = spotLights.get<TransformComponent>(entity);
@@ -617,13 +574,14 @@ namespace Fermion
 
                             innerRad = glm::clamp(innerRad, 0.0f, outerRad - 0.001f);
 
-                            m_environmentLight.spotLights.push_back({.position = transform.translation,
-                                                                     .direction = transform.getForward(),
-                                                                     .color = spotLight.color,
-                                                                     .intensity = spotLight.intensity,
-                                                                     .range = spotLight.range,
-                                                                     .innerConeAngle = glm::cos(innerRad),
-                                                                     .outerConeAngle = glm::cos(outerRad)});
+                            m_environmentLight.spotLights.push_back(
+                                {.position = transform.translation,
+                                 .direction = transform.getForward(),
+                                 .color = spotLight.color,
+                                 .intensity = spotLight.intensity,
+                                 .range = spotLight.range,
+                                 .innerConeAngle = glm::cos(innerRad),
+                                 .outerConeAngle = glm::cos(outerRad)});
                         }
                     }
                 }
@@ -661,7 +619,28 @@ namespace Fermion
 
         renderer->endScene();
     }
+    void Scene::onScriptStart(Timestep ts)
+    {
+        auto view = m_registry.view<ScriptContainerComponent>();
+        for (auto e : view)
+        {
+            Entity entity = {e, this};
 
+            ScriptManager::onUpdateEntity(entity, ts);
+        }
+
+        m_registry.view<NativeScriptComponent>().each(
+            [=](auto entity, auto &nsc)
+            {
+                if (!nsc.instance)
+                {
+                    nsc.instance = nsc.instantiateScript();
+                    nsc.instance->m_entity = Entity{entity, this};
+                    nsc.instance->onCreate();
+                }
+                nsc.instance->onUpdate(ts);
+            });
+    }
     void Scene::onViewportResize(uint32_t width, uint32_t height)
     {
         m_viewportWidth = width;

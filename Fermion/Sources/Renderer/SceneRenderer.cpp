@@ -1,6 +1,8 @@
 ﻿#include "SceneRenderer.hpp"
 #include "Renderer2D.hpp"
 #include "Renderer3D.hpp"
+#include "Renderer/RendererBackend.hpp"
+#include "Renderer/RenderCommand.hpp"
 #include "Project/Project.hpp"
 namespace Fermion
 {
@@ -105,49 +107,37 @@ namespace Fermion
         result.circleCount = stats2D.circleCount;
         return result;
     }
+    
     void SceneRenderer::GeometryPass()
     {
         m_RenderGraph.AddPass(
             {.Name = "GeometryPass",
-             .Execute = [this]()
+             .Execute = [this](CommandBuffer &commandBuffer)
              {
-                 for (auto &mesh : s_MeshDrawList)
-                 {
-                     if (mesh.material)
-                     {
-                         Renderer3D::DrawMesh(mesh.mesh, mesh.material, mesh.transform, mesh.objectID);
-                     }
-                     else
-                     {
-                         Renderer3D::DrawMesh(mesh.mesh, mesh.transform, mesh.objectID);
-                     }
-                 }
+                 Renderer3D::RecordGeometryPass(commandBuffer, s_MeshDrawList);
              }});
     }
+
     void SceneRenderer::OutlinePass()
     {
         m_RenderGraph.AddPass(
             {.Name = "OutlinePass",
-             .Execute = [this]()
+             .Execute = [this](CommandBuffer &commandBuffer)
              {
-                 for (auto &mesh : s_MeshDrawList)
-                 {
-                     if (mesh.drawOutline)
-                     {
-                         Renderer3D::DrawMeshOutline(mesh.mesh, mesh.transform, mesh.objectID);
-                     }
-                 }
+                 Renderer3D::RecordOutlinePass(commandBuffer, s_MeshDrawList);
              }});
     }
+
     void SceneRenderer::SkyboxPass()
     {
         m_RenderGraph.AddPass(
             {.Name = "SkyboxPass",
-             .Execute = [this]()
+             .Execute = [this](CommandBuffer &commandBuffer)
              {
-                 Renderer3D::DrawSkybox(m_skybox, m_sceneData.sceneCamera.view, m_sceneData.sceneCamera.camera.getProjection());
+                 Renderer3D::RecordSkyboxPass(commandBuffer, m_skybox, m_sceneData.sceneCamera.view, m_sceneData.sceneCamera.camera.getProjection());
              }});
     }
+
     void SceneRenderer::FlushDrawList()
     {
         m_RenderGraph.Reset();
@@ -155,7 +145,8 @@ namespace Fermion
             SkyboxPass();
         OutlinePass();
         GeometryPass();
-        m_RenderGraph.Execute();
+        RendererBackend backend(RenderCommand::GetRendererAPI());
+        m_RenderGraph.Execute(m_CommandQueue, backend);
         s_MeshDrawList.clear();
     }
 

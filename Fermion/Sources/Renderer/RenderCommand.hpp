@@ -52,6 +52,11 @@ namespace Fermion
 			s_rendererAPI->setLineWidth(width);
 		}
 
+		static RendererAPI &GetRendererAPI()
+		{
+			return *s_rendererAPI;
+		}
+
 	private:
 		static std::unique_ptr<RendererAPI> s_rendererAPI;
 	};
