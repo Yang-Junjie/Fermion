@@ -5,8 +5,6 @@
 #include "Core/KeyCodes.hpp"
 #include "Core/MouseCodes.hpp"
 
-#include <glfw/glfw3.h>
-
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
@@ -14,7 +12,8 @@ namespace Fermion
 {
 
 	EditorCamera::EditorCamera(float fov, float aspectRatio, float nearClip, float farClip)
-		: m_fov(fov), m_aspectRatio(aspectRatio), m_nearClip(nearClip), m_farClip(farClip), Camera(glm::perspective(glm::radians(fov), aspectRatio, nearClip, farClip))
+		: m_fov(fov), m_aspectRatio(aspectRatio), m_nearClip(nearClip), m_farClip(farClip),
+		  Camera(glm::perspective(glm::radians(fov), aspectRatio, nearClip, farClip))
 	{
 		updateView();
 	}
@@ -27,44 +26,72 @@ namespace Fermion
 
 	void EditorCamera::updateView()
 	{
-		// m_Yaw = m_Pitch = 0.0f; // Lock the camera's rotation
-		m_position = calculatePosition();
-
 		glm::quat orientation = getOrientation();
-		m_viewMatrix = glm::translate(glm::mat4(1.0f), m_position) * glm::toMat4(orientation);
+
+		if (!m_isFpsMode)
+			m_position = calculatePosition();
+
+		m_viewMatrix =
+			glm::translate(glm::mat4(1.0f), m_position) *
+			glm::toMat4(orientation);
+
 		m_viewMatrix = glm::inverse(m_viewMatrix);
 	}
 
-	std::pair<float, float> EditorCamera::panSpeed() const
+	void EditorCamera::updateFpsCamera(Timestep ts)
 	{
-		float x = std::min(m_viewportWidth / 1000.0f, 2.4f); // max = 2.4f
-		float xFactor = 0.0366f * (x * x) - 0.1778f * x + 0.3021f;
+		float speed = m_fpsMoveSpeed;
+		float dt = ts.getSeconds();
 
-		float y = std::min(m_viewportHeight / 1000.0f, 2.4f); // max = 2.4f
-		float yFactor = 0.0366f * (y * y) - 0.1778f * y + 0.3021f;
+		if (Input::isKeyPressed(KeyCode::W))
+			m_position += getForwardDirection() * speed * dt;
+		if (Input::isKeyPressed(KeyCode::S))
+			m_position -= getForwardDirection() * speed * dt;
+		if (Input::isKeyPressed(KeyCode::A))
+			m_position -= getRightDirection() * speed * dt;
+		if (Input::isKeyPressed(KeyCode::D))
+			m_position += getRightDirection() * speed * dt;
 
-		return {xFactor, yFactor};
-	}
-
-	float EditorCamera::rotationSpeed() const
-	{
-		return 0.8f;
-	}
-
-	float EditorCamera::zoomSpeed() const
-	{
-		float distance = m_distance * 0.2f;
-		distance = std::max(distance, 0.0f);
-		float speed = distance * distance;
-		speed = std::min(speed, 100.0f); // max speed = 100
-		return speed;
+		if (Input::isKeyPressed(KeyCode::Space))
+			m_position += getUpDirection() * speed * dt;
+		if (Input::isKeyPressed(KeyCode::LeftShift))
+			m_position -= getUpDirection() * speed * dt;
 	}
 
 	void EditorCamera::onUpdate(Timestep ts)
 	{
+		glm::vec2 mouse{Input::getMouseX(), Input::getMouseY()};
+
+		// FPS MODE
+		if (Input::isMouseButtonPressed(MouseCode::Right))
+		{
+			if (!m_isFpsMode)
+			{
+				m_isFpsMode = true;
+				m_initialMousePosition = mouse;
+				Input::setCursorMode(CursorMode::Disabled);
+			}
+
+			glm::vec2 delta = (mouse - m_initialMousePosition) * 0.002f;
+			m_initialMousePosition = mouse;
+
+			m_yaw += delta.x;
+			m_pitch += delta.y;
+			m_pitch = glm::clamp(m_pitch, -1.5f, 1.5f);
+
+			updateFpsCamera(ts);
+			updateView();
+			return;
+		}
+		else if (m_isFpsMode)
+		{
+			m_isFpsMode = false;
+			m_focalPoint = m_position + getForwardDirection() * m_distance;
+			Input::setCursorMode(CursorMode::Normal);
+		}
+
 		if (Input::isKeyPressed(KeyCode::LeftAlt))
 		{
-			const glm::vec2 &mouse{Input::getMouseX(), Input::getMouseY()};
 			glm::vec2 delta = (mouse - m_initialMousePosition) * 0.003f;
 			m_initialMousePosition = mouse;
 
@@ -82,13 +109,25 @@ namespace Fermion
 	void EditorCamera::onEvent(IEvent &e)
 	{
 		EventDispatcher dispatcher(e);
-		dispatcher.dispatch<MouseScrolledEvent>([this](MouseScrolledEvent & e){return this->onMouseScroll(e);});
+		dispatcher.dispatch<MouseScrolledEvent>(
+			[this](MouseScrolledEvent &e)
+			{ return onMouseScroll(e); });
 	}
 
 	bool EditorCamera::onMouseScroll(MouseScrolledEvent &e)
 	{
-		float delta = e.getYOffset() * 0.1f;
-		mouseZoom(delta);
+		float delta = e.getYOffset();
+
+		if (m_isFpsMode)
+		{
+			m_fov -= delta * 2.0f;
+			m_fov = glm::clamp(m_fov, 20.0f, 90.0f);
+			updateProjection();
+		}
+		else
+		{
+			mouseZoom(delta * 0.1f);
+		}
 		updateView();
 		return false;
 	}
@@ -119,17 +158,17 @@ namespace Fermion
 
 	glm::vec3 EditorCamera::getUpDirection() const
 	{
-		return glm::rotate(getOrientation(), glm::vec3(0.0f, 1.0f, 0.0f));
+		return glm::rotate(getOrientation(), glm::vec3(0, 1, 0));
 	}
 
 	glm::vec3 EditorCamera::getRightDirection() const
 	{
-		return glm::rotate(getOrientation(), glm::vec3(1.0f, 0.0f, 0.0f));
+		return glm::rotate(getOrientation(), glm::vec3(1, 0, 0));
 	}
 
 	glm::vec3 EditorCamera::getForwardDirection() const
 	{
-		return glm::rotate(getOrientation(), glm::vec3(0.0f, 0.0f, -1.0f));
+		return glm::rotate(getOrientation(), glm::vec3(0, 0, -1));
 	}
 
 	glm::vec3 EditorCamera::calculatePosition() const
@@ -140,6 +179,24 @@ namespace Fermion
 	glm::quat EditorCamera::getOrientation() const
 	{
 		return glm::quat(glm::vec3(-m_pitch, -m_yaw, 0.0f));
+	}
+
+	std::pair<float, float> EditorCamera::panSpeed() const
+	{
+		float x = std::min(m_viewportWidth / 1000.0f, 2.4f);
+		float y = std::min(m_viewportHeight / 1000.0f, 2.4f);
+
+		return {
+			0.0366f * (x * x) - 0.1778f * x + 0.3021f,
+			0.0366f * (y * y) - 0.1778f * y + 0.3021f};
+	}
+
+	float EditorCamera::rotationSpeed() const { return 0.8f; }
+
+	float EditorCamera::zoomSpeed() const
+	{
+		float distance = std::max(m_distance * 0.2f, 0.0f);
+		return std::min(distance * distance, 100.0f);
 	}
 
 }

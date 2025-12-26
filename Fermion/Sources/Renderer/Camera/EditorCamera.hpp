@@ -49,6 +49,7 @@ namespace Fermion
 	private:
 		void updateProjection();
 		void updateView();
+		void updateFpsCamera(Timestep ts);
 
 		bool onMouseScroll(MouseScrolledEvent &e);
 
@@ -75,6 +76,9 @@ namespace Fermion
 		float m_pitch = 0.0f, m_yaw = 0.0f;
 
 		float m_viewportWidth = 1280, m_viewportHeight = 720;
+
+		bool m_isFpsMode = false;
+		float m_fpsMoveSpeed = 5.0f;
 	};
 
 }
