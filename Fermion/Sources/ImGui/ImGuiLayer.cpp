@@ -26,6 +26,10 @@ namespace Fermion
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+        if (m_blockEvents)
+            io.ConfigFlags |= ImGuiConfigFlags_NoKeyboard;
+        else
+            io.ConfigFlags &= ~ImGuiConfigFlags_NoKeyboard;
 
         const char *fontBoldPath = "../Boson/Resources/assets/fonts/opensans/static/OpenSans-Bold.ttf";
         const char *fontRegularPath = "../Boson/Resources/assets/fonts/opensans/static/OpenSans-Regular.ttf";
@@ -146,6 +150,5 @@ namespace Fermion
         colors[ImGuiCol_TitleBg] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
         colors[ImGuiCol_TitleBgActive] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
         colors[ImGuiCol_TitleBgCollapsed] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
-
     }
 }
