@@ -158,6 +158,7 @@ namespace Fermion
             displayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
             displayAddComponentEntry<MeshComponent>("Mesh");
             displayAddComponentEntry<MaterialComponent>("Material");
+            displayAddComponentEntry<DirectionalLightComponent>("Directional Light");
             displayAddComponentEntry<PointLightComponent>("Point Light");
             displayAddComponentEntry<SpotLightComponent>("Spot Light");
             displayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
@@ -353,6 +354,11 @@ namespace Fermion
                 if(drawVec3Control("Diffuse",diffuse,0.0f)){
                     materialInstance->setDiffuseColor(glm::vec4(diffuse,1.0f));
                 } });
+        drawComponent<DirectionalLightComponent>("Directional Light", entity, [](auto &component)
+                                                 {
+            ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
+            ImGui::DragFloat("Intensity", &component.intensity, 0.1f, 0.0f);
+            ImGui::Checkbox("Main Light", &component.mainLight); });
         drawComponent<PointLightComponent>("Point Light", entity, [](auto &component)
                                            {
                 ImGui::ColorEdit4("Color", glm::value_ptr(component.color));

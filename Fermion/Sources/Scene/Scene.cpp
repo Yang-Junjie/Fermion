@@ -256,6 +256,23 @@ namespace Fermion
                     }
                 }
             }
+
+            // Directional Lights
+            {
+                auto directionalLights = m_registry.group<DirectionalLightComponent>(entt::get<TransformComponent>);
+                for (auto entity : directionalLights)
+                {
+                    auto &transform = directionalLights.get<TransformComponent>(entity);
+                    auto &directionalLight = directionalLights.get<DirectionalLightComponent>(entity);
+                    if (directionalLight.mainLight)
+                    {
+                        m_environmentLight.directionalLight =
+                            {.direction = -transform.getForward(),
+                             .color = directionalLight.color,
+                             .intensity = directionalLight.intensity};
+                    }
+                }
+            }
             // Point Lights
             {
                 auto pointLights = m_registry.group<PointLightComponent>(entt::get<TransformComponent>);
@@ -269,7 +286,7 @@ namespace Fermion
                         {.position = transform.translation,
                          .color = pointLight.color,
                          .intensity = pointLight.intensity,
-                         .range = pointLight.range});  
+                         .range = pointLight.range});
                 }
             }
             // Spot Lights
@@ -540,6 +557,22 @@ namespace Fermion
                             else
                             {
                                 renderer->SubmitMesh(mesh, transform.getTransform(), (int)entity);
+                            }
+                        }
+                    }
+                    // Directional Lights
+                    {
+                        auto directionalLights = m_registry.group<DirectionalLightComponent>(entt::get<TransformComponent>);
+                        for (auto entity : directionalLights)
+                        {
+                            auto &transform = directionalLights.get<TransformComponent>(entity);
+                            auto &directionalLight = directionalLights.get<DirectionalLightComponent>(entity);
+                            if (directionalLight.mainLight)
+                            {
+                                m_environmentLight.directionalLight =
+                                    {.direction = -transform.getForward(),
+                                     .color = directionalLight.color,
+                                     .intensity = directionalLight.intensity};
                             }
                         }
                     }

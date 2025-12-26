@@ -33,10 +33,20 @@ namespace Fermion
         float innerConeAngle = glm::radians(15.0f);
         float outerConeAngle = glm::radians(25.0f);
     };
+
+    struct DirectionalLight
+    {
+        glm::vec3 direction{0.0f, -1.0f, 0.0f};
+        glm::vec3 color{1.0f, 1.0f, 1.0f};
+        float intensity = 1.0f;
+    };
+
     struct EnvironmentLight
     {
+        DirectionalLight directionalLight;
         std::vector<PointLight> pointLights;
         std::vector<SpotLight> spotLights;
+
     };
     class Scene
     {
@@ -97,7 +107,7 @@ namespace Fermion
 
         void onScriptStart(Timestep ts);
         void onRenderEditor(std::shared_ptr<SceneRenderer> renderer, EditorCamera &camera, bool showRenderEntities = true);
-    
+
     private:
         entt::registry m_registry;
         uint32_t m_viewportWidth = 0, m_viewportHeight = 0;
@@ -108,8 +118,13 @@ namespace Fermion
 
         EnvironmentLight m_environmentLight;
         b2WorldId m_physicsWorld = b2_nullWorldId;
+
+        bool m_hasDirectionalLight = false;
+
         std::unordered_map<UUID, entt::entity> m_entityMap;
         std::unordered_map<UUID, b2BodyId> m_physicsBodyMap;
+
+
         friend class Entity;
         friend class SceneRenderer;
         friend class SceneSerializer;

@@ -62,11 +62,19 @@ struct SpotLight {
     float outerConeAngle;
 };
 
+struct DirectionalLight {
+    vec3 direction;
+    vec3 color;
+    float intensity;
+};
+
 uniform int u_PointLightCount;
 uniform PointLight u_PointLights[MAX_POINT_LIGHTS];
 
 uniform int u_SpotLightCount;
 uniform SpotLight u_SpotLights[MAX_SPOT_LIGHTS];
+
+uniform DirectionalLight u_DirectionalLight; // 只支持一个
 
 uniform bool u_UseTexture;
 uniform sampler2D u_Texture;
@@ -91,6 +99,11 @@ void main()
 
     // Ambient
     vec3 result = u_Ka.rgb * baseColor;
+
+    // Directional light
+    vec3 dirLightDir = normalize(-u_DirectionalLight.direction); // 方向光方向指向片元
+    float NdotL = max(dot(normal, dirLightDir), 0.0);
+    result += u_DirectionalLight.color * u_DirectionalLight.intensity * NdotL * baseColor;
 
     // Point lights
     for(int i = 0; i < u_PointLightCount; i++)

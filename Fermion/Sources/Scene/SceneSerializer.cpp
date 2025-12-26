@@ -162,6 +162,18 @@ namespace Fermion
 			}
 			out << YAML::EndMap;
 		}
+		if (entity.hasComponent<DirectionalLightComponent>())
+		{
+			out << YAML::Key << "DirectionalLightComponent";
+			out << YAML::BeginMap;
+			auto &directionalLightComponent = entity.getComponent<DirectionalLightComponent>();
+			{
+				out << YAML::Key << "Color" << YAML::Value << directionalLightComponent.color;
+				out << YAML::Key << "Intensity" << YAML::Value << directionalLightComponent.intensity;
+				out << YAML::Key << "MainLight" << YAML::Value << directionalLightComponent.mainLight;
+			}
+			out << YAML::EndMap;
+		}
 		if (entity.hasComponent<PointLightComponent>())
 		{
 			out << YAML::Key << "PointLightComponent";
@@ -412,6 +424,17 @@ namespace Fermion
 							auto runtimeAssets = Project::getRuntimeAssetManager();
 						}
 					}
+				}
+				auto directionalLightComponent = entity["DirectionalLightComponent"];
+				if (directionalLightComponent)
+				{
+					auto &dlc = deserializedEntity.addComponent<DirectionalLightComponent>();
+					if (auto n = directionalLightComponent["Color"]; n)
+						dlc.color = n.as<glm::vec3>();
+					if (auto n = directionalLightComponent["Intensity"]; n)
+						dlc.intensity = n.as<float>();
+					if (auto n = directionalLightComponent["MainLight"]; n)
+						dlc.mainLight = n.as<bool>();
 				}
 
 				auto pointLightComponent = entity["PointLightComponent"];

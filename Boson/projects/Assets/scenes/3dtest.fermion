@@ -1,14 +1,27 @@
 Scene: Name
 Entities:
+  - Entity: 1669450970559933596
+    TagComponent:
+      Tag: dir light
+    TransformComponent:
+      Translation: [2.9229147, 2.4668949, 15.451881]
+      Rotation: [-0.152254, 0.4840836, -8.838654e-08]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+    DirectionalLightComponent:
+      Color: [1, 1, 1]
+      Intensity: 0.6
+      MainLight: true
   - Entity: 6803040298486315258
     TagComponent:
       Tag: spot light
     TransformComponent:
-      Translation: [1.8950677, 0.51016176, 0.15259476]
+      Translation: [1.8950677, 6.4491205, -4.432129]
       Rotation: [0.51952535, -0, 0]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
-      Color: [0, 0.5366795, 0.107750244, 1]
+      Color: [0, 0.5372549, 0.105882354, 0.43529412]
     SpotLightComponent:
       Color: [0.26254833, 1, 0]
       Intensity: 9.7

@@ -153,9 +153,17 @@ namespace Fermion
         meshShader->setMat4("u_Model", transform);
         meshShader->setInt("u_ObjectID", objectID);
 
+        {
+            const auto &dirLight = s_Data.EnvLight.directionalLight;
+
+            glm::vec3 dir = -dirLight.direction; // 注意：光照方向指向场景
+            meshShader->setFloat3("u_DirectionalLight.direction", dir);
+            meshShader->setFloat3("u_DirectionalLight.color", dirLight.color);
+            meshShader->setFloat("u_DirectionalLight.intensity", dirLight.intensity);
+        }
+
         const auto &pointLights = s_Data.EnvLight.pointLights;
         uint32_t pointCount = std::min(s_Data.maxLights, (uint32_t)pointLights.size());
-
         meshShader->setInt("u_PointLightCount", pointCount);
 
         for (uint32_t i = 0; i < pointCount; i++)
@@ -214,6 +222,15 @@ namespace Fermion
         auto meshShader = s_Data.MeshPipeline->GetShader();
         meshShader->setMat4("u_Model", transform);
         meshShader->setInt("u_ObjectID", objectID);
+
+        {
+            const auto &dirLight = s_Data.EnvLight.directionalLight;
+
+            glm::vec3 dir = -dirLight.direction; // 注意：光照方向指向场景
+            meshShader->setFloat3("u_DirectionalLight.direction", dir);
+            meshShader->setFloat3("u_DirectionalLight.color", dirLight.color);
+            meshShader->setFloat("u_DirectionalLight.intensity", dirLight.intensity);
+        }
 
         const auto &pointLights = s_Data.EnvLight.pointLights;
         uint32_t pointCount = std::min(s_Data.maxLights, (uint32_t)pointLights.size());

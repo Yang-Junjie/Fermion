@@ -229,6 +229,17 @@ namespace Fermion
         CircleCollider2DComponent(const CircleCollider2DComponent &) = default;
     };
 
+    struct DirectionalLightComponent
+    {
+        glm::vec3 color{1.0f, 1.0f, 1.0f};
+        float intensity = 1.0f;
+
+        bool mainLight = false;
+
+        DirectionalLightComponent() = default;
+        DirectionalLightComponent(const DirectionalLightComponent &) = default;
+    };
+
     struct PointLightComponent
     {
         glm::vec3 color{1.0f, 1.0f, 1.0f};
@@ -269,6 +280,7 @@ namespace Fermion
 
                        /* Lighting */
                        PointLightComponent,
-                       SpotLightComponent
+                       SpotLightComponent,
+                       DirectionalLightComponent
                        /************/>;
 }

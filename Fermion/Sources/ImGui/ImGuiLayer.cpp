@@ -26,10 +26,6 @@ namespace Fermion
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-        if (m_blockEvents)
-            io.ConfigFlags |= ImGuiConfigFlags_NoKeyboard;
-        else
-            io.ConfigFlags &= ~ImGuiConfigFlags_NoKeyboard;
 
         const char *fontBoldPath = "../Boson/Resources/assets/fonts/opensans/static/OpenSans-Bold.ttf";
         const char *fontRegularPath = "../Boson/Resources/assets/fonts/opensans/static/OpenSans-Regular.ttf";
