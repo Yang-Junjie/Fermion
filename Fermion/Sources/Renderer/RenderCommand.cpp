@@ -3,6 +3,6 @@
 
 namespace Fermion {
 
-	std::unique_ptr<RendererAPI> RenderCommand::s_rendererAPI = RendererAPI::create();
+std::unique_ptr<RendererAPI> RenderCommand::s_rendererAPI = RendererAPI::create();
 
 }

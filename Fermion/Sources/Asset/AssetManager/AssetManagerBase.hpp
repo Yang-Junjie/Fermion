@@ -3,48 +3,39 @@
 #include "../AssetManager.hpp"
 
 // 现在EditorAssetManager和RuntimeAssetManager的实现没有任何差异，后期划分职责
-namespace Fermion
-{
-    class AssetManagerBase
-    {
-    public:
-        AssetManagerBase() = default;
-        virtual ~AssetManagerBase() = default;
-        
-        void init(const std::filesystem::path &assetDirectory)
-        {
-            AssetManager::init(assetDirectory);
-        }
+namespace Fermion {
+class AssetManagerBase {
+public:
+    AssetManagerBase() = default;
+    virtual ~AssetManagerBase() = default;
 
-        void shutdown()
-        {
-            AssetManager::shutdown();
-        }
+    void init(const std::filesystem::path &assetDirectory) {
+        AssetManager::init(assetDirectory);
+    }
 
-        template <typename T>
-        std::shared_ptr<T> getAsset(AssetHandle handle)
-        {
-            return AssetManager::getAsset<T>(handle);
-        }
+    void shutdown() {
+        AssetManager::shutdown();
+    }
 
-        bool isAssetLoaded(AssetHandle handle)
-        {
-            return AssetManager::isAssetLoaded(handle);
-        }
+    template <typename T>
+    std::shared_ptr<T> getAsset(AssetHandle handle) {
+        return AssetManager::getAsset<T>(handle);
+    }
 
-        void reloadAsset(AssetHandle handle)
-        {
-            AssetManager::reloadAsset(handle);
-        }
+    bool isAssetLoaded(AssetHandle handle) {
+        return AssetManager::isAssetLoaded(handle);
+    }
 
-        void unloadAsset(AssetHandle handle)
-        {
-            AssetManager::unloadAsset(handle);
-        }
+    void reloadAsset(AssetHandle handle) {
+        AssetManager::reloadAsset(handle);
+    }
 
-        AssetHandle importAsset(const std::filesystem::path &path)
-        {
-            return AssetManager::importAsset(path);
-        }
-    };
-}
+    void unloadAsset(AssetHandle handle) {
+        AssetManager::unloadAsset(handle);
+    }
+
+    AssetHandle importAsset(const std::filesystem::path &path) {
+        return AssetManager::importAsset(path);
+    }
+};
+} // namespace Fermion

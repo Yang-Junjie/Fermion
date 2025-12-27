@@ -9,29 +9,29 @@
 #include "Events/KeyEvent.hpp"
 #include "Events/MouseEvent.hpp"
 #include <GLFW/glfw3.h>
-namespace Fermion
-{
-    class ImGuiLayer : public Layer
-    {
-    public:
-        ImGuiLayer(void *nativeWindow);
-        ~ImGuiLayer() = default;
+namespace Fermion {
+class ImGuiLayer : public Layer {
+public:
+    ImGuiLayer(void *nativeWindow);
+    ~ImGuiLayer() = default;
 
-        virtual void onAttach() override;
-        virtual void onDetach() override;
+    virtual void onAttach() override;
+    virtual void onDetach() override;
 
-        virtual void onEvent(IEvent &e) override;
-        virtual void onImGuiRender() override;
-        
-        void begin();
-        void end();
+    virtual void onEvent(IEvent &e) override;
+    virtual void onImGuiRender() override;
 
-        void blockEvents(bool block) { m_blockEvents = block; }
+    void begin();
+    void end();
 
-        void setDarkThemeColors();
+    void blockEvents(bool block) {
+        m_blockEvents = block;
+    }
 
-    private:
-        bool m_blockEvents = true;
-        GLFWwindow *m_window;
-    };
-}
+    void setDarkThemeColors();
+
+private:
+    bool m_blockEvents = true;
+    GLFWwindow *m_window;
+};
+} // namespace Fermion

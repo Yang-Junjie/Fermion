@@ -3,15 +3,13 @@
 #include <filesystem>
 #include <string>
 
-namespace Fermion
-{
-    struct AssetMetadata
-    {
-        AssetHandle Handle;
-        AssetType Type;
-        std::filesystem::path FilePath;
-        std::string Name;
+namespace Fermion {
+struct AssetMetadata {
+    AssetHandle Handle;
+    AssetType Type;
+    std::filesystem::path FilePath;
+    std::string Name;
 
-        bool MemoryOnly = false;
-    };
-}
+    bool MemoryOnly = false;
+};
+} // namespace Fermion

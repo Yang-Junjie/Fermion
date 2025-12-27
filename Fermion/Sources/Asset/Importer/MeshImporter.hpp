@@ -2,14 +2,12 @@
 
 #include "AssetImporter.hpp"
 
-namespace Fermion
-{
-    class MeshImporter : public AssetImporter
-    {
-    public:
-        AssetMetadata importAsset(const std::filesystem::path &assetPath) override;
+namespace Fermion {
+class MeshImporter : public AssetImporter {
+public:
+    AssetMetadata importAsset(const std::filesystem::path &assetPath) override;
 
-    private:
-        AssetMetadata m_Metadata;
-    };
-}
+private:
+    AssetMetadata m_Metadata;
+};
+} // namespace Fermion

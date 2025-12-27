@@ -1,8 +1,6 @@
 ﻿#include "Core/Application.hpp"
 
-int main(int argc, char** argv)
-{
-
+int main(int argc, char **argv) {
     Fermion::Log::Init("engine.log", Fermion::LogLevel::Debug);
     FM_PROFILE_BEGIN_SESSION("Startup", "FermionProfile-Startup.json");
     const auto app = Fermion::createApplication(argc, argv);

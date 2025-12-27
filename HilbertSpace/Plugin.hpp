@@ -1,29 +1,26 @@
 #pragma once
-namespace Fermion
-{
-    enum class PluginDomain
-    {
-        None,
-        Editor,
-        Runtime
-    };
-    
-    struct PluginSpecation
-    {
-        const char *name;
-        PluginDomain domain;
-        uint32_t version;
-    };
+#include <stdint.h>
+namespace Fermion {
+enum class PluginDomain {
+    None,
+    Editor,
+    Runtime
+};
 
-    class IPlugin
-    {
-    public:
-        virtual ~IPlugin() = default;
+struct PluginSpecation {
+    const char *name;
+    PluginDomain domain;
+    uint32_t version;
+};
 
-        virtual void onLoad() = 0;
-        virtual void onUnload() = 0;
+class IPlugin {
+public:
+    virtual ~IPlugin() = default;
 
-        virtual const PluginSpecation &getSpecation() const = 0;
-    };
+    virtual void onLoad() = 0;
+    virtual void onUnload() = 0;
 
-}
+    virtual const PluginSpecation &getSpecation() const = 0;
+};
+
+} // namespace Fermion

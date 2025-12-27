@@ -5,8 +5,7 @@
 
 #include <filesystem>
 
-class NeutrinoLayer : public Fermion::Layer
-{
+class NeutrinoLayer : public Fermion::Layer {
 public:
     explicit NeutrinoLayer();
 

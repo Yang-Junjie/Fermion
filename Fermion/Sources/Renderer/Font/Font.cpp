@@ -6,116 +6,104 @@
 #include <FontGeometry.h>
 #include <GlyphGeometry.h>
 
-#include "Renderer/MSDFData.hpp"
+#include "Renderer/Font/MSDFData.hpp"
 
-namespace Fermion
-{
+namespace Fermion {
 
-    template <typename T, typename S, int N, msdf_atlas::GeneratorFunction<S, N> GenFunc>
-    static std::shared_ptr<Texture2D> createAndCacheAtlas(const std::string &fontName, float fontSize, const std::vector<msdf_atlas::GlyphGeometry> &glyphs,
-                                                          const msdf_atlas::FontGeometry &fontGeometry, uint32_t width, uint32_t height)
-    {
-        msdf_atlas::GeneratorAttributes attributes;
-        attributes.config.overlapSupport = true;
-        attributes.scanlinePass = true;
+template <typename T, typename S, int N, msdf_atlas::GeneratorFunction<S, N> GenFunc>
+static std::shared_ptr<Texture2D> createAndCacheAtlas(const std::string &fontName, float fontSize, const std::vector<msdf_atlas::GlyphGeometry> &glyphs,
+                                                      const msdf_atlas::FontGeometry &fontGeometry, uint32_t width, uint32_t height) {
+    msdf_atlas::GeneratorAttributes attributes;
+    attributes.config.overlapSupport = true;
+    attributes.scanlinePass = true;
 
-        msdf_atlas::ImmediateAtlasGenerator<S, N, GenFunc, msdf_atlas::BitmapAtlasStorage<T, N>> generator(width, height);
-        generator.setAttributes(attributes);
-        generator.setThreadCount(8);
-        generator.generate(glyphs.data(), (int)glyphs.size());
+    msdf_atlas::ImmediateAtlasGenerator<S, N, GenFunc, msdf_atlas::BitmapAtlasStorage<T, N>> generator(width, height);
+    generator.setAttributes(attributes);
+    generator.setThreadCount(8);
+    generator.generate(glyphs.data(), (int)glyphs.size());
 
-        msdfgen::BitmapConstRef<T, N> bitmap = (msdfgen::BitmapConstRef<T, N>)generator.atlasStorage();
+    msdfgen::BitmapConstRef<T, N> bitmap = (msdfgen::BitmapConstRef<T, N>)generator.atlasStorage();
 
-        TextureSpecification spec;
-        spec.Width = bitmap.width;
-        spec.Height = bitmap.height;
-        spec.Format = ImageFormat::RGB8;
-        spec.GenerateMips = false;
+    TextureSpecification spec;
+    spec.Width = bitmap.width;
+    spec.Height = bitmap.height;
+    spec.Format = ImageFormat::RGB8;
+    spec.GenerateMips = false;
 
-        std::shared_ptr<Texture2D> texture = Texture2D::create(spec);
-        texture->setData((void *)bitmap.pixels, bitmap.width * bitmap.height * 3);
-        return texture;
+    std::shared_ptr<Texture2D> texture = Texture2D::create(spec);
+    texture->setData((void *)bitmap.pixels, bitmap.width * bitmap.height * 3);
+    return texture;
+}
+
+Font::Font(const std::filesystem::path &filepath) : m_data(new MSDFData()) {
+    msdfgen::FreetypeHandle *ft = msdfgen::initializeFreetype();
+    FERMION_ASSERT(ft, "Failed to initialize freetype");
+
+    std::string fileString = filepath.string();
+
+    // TODO(Yan): msdfgen::loadFontData loads from memory buffer which we'll need
+    msdfgen::FontHandle *font = msdfgen::loadFont(ft, fileString.c_str());
+    if (!font) {
+        Log::Error(std::format("Failed to load font: {}", fileString));
+        return;
     }
 
-    Font::Font(const std::filesystem::path &filepath)
-        : m_data(new MSDFData())
-    {
-        msdfgen::FreetypeHandle *ft = msdfgen::initializeFreetype();
-        FERMION_ASSERT(ft, "Failed to initialize freetype");
+    struct CharsetRange {
+        uint32_t Begin, End;
+    };
 
-        std::string fileString = filepath.string();
-
-        // TODO(Yan): msdfgen::loadFontData loads from memory buffer which we'll need
-        msdfgen::FontHandle *font = msdfgen::loadFont(ft, fileString.c_str());
-        if (!font)
+    // From imgui_draw.cpp
+    static const CharsetRange charsetRanges[] =
         {
-            Log::Error(std::format("Failed to load font: {}", fileString));
-            return;
-        }
+            {0x0020, 0x00FF}};
 
-        struct CharsetRange
-        {
-            uint32_t Begin, End;
-        };
+    msdf_atlas::Charset charset;
+    for (CharsetRange range : charsetRanges) {
+        for (uint32_t c = range.Begin; c <= range.End; c++)
+            charset.add(c);
+    }
 
-        // From imgui_draw.cpp
-        static const CharsetRange charsetRanges[] =
-            {
-                {0x0020, 0x00FF}};
+    double fontScale = 1.0;
+    m_data->fontGeometry = msdf_atlas::FontGeometry(&m_data->glyphs);
+    int glyphsLoaded = m_data->fontGeometry.loadCharset(font, fontScale, charset);
+    Log::Info(std::format("Loaded {} glyphs from font (out of {})", glyphsLoaded, charset.size()));
 
-        msdf_atlas::Charset charset;
-        for (CharsetRange range : charsetRanges)
-        {
-            for (uint32_t c = range.Begin; c <= range.End; c++)
-                charset.add(c);
-        }
+    double emSize = 40.0;
 
-        double fontScale = 1.0;
-        m_data->fontGeometry = msdf_atlas::FontGeometry(&m_data->glyphs);
-        int glyphsLoaded = m_data->fontGeometry.loadCharset(font, fontScale, charset);
-        Log::Info(std::format("Loaded {} glyphs from font (out of {})", glyphsLoaded, charset.size()));
+    msdf_atlas::TightAtlasPacker atlasPacker;
+    atlasPacker.setPixelRange(2.0);
+    atlasPacker.setMiterLimit(1.0);
+    atlasPacker.setScale(emSize);
+    int remaining = atlasPacker.pack(m_data->glyphs.data(), (int)m_data->glyphs.size());
+    FERMION_ASSERT(remaining == 0, "Failed to pack font");
 
-        double emSize = 40.0;
-
-        msdf_atlas::TightAtlasPacker atlasPacker;
-        atlasPacker.setPixelRange(2.0);
-        atlasPacker.setMiterLimit(1.0);
-        atlasPacker.setScale(emSize);
-        int remaining = atlasPacker.pack(m_data->glyphs.data(), (int)m_data->glyphs.size());
-        FERMION_ASSERT(remaining == 0, "Failed to pack font");
-
-        int width, height;
-        atlasPacker.getDimensions(width, height);
-        emSize = atlasPacker.getScale();
+    int width, height;
+    atlasPacker.getDimensions(width, height);
+    emSize = atlasPacker.getScale();
 
 #define DEFAULT_ANGLE_THRESHOLD 3.0
 #define LCG_MULTIPLIER 6364136223846793005ull
 #define LCG_INCREMENT 1442695040888963407ull
 #define THREAD_COUNT 8
-        // if MSDF || MTSDF
+    // if MSDF || MTSDF
 
-        uint64_t coloringSeed = 0;
-        bool expensiveColoring = false;
-        if (expensiveColoring)
-        {
-            msdf_atlas::Workload([&glyphs = m_data->glyphs, &coloringSeed](int i, int threadNo) -> bool
-                                 {
+    uint64_t coloringSeed = 0;
+    bool expensiveColoring = false;
+    if (expensiveColoring) {
+        msdf_atlas::Workload([&glyphs = m_data->glyphs, &coloringSeed](int i, int threadNo) -> bool {
 				unsigned long long glyphSeed = (LCG_MULTIPLIER * (coloringSeed ^ i) + LCG_INCREMENT) * !!coloringSeed;
 				glyphs[i].edgeColoring(msdfgen::edgeColoringInkTrap, DEFAULT_ANGLE_THRESHOLD, glyphSeed);
 				return true; }, m_data->glyphs.size())
-                .finish(THREAD_COUNT);
+            .finish(THREAD_COUNT);
+    } else {
+        unsigned long long glyphSeed = coloringSeed;
+        for (msdf_atlas::GlyphGeometry &glyph : m_data->glyphs) {
+            glyphSeed *= LCG_MULTIPLIER;
+            glyph.edgeColoring(msdfgen::edgeColoringInkTrap, DEFAULT_ANGLE_THRESHOLD, glyphSeed);
         }
-        else
-        {
-            unsigned long long glyphSeed = coloringSeed;
-            for (msdf_atlas::GlyphGeometry &glyph : m_data->glyphs)
-            {
-                glyphSeed *= LCG_MULTIPLIER;
-                glyph.edgeColoring(msdfgen::edgeColoringInkTrap, DEFAULT_ANGLE_THRESHOLD, glyphSeed);
-            }
-        }
+    }
 
-        m_atlasTexture = createAndCacheAtlas<uint8_t, float, 3, msdf_atlas::msdfGenerator>("Test", (float)emSize, m_data->glyphs, m_data->fontGeometry, width, height);
+    m_atlasTexture = createAndCacheAtlas<uint8_t, float, 3, msdf_atlas::msdfGenerator>("Test", (float)emSize, m_data->glyphs, m_data->fontGeometry, width, height);
 
 #if 0
 		msdfgen::Shape shape;
@@ -132,22 +120,20 @@ namespace Fermion
 		}
 #endif
 
-        msdfgen::destroyFont(font);
-        msdfgen::deinitializeFreetype(ft);
-    }
-
-    Font::~Font()
-    {
-        delete m_data;
-    }
-
-    std::shared_ptr<Font> Font::getDefault()
-    {
-        static std::shared_ptr<Font> DefaultFont;
-        if (!DefaultFont)
-            DefaultFont = std::make_shared<Font>("../Boson/Resources/assets/fonts/opensans/static/OpenSans-Regular.ttf");
-
-        return DefaultFont;
-    }
-
+    msdfgen::destroyFont(font);
+    msdfgen::deinitializeFreetype(ft);
 }
+
+Font::~Font() {
+    delete m_data;
+}
+
+std::shared_ptr<Font> Font::getDefault() {
+    static std::shared_ptr<Font> DefaultFont;
+    if (!DefaultFont)
+        DefaultFont = std::make_shared<Font>("../Boson/Resources/assets/fonts/opensans/static/OpenSans-Regular.ttf");
+
+    return DefaultFont;
+}
+
+} // namespace Fermion

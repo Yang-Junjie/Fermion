@@ -7,11 +7,9 @@
 
 namespace Fermion {
 
-	struct MSDFData
-	{
-		std::vector<msdf_atlas::GlyphGeometry> glyphs;
-		msdf_atlas::FontGeometry fontGeometry;
-	};
+struct MSDFData {
+    std::vector<msdf_atlas::GlyphGeometry> glyphs;
+    msdf_atlas::FontGeometry fontGeometry;
+};
 
-
-}
+} // namespace Fermion

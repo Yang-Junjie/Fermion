@@ -8,188 +8,167 @@
 #include <imgui_internal.h>
 #include <entt/entt.hpp>
 #include <glm/gtc/type_ptr.hpp>
-namespace Fermion
-{
-    InspectorPanel::InspectorPanel()
-    {
-        m_spriteComponentDefaultTexture = Texture2D::create(1, 1);
-        uint32_t white = 0xffffffff;
-        m_spriteComponentDefaultTexture->setData(&white, sizeof(uint32_t));
+namespace Fermion {
+InspectorPanel::InspectorPanel() {
+    m_spriteComponentDefaultTexture = Texture2D::create(1, 1);
+    uint32_t white = 0xffffffff;
+    m_spriteComponentDefaultTexture->setData(&white, sizeof(uint32_t));
+}
+
+void InspectorPanel::onImGuiRender() {
+    ImGui::Begin("Inspector");
+    if (m_selectedEntity) {
+        drawComponents(m_selectedEntity);
+    }
+    ImGui::End();
+}
+static bool drawVec3Control(const std::string &label, glm::vec3 &values, float resetValue = 0.0f, float columnWidth = 100.0f) {
+    ImGuiIO &io = ImGui::GetIO();
+    auto boldFont = io.Fonts->Fonts[0];
+    bool changed = false;
+
+    ImGui::PushID(label.c_str());
+    ImGui::Columns(2);
+    ImGui::SetColumnWidth(0, columnWidth);
+    ImGui::Text(label.c_str());
+    ImGui::NextColumn();
+    ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{0, 0});
+
+    float lineHeight = ImGui::GetFontSize() + GImGui->Style.FramePadding.y * 2.0f;
+    ImVec2 buttonSize = ImVec2{lineHeight + 3.0f, lineHeight};
+
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.8f, 0.1f, 0.15f, 1.0f});
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.9f, 0.2f, 0.2f, 1.0f});
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.8f, 0.1f, 0.15f, 1.0f});
+    ImGui::PushFont(boldFont);
+    if (ImGui::Button("X", buttonSize)) {
+        values.x = resetValue;
+    }
+    ImGui::PopFont();
+    ImGui::PopStyleColor(3);
+
+    ImGui::SameLine();
+    changed |= ImGui::DragFloat("##X", &values.x, 0.01f);
+    ImGui::PopItemWidth();
+    ImGui::SameLine();
+
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.2f, 0.7f, 0.2f, 1.0f});
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.3f, 0.8f, 0.3f, 1.0f});
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.2f, 0.7f, 0.2f, 1.0f});
+    ImGui::PushFont(boldFont);
+    if (ImGui::Button("Y", buttonSize)) {
+        values.y = resetValue;
+    }
+    ImGui::PopFont();
+    ImGui::PopStyleColor(3);
+
+    ImGui::SameLine();
+    changed |= ImGui::DragFloat("##Y", &values.y, 0.01f);
+    ImGui::PopItemWidth();
+    ImGui::SameLine();
+
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.1f, 0.25f, 0.8f, 1.0f});
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.2f, 0.35f, 0.9f, 1.0f});
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.1f, 0.25f, 0.8f, 1.0f});
+    ImGui::PushFont(boldFont);
+    if (ImGui::Button("Z", buttonSize)) {
+        values.z = resetValue;
+    }
+    ImGui::PopFont();
+    ImGui::PopStyleColor(3);
+
+    ImGui::SameLine();
+    changed |= ImGui::DragFloat("##Z", &values.z, 0.01f);
+    ImGui::PopItemWidth();
+    ImGui::PopStyleVar();
+
+    ImGui::Columns(1);
+    ImGui::PopID();
+    return changed;
+}
+template <typename T, typename UIFunction>
+static void drawComponent(const std::string &name, Entity entity, UIFunction uiFunction) {
+    if (!entity.hasComponent<T>())
+        return;
+
+    auto &component = entity.getComponent<T>();
+
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{4, 4});
+    ImGui::Separator();
+
+    const ImGuiTreeNodeFlags treeNodeFlags =
+        ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_FramePadding;
+
+    bool open = ImGui::TreeNodeEx((void *)typeid(T).hash_code(), treeNodeFlags, name.c_str());
+    ImGui::PopStyleVar();
+
+    bool removeComponent = false;
+    if (ImGui::BeginPopupContextItem("ComponentSettings")) {
+        if (ImGui::MenuItem("Remove component"))
+            removeComponent = true;
+        ImGui::EndPopup();
     }
 
-    void InspectorPanel::onImGuiRender()
-    {
-        ImGui::Begin("Inspector");
-        if (m_selectedEntity)
-        {
-            drawComponents(m_selectedEntity);
-        }
-        ImGui::End();
+    if (open) {
+        uiFunction(component);
+        ImGui::TreePop();
     }
-    static bool drawVec3Control(const std::string &label, glm::vec3 &values, float resetValue = 0.0f, float columnWidth = 100.0f)
-    {
-        ImGuiIO &io = ImGui::GetIO();
-        auto boldFont = io.Fonts->Fonts[0];
-        bool changed = false;
 
-        ImGui::PushID(label.c_str());
-        ImGui::Columns(2);
-        ImGui::SetColumnWidth(0, columnWidth);
-        ImGui::Text(label.c_str());
-        ImGui::NextColumn();
-        ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{0, 0});
+    if (removeComponent)
+        entity.removeComponent<T>();
+}
+void InspectorPanel::drawComponents(Entity entity) {
+    if (entity.hasComponent<TagComponent>()) {
+        auto &tag = entity.getComponent<TagComponent>().tag;
 
-        float lineHeight = ImGui::GetFontSize() + GImGui->Style.FramePadding.y * 2.0f;
-        ImVec2 buttonSize = ImVec2{lineHeight + 3.0f, lineHeight};
+        char buffer[256];
+        memset(buffer, 0, sizeof(buffer));
+        strncpy_s(buffer, tag.c_str(), sizeof(buffer));
 
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.8f, 0.1f, 0.15f, 1.0f});
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.9f, 0.2f, 0.2f, 1.0f});
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.8f, 0.1f, 0.15f, 1.0f});
-        ImGui::PushFont(boldFont);
-        if (ImGui::Button("X", buttonSize))
-        {
-            values.x = resetValue;
+        if (ImGui::InputText("##Tag", buffer, sizeof(buffer))) {
+            tag = std::string(buffer);
         }
-        ImGui::PopFont();
-        ImGui::PopStyleColor(3);
-
-        ImGui::SameLine();
-        changed |= ImGui::DragFloat("##X", &values.x, 0.01f);
-        ImGui::PopItemWidth();
-        ImGui::SameLine();
-
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.2f, 0.7f, 0.2f, 1.0f});
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.3f, 0.8f, 0.3f, 1.0f});
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.2f, 0.7f, 0.2f, 1.0f});
-        ImGui::PushFont(boldFont);
-        if (ImGui::Button("Y", buttonSize))
-        {
-            values.y = resetValue;
-        }
-        ImGui::PopFont();
-        ImGui::PopStyleColor(3);
-
-        ImGui::SameLine();
-        changed |= ImGui::DragFloat("##Y", &values.y, 0.01f);
-        ImGui::PopItemWidth();
-        ImGui::SameLine();
-
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.1f, 0.25f, 0.8f, 1.0f});
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.2f, 0.35f, 0.9f, 1.0f});
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.1f, 0.25f, 0.8f, 1.0f});
-        ImGui::PushFont(boldFont);
-        if (ImGui::Button("Z", buttonSize))
-        {
-            values.z = resetValue;
-        }
-        ImGui::PopFont();
-        ImGui::PopStyleColor(3);
-
-        ImGui::SameLine();
-        changed |= ImGui::DragFloat("##Z", &values.z, 0.01f);
-        ImGui::PopItemWidth();
-        ImGui::PopStyleVar();
-
-        ImGui::Columns(1);
-        ImGui::PopID();
-        return changed;
     }
-    template <typename T, typename UIFunction>
-    static void drawComponent(const std::string &name, Entity entity, UIFunction uiFunction)
-    {
-
-        if (!entity.hasComponent<T>())
-            return;
-
-        auto &component = entity.getComponent<T>();
-
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{4, 4});
-        ImGui::Separator();
-
-        const ImGuiTreeNodeFlags treeNodeFlags =
-            ImGuiTreeNodeFlags_DefaultOpen |
-            ImGuiTreeNodeFlags_Framed |
-            ImGuiTreeNodeFlags_FramePadding;
-
-        bool open = ImGui::TreeNodeEx((void *)typeid(T).hash_code(), treeNodeFlags, name.c_str());
-        ImGui::PopStyleVar();
-
-        bool removeComponent = false;
-        if (ImGui::BeginPopupContextItem("ComponentSettings"))
-        {
-            if (ImGui::MenuItem("Remove component"))
-                removeComponent = true;
-            ImGui::EndPopup();
-        }
-
-        if (open)
-        {
-            uiFunction(component);
-            ImGui::TreePop();
-        }
-
-        if (removeComponent)
-            entity.removeComponent<T>();
+    ImGui::SameLine();
+    if (ImGui::Button("Add Component")) {
+        ImGui::OpenPopup("Add Component");
     }
-    void InspectorPanel::drawComponents(Entity entity)
-    {
-        if (entity.hasComponent<TagComponent>())
-        {
-            auto &tag = entity.getComponent<TagComponent>().tag;
+    if (ImGui::BeginPopup("Add Component")) {
+        displayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
+        displayAddComponentEntry<MeshComponent>("Mesh");
+        displayAddComponentEntry<MaterialComponent>("Material");
+        displayAddComponentEntry<DirectionalLightComponent>("Directional Light");
+        displayAddComponentEntry<PointLightComponent>("Point Light");
+        displayAddComponentEntry<SpotLightComponent>("Spot Light");
+        displayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
+        displayAddComponentEntry<CameraComponent>("Camera");
+        displayAddComponentEntry<TextComponent>("Text");
 
-            char buffer[256];
-            memset(buffer, 0, sizeof(buffer));
-            strncpy_s(buffer, tag.c_str(), sizeof(buffer));
+        // displayAddComponentEntry<ScriptComponent>("Script");
+        // bool hasScriptComponent = m_selectedEntity.hasComponent<ScriptComponent>();
+        // bool hasScriptContainerComponent = m_selectedEntity.hasComponent<ScriptContainerComponent>();
+        // if (!hasScriptComponent && !hasScriptContainerComponent)
+        // {
+        // 	displayAddComponentEntry<ScriptComponent>("Script");
+        // 	displayAddComponentEntry<ScriptContainerComponent>("Script Container");
+        // }
+        displayAddComponentEntry<ScriptContainerComponent>("Scripts");
+        displayAddComponentEntry<Rigidbody2DComponent>("Rigidbody2D");
+        displayAddComponentEntry<BoxCollider2DComponent>("Box Collider2D");
+        displayAddComponentEntry<CircleCollider2DComponent>("Circle Collider2D");
+        displayAddComponentEntry<BoxSensor2DComponent>("Box Sensor2D");
 
-            if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
-            {
-                tag = std::string(buffer);
-            }
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Add Component"))
-        {
-            ImGui::OpenPopup("Add Component");
-        }
-        if (ImGui::BeginPopup("Add Component"))
-        {
+        // if (ImGui::MenuItem("Native Script"))
+        // {
+        // 	m_selectedEntity.addComponent<NativeScriptComponent>().bind<CameraController>();
+        // 	ImGui::CloseCurrentPopup();
+        // }
 
-            displayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
-            displayAddComponentEntry<MeshComponent>("Mesh");
-            displayAddComponentEntry<MaterialComponent>("Material");
-            displayAddComponentEntry<DirectionalLightComponent>("Directional Light");
-            displayAddComponentEntry<PointLightComponent>("Point Light");
-            displayAddComponentEntry<SpotLightComponent>("Spot Light");
-            displayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
-            displayAddComponentEntry<CameraComponent>("Camera");
-            displayAddComponentEntry<TextComponent>("Text");
+        ImGui::EndPopup();
+    }
 
-            // displayAddComponentEntry<ScriptComponent>("Script");
-            // bool hasScriptComponent = m_selectedEntity.hasComponent<ScriptComponent>();
-            // bool hasScriptContainerComponent = m_selectedEntity.hasComponent<ScriptContainerComponent>();
-            // if (!hasScriptComponent && !hasScriptContainerComponent)
-            // {
-            // 	displayAddComponentEntry<ScriptComponent>("Script");
-            // 	displayAddComponentEntry<ScriptContainerComponent>("Script Container");
-            // }
-            displayAddComponentEntry<ScriptContainerComponent>("Scripts");
-            displayAddComponentEntry<Rigidbody2DComponent>("Rigidbody2D");
-            displayAddComponentEntry<BoxCollider2DComponent>("Box Collider2D");
-            displayAddComponentEntry<CircleCollider2DComponent>("Circle Collider2D");
-            displayAddComponentEntry<BoxSensor2DComponent>("Box Sensor2D");
-
-            // if (ImGui::MenuItem("Native Script"))
-            // {
-            // 	m_selectedEntity.addComponent<NativeScriptComponent>().bind<CameraController>();
-            // 	ImGui::CloseCurrentPopup();
-            // }
-
-            ImGui::EndPopup();
-        }
-
-        drawComponent<TransformComponent>("Transform", entity, [](auto &component)
-                                          {
+    drawComponent<TransformComponent>("Transform", entity, [](auto &component) {
 			drawVec3Control("Translation", component.translation);
 
 
@@ -199,8 +178,7 @@ namespace Fermion
 
 			drawVec3Control("Scale", component.scale, 1.0f); });
 
-        drawComponent<CameraComponent>("Camera", entity, [](auto &component)
-                                       {
+    drawComponent<CameraComponent>("Camera", entity, [](auto &component) {
 			auto &camera = component.camera;
 
 				ImGui::Checkbox("Primary", &component.primary);
@@ -267,8 +245,7 @@ namespace Fermion
 
 					ImGui::Checkbox("Fixed Aspect Ratio", &component.fixedAspectRatio);
 				} });
-        drawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [this](auto &component)
-                                               {
+    drawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [this](auto &component) {
 			ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
 
 
@@ -320,8 +297,7 @@ namespace Fermion
 				}
 
 			ImGui::DragFloat("Tiling Factor", &component.tilingFactor, 0.1f, 0.0f, 100.0f); });
-        drawComponent<MeshComponent>("Mesh", entity, [](auto &component)
-                                     {
+    drawComponent<MeshComponent>("Mesh", entity, [](auto &component) {
 	        ImGui::Text("Mesh Handle: %s", std::to_string(component.meshHandle).c_str());
             ImGui::Button("Change or Add");
 
@@ -338,8 +314,7 @@ namespace Fermion
                 }
                 ImGui::EndDragDropTarget();
             } });
-        drawComponent<MaterialComponent>("Material", entity, [](auto &component)
-                                         {
+    drawComponent<MaterialComponent>("Material", entity, [](auto &component) {
                 bool overrideMaterial = component.overrideMaterial;
                 if (ImGui::Checkbox("Override Material", &overrideMaterial))
                 {
@@ -354,18 +329,15 @@ namespace Fermion
                 if(drawVec3Control("Diffuse",diffuse,0.0f)){
                     materialInstance->setDiffuseColor(glm::vec4(diffuse,1.0f));
                 } });
-        drawComponent<DirectionalLightComponent>("Directional Light", entity, [](auto &component)
-                                                 {
+    drawComponent<DirectionalLightComponent>("Directional Light", entity, [](auto &component) {
             ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
             ImGui::DragFloat("Intensity", &component.intensity, 0.1f, 0.0f);
             ImGui::Checkbox("Main Light", &component.mainLight); });
-        drawComponent<PointLightComponent>("Point Light", entity, [](auto &component)
-                                           {
+    drawComponent<PointLightComponent>("Point Light", entity, [](auto &component) {
                 ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
                 ImGui::DragFloat("Intensity", &component.intensity, 0.1f, 0.0f);
                 ImGui::DragFloat("Range", &component.range, 0.1f, 0.0f); });
-        drawComponent<SpotLightComponent>("Spot Light", entity, [](auto &c)
-                                          {
+    drawComponent<SpotLightComponent>("Spot Light", entity, [](auto &c) {
                 ImGui::ColorEdit4("Color", glm::value_ptr(c.color));
                 ImGui::DragFloat("Intensity", &c.intensity, 0.1f, 0.0f, 100.0f);
                 ImGui::DragFloat("Range", &c.range, 0.1f, 0.0f, 1000.0f);
@@ -376,8 +348,7 @@ namespace Fermion
                 ImGui::DragFloat("Angle (deg)", &c.angle, 0.5f, 1.0f, 89.0f);
                 ImGui::DragFloat("Softness", &c.softness, 0.01f, 0.0f, 1.0f, "%.3f"); });
 
-        drawComponent<TextComponent>("Text", entity, [](auto &component)
-                                     {
+    drawComponent<TextComponent>("Text", entity, [](auto &component) {
 			char buffer[1024]; 
 			strncpy(buffer, component.textString.c_str(), sizeof(buffer));
 			buffer[sizeof(buffer)-1] = '\0';
@@ -390,25 +361,24 @@ namespace Fermion
 			ImGui::DragFloat("Kerning", &component.kerning, 0.025f);
 			ImGui::DragFloat("Line Spacing", &component.lineSpacing, 0.025f); });
 
-        // drawComponent<ScriptComponent>("Script", entity, [](auto &component)
-        //                                {
-        // 	for (auto name : ScriptManager::getALLEntityClasses()){
-        // 		size_t dotPos = name.find('.');
-        // 		if (dotPos != std::string::npos)
-        // 		{
-        // 			std::string namespaceName = name.substr(0, dotPos);
-        // 			if (namespaceName != "Fermion")
-        // 			{
-        // 				bool isSelected = (component.className == name);
-        // 				if (ImGui::Selectable(name.c_str(), isSelected))
-        // 				{
-        // 					component.className = name;
-        // 				}
-        // 			}
-        // 		}
-        // 	} });
-        drawComponent<ScriptContainerComponent>("Scripts Container", entity, [](auto &component)
-                                                {
+    // drawComponent<ScriptComponent>("Script", entity, [](auto &component)
+    //                                {
+    // 	for (auto name : ScriptManager::getALLEntityClasses()){
+    // 		size_t dotPos = name.find('.');
+    // 		if (dotPos != std::string::npos)
+    // 		{
+    // 			std::string namespaceName = name.substr(0, dotPos);
+    // 			if (namespaceName != "Fermion")
+    // 			{
+    // 				bool isSelected = (component.className == name);
+    // 				if (ImGui::Selectable(name.c_str(), isSelected))
+    // 				{
+    // 					component.className = name;
+    // 				}
+    // 			}
+    // 		}
+    // 	} });
+    drawComponent<ScriptContainerComponent>("Scripts Container", entity, [](auto &component) {
             static std::unordered_map<std::string, bool> checkedState;
 
             auto allClasses = ScriptManager::getALLEntityClasses();
@@ -480,14 +450,12 @@ namespace Fermion
                 ImGui::Text("%s", name.c_str());
             } });
 
-        drawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto &component)
-                                               {
+    drawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto &component) {
 			ImGui::ColorEdit4("Color", glm::value_ptr(component.color)); 
 			ImGui::DragFloat("Thickness", &component.thickness, 0.025f, 0.0f, 1.0f);
 			ImGui::DragFloat("Fade", &component.fade, 0.00025f, 0.0f, 1.0f); });
 
-        drawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [](auto &component)
-                                            {
+    drawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [](auto &component) {
 			const char* bodyTypeStrings[] = { "Static", "Dynamic", "Kinematic"};
 			const char* currentBodyTypeString = bodyTypeStrings[(int)component.type];
 			if (ImGui::BeginCombo("Body Type", currentBodyTypeString))
@@ -510,37 +478,31 @@ namespace Fermion
 
 			ImGui::Checkbox("Fixed Rotation", &component.fixedRotation); });
 
-        drawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](auto &component)
-                                              {
+    drawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](auto &component) {
 			ImGui::DragFloat2("Offset", glm::value_ptr(component.offset));
 			ImGui::DragFloat2("Size", glm::value_ptr(component.size));
 			ImGui::DragFloat("Density", &component.density, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Friction", &component.friction, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Restitution", &component.restitution, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Restitution Threshold", &component.restitutionThreshold, 0.01f, 0.0f); });
-        drawComponent<CircleCollider2DComponent>("Circle Collider 2D", entity, [](auto &component)
-                                                 {
+    drawComponent<CircleCollider2DComponent>("Circle Collider 2D", entity, [](auto &component) {
 			ImGui::DragFloat2("Offset", glm::value_ptr(component.offset));
 			ImGui::DragFloat("Radius", &component.radius);
 			ImGui::DragFloat("Density", &component.density, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Friction", &component.friction, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Restitution", &component.restitution, 0.01f, 0.0f, 1.0f);
 			ImGui::DragFloat("Restitution Threshold", &component.restitutionThreshold, 0.01f, 0.0f); });
-        drawComponent<BoxSensor2DComponent>("Box Sensor 2D", entity, [](auto &component)
-                                            {
+    drawComponent<BoxSensor2DComponent>("Box Sensor 2D", entity, [](auto &component) {
             ImGui::DragFloat2("Offset", glm::value_ptr(component.offset), 0.01f);
             ImGui::DragFloat2("Size", glm::value_ptr(component.size), 0.01f); });
-    }
-    template <typename T>
-    inline void InspectorPanel::displayAddComponentEntry(const std::string &entryName)
-    {
-        if (!m_selectedEntity.hasComponent<T>())
-        {
-            if (ImGui::MenuItem(entryName.c_str()))
-            {
-                m_selectedEntity.addComponent<T>();
-                ImGui::CloseCurrentPopup();
-            }
+}
+template <typename T>
+inline void InspectorPanel::displayAddComponentEntry(const std::string &entryName) {
+    if (!m_selectedEntity.hasComponent<T>()) {
+        if (ImGui::MenuItem(entryName.c_str())) {
+            m_selectedEntity.addComponent<T>();
+            ImGui::CloseCurrentPopup();
         }
     }
 }
+} // namespace Fermion

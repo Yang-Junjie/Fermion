@@ -4,16 +4,14 @@
 */
 #pragma once
 #include "fmpch.hpp"
-namespace Fermion
-{
-    class GraphicsContext
-    {
-    public:
-        virtual ~GraphicsContext() = default;
-        
-        virtual void init() = 0;
-        virtual void swapBuffers() = 0;
+namespace Fermion {
+class GraphicsContext {
+public:
+    virtual ~GraphicsContext() = default;
 
-        static std::unique_ptr<GraphicsContext> create(void *window);
-    };
-}
+    virtual void init() = 0;
+    virtual void swapBuffers() = 0;
+
+    static std::unique_ptr<GraphicsContext> create(void *window);
+};
+} // namespace Fermion

@@ -11,19 +11,17 @@
 
 struct GLFWwindow;
 
-namespace Fermion
-{
+namespace Fermion {
 
-    class OpenGLContext : public GraphicsContext
-    {
-    public:
-        OpenGLContext(GLFWwindow *windowHandle);
+class OpenGLContext : public GraphicsContext {
+public:
+    OpenGLContext(GLFWwindow *windowHandle);
 
-        virtual void init() override;
-        virtual void swapBuffers() override;
+    virtual void init() override;
+    virtual void swapBuffers() override;
 
-    private:
-        GLFWwindow *m_windowHandle;
-    };
+private:
+    GLFWwindow *m_windowHandle;
+};
 
-}
+} // namespace Fermion

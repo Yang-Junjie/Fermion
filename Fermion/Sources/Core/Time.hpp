@@ -4,29 +4,27 @@
 
 namespace Fermion {
 
-    class ChronoTimer : public ITimer
-    {
-    public:
-        ChronoTimer() { reset(); }
+class ChronoTimer : public ITimer {
+public:
+    ChronoTimer() {
+        reset();
+    }
 
-        void reset() override
-        {
-            m_start = std::chrono::high_resolution_clock::now();
-        }
+    void reset() override {
+        m_start = std::chrono::high_resolution_clock::now();
+    }
 
-        float elapsed() override
-        {
-            auto now = std::chrono::high_resolution_clock::now();
-            return std::chrono::duration<float>(now - m_start).count();
-        }
+    float elapsed() override {
+        auto now = std::chrono::high_resolution_clock::now();
+        return std::chrono::duration<float>(now - m_start).count();
+    }
 
-        float elapsedMillis() override
-        {
-            return elapsed() * 1000.0f;
-        }
+    float elapsedMillis() override {
+        return elapsed() * 1000.0f;
+    }
 
-    private:
-        std::chrono::time_point<std::chrono::high_resolution_clock> m_start;
-    };
+private:
+    std::chrono::time_point<std::chrono::high_resolution_clock> m_start;
+};
 
-}
+} // namespace Fermion
