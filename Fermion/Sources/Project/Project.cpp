@@ -1,9 +1,11 @@
 ﻿#include "fmpch.hpp"
 #include "Project.hpp"
+#include "Renderer/Model/MeshFactory.hpp"
 
 #include "ProjectSerializer.hpp"
 #include "Script/ScriptManager.hpp"
-namespace Fermion {
+namespace Fermion
+{
 
 std::shared_ptr<Project> Project::newProject() {
     s_activeProject = std::make_shared<Project>();
@@ -51,6 +53,7 @@ void Project::initEditorAssets() {
     if (!s_activeProject)
         return;
 
+    
     const auto &config = s_activeProject->getConfig();
     if (!config.assetDirectory.empty()) {
         getEditorAssetManager()->init(config.assetDirectory);

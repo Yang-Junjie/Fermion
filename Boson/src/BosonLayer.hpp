@@ -5,7 +5,6 @@
 #include "Panels/SceneHierarchyPanel.hpp"
 #include "Panels/ContentBrowserPanel.hpp"
 #include "Panels/AssetManagerPanel.hpp"
-#include "Panels/InspectorPanel.hpp"
 #include "Panels/MenuBarPanel.hpp"
 
 #include "Renderer/SceneRenderer.hpp"

@@ -13,7 +13,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
-namespace Fermion {
+namespace Fermion
+{
 struct IDComponent {
     UUID ID;
 
@@ -71,9 +72,11 @@ struct SpriteRendererComponent {
 };
 
 struct MeshComponent {
-    // std::shared_ptr<Mesh> m_Mesh = nullptr;delete
     AssetHandle meshHandle = AssetHandle(0);
-    // std::string meshPath;
+    
+    bool memoryOnly = false;
+    MemoryMeshType memoryMeshType = MemoryMeshType::None;
+
     MeshComponent() = default;
     MeshComponent(const MeshComponent &) = default;
 };

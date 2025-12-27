@@ -1,15 +1,15 @@
 ﻿#pragma once
+#include "fmpch.hpp"
 #include "Asset.hpp"
-#include "AssetMetadata.hpp"
 #include "AssetRegistry.hpp"
-#include "AssetExtensions.hpp"
 #include "Loader/AssetLoader.hpp"
 
 #include <unordered_map>
 #include <filesystem>
 #include <memory>
 
-namespace Fermion {
+namespace Fermion
+{
 class AssetManager {
 public:
     static void init(const std::filesystem::path &assetDirectory);
@@ -37,6 +37,7 @@ public:
     static void unloadAsset(AssetHandle handle);
     static AssetHandle importAsset(const std::filesystem::path &path);
     static AssetHandle addMemoryOnlyAsset(std::shared_ptr<Asset> asset);
+
     static std::shared_ptr<Asset> getAssetMetadata(AssetHandle handle);
 
 private:
@@ -50,7 +51,7 @@ private:
 
     static std::shared_ptr<Asset> loadAssetInternal(AssetHandle handle);
     static std::unordered_map<AssetHandle, std::shared_ptr<Asset>> s_loadedAssets;
-    static std::unordered_map<AssetHandle, std::shared_ptr<Asset>> s_MemoryOnly;
+    // static std::unordered_map<AssetHandle, std::shared_ptr<Asset>> s_MemoryOnly;
     static std::unordered_map<AssetType, std::unique_ptr<AssetLoader>, AssetTypeHash> s_assetLoaders;
     static std::filesystem::path s_assetDirectory;
 };

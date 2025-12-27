@@ -2,11 +2,15 @@
 #include "Entity.hpp"
 #include "Components.hpp"
 #include "Project/Project.hpp"
+#include "Renderer/Model/MeshFactory.hpp"
+#include "yaml-cpp/emittermanip.h"
 
+#include <cstdint>
 #include <fstream>
 #include <yaml-cpp/yaml.h>
 
-namespace YAML {
+namespace YAML
+{
 template <>
 struct convert<glm::vec2> {
     static Node encode(const glm::vec2 &rhs) {
@@ -88,7 +92,8 @@ YAML::Emitter &operator<<(YAML::Emitter &out, const glm::vec4 &v) {
     return out;
 }
 } // namespace YAML
-namespace Fermion {
+namespace Fermion
+{
 
 SceneSerializer::SceneSerializer(const std::shared_ptr<Scene> &scene) : m_scene(scene) {
 }
@@ -128,6 +133,9 @@ static void serializeEntity(YAML::Emitter &out, Entity entity) {
         {
             if (static_cast<uint64_t>(mesh.meshHandle) != 0)
                 out << YAML::Key << "MeshHandle" << YAML::Value << static_cast<uint64_t>(mesh.meshHandle);
+
+            out << YAML::Key << "MemoryOnly" << YAML::Value << (mesh.memoryOnly ? true : false);
+            out << YAML::Key << "MemoryMeshType" << YAML::Value << static_cast<uint16_t>(mesh.memoryMeshType);
         }
         out << YAML::EndMap;
     }
@@ -361,21 +369,33 @@ bool SceneSerializer::deserialize(const std::filesystem::path &filepath) {
                     uint64_t handleValue = n.as<uint64_t>();
                     if (handleValue != 0) {
                         src.textureHandle = AssetHandle(handleValue);
-                        auto runtimeAssets = Project::getRuntimeAssetManager();
+                        // auto runtimeAssets = Project::getRuntimeAssetManager();
                     }
                 }
             }
+
             auto meshComponent = entity["MeshComponent"];
             if (meshComponent) {
                 auto &src = deserializedEntity.addComponent<MeshComponent>();
+
+                if (auto n = meshComponent["MemoryMeshType"]; n) {
+                    src.memoryMeshType = MemoryMeshType(n.as<uint16_t>());
+                }
+                if (auto n = meshComponent["MemoryOnly"]; n) {
+                    src.memoryOnly = n.as<bool>();
+                }
                 if (auto n = meshComponent["MeshHandle"]; n) {
-                    uint64_t handleValue = n.as<uint64_t>();
-                    if (handleValue != 0) {
-                        src.meshHandle = AssetHandle(handleValue);
-                        auto runtimeAssets = Project::getRuntimeAssetManager();
+                    if (src.memoryOnly) {
+                        src.meshHandle = MeshFactory::GetMemoryMeshHandle(src.memoryMeshType);
+                    } else {
+                        uint64_t handleValue = n.as<uint64_t>();
+                        if (handleValue != 0) {
+                            src.meshHandle = AssetHandle(handleValue);
+                        }
                     }
                 }
             }
+
             auto directionalLightComponent = entity["DirectionalLightComponent"];
             if (directionalLightComponent) {
                 auto &dlc = deserializedEntity.addComponent<DirectionalLightComponent>();

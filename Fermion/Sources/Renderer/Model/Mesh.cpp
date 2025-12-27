@@ -1,7 +1,32 @@
 #include "Mesh.hpp"
 
-namespace Fermion {
+namespace Fermion
+{
 
+Mesh::Mesh(std::vector<Vertex> vertices,
+           std::vector<uint32_t> indices,
+           std::vector<SubMesh> subMeshes) : m_vertices(std::move(vertices)),
+                                             m_indices(std::move(indices)),
+                                             m_SubMeshes(std::move(subMeshes)) {
+    m_ModelPath = "<MemoryMesh>";
+
+    if (m_Materials.empty()) {
+        auto defaultMaterial = std::make_shared<Material>();
+        defaultMaterial->setDiffuseColor(glm::vec4(0.8f, 0.8f, 0.8f, 1.0f));
+        defaultMaterial->setAmbientColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
+        m_Materials.push_back(defaultMaterial);
+    }
+
+    if (m_SubMeshes.empty() && !m_indices.empty()) {
+        SubMesh sub;
+        sub.MaterialIndex = 0;
+        sub.IndexOffset = 0;
+        sub.IndexCount = static_cast<uint32_t>(m_indices.size());
+        m_SubMeshes.push_back(sub);
+    }
+
+    setupMesh();
+}
 void Mesh::loadMesh(const std::string &path) {
     Assimp::Importer importer;
     const aiScene *scene = importer.ReadFile(path,

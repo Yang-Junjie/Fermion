@@ -3,6 +3,7 @@
 #include "Script/ScriptManager.hpp"
 #include "Renderer/Buffer.hpp"
 #include "Renderer/VertexArray.hpp"
+#include "Renderer/Model/MeshFactory.hpp"
 #include "Renderer/Renderer.hpp"
 #include <GLFW/glfw3.h>
 
@@ -25,6 +26,7 @@ Application::Application(const ApplicationSpecification &spec) {
     m_window->setVSync(false);
     Renderer::init();
     ScriptManager::init();
+    MeshFactory::Init();
     m_imGuiLayer = std::make_unique<ImGuiLayer>(m_window->getNativeWindow());
     m_imGuiLayerRaw = m_imGuiLayer.get();
     pushOverlay(std::move(m_imGuiLayer));

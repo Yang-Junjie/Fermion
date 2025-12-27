@@ -1,4 +1,4 @@
-﻿#include "fmpch.hpp"
+﻿
 #include "Renderer/RenderCommand.hpp"
 
 namespace Fermion {

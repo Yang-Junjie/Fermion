@@ -1,5 +1,5 @@
 ﻿#pragma once
-
+#include <string>
 namespace Fermion {
 enum class AssetType {
     None = 0,

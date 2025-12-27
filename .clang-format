@@ -68,7 +68,7 @@ BraceWrapping:
   # 函数定义后面
   AfterFunction: false
   # 命名空间定义后面
-  AfterNamespace: false
+  AfterNamespace: true
   # struct定义后面
   AfterStruct: false
   # union定义后面

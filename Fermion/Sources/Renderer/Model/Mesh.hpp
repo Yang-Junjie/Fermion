@@ -9,7 +9,8 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-namespace Fermion {
+namespace Fermion
+{
 struct Vertex {
     glm::vec3 Position;
     glm::vec3 Normal;
@@ -23,12 +24,28 @@ struct SubMesh {
     uint32_t IndexCount = 0;
 };
 
+enum MemoryMeshType : uint16_t {
+    None = 0,
+    Cube = 1,
+    Sphere = 2
+};
+
+struct MemoryMeshKey {
+    MemoryMeshType Type;
+    glm::vec3 Size;
+    float Radius;
+    float Height;
+};
+
 class Mesh : public Asset {
 public:
     Mesh(const std::string &path) : m_ModelPath(path) {
         loadMesh(path);
         setupMesh();
     }
+    Mesh(std::vector<Vertex> vertices,
+         std::vector<uint32_t> indices,
+         std::vector<SubMesh> subMeshes = {});
 
     ~Mesh() = default;
 

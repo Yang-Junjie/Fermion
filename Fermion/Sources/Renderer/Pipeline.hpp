@@ -1,5 +1,4 @@
 #pragma once
-#include "fmpch.hpp"
 #include "Shader.hpp"
 namespace Fermion {
 enum class CullMode {

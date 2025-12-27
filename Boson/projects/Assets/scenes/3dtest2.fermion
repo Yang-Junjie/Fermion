@@ -1,0 +1,35 @@
+Scene: Name
+Entities:
+  - Entity: 7117036960198529399
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    DirectionalLightComponent:
+      Color: [1, 1, 1]
+      Intensity: 1
+      MainLight: true
+  - Entity: 11505097444607132680
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [2.8708599, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      MeshHandle: 9984746125620513616
+      MemoryOnly: true
+      MemoryMeshType: 2
+  - Entity: 9907014946661456453
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      MeshHandle: 7561475569753175215
+      MemoryOnly: true
+      MemoryMeshType: 1

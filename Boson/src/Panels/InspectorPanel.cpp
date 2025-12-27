@@ -1,4 +1,5 @@
 ﻿#include "InspectorPanel.hpp"
+#include "Renderer/Model/Mesh.hpp"
 #include "Scene/Scene.hpp"
 #include "Scene/Components.hpp"
 #include "Script/ScriptManager.hpp"
@@ -8,7 +9,11 @@
 #include <imgui_internal.h>
 #include <entt/entt.hpp>
 #include <glm/gtc/type_ptr.hpp>
-namespace Fermion {
+
+#include "Renderer/Model/MeshFactory.hpp"
+
+namespace Fermion
+{
 InspectorPanel::InspectorPanel() {
     m_spriteComponentDefaultTexture = Texture2D::create(1, 1);
     uint32_t white = 0xffffffff;
@@ -298,22 +303,47 @@ void InspectorPanel::drawComponents(Entity entity) {
 
 			ImGui::DragFloat("Tiling Factor", &component.tilingFactor, 0.1f, 0.0f, 100.0f); });
     drawComponent<MeshComponent>("Mesh", entity, [](auto &component) {
-	        ImGui::Text("Mesh Handle: %s", std::to_string(component.meshHandle).c_str());
+        ImGui::Text("Mesh Handle: %s", std::to_string(component.meshHandle).c_str());
+        {
             ImGui::Button("Change or Add");
-
-            if (ImGui::BeginDragDropTarget())
-            {
-                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("FERMION_MODEL"))
-                {
-                    auto path = std::string(static_cast<const char*>(payload->Data));
+            if (ImGui::BeginDragDropTarget()) {
+                if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_MODEL")) {
+                    auto path = std::string(static_cast<const char *>(payload->Data));
                     auto editorAssets = Project::getEditorAssetManager();
                     AssetHandle handle = editorAssets->importAsset(std::filesystem::path(path));
-                    if(static_cast<uint64_t>(handle) != 0){
+                    if (static_cast<uint64_t>(handle) != 0) {
                         component.meshHandle = handle;
+                        component.memoryOnly = false;
                     }
                 }
                 ImGui::EndDragDropTarget();
-            } });
+            }
+        }
+        if (ImGui::Button("Add Engine internal Mesh")) {
+            ImGui::OpenPopup("mesh_popup");
+        }
+
+        ImVec2 popup_pos = ImGui::GetItemRectMin();
+        ImGui::SetNextWindowPos(popup_pos, ImGuiCond_Appearing, ImVec2(0.0f, 0.0f));
+
+        if (ImGui::BeginPopup("mesh_popup")) {
+            ImGui::Text("Available Meshes:");
+            ImGui::Separator();
+
+            if (ImGui::Selectable("Cube")) {
+                component.meshHandle = MeshFactory::GetMemoryMeshHandle(MemoryMeshType::Cube);
+                component.memoryMeshType = MemoryMeshType::Cube;
+                ImGui::CloseCurrentPopup();
+            }
+            if (ImGui::Selectable("Sphere")) {
+            	component.meshHandle = MeshFactory::GetMemoryMeshHandle(MemoryMeshType::Sphere);
+                component.memoryMeshType = MemoryMeshType::Sphere;
+                ImGui::CloseCurrentPopup();
+            }
+            component.memoryOnly = true;
+            ImGui::EndPopup();
+        }
+    });
     drawComponent<MaterialComponent>("Material", entity, [](auto &component) {
                 bool overrideMaterial = component.overrideMaterial;
                 if (ImGui::Checkbox("Override Material", &overrideMaterial))

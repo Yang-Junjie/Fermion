@@ -1,8 +1,5 @@
 #include "AssetManager.hpp"
-#include "Renderer/Texture/Texture.hpp"
-#include "Renderer/Font/Font.hpp"
-#include "Scene/SceneSerializer.hpp"
-#include "Asset/SceneAsset.hpp"
+#include "Asset/Asset.hpp"
 #include "Asset/AssetSerializer.hpp"
 #include "Asset/Importer/TextureImporter.hpp"
 #include "Asset/Importer/FontImporter.hpp"
@@ -13,12 +10,13 @@
 #include "Asset/Loader/FontLoader.hpp"
 #include "Asset/Loader/MeshLoader.hpp"
 #include "Asset/Loader/SceneLoader.hpp"
+#include "Asset/AssetExtensions.hpp"
 
-namespace Fermion {
+namespace Fermion
+{
 std::unordered_map<AssetHandle, std::shared_ptr<Asset>> AssetManager::s_loadedAssets;
 std::filesystem::path AssetManager::s_assetDirectory;
 std::unordered_map<AssetType, std::unique_ptr<AssetLoader>, AssetManager::AssetTypeHash> AssetManager::s_assetLoaders;
-
 void AssetManager::ensureDefaultLoaders() {
     if (!s_assetLoaders.empty())
         return;
@@ -165,7 +163,9 @@ AssetHandle AssetManager::importAsset(const std::filesystem::path &path) {
 }
 
 AssetHandle AssetManager::addMemoryOnlyAsset(std::shared_ptr<Asset> asset) {
-    return AssetHandle();
+    asset->handle = AssetHandle();
+    s_loadedAssets[asset->handle] = asset;
+    return asset->handle;
 }
 
 std::shared_ptr<Asset> AssetManager::getAssetMetadata(AssetHandle handle) {

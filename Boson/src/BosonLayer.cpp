@@ -3,7 +3,7 @@
 #include "Scene/SceneSerializer.hpp"
 #include "Utils/PlatformUtils.hpp"
 #include "Renderer/Font/Font.hpp"
-#include "Project/ProjectSerializer.hpp"
+#include "Panels/InspectorPanel.hpp"
 #include "Asset/SceneAsset.hpp"
 #include "Script/ScriptManager.hpp"
 

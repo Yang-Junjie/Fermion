@@ -224,6 +224,10 @@ void Scene::onRenderEditor(std::shared_ptr<SceneRenderer> renderer, EditorCamera
             }
         }
 
+        // Reset lighting state so removing lights takes effect immediately
+        m_environmentLight.directionalLight.color = glm::vec3(0.0f);
+        m_environmentLight.directionalLight.intensity = 0.0f;
+
         // Directional Lights
         {
             auto directionalLights = m_registry.group<DirectionalLightComponent>(entt::get<TransformComponent>);
@@ -478,9 +482,13 @@ void Scene::onUpdateRuntime(std::shared_ptr<SceneRenderer> renderer, Timestep ts
 
         if (mainCamera) {
             renderer->beginScene(*mainCamera, cameraTransform);
-            if (showRenderEntities) {
-                {
-                    auto view = m_registry.view<TransformComponent, MeshComponent>();
+        if (showRenderEntities) {
+            // Reset lighting state so removing lights takes effect immediately
+            m_environmentLight.directionalLight.color = glm::vec3(0.0f);
+            m_environmentLight.directionalLight.intensity = 0.0f;
+
+            {
+                auto view = m_registry.view<TransformComponent, MeshComponent>();
 
                     for (auto entity : view) {
                         auto &transform = view.get<TransformComponent>(entity);

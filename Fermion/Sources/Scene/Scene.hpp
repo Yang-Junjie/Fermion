@@ -7,7 +7,8 @@
 #include "Renderer/Camera/EditorCamera.hpp"
 #include "Components.hpp"
 #include <box2d/box2d.h>
-namespace Fermion {
+namespace Fermion
+{
 class Entity;
 class SceneRenderer;
 
