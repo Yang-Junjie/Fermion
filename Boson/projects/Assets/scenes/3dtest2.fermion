@@ -1,8 +1,63 @@
 Scene: Name
 Entities:
+  - Entity: 7603478768360360452
+    TagComponent:
+      Tag: cylinder
+    TransformComponent:
+      Translation: [6.923809, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      MeshHandle: 12434606366386177774
+      MemoryOnly: true
+      MemoryMeshType: 3
+  - Entity: 18244896960270514207
+    TagComponent:
+      Tag: capsule
+    TransformComponent:
+      Translation: [5.5513873, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      MeshHandle: 4359736224655968434
+      MemoryOnly: true
+      MemoryMeshType: 4
+  - Entity: 8687271565181739526
+    TagComponent:
+      Tag: cone
+    TransformComponent:
+      Translation: [-2.8378963, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      MeshHandle: 10617800440691030022
+      MemoryOnly: true
+      MemoryMeshType: 5
+  - Entity: 9907014946661456453
+    TagComponent:
+      Tag: cube
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      MeshHandle: 10748747572622530520
+      MemoryOnly: true
+      MemoryMeshType: 1
+  - Entity: 11505097444607132680
+    TagComponent:
+      Tag: sphere
+    TransformComponent:
+      Translation: [2.8708599, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      MeshHandle: 4230062149749861968
+      MemoryOnly: true
+      MemoryMeshType: 2
   - Entity: 7117036960198529399
     TagComponent:
-      Tag: Empty Entity
+      Tag: dl
     TransformComponent:
       Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
@@ -11,25 +66,3 @@ Entities:
       Color: [1, 1, 1]
       Intensity: 1
       MainLight: true
-  - Entity: 11505097444607132680
-    TagComponent:
-      Tag: Empty Entity
-    TransformComponent:
-      Translation: [2.8708599, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      MeshHandle: 9984746125620513616
-      MemoryOnly: true
-      MemoryMeshType: 2
-  - Entity: 9907014946661456453
-    TagComponent:
-      Tag: Empty Entity
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      MeshHandle: 7561475569753175215
-      MemoryOnly: true
-      MemoryMeshType: 1

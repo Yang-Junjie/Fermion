@@ -27,7 +27,10 @@ struct SubMesh {
 enum MemoryMeshType : uint16_t {
     None = 0,
     Cube = 1,
-    Sphere = 2
+    Sphere = 2,
+    Cylinder = 3,
+    Capsule = 4,
+    Cone = 5
 };
 
 struct MemoryMeshKey {
