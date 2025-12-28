@@ -105,12 +105,19 @@ void BosonLayer::onUpdate(Timestep dt) {
     mx -= (float)m_viewportBounds[0].x;
     my -= (float)m_viewportBounds[0].y;
     const glm::vec2 viewportSize = m_viewportBounds[1] - m_viewportBounds[0];
-    my = viewportSize.y - my;
-    const int mouseX = static_cast<int>(mx);
-    const int mouseY = static_cast<int>(my);
-    if (mouseX >= 0 && mouseY >= 0 && mouseX < static_cast<int>(viewportSize.x) && mouseY < static_cast<int>(viewportSize.y)) {
-        int pixelData = m_framebuffer->readPixel(1, mouseX, mouseY);
-        m_hoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_activeScene.get());
+    if (viewportSize.x > 0.0f && viewportSize.y > 0.0f) {
+        my = viewportSize.y - my;
+        const int mouseX = static_cast<int>(mx);
+        const int mouseY = static_cast<int>(my);
+        if (mouseX >= 0 && mouseY >= 0 && mouseX < static_cast<int>(viewportSize.x) && mouseY < static_cast<int>(viewportSize.y)) {
+            int pixelData = m_framebuffer->readPixel(1, mouseX, mouseY);
+            Entity hovered = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_activeScene.get());
+            m_hoveredEntity = hovered && hovered.isValid() ? hovered : Entity();
+        } else {
+            m_hoveredEntity = {};
+        }
+    } else {
+        m_hoveredEntity = {};
     }
     onOverlayRender();
 
@@ -225,8 +232,12 @@ bool BosonLayer::onKeyPressedEvent(KeyPressedEvent &e) {
         }
         break;
     case KeyCode::D:
-        if (control)
-            m_activeScene->destroyEntity(m_sceneHierarchyPanel.getSelectedEntity());
+        if (control) {
+            if (Entity selected = m_sceneHierarchyPanel.getSelectedEntity(); selected) {
+                m_activeScene->destroyEntity(selected);
+                m_sceneHierarchyPanel.setSelectedEntity({});
+            }
+        }
         break;
 
     case KeyCode::Q:
@@ -251,7 +262,7 @@ bool BosonLayer::onKeyPressedEvent(KeyPressedEvent &e) {
 bool BosonLayer::onMouseButtonPressedEvent(MouseButtonPressedEvent &e) {
     if (e.getMouseButton() == MouseCode::Left) {
         if (m_viewportHovered && !ImGuizmo::IsOver())
-            m_sceneHierarchyPanel.setSelectedEntity(m_hoveredEntity);
+            m_sceneHierarchyPanel.setSelectedEntity(m_hoveredEntity && m_hoveredEntity.isValid() ? m_hoveredEntity : Entity());
     }
     return false;
 }
@@ -375,7 +386,7 @@ void BosonLayer::onHelpPanel() {
 
 void BosonLayer::onSettingsPanel() {
     std::string name = "None";
-    if (m_hoveredEntity) {
+    if (m_hoveredEntity && m_hoveredEntity.hasComponent<TagComponent>()) {
         name = m_hoveredEntity.getComponent<TagComponent>().tag;
     }
 

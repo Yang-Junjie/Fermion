@@ -17,8 +17,12 @@ public:
     Entity() = default;
     Entity(const Entity &other) = default;
 
+    [[nodiscard]] bool isValid() const {
+        return m_scene != nullptr && m_entityHandle != entt::null && m_scene->m_registry.valid(m_entityHandle);
+    }
+
     explicit operator bool() const {
-        return m_scene != nullptr && m_entityHandle != entt::null;
+        return isValid();
     }
     operator entt::entity() const {
         return m_entityHandle;
@@ -37,6 +41,7 @@ public:
     bool hasComponent() const {
         FERMION_ASSERT(m_scene != nullptr, "Scene is null (no owning scene)");
         FERMION_ASSERT(m_entityHandle != entt::null, "Entity handle is null");
+        FERMION_ASSERT(m_scene->m_registry.valid(m_entityHandle), "Entity handle is invalid (entity was probably destroyed)");
         return m_scene->m_registry.all_of<T>(m_entityHandle);
     }
 
@@ -44,6 +49,7 @@ public:
     T &addComponent(Args &&...args) {
         FERMION_ASSERT(m_scene != nullptr, "Entity is null (no owning scene)");
         FERMION_ASSERT(m_entityHandle != entt::null, "Entity handle is null");
+        FERMION_ASSERT(m_scene->m_registry.valid(m_entityHandle), "Entity handle is invalid (entity was probably destroyed)");
         FERMION_ASSERT(!hasComponent<T>(), "Entity already has this component");
 
         T &component = m_scene->m_registry.emplace<T>(m_entityHandle, std::forward<Args>(args)...);
@@ -63,6 +69,7 @@ public:
     T &getComponent() {
         FERMION_ASSERT(m_scene != nullptr, "Entity is null (no owning scene)");
         FERMION_ASSERT(m_entityHandle != entt::null, "Entity handle is null");
+        FERMION_ASSERT(m_scene->m_registry.valid(m_entityHandle), "Entity handle is invalid (entity was probably destroyed)");
         FERMION_ASSERT(hasComponent<T>(), "Entity does not have this component");
         return m_scene->m_registry.get<T>(m_entityHandle);
     }
@@ -71,12 +78,16 @@ public:
     void removeComponent() {
         FERMION_ASSERT(m_scene != nullptr, "Entity is null (no owning scene)");
         FERMION_ASSERT(m_entityHandle != entt::null, "Entity handle is null");
+        FERMION_ASSERT(m_scene->m_registry.valid(m_entityHandle), "Entity handle is invalid (entity was probably destroyed)");
         FERMION_ASSERT(hasComponent<T>(), "Entity does not have this component");
         m_scene->m_registry.remove<T>(m_entityHandle);
     }
 
     template <typename T, typename... Args>
     T &addOrReplaceComponent(Args &&...args) {
+        FERMION_ASSERT(m_scene != nullptr, "Entity is null (no owning scene)");
+        FERMION_ASSERT(m_entityHandle != entt::null, "Entity handle is null");
+        FERMION_ASSERT(m_scene->m_registry.valid(m_entityHandle), "Entity handle is invalid (entity was probably destroyed)");
         T &component = m_scene->m_registry.emplace_or_replace<T>(m_entityHandle, std::forward<Args>(args)...);
         if constexpr (std::is_same_v<T, CameraComponent>) {
             const uint32_t vw = m_scene->getViewportWidth();
