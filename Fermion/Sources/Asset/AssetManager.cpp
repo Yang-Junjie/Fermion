@@ -56,19 +56,25 @@ void AssetManager::init(const std::filesystem::path &assetDirectory) {
             continue;
 
         auto metaPath = GetMetaPath(p.path());
+        auto assetAbsolutePath = std::filesystem::absolute(p.path());
 
         AssetMetadata meta = AssetSerializer::deserializeMeta(metaPath);
+        bool shouldWriteMeta = false;
 
         if (meta.Type == AssetType::None) {
             meta.Handle = AssetHandle();
             meta.Type = type;
             meta.Name = p.path().stem().string();
-            meta.FilePath = std::filesystem::absolute(p.path());
-
-            AssetSerializer::serializeMeta(metaPath, meta);
-        } else {
-            meta.FilePath = std::filesystem::absolute(p.path());
+            shouldWriteMeta = true;
         }
+
+        if (meta.FilePath != assetAbsolutePath) {
+            meta.FilePath = assetAbsolutePath;
+            shouldWriteMeta = true;
+        }
+
+        if (shouldWriteMeta)
+            AssetSerializer::serializeMeta(metaPath, meta);
 
         AssetRegistry::set(meta.Handle, meta);
     }
