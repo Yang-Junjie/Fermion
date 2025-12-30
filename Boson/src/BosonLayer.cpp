@@ -437,7 +437,7 @@ void BosonLayer::onViewportPanel() {
                  ImVec2(viewportPanelSize.x, viewportPanelSize.y),
                  ImVec2(0, 1), ImVec2(1, 0));
 
-    // 接收 .fermion 拖放
+    // 接收 .fmscene 拖放
     if (ImGui::BeginDragDropTarget()) {
         if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_SCENE")) {
             const char *path = static_cast<const char *>(payload->Data);
@@ -684,7 +684,7 @@ void BosonLayer::saveSceneAs() {
     }
 
     auto path = FileDialogs::saveFile(
-        "Scene (*.fermion)\0*.fermion\0", defaultDir);
+        "Scene (*.fmscene)\0*.fmscene\0", defaultDir);
     if (path.empty())
         return;
 
@@ -727,7 +727,7 @@ void BosonLayer::openScene() {
     }
 
     std::filesystem::path path = FileDialogs::openFile(
-        "Scene (*.fermion)\0*.fermion\0", defaultDir);
+        "Scene (*.fmscene)\0*.fmscene\0", defaultDir);
     if (!path.empty()) {
         openScene(path);
     }

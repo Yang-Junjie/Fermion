@@ -4,10 +4,10 @@
 #include <string>
 
 namespace Fermion {
-inline static std::unordered_map<std::string, AssetType> s_AssetExtensionMap =
+    inline static std::unordered_map<std::string, AssetType> s_AssetExtensionMap =
     {
         // Scenes
-        {".fermion", AssetType::Scene},
+        {".fmscene", AssetType::Scene},
         // Textures
         {".png", AssetType::Texture},
         {".jpg", AssetType::Texture},
@@ -23,10 +23,18 @@ inline static std::unordered_map<std::string, AssetType> s_AssetExtensionMap =
 
         // Mesh
         {".obj", AssetType::Mesh},
-};
+    };
 
-inline static AssetType GetAssetTypeFromExtension(const std::string &extension) {
-    auto it = s_AssetExtensionMap.find(extension);
-    return it != s_AssetExtensionMap.end() ? it->second : AssetType::None;
-}
+    inline static AssetType GetAssetTypeFromExtension(const std::string &extension) {
+        auto it = s_AssetExtensionMap.find(extension);
+        return it != s_AssetExtensionMap.end() ? it->second : AssetType::None;
+    }
+
+    inline static std::string GetAssetExtensionFromType(AssetType type) {
+        for (auto &[ext, t] : s_AssetExtensionMap) {
+            if (t == type)
+                return ext;
+        }
+        return "";
+    }
 } // namespace Fermion

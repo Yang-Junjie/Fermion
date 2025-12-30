@@ -19,7 +19,9 @@ namespace Fermion {
         std::filesystem::path m_baseDirectory;
         std::filesystem::path m_currentDirectory;
 
-        std::shared_ptr<Texture2D> m_directoryIcon = nullptr;
-        std::shared_ptr<Texture2D> m_fileIcon = nullptr;
+        std::unique_ptr<Texture2D> m_directoryIcon = nullptr;
+        std::unique_ptr<Texture2D> m_fileIcon = nullptr;
+        std::unique_ptr<Texture2D> m_meshFileIcon = nullptr;
+        std::unique_ptr<Texture2D> m_textureFileIcon = nullptr;
     };
 } // namespace Fermion

@@ -4,25 +4,12 @@
 
 #include "Asset/AssetRegistry.hpp"
 #include "Asset/AssetTypes.hpp"
+#include "Asset/AssetExtensions.hpp"
 #include "Asset/Asset.hpp"
 #include "Renderer/Texture/Texture.hpp"
 #include "Project/Project.hpp"
 
 namespace Fermion {
-static const char *AssetTypeToString(AssetType type) {
-    switch (type) {
-    case AssetType::Texture:
-        return "Texture";
-    case AssetType::Scene:
-        return "Scene";
-    case AssetType::Font:
-        return "Font";
-    case AssetType::Shader:
-        return "Shader";
-    default:
-        return "None";
-    }
-}
 
 void AssetManagerPanel::onImGuiRender() {
     ImGui::Begin("Asset Manager");
@@ -53,7 +40,7 @@ void AssetManagerPanel::onImGuiRender() {
             ImGui::Text("%llu", (uint64_t)handle);
 
             ImGui::TableNextColumn();
-            ImGui::TextUnformatted(AssetTypeToString(info.Type));
+            ImGui::TextUnformatted(GetAssetExtensionFromType(info.Type).c_str());
 
             ImGui::TableNextColumn();
             ImGui::TextUnformatted(info.Name.c_str());

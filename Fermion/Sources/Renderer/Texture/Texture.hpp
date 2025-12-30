@@ -41,14 +41,14 @@ namespace Fermion
     class Texture2D : public Texture
     {
     public:
-        static std::shared_ptr<Texture2D> create(uint32_t width, uint32_t height);
-        static std::shared_ptr<Texture2D> create(const std::string &path);
-        static std::shared_ptr<Texture2D> create(const TextureSpecification &spec);
+        static std::unique_ptr<Texture2D> create(uint32_t width, uint32_t height);
+        static std::unique_ptr<Texture2D> create(const std::string &path);
+        static std::unique_ptr<Texture2D> create(const TextureSpecification &spec);
     };
 
     class TextureCube : public Texture
     {
     public:
-        static std::shared_ptr<TextureCube> create(const std::string &path);
+        static std::unique_ptr<TextureCube> create(const std::string &path);
     };
 }

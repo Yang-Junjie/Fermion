@@ -17,9 +17,9 @@ public:
         AmbientColor = color;
     }
 
-    void setTexture(const std::shared_ptr<Texture2D> &texture) {
-        DiffuseTexture = texture;
+    void setTexture(std::unique_ptr<Texture2D> texture) {
         UseTexture = (texture && texture->isLoaded());
+        DiffuseTexture = std::move(texture);
     }
 
     void bind(const std::shared_ptr<Shader> &shader, int slot = 0) const {
@@ -42,14 +42,14 @@ public:
     const glm::vec4 &getAmbientColor() const {
         return AmbientColor;
     }
-    std::shared_ptr<Texture2D> getTexture() const {
-        return DiffuseTexture;
+   Texture2D* getTexture() const {
+        return DiffuseTexture.get();
     }
 
 private:
     glm::vec4 DiffuseColor; // Kd 漫反射
     glm::vec4 AmbientColor; // Ka 环境光
     bool UseTexture;
-    std::shared_ptr<Texture2D> DiffuseTexture;
+    std::unique_ptr<Texture2D> DiffuseTexture = nullptr;
 };
 } // namespace Fermion

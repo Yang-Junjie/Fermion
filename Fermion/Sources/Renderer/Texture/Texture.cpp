@@ -3,48 +3,48 @@
 #include "Texture.hpp"
 namespace Fermion
 {
-    std::shared_ptr<Texture2D> Texture2D::create(const std::string &path)
+    std::unique_ptr<Texture2D> Texture2D::create(const std::string &path)
     {
         switch (Renderer::getAPI())
         {
         case RendererAPI::API::None:
             return nullptr;
         case RendererAPI::API::OpenGL:
-            return std::make_shared<OpenGLTexture2D>(path);
+            return std::make_unique<OpenGLTexture2D>(path);
         }
         return nullptr;
     }
 
-    std::shared_ptr<Texture2D> Texture2D::create(const TextureSpecification &spec)
+    std::unique_ptr<Texture2D> Texture2D::create(const TextureSpecification &spec)
     {
         switch (Renderer::getAPI())
         {
         case RendererAPI::API::None:
             return nullptr;
         case RendererAPI::API::OpenGL:
-            return std::make_shared<OpenGLTexture2D>(spec);
+            return std::make_unique<OpenGLTexture2D>(spec);
         }
         return nullptr;
     }
-    std::shared_ptr<Texture2D> Texture2D::create(uint32_t width, uint32_t height)
+    std::unique_ptr<Texture2D> Texture2D::create(uint32_t width, uint32_t height)
     {
         switch (Renderer::getAPI())
         {
         case RendererAPI::API::None:
             return nullptr;
         case RendererAPI::API::OpenGL:
-            return std::make_shared<OpenGLTexture2D>(width, height);
+            return std::make_unique<OpenGLTexture2D>(width, height);
         }
         return nullptr;
     }
-    std::shared_ptr<TextureCube> TextureCube::create(const std::string &path)
+    std::unique_ptr<TextureCube> TextureCube::create(const std::string &path)
     {
         switch (Renderer::getAPI())
         {
         case RendererAPI::API::None:
             return nullptr;
         case RendererAPI::API::OpenGL:
-            return std::make_shared<OpenGLTextureCube>(path);
+            return std::make_unique<OpenGLTextureCube>(path);
         }
         return nullptr;
     }

@@ -85,7 +85,7 @@ void Mesh::processMesh(aiMesh *mesh, const aiScene *scene) {
 
                 auto tex = Texture2D::create(fullTexPath.string());
                 if (tex && tex->isLoaded())
-                    material->setTexture(tex);
+                    material->setTexture(std::move(tex));
             }
         }
     }
