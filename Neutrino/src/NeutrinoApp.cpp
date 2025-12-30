@@ -1,9 +1,9 @@
-#pragma once
 
 #include "Core/Application.hpp"
 #include "NeutrinoLayer.hpp"
 
-namespace Fermion {
+namespace Fermion
+{
 class Neutrino : public Application {
 public:
     Neutrino(const ApplicationSpecification &spec) : Application(spec) {

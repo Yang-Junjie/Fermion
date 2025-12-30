@@ -33,6 +33,7 @@ public:
     }
 
     static std::shared_ptr<Project> getActive() {
+        FERMION_ASSERT(s_activeProject!=nullptr, "Project is not active!");
         return s_activeProject;
     }
     static bool saveActive(const std::filesystem::path &path);
@@ -58,7 +59,7 @@ private:
     std::filesystem::path m_projectPath;
     inline static std::shared_ptr<AssetManagerBase> s_assetManager;
 
-    inline static std::shared_ptr<Project> s_activeProject;
+    inline static std::shared_ptr<Project> s_activeProject = nullptr;
 };
 
 } // namespace Fermion

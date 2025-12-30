@@ -17,7 +17,7 @@
 namespace Fermion {
 class BosonLayer : public Layer {
 public:
-    BosonLayer(const std::string &name = "BosonLayer");
+    BosonLayer(const std::string &name = "BosonLayer", std::filesystem::path initialProjectPath = {});
 
     virtual ~BosonLayer() override = default;
 
@@ -27,7 +27,7 @@ public:
 
     virtual void onImGuiRender() override;
     virtual void onEvent(IEvent &event) override;
-
+    void openProject(const std::filesystem::path &path);
 private:
     bool onKeyPressedEvent(KeyPressedEvent &e);
     bool onMouseButtonPressedEvent(MouseButtonPressedEvent &e);
@@ -36,7 +36,6 @@ private:
 
     void newProject();
     void openProject();
-    void openProject(const std::filesystem::path &path);
     void saveProject();
 
     void newScene();
@@ -91,5 +90,7 @@ private:
     bool m_primaryCamera = true;
     bool m_showPhysicsColliders = false;
     bool m_showRenderEntities = true;
+    bool m_isInitialized = false;
+    std::filesystem::path m_pendingProjectPath;
 };
 } // namespace Fermion

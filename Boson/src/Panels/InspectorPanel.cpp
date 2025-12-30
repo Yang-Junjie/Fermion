@@ -143,15 +143,24 @@ namespace Fermion {
             ImGui::OpenPopup("Add Component");
         }
         if (ImGui::BeginPopup("Add Component")) {
+            ImGui::SeparatorText("2D Component");
             displayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
+            displayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
+            displayAddComponentEntry<TextComponent>("Text");
+            displayAddComponentEntry<Rigidbody2DComponent>("Rigidbody2D");
+            displayAddComponentEntry<BoxCollider2DComponent>("Box Collider2D");
+            displayAddComponentEntry<CircleCollider2DComponent>("Circle Collider2D");
+            displayAddComponentEntry<BoxSensor2DComponent>("Box Sensor2D");
+            ImGui::SeparatorText("3D Component");
             displayAddComponentEntry<MeshComponent>("Mesh");
             displayAddComponentEntry<MaterialComponent>("Material");
             displayAddComponentEntry<DirectionalLightComponent>("Directional Light");
             displayAddComponentEntry<PointLightComponent>("Point Light");
             displayAddComponentEntry<SpotLightComponent>("Spot Light");
-            displayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
+
+            ImGui::SeparatorText("Other");
             displayAddComponentEntry<CameraComponent>("Camera");
-            displayAddComponentEntry<TextComponent>("Text");
+            displayAddComponentEntry<ScriptContainerComponent>("Scripts");
 
             // displayAddComponentEntry<ScriptComponent>("Script");
             // bool hasScriptComponent = m_selectedEntity.hasComponent<ScriptComponent>();
@@ -161,11 +170,8 @@ namespace Fermion {
             // 	displayAddComponentEntry<ScriptComponent>("Script");
             // 	displayAddComponentEntry<ScriptContainerComponent>("Script Container");
             // }
-            displayAddComponentEntry<ScriptContainerComponent>("Scripts");
-            displayAddComponentEntry<Rigidbody2DComponent>("Rigidbody2D");
-            displayAddComponentEntry<BoxCollider2DComponent>("Box Collider2D");
-            displayAddComponentEntry<CircleCollider2DComponent>("Circle Collider2D");
-            displayAddComponentEntry<BoxSensor2DComponent>("Box Sensor2D");
+
+
 
             // if (ImGui::MenuItem("Native Script"))
             // {

@@ -10,17 +10,55 @@
 #include "imgui/ConsolePanel.hpp"
 #include "Math/Math.hpp"
 
+#include <format>
 #include <imgui.h>
 #include <ImGuizmo.h>
 
+#include <algorithm>
+#include <cctype>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/glm.hpp>
-namespace Fermion {
+#include <utility>
+
+namespace
+{
+
+bool isProjectDescriptor(const std::filesystem::path &path) {
+    auto ext = path.extension().string();
+    std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c) {
+        return static_cast<char>(std::tolower(c));
+    });
+    return ext == ".fmproj";
+}
+
+std::filesystem::path findProjectFileInDirectory(const std::filesystem::path &directory) {
+    std::error_code ec;
+    for (std::filesystem::directory_iterator it(directory, ec), end; it != end; it.increment(ec)) {
+        if (ec)
+            break;
+
+        std::error_code entryEc;
+        if (!it->is_regular_file(entryEc) || entryEc)
+            continue;
+
+        if (isProjectDescriptor(it->path()))
+            return it->path();
+    }
+    return {};
+}
+
+} // namespace
+
+namespace Fermion
+{
 
 static std::shared_ptr<Font> s_Font; // TODO:  Temporary
-BosonLayer::BosonLayer(const std::string &name) : Layer(name) {
+BosonLayer::BosonLayer(const std::string &name, std::filesystem::path initialProjectPath) : Layer(name), m_pendingProjectPath(std::move(initialProjectPath)) {
     s_Font = Font::getDefault();
+    m_contentBrowserPanel.setProjectOpenCallback([this](const std::filesystem::path &path) {
+        openProject(path);
+    });
 }
 
 void BosonLayer::onAttach() {
@@ -63,6 +101,13 @@ void BosonLayer::onAttach() {
     };
     callbacks.ShowAbout = [this]() { m_showAboutWindow = true; };
     m_menuBarPanel.SetCallbacks(callbacks);
+
+    m_isInitialized = true;
+    if (!m_pendingProjectPath.empty()) {
+        auto pendingPath = m_pendingProjectPath;
+        m_pendingProjectPath.clear();
+        openProject(pendingPath);
+    }
 }
 
 void BosonLayer::onDetach() {
@@ -183,7 +228,7 @@ void BosonLayer::onImGuiRender() {
         m_assetManagerPanel.onImGuiRender();
         m_menuBarPanel.OnImGuiRender();
         ConsolePanel::get().onImGuiRender();
-        //ImGui::ShowDemoWindow();
+        //  ImGui::ShowDemoWindow();
 
         onUIToolPanel();
         onHelpPanel();
@@ -635,7 +680,28 @@ void BosonLayer::openProject() {
 }
 
 void BosonLayer::openProject(const std::filesystem::path &path) {
-    auto project = Project::loadProject(path);
+    std::filesystem::path projectPath = path;
+    if (projectPath.empty()) {
+        Log::Warn("Empty project path supplied.");
+        return;
+    }
+
+    if (!m_isInitialized) {
+        m_pendingProjectPath = projectPath;
+        return;
+    }
+
+    std::error_code ec;
+    if (std::filesystem::is_directory(projectPath, ec) && !ec) {
+        auto descriptor = findProjectFileInDirectory(projectPath);
+        if (descriptor.empty()) {
+            Log::Error(std::format("No .fmproj/.fproject found inside directory: {}", projectPath.string()));
+            return;
+        }
+        projectPath = descriptor;
+    }
+
+    auto project = Project::loadProject(projectPath);
     FERMION_ASSERT(project != nullptr, "Failed to load project!");
     auto lastScene = Project::getActive()->getConfig().startScene;
     if (!lastScene.empty())
@@ -742,7 +808,6 @@ void BosonLayer::openScene(const std::filesystem::path &path) {
     if (m_sceneState != SceneState::Edit) {
         onSceneStop();
     }
-
     auto editorAssets = Project::getEditorAssetManager();
     AssetHandle handle = editorAssets->importAsset(path);
     if (static_cast<uint64_t>(handle) == 0) {

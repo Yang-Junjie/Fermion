@@ -10,6 +10,7 @@ set(BOSON_SOUCES
     ${CMAKE_CURRENT_LIST_DIR}/src/Panels/MenuBarPanel.cpp
 
 )
+set(CMAKE_BUILD_TYPE Debug)
 
 add_executable(BosonEditor ${BOSON_SOUCES})
 

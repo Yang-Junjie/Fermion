@@ -5,6 +5,7 @@
 #include <prsht.h>
 #include <shobjidl.h>
 #include <commdlg.h>
+#include <process.h>
 #include <GLFW/glfw3.h>
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
@@ -102,6 +103,30 @@ std::filesystem::path FileDialogs::selectDirectory(std::string defaultPath) {
 
     CoUninitialize();
     return resultPath;
+}
+
+bool Process::launchDetached(const std::filesystem::path &executablePath, const std::vector<std::string> &arguments) {
+    if (executablePath.empty())
+        return false;
+
+    std::wstring exe = executablePath.wstring();
+    std::vector<std::wstring> wideArgs;
+    wideArgs.reserve(arguments.size() + 1);
+    wideArgs.push_back(exe);
+    for (const auto &arg : arguments) {
+        std::filesystem::path argPath(arg);
+        wideArgs.emplace_back(argPath.wstring());
+    }
+
+    std::vector<const wchar_t *> argv;
+    argv.reserve(wideArgs.size() + 1);
+    for (const auto &entry : wideArgs) {
+        argv.push_back(entry.c_str());
+    }
+    argv.push_back(nullptr);
+
+    intptr_t result = _wspawnv(_P_NOWAIT, exe.c_str(), argv.data());
+    return result != -1;
 }
 
 } // namespace Fermion

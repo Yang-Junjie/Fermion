@@ -2,6 +2,7 @@
 
 #include <string>
 #include <filesystem>
+#include <vector>
 
 namespace Fermion {
 
@@ -15,6 +16,11 @@ public:
 class Time {
 public:
     static float getTime();
+};
+
+class Process {
+public:
+    static bool launchDetached(const std::filesystem::path &executablePath, const std::vector<std::string> &arguments);
 };
 
 } // namespace Fermion

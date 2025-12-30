@@ -7,127 +7,149 @@
 #include "Renderer/Camera/EditorCamera.hpp"
 #include "Components.hpp"
 #include <box2d/box2d.h>
-namespace Fermion
-{
-class Entity;
-class SceneRenderer;
 
-struct PointLight {
-    glm::vec3 position = {0.0f, 0.0f, 0.0f};
-    glm::vec3 color{1.0f, 1.0f, 1.0f};
-    float intensity = 1.0f;
-    float range = 10.0f;
-};
-struct SpotLight {
-    glm::vec3 position = {0.0f, 0.0f, 0.0f};
-    glm::vec3 direction{0.0f, -1.0f, 0.0f};
+namespace Fermion {
+    class Entity;
+    class SceneRenderer;
 
-    glm::vec3 color{1.0f, 1.0f, 1.0f};
-    float intensity = 1.0f;
+    struct PointLight {
+        glm::vec3 position = {0.0f, 0.0f, 0.0f};
+        glm::vec3 color{1.0f, 1.0f, 1.0f};
+        float intensity = 1.0f;
+        float range = 10.0f;
+    };
 
-    float range = 10.0f;
+    struct SpotLight {
+        glm::vec3 position = {0.0f, 0.0f, 0.0f};
+        glm::vec3 direction{0.0f, -1.0f, 0.0f};
 
-    float innerConeAngle = glm::radians(15.0f);
-    float outerConeAngle = glm::radians(25.0f);
-};
+        glm::vec3 color{1.0f, 1.0f, 1.0f};
+        float intensity = 1.0f;
 
-struct DirectionalLight {
-    glm::vec3 direction{0.0f, -1.0f, 0.0f};
-    glm::vec3 color{1.0f, 1.0f, 1.0f};
-    float intensity = 1.0f;
-};
+        float range = 10.0f;
 
-struct EnvironmentLight {
-    DirectionalLight directionalLight;
-    std::vector<PointLight> pointLights;
-    std::vector<SpotLight> spotLights;
-};
-class Scene {
-public:
-    Scene();
-    ~Scene();
+        float innerConeAngle = glm::radians(15.0f);
+        float outerConeAngle = glm::radians(25.0f);
+    };
 
-    static std::shared_ptr<Scene> copy(std::shared_ptr<Scene> other);
-    void onRuntimeStart();
-    void onRuntimeStop();
+    struct DirectionalLight {
+        glm::vec3 direction{0.0f, -1.0f, 0.0f};
+        glm::vec3 color{1.0f, 1.0f, 1.0f};
+        float intensity = 1.0f;
+    };
 
-    void onSimulationStart();
-    void onSimulationStop();
+    struct EnvironmentLight {
+        DirectionalLight directionalLight;
+        std::vector<PointLight> pointLights;
+        std::vector<SpotLight> spotLights;
+    };
 
-    void onUpdateEditor(std::shared_ptr<SceneRenderer> renderer, Timestep ts, EditorCamera &camera, bool showRenderEntities = true);
-    void onUpdateSimulation(std::shared_ptr<SceneRenderer> renderer, Timestep ts, EditorCamera &camera, bool showRenderEntities = true);
-    void onUpdateRuntime(std::shared_ptr<SceneRenderer> renderer, Timestep ts, bool showRenderEntities = true);
+    class Scene {
+    public:
+        Scene();
 
-    void onViewportResize(uint32_t width, uint32_t height);
+        ~Scene();
 
-    Entity createEntity(std::string name = std::string());
-    Entity createEntityWithUUID(UUID uuid, std::string name = std::string());
-    void destroyEntity(Entity entity);
+        static std::shared_ptr<Scene> copy(std::shared_ptr<Scene> other);
 
-    Entity duplicateEntity(Entity entity);
-    Entity findEntityByName(std::string_view name);
-    Entity getEntityByUUID(UUID uuid);
+        void onRuntimeStart();
 
-    uint32_t getViewportWidth() const {
-        return m_viewportWidth;
-    }
+        void onRuntimeStop();
 
-    uint32_t getViewportHeight() const {
-        return m_viewportHeight;
-    }
+        void onSimulationStart();
 
-    Entity getPrimaryCameraEntity();
+        void onSimulationStop();
 
-    bool isRunning() const {
-        return m_isRunning;
-    }
-    bool isPaused() const {
-        return m_isPaused;
-    }
-    void setPaused(bool paused) {
-        m_isPaused = paused;
-    }
-    void step(int frames = 1);
+        void onUpdateEditor(std::shared_ptr<SceneRenderer> renderer, Timestep ts, EditorCamera &camera,
+                            bool showRenderEntities = true);
 
-    template <typename... Components>
-    auto getAllEntitiesWith() {
-        return m_registry.view<Components...>();
-    }
-    void initPhysicsSensor(Entity entity);
-    b2WorldId getPhysicsWorld() const {
-        return m_physicsWorld;
-    }
-    bool isPhysicsWorldValid() const {
-        return B2_IS_NON_NULL(m_physicsWorld);
-    }
+        void onUpdateSimulation(std::shared_ptr<SceneRenderer> renderer, Timestep ts, EditorCamera &camera,
+                                bool showRenderEntities = true);
 
-private:
-    void onPhysics2DStart();
-    void onPhysics2DStop();
+        void onUpdateRuntime(std::shared_ptr<SceneRenderer> renderer, Timestep ts, bool showRenderEntities = true);
 
-    void onScriptStart(Timestep ts);
-    void onRenderEditor(std::shared_ptr<SceneRenderer> renderer, EditorCamera &camera, bool showRenderEntities = true);
+        void onViewportResize(uint32_t width, uint32_t height);
 
-private:
-    entt::registry m_registry;
-    uint32_t m_viewportWidth = 0, m_viewportHeight = 0;
+        Entity createEntity(std::string name = std::string());
 
-    bool m_isRunning = false;
-    bool m_isPaused = false;
-    int m_stepFrames = 0;
+        Entity createEntityWithUUID(UUID uuid, std::string name = std::string());
 
-    EnvironmentLight m_environmentLight;
-    b2WorldId m_physicsWorld = b2_nullWorldId;
+        void destroyEntity(Entity entity);
 
-    bool m_hasDirectionalLight = false;
+        Entity duplicateEntity(Entity entity);
 
-    std::unordered_map<UUID, entt::entity> m_entityMap;
-    std::unordered_map<UUID, b2BodyId> m_physicsBodyMap;
+        Entity findEntityByName(std::string_view name);
 
-    friend class Entity;
-    friend class SceneRenderer;
-    friend class SceneSerializer;
-    friend class SceneHierarchyPanel;
-};
+        Entity getEntityByUUID(UUID uuid);
 
+        uint32_t getViewportWidth() const {
+            return m_viewportWidth;
+        }
+
+        uint32_t getViewportHeight() const {
+            return m_viewportHeight;
+        }
+
+        Entity getPrimaryCameraEntity();
+
+        bool isRunning() const {
+            return m_isRunning;
+        }
+
+        bool isPaused() const {
+            return m_isPaused;
+        }
+
+        void setPaused(bool paused) {
+            m_isPaused = paused;
+        }
+
+        void step(int frames = 1);
+
+        template<typename... Components>
+        auto getAllEntitiesWith() {
+            return m_registry.view<Components...>();
+        }
+
+        void initPhysicsSensor(Entity entity);
+
+        b2WorldId getPhysicsWorld() const {
+            return m_physicsWorld;
+        }
+
+        bool isPhysicsWorldValid() const {
+            return B2_IS_NON_NULL(m_physicsWorld);
+        }
+
+    private:
+        void onPhysics2DStart();
+
+        void onPhysics2DStop();
+
+        void onScriptStart(Timestep ts);
+
+        void onRenderEditor(std::shared_ptr<SceneRenderer> renderer, EditorCamera &camera,
+                            bool showRenderEntities = true);
+
+    private:
+        entt::registry m_registry;
+        uint32_t m_viewportWidth = 0, m_viewportHeight = 0;
+
+        bool m_isRunning = false;
+        bool m_isPaused = false;
+        int m_stepFrames = 0;
+
+        EnvironmentLight m_environmentLight;
+        b2WorldId m_physicsWorld = b2_nullWorldId;
+
+        bool m_hasDirectionalLight = false;
+
+        std::unordered_map<UUID, entt::entity> m_entityMap;
+        std::unordered_map<UUID, b2BodyId> m_physicsBodyMap;
+
+        friend class Entity;
+        friend class SceneRenderer;
+        friend class SceneSerializer;
+        friend class SceneHierarchyPanel;
+    };
 } // namespace Fermion

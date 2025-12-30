@@ -19,7 +19,7 @@ namespace Fermion {
 struct ApplicationSpecification {
     std::string name = "Fermion";
     uint32_t windowWidth = 1600, windowHeight = 900;
-    RendererConfig rendererConfig;
+    RendererConfig rendererConfig = {""};
 };
 class Application {
 public:
