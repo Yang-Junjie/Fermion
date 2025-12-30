@@ -183,7 +183,7 @@ void BosonLayer::onImGuiRender() {
         m_assetManagerPanel.onImGuiRender();
         m_menuBarPanel.OnImGuiRender();
         ConsolePanel::get().onImGuiRender();
-        // ImGui::ShowDemoWindow();
+        //ImGui::ShowDemoWindow();
 
         onUIToolPanel();
         onHelpPanel();
