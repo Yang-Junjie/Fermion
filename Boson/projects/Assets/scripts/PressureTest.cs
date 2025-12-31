@@ -33,7 +33,7 @@ namespace Sandbox
         public void OnUpdate(float ts)
         {
             DebugRenderer.DrawLine(new Vector3(0, 0, 0), new Vector3(-10, -100, 0), new Vector4(1, 1, 1, 1));
-            DebugRenderer.SetLineWidth(10);
+            DebugRenderer.DrawQuadBillboard(new Vector3(-10, -10, 0), new Vector2(10, 10), new Vector4(0.5f, 0.2f, 0.3f, 1));
         }
     }
 }

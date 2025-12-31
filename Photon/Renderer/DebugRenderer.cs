@@ -10,5 +10,9 @@ namespace Fermion
         {
             InternalCalls.DebugRenderer_SetLineWidth(width);
         }
+        public static unsafe void DrawQuadBillboard(Vector3 position, Vector2 scale, Vector4 color)
+        {
+            InternalCalls.DebugRenderer_DrawQuadBillboard(&position, &scale, &color);
+        }
     }
 }

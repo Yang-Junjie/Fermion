@@ -11,7 +11,7 @@ void Renderer::init() {
 
     RenderCommand::init();
     Renderer2D::init(s_config);
-    Renderer3D::Init(s_config);
+    Renderer3D::init(s_config);
 }
 
 void Renderer::setConfig(const RendererConfig &config) {

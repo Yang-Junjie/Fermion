@@ -4,22 +4,26 @@
 #include <string>
 
 namespace Fermion {
-class ConsolePanel {
-public:
-    ConsolePanel();
-    ~ConsolePanel();
+    class ConsolePanel {
+    public:
+        ConsolePanel();
 
-    void addLog(const char *fmt, ...);
-    void clear();
-    void onImGuiRender();
-    static ConsolePanel &get() {
-        static ConsolePanel instance;
-        return instance;
-    }
+        ~ConsolePanel();
 
-private:
-    ImVector<char *> m_items;
-    char m_inputBuf[256];
-    bool m_scrollToBottom = false;
-};
+        void addLog(const char *fmt, ...);
+
+        void clear();
+
+        void onImGuiRender();
+
+        static ConsolePanel &get() {
+            static ConsolePanel instance;
+            return instance;
+        }
+
+    private:
+        ImVector<char *> m_items;
+        char m_inputBuf[256];
+        bool m_scrollToBottom = false;
+    };
 } // namespace Fermion

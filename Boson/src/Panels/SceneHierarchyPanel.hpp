@@ -4,33 +4,35 @@
 #include "InspectorPanel.hpp"
 
 namespace Fermion {
+    class SceneHierarchyPanel {
+    public:
+        SceneHierarchyPanel();
 
-class SceneHierarchyPanel {
-public:
-    SceneHierarchyPanel();
-    SceneHierarchyPanel(const std::shared_ptr<Scene> &scene);
-    void setContext(const std::shared_ptr<Scene> &scene);
+        SceneHierarchyPanel(const std::shared_ptr<Scene> &scene);
 
-    void onImGuiRender();
+        void setContext(const std::shared_ptr<Scene> &scene);
 
-    Entity getSelectedEntity() const {
-        return m_selectedEntity;
-    }
-    void setSelectedEntity(Entity entity);
+        void onImGuiRender();
 
-    void setEditingEnabled(bool enabled);
+        Entity getSelectedEntity() const {
+            return m_selectedEntity;
+        }
 
-private:
-    void drawEntityNode(Entity entity);
-    // void drawComponents(Entity entity);
-    // template <typename T>
-    // void displayAddComponentEntry(const std::string &entryName);
+        void setSelectedEntity(Entity entity);
 
-private:
-    InspectorPanel m_inspectorPanel;
-    std::shared_ptr<Scene> m_contextScene;
-    Entity m_selectedEntity;
-    bool m_editingEnabled = true;
-};
+        void setEditingEnabled(bool enabled);
 
+    private:
+        void drawEntityNode(Entity entity);
+
+        // void drawComponents(Entity entity);
+        // template <typename T>
+        // void displayAddComponentEntry(const std::string &entryName);
+
+    private:
+        InspectorPanel m_inspectorPanel;
+        std::shared_ptr<Scene> m_contextScene;
+        Entity m_selectedEntity;
+        bool m_editingEnabled = true;
+    };
 } // namespace Fermion

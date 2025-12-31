@@ -4,52 +4,55 @@
 #include "../Texture/Texture.hpp"
 
 namespace Fermion {
-class Material {
-public:
-    Material() : DiffuseColor(1.0f), AmbientColor(0.0f), UseTexture(false) {
-    }
-
-    void setDiffuseColor(const glm::vec4 &color) {
-        DiffuseColor = color;
-    }
-
-    void setAmbientColor(const glm::vec4 &color) {
-        AmbientColor = color;
-    }
-
-    void setTexture(std::unique_ptr<Texture2D> texture) {
-        UseTexture = (texture && texture->isLoaded());
-        DiffuseTexture = std::move(texture);
-    }
-
-    void bind(const std::shared_ptr<Shader> &shader, int slot = 0) const {
-        shader->setBool("u_UseTexture", UseTexture);
-        shader->setFloat4("u_Kd", DiffuseColor);
-        shader->setFloat4("u_Ka", AmbientColor);
-
-        if (UseTexture) {
-            DiffuseTexture->bind(slot);
-            shader->setInt("u_Texture", slot);
+    class Material {
+    public:
+        Material() : DiffuseColor(1.0f), AmbientColor(0.0f), UseTexture(false) {
         }
-    }
 
-    bool hasTexture() const {
-        return UseTexture;
-    }
-    const glm::vec4 &getDiffuseColor() const {
-        return DiffuseColor;
-    }
-    const glm::vec4 &getAmbientColor() const {
-        return AmbientColor;
-    }
-   Texture2D* getTexture() const {
-        return DiffuseTexture.get();
-    }
+        void setDiffuseColor(const glm::vec4 &color) {
+            DiffuseColor = color;
+        }
 
-private:
-    glm::vec4 DiffuseColor; // Kd 漫反射
-    glm::vec4 AmbientColor; // Ka 环境光
-    bool UseTexture;
-    std::unique_ptr<Texture2D> DiffuseTexture = nullptr;
-};
+        void setAmbientColor(const glm::vec4 &color) {
+            AmbientColor = color;
+        }
+
+        void setTexture(std::unique_ptr<Texture2D> texture) {
+            UseTexture = (texture && texture->isLoaded());
+            DiffuseTexture = std::move(texture);
+        }
+
+        void bind(const std::shared_ptr<Shader> &shader, int slot = 0) const {
+            shader->setBool("u_UseTexture", UseTexture);
+            shader->setFloat4("u_Kd", DiffuseColor);
+            shader->setFloat4("u_Ka", AmbientColor);
+
+            if (UseTexture) {
+                DiffuseTexture->bind(slot);
+                shader->setInt("u_Texture", slot);
+            }
+        }
+
+        bool hasTexture() const {
+            return UseTexture;
+        }
+
+        const glm::vec4 &getDiffuseColor() const {
+            return DiffuseColor;
+        }
+
+        const glm::vec4 &getAmbientColor() const {
+            return AmbientColor;
+        }
+
+        Texture2D *getTexture() const {
+            return DiffuseTexture.get();
+        }
+
+    private:
+        glm::vec4 DiffuseColor; // Kd 漫反射
+        glm::vec4 AmbientColor; // Ka 环境光
+        bool UseTexture;
+        std::unique_ptr<Texture2D> DiffuseTexture = nullptr;
+    };
 } // namespace Fermion

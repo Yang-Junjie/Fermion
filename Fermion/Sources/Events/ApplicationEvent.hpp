@@ -3,115 +3,128 @@
 */
 #pragma once
 #include "Events/Event.hpp"
+
 namespace Fermion {
-class WindowResizeEvent : public IEvent {
-public:
-    WindowResizeEvent(unsigned int width, unsigned int height) : m_width(width), m_height(height) {
-    }
+    class WindowResizeEvent : public IEvent {
+    public:
+        WindowResizeEvent(unsigned int width, unsigned int height) : m_width(width), m_height(height) {
+        }
 
-    unsigned int getWidth() const {
-        return m_width;
-    }
-    unsigned int getHeight() const {
-        return m_height;
-    }
+        unsigned int getWidth() const {
+            return m_width;
+        }
 
-    std::string toString() const override {
-        std::stringstream ss;
-        ss << "WindowResizeEvent: " << m_width << ", " << m_height;
-        return ss.str();
-    }
-    static EventType getStaticType() {
-        return EventType::WindowResize;
-    }
-    virtual EventType getEventType() const override {
-        return getStaticType();
-    }
-    virtual const char *getName() const override {
-        return "WindowResize";
-    }
+        unsigned int getHeight() const {
+            return m_height;
+        }
 
-    virtual int getCategoryFlags() const override {
-        return static_cast<int>(EventCategory::EventCategoryApplication);
-    }
+        std::string toString() const override {
+            std::stringstream ss;
+            ss << "WindowResizeEvent: " << m_width << ", " << m_height;
+            return ss.str();
+        }
 
-private:
-    unsigned int m_width, m_height;
-};
+        static EventType getStaticType() {
+            return EventType::WindowResize;
+        }
 
-class WindowCloseEvent : public IEvent {
-public:
-    WindowCloseEvent() = default;
+        virtual EventType getEventType() const override {
+            return getStaticType();
+        }
 
-    static EventType getStaticType() {
-        return EventType::WindowClose;
-    }
-    virtual EventType getEventType() const override {
-        return getStaticType();
-    }
-    virtual const char *getName() const override {
-        return "WindowClose";
-    }
+        virtual const char *getName() const override {
+            return "WindowResize";
+        }
 
-    virtual int getCategoryFlags() const override {
-        return static_cast<int>(EventCategory::EventCategoryApplication);
-    }
-};
+        virtual int getCategoryFlags() const override {
+            return static_cast<int>(EventCategory::EventCategoryApplication);
+        }
 
-class AppTickEvent : public IEvent {
-public:
-    AppTickEvent() = default;
+    private:
+        unsigned int m_width, m_height;
+    };
 
-    static EventType getStaticType() {
-        return EventType::AppTick;
-    }
-    virtual EventType getEventType() const override {
-        return getStaticType();
-    }
-    virtual const char *getName() const override {
-        return "AppTick";
-    }
+    class WindowCloseEvent : public IEvent {
+    public:
+        WindowCloseEvent() = default;
 
-    virtual int getCategoryFlags() const override {
-        return static_cast<int>(EventCategory::EventCategoryApplication);
-    }
-};
+        static EventType getStaticType() {
+            return EventType::WindowClose;
+        }
 
-class AppUpdateEvent : public IEvent {
-public:
-    AppUpdateEvent() = default;
+        virtual EventType getEventType() const override {
+            return getStaticType();
+        }
 
-    static EventType getStaticType() {
-        return EventType::AppUpdate;
-    }
-    virtual EventType getEventType() const override {
-        return getStaticType();
-    }
-    virtual const char *getName() const override {
-        return "AppUpdate";
-    }
+        virtual const char *getName() const override {
+            return "WindowClose";
+        }
 
-    virtual int getCategoryFlags() const override {
-        return static_cast<int>(EventCategory::EventCategoryApplication);
-    }
-};
+        virtual int getCategoryFlags() const override {
+            return static_cast<int>(EventCategory::EventCategoryApplication);
+        }
+    };
 
-class AppRenderEvent : public IEvent {
-public:
-    AppRenderEvent() = default;
+    class AppTickEvent : public IEvent {
+    public:
+        AppTickEvent() = default;
 
-    static EventType getStaticType() {
-        return EventType::AppRender;
-    }
-    virtual EventType getEventType() const override {
-        return getStaticType();
-    }
-    virtual const char *getName() const override {
-        return "AppRender";
-    }
+        static EventType getStaticType() {
+            return EventType::AppTick;
+        }
 
-    virtual int getCategoryFlags() const override {
-        return static_cast<int>(EventCategory::EventCategoryApplication);
-    }
-};
+        virtual EventType getEventType() const override {
+            return getStaticType();
+        }
+
+        virtual const char *getName() const override {
+            return "AppTick";
+        }
+
+        virtual int getCategoryFlags() const override {
+            return static_cast<int>(EventCategory::EventCategoryApplication);
+        }
+    };
+
+    class AppUpdateEvent : public IEvent {
+    public:
+        AppUpdateEvent() = default;
+
+        static EventType getStaticType() {
+            return EventType::AppUpdate;
+        }
+
+        virtual EventType getEventType() const override {
+            return getStaticType();
+        }
+
+        virtual const char *getName() const override {
+            return "AppUpdate";
+        }
+
+        virtual int getCategoryFlags() const override {
+            return static_cast<int>(EventCategory::EventCategoryApplication);
+        }
+    };
+
+    class AppRenderEvent : public IEvent {
+    public:
+        AppRenderEvent() = default;
+
+        static EventType getStaticType() {
+            return EventType::AppRender;
+        }
+
+        virtual EventType getEventType() const override {
+            return getStaticType();
+        }
+
+        virtual const char *getName() const override {
+            return "AppRender";
+        }
+
+        virtual int getCategoryFlags() const override {
+            return static_cast<int>(EventCategory::EventCategoryApplication);
+        }
+    };
 } // namespace Fermion

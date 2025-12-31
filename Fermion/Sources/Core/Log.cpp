@@ -2,91 +2,96 @@
 #include "fmpch.hpp"
 
 namespace Fermion {
-std::shared_ptr<spdlog::logger> Log::s_Logger = nullptr;
-std::vector<spdlog::sink_ptr> Log::s_Sinks;
+    std::shared_ptr<spdlog::logger> Log::s_Logger = nullptr;
+    std::vector<spdlog::sink_ptr> Log::s_Sinks;
 
-void Log::Init(const std::string &logFile, LogLevel level) {
-    try {
-        auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(logFile, true);
+    void Log::Init(const std::string &logFile, LogLevel level) {
+        try {
+            auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+            auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(logFile, true);
 
-        s_Sinks = {console_sink, file_sink};
-        s_Logger = std::make_shared<spdlog::logger>("EngineLogger", s_Sinks.begin(), s_Sinks.end());
+            s_Sinks = {console_sink, file_sink};
+            s_Logger = std::make_shared<spdlog::logger>("EngineLogger", s_Sinks.begin(), s_Sinks.end());
 
-        s_Logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
+            s_Logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
 
-        SetLevel(level);
+            SetLevel(level);
 
-        s_Logger->flush_on(spdlog::level::err);
+            s_Logger->flush_on(spdlog::level::err);
 
-        s_Logger->info("log initialized!");
-    } catch (const spdlog::spdlog_ex &ex) {
-        std::cerr << "Log initialization failed: " << ex.what() << std::endl;
-    }
-}
-
-void Log::SetLevel(LogLevel level) {
-    if (!s_Logger)
-        return;
-
-    spdlog::level::level_enum spdLevel;
-    switch (level) {
-    case LogLevel::Trace:
-        spdLevel = spdlog::level::trace;
-        break;
-    case LogLevel::Debug:
-        spdLevel = spdlog::level::debug;
-        break;
-    case LogLevel::Info:
-        spdLevel = spdlog::level::info;
-        break;
-    case LogLevel::Warn:
-        spdLevel = spdlog::level::warn;
-        break;
-    case LogLevel::Error:
-        spdLevel = spdlog::level::err;
-        break;
-    case LogLevel::Critical:
-        spdLevel = spdlog::level::critical;
-        break;
-    case LogLevel::Off:
-        spdLevel = spdlog::level::off;
-        break;
-    default:
-        spdLevel = spdlog::level::info;
-        break;
+            s_Logger->info("log initialized!");
+        } catch (const spdlog::spdlog_ex &ex) {
+            std::cerr << "Log initialization failed: " << ex.what() << std::endl;
+        }
     }
 
-    // 同步 logger 等级
-    s_Logger->set_level(spdLevel);
+    void Log::SetLevel(LogLevel level) {
+        if (!s_Logger)
+            return;
 
-    // 同步所有 sink 等级
-    for (auto &sink : s_Sinks)
-        sink->set_level(spdLevel);
-}
+        spdlog::level::level_enum spdLevel;
+        switch (level) {
+            case LogLevel::Trace:
+                spdLevel = spdlog::level::trace;
+                break;
+            case LogLevel::Debug:
+                spdLevel = spdlog::level::debug;
+                break;
+            case LogLevel::Info:
+                spdLevel = spdlog::level::info;
+                break;
+            case LogLevel::Warn:
+                spdLevel = spdlog::level::warn;
+                break;
+            case LogLevel::Error:
+                spdLevel = spdlog::level::err;
+                break;
+            case LogLevel::Critical:
+                spdLevel = spdlog::level::critical;
+                break;
+            case LogLevel::Off:
+                spdLevel = spdlog::level::off;
+                break;
+            default:
+                spdLevel = spdlog::level::info;
+                break;
+        }
 
-void Log::Trace(const std::string &msg) {
-    if (s_Logger)
-        s_Logger->trace(msg);
-}
-void Log::Debug(const std::string &msg) {
-    if (s_Logger)
-        s_Logger->debug(msg);
-}
-void Log::Info(const std::string &msg) {
-    if (s_Logger)
-        s_Logger->info(msg);
-}
-void Log::Warn(const std::string &msg) {
-    if (s_Logger)
-        s_Logger->warn(msg);
-}
-void Log::Error(const std::string &msg) {
-    if (s_Logger)
-        s_Logger->error(msg);
-}
-void Log::Critical(const std::string &msg) {
-    if (s_Logger)
-        s_Logger->critical(msg);
-}
+        // 同步 logger 等级
+        s_Logger->set_level(spdLevel);
+
+        // 同步所有 sink 等级
+        for (auto &sink: s_Sinks)
+            sink->set_level(spdLevel);
+    }
+
+    void Log::Trace(const std::string &msg) {
+        if (s_Logger)
+            s_Logger->trace(msg);
+    }
+
+    void Log::Debug(const std::string &msg) {
+        if (s_Logger)
+            s_Logger->debug(msg);
+    }
+
+    void Log::Info(const std::string &msg) {
+        if (s_Logger)
+            s_Logger->info(msg);
+    }
+
+    void Log::Warn(const std::string &msg) {
+        if (s_Logger)
+            s_Logger->warn(msg);
+    }
+
+    void Log::Error(const std::string &msg) {
+        if (s_Logger)
+            s_Logger->error(msg);
+    }
+
+    void Log::Critical(const std::string &msg) {
+        if (s_Logger)
+            s_Logger->critical(msg);
+    }
 } // namespace Fermion

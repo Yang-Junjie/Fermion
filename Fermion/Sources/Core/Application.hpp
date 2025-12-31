@@ -46,7 +46,7 @@ public:
     }
 
 private:
-    void onEvent(IEvent &event);
+    void onEvent(IEvent &event); 
     bool onWindowResize(const WindowResizeEvent &event);
     bool onWindowClose(const WindowCloseEvent &event);
 

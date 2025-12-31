@@ -24,7 +24,7 @@ namespace Fermion {
         m_sceneData.sceneCamera = camera;
         m_sceneData.sceneEnvironmentLight = m_scene->m_environmentLight;
         Renderer2D::beginScene(camera.camera, camera.view);
-        Renderer3D::SetCamera(camera.camera, camera.view, m_sceneData.sceneEnvironmentLight);
+        Renderer3D::updateViewState(camera.camera, camera.view, m_sceneData.sceneEnvironmentLight);
     }
 
     void SceneRenderer::endScene() {
@@ -62,7 +62,17 @@ namespace Fermion {
         Renderer2D::drawRect(transform, color, objectId);
     }
 
-    void SceneRenderer::SubmitMesh(MeshComponent &meshComponent, glm::mat4 transform, int objectId, bool drawOutline) {
+    void SceneRenderer::drawQuadBillboard(const glm::vec3 &translation, const glm::vec2 &size, const glm::vec4 &color,
+                                          int objectId) {
+        Renderer2D::drawQuadBillboard(translation, size, color, objectId);
+    }
+    void SceneRenderer::drawQuadBillboard(const glm::vec3 &translation, const glm::vec2 &size,
+                                          const std::shared_ptr<Texture2D> &texture, float tilingFactor,
+                                          const glm::vec4 &tintColor, int objectId) {
+        Renderer2D::drawQuadBillboard(translation, size, texture, tilingFactor, tintColor, objectId);
+    }
+
+    void SceneRenderer::submitMesh(MeshComponent &meshComponent, glm::mat4 transform, int objectId, bool drawOutline) {
         if (static_cast<uint64_t>(meshComponent.meshHandle) != 0) {
             auto mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
             if (mesh)
@@ -70,29 +80,20 @@ namespace Fermion {
         }
     }
 
-    void SceneRenderer::SubmitMesh(MeshComponent &meshComponent, MaterialComponent &materialComponent,
+    void SceneRenderer::submitMesh(MeshComponent &meshComponent, MaterialComponent &materialComponent,
                                    glm::mat4 transform, int objectId, bool drawOutline) {
         if (static_cast<uint64_t>(meshComponent.meshHandle) != 0) {
             auto mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
             if (mesh)
                 s_MeshDrawList.push_back({mesh, materialComponent.MaterialInstance, transform, objectId, drawOutline});
         }
-        // } else {
-        //     std::shared_ptr<Mesh> mesh = nullptr;
-        //     if (meshComponent.meshKey.Type==MemoryMeshType::Cube) {
-        //         mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(MeshFactory::GetMemoryMeshHandle(MemoryMeshType::Cube));
-        //     }else if (meshComponent.meshKey.Type==MemoryMeshType::Sphere) {
-        //         mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(MeshFactory::GetMemoryMeshHandle(MemoryMeshType::Sphere));
-        //     }
-        //     s_MeshDrawList.push_back({mesh, nullptr, transform, objectId, drawOutline});
-        // }
     }
 
-    void SceneRenderer::DrawLine(const glm::vec3 &start, const glm::vec3 &end, const glm::vec4 &color) {
+    void SceneRenderer::drawLine(const glm::vec3 &start, const glm::vec3 &end, const glm::vec4 &color) {
         Renderer2D::drawLine(start, end, color);
     }
 
-    void SceneRenderer::SetLineWidth(float thickness) {
+    void SceneRenderer::setLineWidth(float thickness) {
         Renderer2D::setLineWidth(thickness);
     }
 
@@ -111,7 +112,7 @@ namespace Fermion {
             {
                 .Name = "GeometryPass",
                 .Execute = [this](CommandBuffer &commandBuffer) {
-                    Renderer3D::RecordGeometryPass(commandBuffer, s_MeshDrawList);
+                    Renderer3D::recordGeometryPass(commandBuffer, s_MeshDrawList);
                 }
             });
     }
@@ -121,17 +122,18 @@ namespace Fermion {
             {
                 .Name = "OutlinePass",
                 .Execute = [this](CommandBuffer &commandBuffer) {
-                    Renderer3D::RecordOutlinePass(commandBuffer, s_MeshDrawList);
+                    Renderer3D::recordOutlinePass(commandBuffer, s_MeshDrawList);
                 }
             });
     }
+
 
     void SceneRenderer::SkyboxPass() {
         m_RenderGraph.AddPass(
             {
                 .Name = "SkyboxPass",
                 .Execute = [this](CommandBuffer &commandBuffer) {
-                    Renderer3D::RecordSkyboxPass(commandBuffer, m_skybox, m_sceneData.sceneCamera.view,
+                    Renderer3D::recordSkyboxPass(commandBuffer, m_skybox.get(), m_sceneData.sceneCamera.view,
                                                  m_sceneData.sceneCamera.camera.getProjection());
                 }
             });
@@ -142,7 +144,9 @@ namespace Fermion {
         if (m_sceneData.showSkybox)
             SkyboxPass();
         OutlinePass();
+
         GeometryPass();
+
         RendererBackend backend(RenderCommand::GetRendererAPI());
         m_RenderGraph.Execute(m_CommandQueue, backend);
         s_MeshDrawList.clear();

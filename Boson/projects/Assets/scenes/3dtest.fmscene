@@ -1,71 +1,43 @@
 Scene: Name
 Entities:
-  - Entity: 10805386570865572971
+  - Entity: 1669450970559933596
     TagComponent:
-      Tag: wall2
+      Tag: dir light
     TransformComponent:
-      Translation: [-7.225917, 4.9429846, -0.71330893]
-      Rotation: [0, 0, 0]
-      Scale: [0.1291333, 5.570305, 8.615625]
-    MeshComponent:
-      MeshHandle: 6460136860035206027
-      MemoryOnly: false
-      MemoryMeshType: 0
-  - Entity: 6392940558973327213
-    TagComponent:
-      Tag: wall
-    TransformComponent:
-      Translation: [-1.8578986, 4.1506176, -7.8730335]
-      Rotation: [0, 0, 0]
-      Scale: [5.660114, 6.3982654, 0.15751807]
-    MeshComponent:
-      MeshHandle: 6460136860035206027
-      MemoryOnly: false
-      MemoryMeshType: 0
-  - Entity: 5449681077286385480
-    TagComponent:
-      Tag: point light 1
-    TransformComponent:
-      Translation: [-1.103147, 2.6635103, -0.66132545]
-      Rotation: [0, -0, 0]
+      Translation: [2.9229147, 2.4668949, 15.451881]
+      Rotation: [-0.152254, 0.4840836, -8.838654e-08]
       Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [0, 0.13127398, 1, 1]
+    DirectionalLightComponent:
+      Color: [1, 1, 1]
+      Intensity: 0.6
+      MainLight: true
+  - Entity: 6803040298486315258
+    TagComponent:
+      Tag: spot light
+    TransformComponent:
+      Translation: [1.8950677, 6.4491205, -4.432129]
+      Rotation: [0.51952535, -0, 0]
+      Scale: [1.6792017, 0.58927274, 1]
+    SpotLightComponent:
+      Color: [0.26254833, 1, 0]
+      Intensity: 9.7
+      Range: 14.9
+      Angle: 34
+      Softness: 0.7
+  - Entity: 18083371750882497292
+    TagComponent:
+      Tag: point light 2
+    TransformComponent:
+      Translation: [-2.7722564, 2.0990446, 5.8732452]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
     PointLightComponent:
-      Color: [0.03826713, 0.31169114, 0.5830116]
-      Intensity: 5.2
-      Range: 10.5
+      Color: [1, 0, 0]
+      Intensity: 3.2
+      Range: 10
     ScriptContainerComponent:
       ScriptClassNames:
         - Sandbox.XAxisMove
-  - Entity: 6531917417202799299
-    TagComponent:
-      Tag: car
-    TransformComponent:
-      Translation: [-1.5390024, -0.3609776, 0.73304445]
-      Rotation: [0, 0.7744658, 0]
-      Scale: [0.01, 0.01, 0.01]
-    MeshComponent:
-      MeshHandle: 16584299943829371167
-      MemoryOnly: false
-      MemoryMeshType: 0
-    ScriptContainerComponent:
-      ScriptClassNames:
-        - Sandbox.ObjController
-  - Entity: 4866263028042920325
-    TagComponent:
-      Tag: obj
-    TransformComponent:
-      Translation: [-1.4294434, -0.39902046, 0]
-      Rotation: [0, 0, 1.5707964]
-      Scale: [0.0851513, 5.653195, 7.970279]
-    MeshComponent:
-      MeshHandle: 6460136860035206027
-      MemoryOnly: false
-      MemoryMeshType: 0
-    MaterialComponent:
-      AmbientColor: [0.01, 0.01, 0.01, 1]
-      DiffuseColor: [0.2, 0.2, 0.2, 1]
   - Entity: 18415657991614262539
     TagComponent:
       Tag: camera
@@ -86,47 +58,67 @@ Entities:
         OrthographicFar: 100
       Primary: true
       FixedAspectRatio: false
-  - Entity: 18083371750882497292
+  - Entity: 4866263028042920325
     TagComponent:
-      Tag: point light 2
+      Tag: obj
     TransformComponent:
-      Translation: [-2.7722564, 2.0990446, 5.8732452]
-      Rotation: [0, 0, 0]
+      Translation: [-1.4294434, -0.39902046, 0]
+      Rotation: [0, 0, 1.5707964]
+      Scale: [0.0851513, 5.653195, 7.970279]
+    MeshComponent:
+      MeshHandle: 6460136860035206027
+      MemoryOnly: false
+      MemoryMeshType: 0
+    MaterialComponent:
+      AmbientColor: [0.01, 0.01, 0.01, 1]
+      DiffuseColor: [0.2, 0.2, 0.2, 1]
+  - Entity: 6531917417202799299
+    TagComponent:
+      Tag: car
+    TransformComponent:
+      Translation: [-1.5390024, -0.3609776, 0.73304445]
+      Rotation: [0, 0.7744658, 0]
+      Scale: [0.01, 0.01, 0.01]
+    MeshComponent:
+      MeshHandle: 16584299943829371167
+      MemoryOnly: false
+      MemoryMeshType: 0
+    ScriptContainerComponent:
+      ScriptClassNames:
+        - Sandbox.ObjController
+  - Entity: 5449681077286385480
+    TagComponent:
+      Tag: point light 1
+    TransformComponent:
+      Translation: [-1.103147, 2.6635103, -0.66132545]
+      Rotation: [0, -0, 0]
       Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [1, 0, 0, 1]
     PointLightComponent:
-      Color: [1, 0, 0]
-      Intensity: 3.2
-      Range: 10
+      Color: [0.03826713, 0.31169114, 0.5830116]
+      Intensity: 5.2
+      Range: 10.5
     ScriptContainerComponent:
       ScriptClassNames:
         - Sandbox.XAxisMove
-  - Entity: 6803040298486315258
+  - Entity: 6392940558973327213
     TagComponent:
-      Tag: spot light
+      Tag: wall
     TransformComponent:
-      Translation: [1.8950677, 6.4491205, -4.432129]
-      Rotation: [0.51952535, -0, 0]
-      Scale: [1.6792017, 0.58927274, 1]
-    SpriteRendererComponent:
-      Color: [0, 0.5372549, 0.105882354, 0.43529412]
-    SpotLightComponent:
-      Color: [0.26254833, 1, 0]
-      Intensity: 9.7
-      Range: 14.9
-      Angle: 34
-      Softness: 0.7
-  - Entity: 1669450970559933596
+      Translation: [-1.8578986, 4.1506176, -7.8730335]
+      Rotation: [0, 0, 0]
+      Scale: [5.660114, 6.3982654, 0.15751807]
+    MeshComponent:
+      MeshHandle: 6460136860035206027
+      MemoryOnly: false
+      MemoryMeshType: 0
+  - Entity: 10805386570865572971
     TagComponent:
-      Tag: dir light
+      Tag: wall2
     TransformComponent:
-      Translation: [2.9229147, 2.4668949, 15.451881]
-      Rotation: [-0.152254, 0.4840836, -8.838654e-08]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-    DirectionalLightComponent:
-      Color: [1, 1, 1]
-      Intensity: 0.6
-      MainLight: true
+      Translation: [-7.225917, 4.9429846, -0.71330893]
+      Rotation: [0, 0, 0]
+      Scale: [0.1291333, 5.570305, 8.615625]
+    MeshComponent:
+      MeshHandle: 6460136860035206027
+      MemoryOnly: false
+      MemoryMeshType: 0

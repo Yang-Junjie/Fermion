@@ -17,7 +17,7 @@ private:
     template <typename T>
     void displayAddComponentEntry(const std::string &entryName);
 
-    std::shared_ptr<Texture2D> m_spriteComponentDefaultTexture;
+    std::unique_ptr<Texture2D> m_spriteComponentDefaultTexture;
     Entity m_selectedEntity;
 };
 } // namespace Fermion

@@ -6,29 +6,30 @@
 #include "Asset/Asset.hpp"
 
 namespace Fermion {
+    struct MSDFData;
 
-struct MSDFData;
+    class Font : public Asset {
+    public:
+        Font(const std::filesystem::path &font);
 
-class Font : public Asset {
-public:
-    Font(const std::filesystem::path &font);
-    ~Font();
+        ~Font();
 
-    const MSDFData *getMSDFData() const {
-        return m_data;
-    }
-    std::shared_ptr<Texture2D> getAtlasTexture() const {
-        return m_atlasTexture;
-    }
+        const MSDFData *getMSDFData() const {
+            return m_data;
+        }
 
-    static std::shared_ptr<Font> getDefault();
-    virtual AssetType getAssetsType() const override {
-        return AssetType::Font;
-    }
+        std::shared_ptr<Texture2D> getAtlasTexture() const {
+            return m_atlasTexture;
+        }
 
-private:
-    MSDFData *m_data;
-    std::shared_ptr<Texture2D> m_atlasTexture;
-};
+        static std::shared_ptr<Font> getDefault();
 
+        AssetType getAssetsType() const override {
+            return AssetType::Font;
+        }
+
+    private:
+        MSDFData *m_data;
+        std::shared_ptr<Texture2D> m_atlasTexture;
+    };
 } // namespace Fermion

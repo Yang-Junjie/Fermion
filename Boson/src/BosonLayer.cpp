@@ -332,7 +332,7 @@ namespace Fermion {
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(buttonActive.x, buttonActive.y, buttonActive.z, 0.5f));
 
         ImGui::Begin("toolbar", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-        std::shared_ptr<Texture2D> icon = m_sceneState == SceneState::Edit ? m_iconPlay : m_iconStop;
+        const Texture2D *icon = m_sceneState == SceneState::Edit ? m_iconPlay.get() : m_iconStop.get();
         const bool toolbarEnabled = static_cast<bool>(m_activeScene);
 
         ImVec4 tintColor = ImVec4(1, 1, 1, 1);
@@ -347,9 +347,9 @@ namespace Fermion {
         const bool hasPauseButton = m_sceneState != SceneState::Edit && m_sceneState != SceneState::Play;
 
         if (hasPlayButton) {
-            std::shared_ptr<Texture2D> icon = (m_sceneState == SceneState::Edit || m_sceneState == SceneState::Simulate)
-                                                  ? m_iconPlay
-                                                  : m_iconStop;
+            const Texture2D *icon = (m_sceneState == SceneState::Edit || m_sceneState == SceneState::Simulate)
+                                        ? m_iconPlay.get()
+                                        : m_iconStop.get();
             if (ImGui::ImageButton("##toolbar_playbtn",
                                    (ImTextureID) static_cast<uint64_t>(icon->getRendererID()),
                                    ImVec2(size, size),
@@ -366,9 +366,9 @@ namespace Fermion {
             if (hasPlayButton)
                 ImGui::SameLine();
 
-            std::shared_ptr<Texture2D> icon = (m_sceneState == SceneState::Edit || m_sceneState == SceneState::Play)
-                                                  ? m_iconSimulate
-                                                  : m_iconStop;
+            const Texture2D *icon = (m_sceneState == SceneState::Edit || m_sceneState == SceneState::Play)
+                                                  ? m_iconSimulate.get()
+                                                  : m_iconStop.get();
             if (ImGui::ImageButton("##toolbar_simulatebtn",
                                    (ImTextureID) (uint64_t) icon->getRendererID(),
                                    ImVec2(size, size),
@@ -384,9 +384,9 @@ namespace Fermion {
             bool isPaused = m_activeScene->isPaused();
             ImGui::SameLine();
             {
-                std::shared_ptr<Texture2D> icon = m_iconPause;
+                const Texture2D* icon = m_iconPause.get();
                 if (ImGui::ImageButton("##toolbar_pausebtn",
-                                       (ImTextureID) (uint64_t) icon->getRendererID(),
+                                       (ImTextureID) static_cast<uint64_t>(icon->getRendererID()),
                                        ImVec2(size, size),
                                        ImVec2(0, 0), ImVec2(1, 1),
                                        ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor)) {
@@ -398,10 +398,10 @@ namespace Fermion {
             if (isPaused) {
                 ImGui::SameLine();
                 {
-                    std::shared_ptr<Texture2D> icon = m_iconStep;
+                    const Texture2D* icon = m_iconStep.get();
                     bool isPaused = m_activeScene->isPaused();
                     if (ImGui::ImageButton("##toolbar_stepbtn",
-                                           (ImTextureID) (uint64_t) icon->getRendererID(),
+                                           (ImTextureID) static_cast<uint64_t>(icon->getRendererID()),
                                            ImVec2(size, size),
                                            ImVec2(0, 0), ImVec2(1, 1),
                                            ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor)) {
@@ -466,6 +466,7 @@ namespace Fermion {
         ImGui::Checkbox("showPhysicsColliders", &m_showPhysicsColliders);
         ImGui::Checkbox("showRenderEntities", &m_showRenderEntities);
         ImGui::Checkbox("showSkybox", &m_viewportRenderer->getSceneInfo().showSkybox);
+        ImGui::Separator();
         ImGui::Image((ImTextureID) s_Font->getAtlasTexture()->getRendererID(),
                      {512, 512}, {0, 1}, {1, 0});
         ImGui::End();
@@ -690,7 +691,7 @@ namespace Fermion {
             if (Entity selectedEntity = m_sceneHierarchyPanel.getSelectedEntity(); selectedEntity) {
                 const TransformComponent &transform = selectedEntity.getComponent<TransformComponent>();
                 if (selectedEntity.hasComponent<MeshComponent>()) {
-                    m_viewportRenderer->SubmitMesh(selectedEntity.getComponent<MeshComponent>(),
+                    m_viewportRenderer->submitMesh(selectedEntity.getComponent<MeshComponent>(),
                                                    transform.getTransform(), -1, true);
                 }
 
@@ -778,7 +779,7 @@ namespace Fermion {
         saveScene();
         auto &config = Project::getActive()->getConfig();
         config.startScene = m_editorScenePath;
-        if (Project::saveActive(Project::getActive()->getProjectPath())) {
+        if (Project::saveActive(Fermion::Project::getProjectPath())) {
             Log::Info("Project save successfully!");
         } else {
             Log::Error("Project save failed!");
