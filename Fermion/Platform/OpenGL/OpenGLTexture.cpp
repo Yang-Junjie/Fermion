@@ -75,7 +75,7 @@ OpenGLTexture2D::OpenGLTexture2D(const std::string &path, bool generateMipmap) :
 
     stbi_uc *data = stbi_load(path.c_str(), &width, &height, &channels, 4);
     if (!data) {
-        Log::Error(std::format("Failed to load texture image: {}", path));
+        Log::Error(std::format("Failed to load texture image: {}, reason: {}", path,std::string(stbi_failure_reason())));
         return;
     }
 

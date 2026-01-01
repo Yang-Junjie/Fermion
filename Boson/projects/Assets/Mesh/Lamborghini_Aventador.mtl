@@ -12,9 +12,9 @@ newmtl _Lamborghini_AventadorLamborghini_Aventador_BodySG
 	Kd 0.0000 0.0000 0.0000
 	Ks 0.0000 0.0000 0.0000
 	Ke 0.0000 0.0000 0.0000
-	map_Ka F:\Beisent\Fermion\Boson\projects\Assets\Mesh\Lamborginhi Aventador_diffuse.jpeg
-	map_Kd F:\Beisent\Fermion\Boson\projects\Assets\Mesh\Lamborginhi Aventador_diffuse.jpeg
-	map_Ks F:\Beisent\Fermion\Boson\projects\Assets\Mesh\Lamborginhi Aventador_spec.jpeg
+	map_Ka Lamborghini_Aventador_diffuse.jpeg
+	map_Kd Lamborghini_Aventador_diffuse.jpeg
+	map_Ks Lamborghini_Aventador_spec.jpeg
 
 newmtl _Lamborghini_AventadorLamborghini_Aventador_GlassSG
 	Ns 4.3100
