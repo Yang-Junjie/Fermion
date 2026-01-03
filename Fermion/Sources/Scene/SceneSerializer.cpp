@@ -244,6 +244,29 @@ namespace Fermion {
             out << YAML::Key << "RestitutionThreshold" << YAML::Value << cc.restitutionThreshold;
             out << YAML::EndMap;
         }
+        if (entity.hasComponent<Rigidbody3DComponent>()) {
+            out << YAML::Key << "Rigidbody3DComponent";
+            out << YAML::BeginMap;
+            auto &rb = entity.getComponent<Rigidbody3DComponent>();
+            out << YAML::Key << "BodyType" << YAML::Value << static_cast<int>(rb.type);
+            out << YAML::Key << "Mass" << YAML::Value << rb.mass;
+            out << YAML::Key << "LinearDamping" << YAML::Value << rb.linearDamping;
+            out << YAML::Key << "AngularDamping" << YAML::Value << rb.angularDamping;
+            out << YAML::Key << "UseGravity" << YAML::Value << rb.useGravity;
+            out << YAML::EndMap;
+        }
+        if (entity.hasComponent<BoxCollider3DComponent>()) {
+            out << YAML::Key << "BoxCollider3DComponent";
+            out << YAML::BeginMap;
+            auto &bc = entity.getComponent<BoxCollider3DComponent>();
+            out << YAML::Key << "Offset" << YAML::Value << bc.offset;
+            out << YAML::Key << "Size" << YAML::Value << bc.size;
+            out << YAML::Key << "Density" << YAML::Value << bc.density;
+            out << YAML::Key << "Friction" << YAML::Value << bc.friction;
+            out << YAML::Key << "Restitution" << YAML::Value << bc.restitution;
+            out << YAML::Key << "IsTrigger" << YAML::Value << bc.isTrigger;
+            out << YAML::EndMap;
+        }
         if (entity.hasComponent<BoxSensor2DComponent>()) {
             out << YAML::Key << "BoxSensor2DComponent";
             out << YAML::BeginMap;
@@ -521,6 +544,36 @@ namespace Fermion {
                         cc.restitution = n.as<float>();
                     if (auto n = circleCollider2DComponent["RestitutionThreshold"]; n)
                         cc.restitutionThreshold = n.as<float>();
+                }
+                auto rigidbody3DComponent = entity["Rigidbody3DComponent"];
+                if (rigidbody3DComponent && rigidbody3DComponent.IsMap()) {
+                    auto &rb = deserializedEntity.addComponent<Rigidbody3DComponent>();
+                    if (auto n = rigidbody3DComponent["BodyType"]; n)
+                        rb.type = static_cast<Rigidbody3DComponent::BodyType>(n.as<int>());
+                    if (auto n = rigidbody3DComponent["Mass"]; n)
+                        rb.mass = n.as<float>();
+                    if (auto n = rigidbody3DComponent["LinearDamping"]; n)
+                        rb.linearDamping = n.as<float>();
+                    if (auto n = rigidbody3DComponent["AngularDamping"]; n)
+                        rb.angularDamping = n.as<float>();
+                    if (auto n = rigidbody3DComponent["UseGravity"]; n)
+                        rb.useGravity = n.as<bool>();
+                }
+                auto boxCollider3DComponent = entity["BoxCollider3DComponent"];
+                if (boxCollider3DComponent && boxCollider3DComponent.IsMap()) {
+                    auto &bc = deserializedEntity.addComponent<BoxCollider3DComponent>();
+                    if (auto n = boxCollider3DComponent["Offset"]; n)
+                        bc.offset = n.as<glm::vec3>();
+                    if (auto n = boxCollider3DComponent["Size"]; n)
+                        bc.size = n.as<glm::vec3>();
+                    if (auto n = boxCollider3DComponent["Density"]; n)
+                        bc.density = n.as<float>();
+                    if (auto n = boxCollider3DComponent["Friction"]; n)
+                        bc.friction = n.as<float>();
+                    if (auto n = boxCollider3DComponent["Restitution"]; n)
+                        bc.restitution = n.as<float>();
+                    if (auto n = boxCollider3DComponent["IsTrigger"]; n)
+                        bc.isTrigger = n.as<bool>();
                 }
                 auto boxSensor2DComponent = entity["BoxSensor2DComponent"];
                 if (boxSensor2DComponent && boxSensor2DComponent.IsMap()) {

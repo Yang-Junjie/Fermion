@@ -1,5 +1,7 @@
 ﻿#pragma once
 #include <entt/entt.hpp>
+#include <memory>
+#include <unordered_map>
 #include "Core/Timestep.hpp"
 #include "Core/UUID.hpp"
 #include "Renderer/Model/Mesh.hpp"
@@ -11,6 +13,7 @@
 namespace Fermion {
     class Entity;
     class SceneRenderer;
+    class Physics3DWorld;
 
     struct PointLight {
         glm::vec3 position = {0.0f, 0.0f, 0.0f};
@@ -147,9 +150,12 @@ namespace Fermion {
         std::unordered_map<UUID, entt::entity> m_entityMap;
         std::unordered_map<UUID, b2BodyId> m_physicsBodyMap;
 
+        std::unique_ptr<Physics3DWorld> m_physicsWorld3D;
+
         friend class Entity;
         friend class SceneRenderer;
         friend class SceneSerializer;
         friend class SceneHierarchyPanel;
+        friend class Physics3DWorld;
     };
 } // namespace Fermion

@@ -239,6 +239,42 @@ namespace Fermion {
         CircleCollider2DComponent(const CircleCollider2DComponent &) = default;
     };
 
+    struct Rigidbody3DComponent {
+        enum class BodyType {
+            Static = 0,
+            Dynamic,
+            Kinematic
+        };
+
+        BodyType type = BodyType::Static;
+        float mass = 1.0f;
+        float linearDamping = 0.01f;
+        float angularDamping = 0.05f;
+        bool useGravity = true;
+
+        void *runtimeBody = nullptr;
+
+        Rigidbody3DComponent() = default;
+
+        Rigidbody3DComponent(const Rigidbody3DComponent &) = default;
+    };
+
+    struct BoxCollider3DComponent {
+        glm::vec3 offset = {0.0f, 0.0f, 0.0f};
+        glm::vec3 size = {0.5f, 0.5f, 0.5f};
+
+        float density = 1.0f;
+        float friction = 0.5f;
+        float restitution = 0.0f;
+        bool isTrigger = false;
+
+        void *runtimeShape = nullptr;
+
+        BoxCollider3DComponent() = default;
+
+        BoxCollider3DComponent(const BoxCollider3DComponent &) = default;
+    };
+
     struct DirectionalLightComponent {
         glm::vec3 color{1.0f, 1.0f, 1.0f};
         float intensity = 1.0f;
@@ -286,6 +322,7 @@ namespace Fermion {
         ScriptContainerComponent,
         NativeScriptComponent,
         Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, BoxSensor2DComponent,
+        Rigidbody3DComponent, BoxCollider3DComponent,
         TextComponent,
 
         /* Lighting */

@@ -6,17 +6,20 @@
 #include "Renderer/Renderer2D.hpp"
 #include "Renderer/SceneRenderer.hpp"
 #include "Physics/Physics2D.hpp"
+#include "Physics/Physics3D.hpp"
 #include "Script/ScriptManager.hpp"
 #include <glm/glm.hpp>
-#include "Scene.hpp"
 #include "Core/Log.hpp"
 
 namespace Fermion {
     Scene::Scene() {
         m_lightTexture = Texture2D::create("../Boson/Resources/icons/light.png");
+        m_physicsWorld3D = std::make_unique<Physics3DWorld>();
     }
 
     Scene::~Scene() {
+        if (m_physicsWorld3D)
+            m_physicsWorld3D->stop(this);
     }
 
     template<typename... Component>
@@ -78,6 +81,8 @@ namespace Fermion {
     void Scene::onRuntimeStart() {
         m_isRunning = true;
         onPhysics2DStart();
+        if (m_physicsWorld3D)
+            m_physicsWorld3D->start(this);
         {
             ScriptManager::onRuntimeStart(this);
             auto view = m_registry.view<ScriptContainerComponent>();
@@ -91,11 +96,15 @@ namespace Fermion {
     void Scene::onRuntimeStop() {
         m_isRunning = false;
         onPhysics2DStop();
+        if (m_physicsWorld3D)
+            m_physicsWorld3D->stop(this);
         ScriptManager::onRuntimeStop();
     }
 
     void Scene::onSimulationStart() {
         onPhysics2DStart();
+        if (m_physicsWorld3D)
+            m_physicsWorld3D->start(this);
         {
             ScriptManager::onRuntimeStart(this);
             auto view = m_registry.view<ScriptContainerComponent>();
@@ -108,6 +117,8 @@ namespace Fermion {
 
     void Scene::onSimulationStop() {
         onPhysics2DStop();
+        if (m_physicsWorld3D)
+            m_physicsWorld3D->stop(this);
         ScriptManager::onRuntimeStop();
     }
 
@@ -213,6 +224,7 @@ namespace Fermion {
             m_physicsWorld = b2_nullWorldId;
         }
     }
+
 
     void Scene::onRenderEditor(std::shared_ptr<SceneRenderer> renderer, EditorCamera &camera, bool showRenderEntities) {
         FM_PROFILE_FUNCTION();
@@ -414,6 +426,8 @@ namespace Fermion {
                     }
                 }
             }
+            if (m_physicsWorld3D)
+                m_physicsWorld3D->step(this, ts);
         }
 
         onRenderEditor(renderer, camera, showRenderEntities);
@@ -487,6 +501,8 @@ namespace Fermion {
                 }
             }
         }
+        if (m_physicsWorld3D)
+            m_physicsWorld3D->step(this, ts);
 
         {
             Camera *mainCamera = nullptr;

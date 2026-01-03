@@ -154,6 +154,8 @@ namespace Fermion {
             ImGui::SeparatorText("3D Component");
             displayAddComponentEntry<MeshComponent>("Mesh");
             displayAddComponentEntry<MaterialComponent>("Material");
+            displayAddComponentEntry<Rigidbody3DComponent>("Rigidbody3D");
+            displayAddComponentEntry<BoxCollider3DComponent>("Box Collider3D");
             displayAddComponentEntry<DirectionalLightComponent>("Directional Light");
             displayAddComponentEntry<PointLightComponent>("Point Light");
             displayAddComponentEntry<SpotLightComponent>("Spot Light");
@@ -527,6 +529,35 @@ namespace Fermion {
         drawComponent<BoxSensor2DComponent>("Box Sensor 2D", entity, [](auto &component) {
             ImGui::DragFloat2("Offset", glm::value_ptr(component.offset), 0.01f);
             ImGui::DragFloat2("Size", glm::value_ptr(component.size), 0.01f);
+        });
+        drawComponent<Rigidbody3DComponent>("Rigidbody 3D", entity, [](auto &component) {
+            const char *bodyTypeStrings[] = {"Static", "Dynamic", "Kinematic"};
+            const char *currentBodyTypeString = bodyTypeStrings[(int) component.type];
+            if (ImGui::BeginCombo("Body Type##3D", currentBodyTypeString)) {
+                for (int i = 0; i < 3; i++) {
+                    bool isSelected = currentBodyTypeString == bodyTypeStrings[i];
+                    if (ImGui::Selectable(bodyTypeStrings[i], isSelected)) {
+                        currentBodyTypeString = bodyTypeStrings[i];
+                        component.type = (Rigidbody3DComponent::BodyType) i;
+                    }
+                    if (isSelected)
+                        ImGui::SetItemDefaultFocus();
+                }
+                ImGui::EndCombo();
+            }
+
+            ImGui::DragFloat("Mass", &component.mass, 0.01f, 0.0f, 1000.0f);
+            ImGui::DragFloat("Linear Damping", &component.linearDamping, 0.01f, 0.0f, 10.0f);
+            ImGui::DragFloat("Angular Damping", &component.angularDamping, 0.01f, 0.0f, 10.0f);
+            ImGui::Checkbox("Use Gravity", &component.useGravity);
+        });
+        drawComponent<BoxCollider3DComponent>("Box Collider 3D", entity, [](auto &component) {
+            ImGui::DragFloat3("Offset##3d", glm::value_ptr(component.offset), 0.01f);
+            ImGui::DragFloat3("Size##3d", glm::value_ptr(component.size), 0.01f);
+            ImGui::DragFloat("Density##3d", &component.density, 0.01f, 0.0f, 10.0f);
+            ImGui::DragFloat("Friction##3d", &component.friction, 0.01f, 0.0f, 1.0f);
+            ImGui::DragFloat("Restitution##3d", &component.restitution, 0.01f, 0.0f, 1.0f);
+            ImGui::Checkbox("Trigger##3d", &component.isTrigger);
         });
     }
 

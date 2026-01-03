@@ -73,12 +73,16 @@ set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
 set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
 set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
 
+# Ensure third-party libraries use the same MSVC runtime as the engine.
+set(USE_STATIC_MSVC_RUNTIME_LIBRARY OFF CACHE BOOL "" FORCE)
+
 # 第三方库
 add_subdirectory(Fermion/external/spdlog)
 add_subdirectory(Fermion/external/entt)
 add_subdirectory(Fermion/external/glm)
 add_subdirectory(Fermion/external/yaml-cpp)
 add_subdirectory(Fermion/external/box2d)
+add_subdirectory(Fermion/external/JoltPhysics/Build)
 add_subdirectory(Fermion/external/assimp)
 add_subdirectory(Fermion/external/freetype)
 if (TARGET freetype AND NOT TARGET Freetype::Freetype)

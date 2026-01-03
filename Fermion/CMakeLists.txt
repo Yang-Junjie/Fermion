@@ -73,6 +73,7 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Scene/Scene.cpp
     ${FERMION_DIR}/Scene/Entity.cpp
     ${FERMION_DIR}/Scene/SceneSerializer.cpp
+    ${FERMION_DIR}/Physics/Physics3D.cpp
 
     ${FERMION_DIR}/Asset/AssetManager.cpp
     ${FERMION_DIR}/Asset/AssetRegistry.cpp
@@ -162,6 +163,7 @@ target_include_directories(engine PUBLIC
     ${EXTERNAL_DIR}/yaml-cpp/include
     ${EXTERNAL_DIR}/ImGuizmo
     ${EXTERNAL_DIR}/box2d/include
+    ${EXTERNAL_DIR}/JoltPhysics
     ${EXTERNAL_DIR}/msdf-atlas-gen/msdf-atlas-gen
     # ${EXTERNAL_DIR}/box2d/src
     ${EXTERNAL_DIR}/mono/include
@@ -176,6 +178,7 @@ set_target_properties(Mono PROPERTIES
 target_link_libraries(engine PUBLIC
     spdlog::spdlog
     box2d::box2d
+    Jolt
     msdf-atlas-gen::msdf-atlas-gen
     Mono
     ws2_32
