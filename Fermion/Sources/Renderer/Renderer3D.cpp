@@ -6,6 +6,7 @@
 #include "Renderer/RenderCommand.hpp"
 #include "Renderer/Pipeline.hpp"
 
+
 #include "glm/gtc/matrix_transform.hpp"
 
 namespace Fermion {
@@ -18,7 +19,7 @@ namespace Fermion {
 
     struct Renderer3DData {
         std::shared_ptr<Pipeline> MeshPipeline;
-        std::shared_ptr<Pipeline> OutlinePipeline;
+
         std::shared_ptr<Pipeline> SkyboxPipeline;
 
         float OutlineWidth = 0.05f;
@@ -47,18 +48,6 @@ namespace Fermion {
             meshSpec.Cull = CullMode::Back;
 
             s_Data.MeshPipeline = Pipeline::Create(meshSpec);
-        }
-
-        // Outline Pipeline
-        {
-            PipelineSpecification outlineSpec;
-            outlineSpec.Shader = Shader::create(config.ShaderPath + "Outline.glsl");
-            outlineSpec.DepthTest = true;
-            outlineSpec.DepthWrite = false;
-            outlineSpec.DepthOperator = DepthCompareOperator::LessOrEqual;
-            outlineSpec.Cull = CullMode::Front;
-
-            s_Data.OutlinePipeline = Pipeline::Create(outlineSpec);
         }
 
         // Skybox Pipeline
@@ -117,10 +106,6 @@ namespace Fermion {
         auto meshShader = s_Data.MeshPipeline->GetShader();
         meshShader->setMat4("u_ViewProjection", s_Data.ViewProjection);
 
-        s_Data.OutlinePipeline->Bind();
-        auto outlineShader = s_Data.OutlinePipeline->GetShader();
-        outlineShader->setMat4("u_View", view);
-        outlineShader->setMat4("u_Projection", camera.getProjection());
     }
 
     void Renderer3D::updateViewState(const EditorCamera &camera,
@@ -133,10 +118,6 @@ namespace Fermion {
         auto meshShader = s_Data.MeshPipeline->GetShader();
         meshShader->setMat4("u_ViewProjection", s_Data.ViewProjection);
 
-        s_Data.OutlinePipeline->Bind();
-        auto outlineShader = s_Data.OutlinePipeline->GetShader();
-        outlineShader->setMat4("u_View", camera.getViewMatrix());
-        outlineShader->setMat4("u_Projection", camera.getProjection());
     }
 
     void Renderer3D::drawMesh(const std::shared_ptr<Mesh> &mesh,
@@ -263,21 +244,6 @@ namespace Fermion {
         }
     }
 
-    void Renderer3D::drawMeshOutline(const std::shared_ptr<Mesh> &mesh, const glm::mat4 &transform, int objectID) {
-        s_Data.OutlinePipeline->Bind();
-        auto outlineShader = s_Data.OutlinePipeline->GetShader();
-        outlineShader->setMat4("u_Model", transform);
-        outlineShader->setFloat("u_OutlineWidth", s_Data.OutlineWidth);
-        outlineShader->setFloat("u_Epsilon", s_Data.Epsilon);
-        outlineShader->setFloat4("u_OutlineColor", s_Data.OutlineColor);
-        outlineShader->setInt("u_ObjectID", -1);
-
-        auto &submeshes = mesh->getSubMeshes();
-        for (auto &submesh: submeshes) {
-            RenderCommand::drawIndexed(mesh->getVertexArray(), submesh.IndexCount, submesh.IndexOffset);
-        }
-    }
-
     void Renderer3D::drawSkybox(const TextureCube *cubemap,
                                 const glm::mat4 &view,
                                 const glm::mat4 &projection) {
@@ -309,17 +275,6 @@ namespace Fermion {
             });
     }
 
-    void Renderer3D::recordOutlinePass(CommandBuffer &commandBuffer, const std::vector<MeshDrawCommand> &drawCommands) {
-        const auto *commands = &drawCommands;
-        commandBuffer.Record(
-            [commands](RendererAPI &) {
-                for (auto &mesh: *commands) {
-                    if (mesh.drawOutline) {
-                        Renderer3D::drawMeshOutline(mesh.mesh, mesh.transform, mesh.objectID);
-                    }
-                }
-            });
-    }
 
     void Renderer3D::recordSkyboxPass(CommandBuffer &commandBuffer, const TextureCube *cubemap,
                                       const glm::mat4 &view, const glm::mat4 &projection) {

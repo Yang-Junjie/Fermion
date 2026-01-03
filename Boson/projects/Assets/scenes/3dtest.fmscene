@@ -1,46 +1,116 @@
 Scene: Name
 Entities:
-  - Entity: 10805386570865572971
+  - Entity: 550734325711598602
     TagComponent:
-      Tag: wall2
+      Tag: box
     TransformComponent:
-      Translation: [-7.225917, 4.9429846, -0.71330893]
+      Translation: [-1.0895733, 1.0408926, 0]
       Rotation: [0, 0, 0]
-      Scale: [0.1291333, 5.570305, 8.615625]
+      Scale: [6.352535, 1, 0.37227455]
     MeshComponent:
-      MeshHandle: 6460136860035206027
-      MemoryOnly: false
-      MemoryMeshType: 0
-  - Entity: 6392940558973327213
+      MeshHandle: 8393302493294957443
+      MemoryOnly: true
+      MemoryMeshType: 1
+    Rigidbody3DComponent:
+      BodyType: 1
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 1669450970559933596
     TagComponent:
-      Tag: wall
+      Tag: dir light
     TransformComponent:
-      Translation: [-1.8578986, 4.1506176, -7.8730335]
+      Translation: [2.9229147, 2.4668949, 15.451881]
+      Rotation: [-0.152254, 0.4840836, -8.838654e-08]
+      Scale: [1, 1, 1]
+    DirectionalLightComponent:
+      Color: [1, 1, 1]
+      Intensity: 0.6
+      MainLight: true
+  - Entity: 6803040298486315258
+    TagComponent:
+      Tag: spot light
+    TransformComponent:
+      Translation: [1.8950677, 6.4491205, -4.432129]
+      Rotation: [0.5292739, 0.1830998, 0.10610594]
+      Scale: [1.6792017, 0.58927274, 1]
+    SpotLightComponent:
+      Color: [0.26254833, 1, 0]
+      Intensity: 4.2
+      Range: 14.1
+      Angle: 19.5
+      Softness: 0.3
+  - Entity: 18083371750882497292
+    TagComponent:
+      Tag: point light 2
+    TransformComponent:
+      Translation: [-2.7722564, 2.0990446, 5.8732452]
       Rotation: [0, 0, 0]
-      Scale: [5.660114, 6.3982654, 0.15751807]
-    MeshComponent:
-      MeshHandle: 6460136860035206027
-      MemoryOnly: false
-      MemoryMeshType: 0
-  - Entity: 5449681077286385480
-    TagComponent:
-      Tag: point light 1
-    TransformComponent:
-      Translation: [-1.103147, 2.6635103, -0.66132545]
-      Rotation: [0, -0, 0]
       Scale: [1, 1, 1]
     PointLightComponent:
-      Color: [0.03826713, 0.31169114, 0.5830116]
-      Intensity: 5.2
-      Range: 10.5
+      Color: [1, 0, 0]
+      Intensity: 3.2
+      Range: 10
     ScriptContainerComponent:
       ScriptClassNames:
         - Sandbox.XAxisMove
+  - Entity: 18415657991614262539
+    TagComponent:
+      Tag: camera
+    TransformComponent:
+      Translation: [8.977794, 8.803601, 15.206821]
+      Rotation: [-0.2961477, 0.6783256, 0.043076396]
+      Scale: [1, 1, 1]
+    SpriteRendererComponent:
+      Color: [0.93436295, 0.17677137, 0.17677137, 0.47058824]
+    CameraComponent:
+      Camera:
+        ProjectionType: 1
+        PerspectiveFOV: 0.7853982
+        PerspectiveNear: 0.01
+        PerspectiveFar: 100
+        OrthographicSize: 10
+        OrthographicNear: -100
+        OrthographicFar: 100
+      Primary: true
+      FixedAspectRatio: false
+  - Entity: 11385838609848978696
+    TagComponent:
+      Tag: box2
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [17.990356, 0.68592894, 25.107412]
+    MeshComponent:
+      MeshHandle: 8393302493294957443
+      MemoryOnly: true
+      MemoryMeshType: 1
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
   - Entity: 6531917417202799299
     TagComponent:
       Tag: car
     TransformComponent:
-      Translation: [-1.5390024, 3.2115405, 0.73304445]
+      Translation: [-4.920762, 3.2115405, 2.4363904]
       Rotation: [0, 0.7744658, 0]
       Scale: [0.01, 0.01, 0.01]
     MeshComponent:
@@ -63,22 +133,55 @@ Entities:
     ScriptContainerComponent:
       ScriptClassNames:
         - Sandbox.ObjController
-  - Entity: 4866263028042920325
+  - Entity: 5449681077286385480
     TagComponent:
-      Tag: obj
+      Tag: point light 1
     TransformComponent:
-      Translation: [-1.4294434, -0.39902046, 0]
-      Rotation: [0, 0, 1.5707964]
-      Scale: [0.0851513, 5.653195, 7.970279]
+      Translation: [-1.103147, 2.6635103, -0.66132545]
+      Rotation: [0, -0, 0]
+      Scale: [1, 1, 1]
+    PointLightComponent:
+      Color: [0.03826713, 0.31169114, 0.5830116]
+      Intensity: 5.2
+      Range: 10.5
+    ScriptContainerComponent:
+      ScriptClassNames:
+        - Sandbox.XAxisMove
+  - Entity: 6392940558973327213
+    TagComponent:
+      Tag: wall
+    TransformComponent:
+      Translation: [-1.8578986, 4.1506176, -7.8730335]
+      Rotation: [0, 0, 0]
+      Scale: [5.660114, 6.3982654, 0.15751807]
     MeshComponent:
       MeshHandle: 6460136860035206027
       MemoryOnly: false
       MemoryMeshType: 0
-    MaterialComponent:
-      AmbientColor: [0.01, 0.01, 0.01, 1]
-      DiffuseColor: [0.2, 0.2, 0.2, 1]
+  - Entity: 10805386570865572971
+    TagComponent:
+      Tag: wall2
+    TransformComponent:
+      Translation: [-7.225917, 4.9429846, -0.71330893]
+      Rotation: [0, 0, 0]
+      Scale: [0.1291333, 5.570305, 8.615625]
+    MeshComponent:
+      MeshHandle: 6460136860035206027
+      MemoryOnly: false
+      MemoryMeshType: 0
+  - Entity: 11767686921801711143
+    TagComponent:
+      Tag: box3
+    TransformComponent:
+      Translation: [0.016906936, 3.43155, 0.68858355]
+      Rotation: [0.45815924, -0, 0]
+      Scale: [0.98999995, 0.98999995, 7.221636]
+    MeshComponent:
+      MeshHandle: 8393302493294957443
+      MemoryOnly: true
+      MemoryMeshType: 1
     Rigidbody3DComponent:
-      BodyType: 0
+      BodyType: 1
       Mass: 1
       LinearDamping: 0.01
       AngularDamping: 0.05
@@ -90,61 +193,3 @@ Entities:
       Friction: 0.5
       Restitution: 0
       IsTrigger: false
-  - Entity: 18415657991614262539
-    TagComponent:
-      Tag: camera
-    TransformComponent:
-      Translation: [8.977794, 8.803601, 15.206821]
-      Rotation: [-0.2961477, 0.6783256, 0.043076396]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [0.93436295, 0.17677137, 0.17677137, 0.47058824]
-    CameraComponent:
-      Camera:
-        ProjectionType: 1
-        PerspectiveFOV: 0.7853982
-        PerspectiveNear: 0.01
-        PerspectiveFar: 100
-        OrthographicSize: 10
-        OrthographicNear: -100
-        OrthographicFar: 100
-      Primary: true
-      FixedAspectRatio: false
-  - Entity: 18083371750882497292
-    TagComponent:
-      Tag: point light 2
-    TransformComponent:
-      Translation: [-2.7722564, 2.0990446, 5.8732452]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    PointLightComponent:
-      Color: [1, 0, 0]
-      Intensity: 3.2
-      Range: 10
-    ScriptContainerComponent:
-      ScriptClassNames:
-        - Sandbox.XAxisMove
-  - Entity: 6803040298486315258
-    TagComponent:
-      Tag: spot light
-    TransformComponent:
-      Translation: [1.8950677, 6.4491205, -4.432129]
-      Rotation: [0.51952535, -0, 0]
-      Scale: [1.6792017, 0.58927274, 1]
-    SpotLightComponent:
-      Color: [0.26254833, 1, 0]
-      Intensity: 9.7
-      Range: 14.9
-      Angle: 34
-      Softness: 0.7
-  - Entity: 1669450970559933596
-    TagComponent:
-      Tag: dir light
-    TransformComponent:
-      Translation: [2.9229147, 2.4668949, 15.451881]
-      Rotation: [-0.152254, 0.4840836, -8.838654e-08]
-      Scale: [1, 1, 1]
-    DirectionalLightComponent:
-      Color: [1, 1, 1]
-      Intensity: 0.6
-      MainLight: true

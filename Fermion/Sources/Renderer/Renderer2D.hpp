@@ -6,6 +6,9 @@
 #include "Camera/EditorCamera.hpp"
 #include "Font/Font.hpp"
 #include "RendererConfig.hpp"
+#include "Math/AABB.hpp"
+#include "Renderer/RenderDrawCommand.hpp"
+#include "Renderer/CommandBuffer.hpp"
 
 namespace Fermion {
     class Renderer2D {
@@ -55,7 +58,8 @@ namespace Fermion {
         static void drawQuadBillboard(const glm::vec3 &position, const glm::vec2 &size,
                                       const std::shared_ptr<Texture2D> &texture, float tilingFactor = 1.0f,
                                       const glm::vec4 &tintColor = glm::vec4(1.0f), int objectId = -1);
-
+        
+        static void drawAABB(const AABB& aabb,const glm::mat4& transform,const glm::vec4& color, int objectId = -1);
 
         static void drawQuad(const glm::mat4 &transform, const std::shared_ptr<SubTexture2D> &subTexture,
                              float tilingFactor = 1.0f, glm::vec4 tintColor = glm::vec4(1.0f));
@@ -100,6 +104,8 @@ namespace Fermion {
         static float getLineWidth();
 
         static void setLineWidth(float width);
+        
+        static void recordOutlinePass(CommandBuffer &commandBuffer, const std::vector<MeshDrawCommand> &drawCommands);
 
         struct TextParams {
             glm::vec4 color{1.0f};

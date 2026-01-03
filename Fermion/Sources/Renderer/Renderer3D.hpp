@@ -27,14 +27,12 @@ namespace Fermion {
                              const glm::mat4 &transform, int objectID = -1);
 
 
-        static void drawMeshOutline(const std::shared_ptr<Mesh> &mesh, const glm::mat4 &transform, int objectID = -1);
-
         static void drawSkybox(const TextureCube* cubeMap, const glm::mat4 &view,
                                const glm::mat4 &projection);
 
         static void recordGeometryPass(CommandBuffer &commandBuffer, const std::vector<MeshDrawCommand> &drawCommands);
 
-        static void recordOutlinePass(CommandBuffer &commandBuffer, const std::vector<MeshDrawCommand> &drawCommands);
+        
 
         static void recordSkyboxPass(CommandBuffer &commandBuffer, const TextureCube *cubeMap,
                                      const glm::mat4 &view, const glm::mat4 &projection);

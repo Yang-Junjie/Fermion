@@ -36,6 +36,7 @@ Fermion 是一款基于 C++20 自研游戏引擎。
 - [freetype](https://github.com/freetype/freetype) - FreeType 字体库
 - [Mono](https://github.com/mono/mono) - 跨平台 .NET 运行时，用于在引擎中运行 C# 脚本。
 - [Assimp](https://github.com/assimp/assimp) - 3D 模型加载
+- [JoltPhysics](https://github.com/jrouwe/JoltPhysics) - 3D物理引擎
 
 ## 构建说明
 

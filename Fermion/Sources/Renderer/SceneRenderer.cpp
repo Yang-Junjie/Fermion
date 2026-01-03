@@ -122,7 +122,7 @@ namespace Fermion {
             {
                 .Name = "OutlinePass",
                 .Execute = [this](CommandBuffer &commandBuffer) {
-                    Renderer3D::recordOutlinePass(commandBuffer, s_MeshDrawList);
+                    Renderer2D::recordOutlinePass(commandBuffer, s_MeshDrawList);
                 }
             });
     }

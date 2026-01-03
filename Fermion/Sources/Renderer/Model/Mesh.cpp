@@ -24,9 +24,43 @@ namespace Fermion {
         }
 
         setupMesh();
+        calculateBoundingBox();
     }
 
-    void Mesh::loadMesh(const std::string &path) {
+    void Mesh::debugMeshLog() const
+    {
+        Log::Info("-------------------Mesh Info----------------------");
+        Log::Info("Mesh: " + m_ModelPath);
+        for(size_t i = 0; i < m_vertices.size(); i++){
+            Log::Info("-------------------Vertex Info----------------------");
+            auto& vertex = m_vertices[i];
+            Log::Info(std::format("Vertex: {}",i));
+            Log::Info(std::format("Position: {},{},{}",vertex.Position.x,vertex.Position.y,vertex.Position.z));
+            Log::Info(std::format("Normal: {},{},{}",vertex.Normal.x,vertex.Normal.y,vertex.Normal.z));
+            Log::Info(std::format("Color: {},{},{},{}",vertex.Color.r,vertex.Color.g,vertex.Color.b,vertex.Color.a));
+            Log::Info(std::format("TexCoord: {},{}",vertex.TexCoord.x,vertex.TexCoord.y));
+            Log::Info("-----------------------------------------------------");
+        }
+        Log::Info("---------------------------------------------------");
+    }
+
+    void Mesh::calculateBoundingBox()
+    {
+        m_BoundingBox.min = { FLT_MAX, FLT_MAX, FLT_MAX };
+		m_BoundingBox.max = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
+
+        for (auto &vertex : m_vertices) {
+            m_BoundingBox.min.x = std::min(m_BoundingBox.min.x, vertex.Position.x);
+            m_BoundingBox.min.y = std::min(m_BoundingBox.min.y, vertex.Position.y);
+            m_BoundingBox.min.z = std::min(m_BoundingBox.min.z, vertex.Position.z);
+            m_BoundingBox.max.x = std::max(m_BoundingBox.max.x, vertex.Position.x);
+            m_BoundingBox.max.y = std::max(m_BoundingBox.max.y, vertex.Position.y);
+            m_BoundingBox.max.z = std::max(m_BoundingBox.max.z, vertex.Position.z);
+        }
+    }
+
+    void Mesh::loadMesh(const std::string &path)
+    {
         Assimp::Importer importer;
         const aiScene *scene = importer.ReadFile(path,
                                                  aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs);

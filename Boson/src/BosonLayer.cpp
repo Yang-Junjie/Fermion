@@ -694,8 +694,9 @@ namespace Fermion {
                     m_viewportRenderer->submitMesh(selectedEntity.getComponent<MeshComponent>(),
                                                    transform.getTransform(), -1, true);
                 }
-
+                else{
                 m_viewportRenderer->drawRect(transform.getTransform(), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+                }
             }
         }
         // Renderer2D::endScene();
