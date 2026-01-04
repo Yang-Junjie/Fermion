@@ -1247,17 +1247,17 @@ namespace Fermion
             }
         }
     }
-    void Renderer2D::recordOutlinePass(CommandBuffer &commandBuffer, const std::vector<MeshDrawCommand> &drawCommands)
+    void Renderer2D::recordOutlinePass(CommandBuffer &commandBuffer, const std::vector<MeshDrawCommand> &drawCommands,glm::vec4 outlineColor)
     {
         const auto *commands = &drawCommands;
         commandBuffer.Record(
-            [commands](RendererAPI &)
+            [commands,outlineColor](RendererAPI &)
             {
                 for (auto &mesh : *commands)
                 {
                     if (mesh.drawOutline)
                     {
-                        Renderer2D::drawAABB(mesh.mesh->getBoundingBox(), mesh.transform, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), mesh.objectID);
+                        Renderer2D::drawAABB(mesh.mesh->getBoundingBox(), mesh.transform, outlineColor, mesh.objectID);
                     }
                 }
             });

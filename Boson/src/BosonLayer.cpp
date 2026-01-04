@@ -466,6 +466,8 @@ namespace Fermion {
         ImGui::Checkbox("showPhysicsColliders", &m_showPhysicsColliders);
         ImGui::Checkbox("showRenderEntities", &m_showRenderEntities);
         ImGui::Checkbox("showSkybox", &m_viewportRenderer->getSceneInfo().showSkybox);
+        
+        ImGui::ColorEdit4("Mesh Pick Outline Color", glm::value_ptr(m_viewportRenderer->getSceneInfo().meshOutlineColor));
         ImGui::Separator();
         ImGui::Image((ImTextureID) s_Font->getAtlasTexture()->getRendererID(),
                      {512, 512}, {0, 1}, {1, 0});

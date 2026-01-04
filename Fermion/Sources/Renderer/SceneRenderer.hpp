@@ -27,6 +27,7 @@ namespace Fermion {
             SceneRendererCamera sceneCamera;
             EnvironmentLight sceneEnvironmentLight;
             bool showSkybox = true;
+            glm::vec4 meshOutlineColor = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
         };
 
         struct Statistics {
