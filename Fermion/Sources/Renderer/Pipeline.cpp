@@ -3,7 +3,7 @@
 #include "OpenGLPipeline.hpp"
 namespace Fermion {
 
-std::shared_ptr<Pipeline> Pipeline::Create(const PipelineSpecification &spec) {
+std::shared_ptr<Pipeline> Pipeline::create(const PipelineSpecification &spec) {
     switch (RendererAPI::getAPI()) {
     case RendererAPI::API::None:
         return nullptr;

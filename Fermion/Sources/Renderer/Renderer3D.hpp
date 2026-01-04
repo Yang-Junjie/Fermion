@@ -33,7 +33,6 @@ namespace Fermion {
         static void recordGeometryPass(CommandBuffer &commandBuffer, const std::vector<MeshDrawCommand> &drawCommands);
 
         
-
         static void recordSkyboxPass(CommandBuffer &commandBuffer, const TextureCube *cubeMap,
                                      const glm::mat4 &view, const glm::mat4 &projection);
 

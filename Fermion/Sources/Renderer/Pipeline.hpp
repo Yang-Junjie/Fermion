@@ -19,25 +19,25 @@ enum class DepthCompareOperator {
     Always,
 };
 struct PipelineSpecification {
-    std::shared_ptr<Shader> Shader;
-    bool DepthTest = true;
-    bool DepthWrite = true;
+    std::shared_ptr<Shader> shader;
+    bool depthTest = true;
+    bool depthWrite = true;
 
-    CullMode Cull = CullMode::Back;
-    DepthCompareOperator DepthOperator = DepthCompareOperator::Less;
+    CullMode cull = CullMode::Back;
+    DepthCompareOperator depthOperator = DepthCompareOperator::Less;
 };
 class Pipeline {
 public:
     virtual ~Pipeline() = default;
 
-    virtual PipelineSpecification &GetSpecification() = 0;
-    virtual const PipelineSpecification &GetSpecification() const = 0;
+    virtual PipelineSpecification &getSpecification() = 0;
+    virtual const PipelineSpecification &getSpecification() const = 0;
 
-    virtual void Bind() = 0;
+    virtual void bind() = 0;
 
-    virtual std::shared_ptr<Shader> GetShader() const = 0;
+    virtual std::shared_ptr<Shader> getShader() const = 0;
 
-    static std::shared_ptr<Pipeline> Create(const PipelineSpecification &spec);
+    static std::shared_ptr<Pipeline> create(const PipelineSpecification &spec);
 };
 
 } // namespace Fermion

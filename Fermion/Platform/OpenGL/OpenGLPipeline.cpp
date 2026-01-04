@@ -2,7 +2,7 @@
 #include "glad/glad.h"
 namespace Fermion
 {
-    static GLenum ToGLCompare(DepthCompareOperator op)
+    static GLenum toGLCompare(DepthCompareOperator op)
     {
         switch (op)
         {
@@ -27,7 +27,7 @@ namespace Fermion
         }
     }
 
-    static GLenum ToGLCull(CullMode cull)
+    static GLenum toGLCull(CullMode cull)
     {
         switch (cull)
         {
@@ -41,35 +41,35 @@ namespace Fermion
             return GL_BACK;
         }
     }
-    OpenGLPipeline::OpenGLPipeline(const PipelineSpecification &spec) : m_Specification(spec)
+    OpenGLPipeline::OpenGLPipeline(const PipelineSpecification &spec) : m_specification(spec)
     {
     }
-    PipelineSpecification &OpenGLPipeline::GetSpecification()
+    PipelineSpecification &OpenGLPipeline::getSpecification()
     {
-        return m_Specification;
+        return m_specification;
     }
-    const PipelineSpecification &OpenGLPipeline::GetSpecification() const
+    const PipelineSpecification &OpenGLPipeline::getSpecification() const
     {
-        return m_Specification;
+        return m_specification;
     }
-    void OpenGLPipeline::Bind()
+    void OpenGLPipeline::bind()
     {
-        if (m_Specification.Shader)
-            m_Specification.Shader->bind();
+        if (m_specification.shader)
+            m_specification.shader->bind();
 
         // Depth
-        if (m_Specification.DepthTest)
+        if (m_specification.depthTest)
             glEnable(GL_DEPTH_TEST);
         else
             glDisable(GL_DEPTH_TEST);
 
-        glDepthMask(m_Specification.DepthWrite ? GL_TRUE : GL_FALSE);
+        glDepthMask(m_specification.depthWrite ? GL_TRUE : GL_FALSE);
 
         // Depth compare
-        glDepthFunc(ToGLCompare(m_Specification.DepthOperator));
+        glDepthFunc(toGLCompare(m_specification.depthOperator));
 
         // Cull
-        switch (m_Specification.Cull)
+        switch (m_specification.cull)
         {
         case CullMode::None:
             glDisable(GL_CULL_FACE);
@@ -86,8 +86,8 @@ namespace Fermion
             break;
         }
     }
-    std::shared_ptr<Shader> OpenGLPipeline::GetShader() const
+    std::shared_ptr<Shader> OpenGLPipeline::getShader() const
     {
-        return m_Specification.Shader;
+        return m_specification.shader;
     }
 } // namespace Fermion

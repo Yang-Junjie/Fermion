@@ -5,26 +5,18 @@
 #include "Renderer/Shader.hpp"
 #include "Renderer/RenderCommand.hpp"
 #include "Renderer/Pipeline.hpp"
+#include "Renderer/Renderer.hpp"
 
 
 #include "glm/gtc/matrix_transform.hpp"
 
 namespace Fermion {
-    struct CubeVertex {
-        glm::vec3 position;
-        glm::vec3 normal;
-        glm::vec4 color;
-        int objectID; // Editor picking
-    };
 
     struct Renderer3DData {
-        std::shared_ptr<Pipeline> MeshPipeline;
+        std::shared_ptr<Pipeline> meshPipeline;
 
-        std::shared_ptr<Pipeline> SkyboxPipeline;
-
-        float OutlineWidth = 0.05f;
-        float Epsilon = 0.15f;
-        glm::vec4 OutlineColor = {1.0f, 0.0f, 0.0f, 0.8f};
+        std::shared_ptr<Pipeline> skyboxPipeline;
+        
 
         glm::mat4 ViewProjection;
         glm::vec3 CameraPosition;
@@ -41,25 +33,25 @@ namespace Fermion {
         // Mesh Pipeline
         {
             PipelineSpecification meshSpec;
-            meshSpec.Shader = Shader::create(config.ShaderPath + "Mesh.glsl");
-            meshSpec.DepthTest = true;
-            meshSpec.DepthWrite = true;
-            meshSpec.DepthOperator = DepthCompareOperator::Less;
-            meshSpec.Cull = CullMode::Back;
+            meshSpec.shader = Renderer::getShaderLibrary()->get("Mesh");
+            meshSpec.depthTest = true;
+            meshSpec.depthWrite = true;
+            meshSpec.depthOperator = DepthCompareOperator::Less;
+            meshSpec.cull = CullMode::Back;
 
-            s_Data.MeshPipeline = Pipeline::Create(meshSpec);
+            s_Data.meshPipeline = Pipeline::create(meshSpec);
         }
 
         // Skybox Pipeline
         {
             PipelineSpecification skyboxSpec;
-            skyboxSpec.Shader = Shader::create(config.ShaderPath + "Skybox.glsl");
-            skyboxSpec.DepthTest = true;
-            skyboxSpec.DepthWrite = false;
-            skyboxSpec.DepthOperator = DepthCompareOperator::LessOrEqual;
-            skyboxSpec.Cull = CullMode::None;
+            skyboxSpec.shader = Renderer::getShaderLibrary()->get("Skybox");
+            skyboxSpec.depthTest = true;
+            skyboxSpec.depthWrite = false;
+            skyboxSpec.depthOperator = DepthCompareOperator::LessOrEqual;
+            skyboxSpec.cull = CullMode::None;
 
-            s_Data.SkyboxPipeline = Pipeline::Create(skyboxSpec);
+            s_Data.skyboxPipeline = Pipeline::create(skyboxSpec);
         }
 
         float skyboxVertices[] = {
@@ -102,8 +94,8 @@ namespace Fermion {
         s_Data.CameraPosition = glm::vec3(glm::inverse(view)[3]);
         s_Data.EnvLight = envLight;
 
-        s_Data.MeshPipeline->Bind();
-        auto meshShader = s_Data.MeshPipeline->GetShader();
+        s_Data.meshPipeline->bind();
+        auto meshShader = s_Data.meshPipeline->getShader();
         meshShader->setMat4("u_ViewProjection", s_Data.ViewProjection);
 
     }
@@ -114,8 +106,8 @@ namespace Fermion {
         s_Data.CameraPosition = camera.getPosition();
         s_Data.EnvLight = envLight;
 
-        s_Data.MeshPipeline->Bind();
-        auto meshShader = s_Data.MeshPipeline->GetShader();
+        s_Data.meshPipeline->bind();
+        auto meshShader = s_Data.meshPipeline->getShader();
         meshShader->setMat4("u_ViewProjection", s_Data.ViewProjection);
 
     }
@@ -123,8 +115,8 @@ namespace Fermion {
     void Renderer3D::drawMesh(const std::shared_ptr<Mesh> &mesh,
                               const glm::mat4 &transform,
                               int objectID) {
-        s_Data.MeshPipeline->Bind();
-        auto meshShader = s_Data.MeshPipeline->GetShader();
+        s_Data.meshPipeline->bind();
+        auto meshShader = s_Data.meshPipeline->getShader();
         meshShader->setMat4("u_Model", transform);
         meshShader->setInt("u_ObjectID", objectID);
 
@@ -188,8 +180,8 @@ namespace Fermion {
                               const std::shared_ptr<Material> &material,
                               const glm::mat4 &transform,
                               int objectID) {
-        s_Data.MeshPipeline->Bind();
-        auto meshShader = s_Data.MeshPipeline->GetShader();
+        s_Data.meshPipeline->bind();
+        auto meshShader = s_Data.meshPipeline->getShader();
         meshShader->setMat4("u_Model", transform);
         meshShader->setInt("u_ObjectID", objectID);
 
@@ -247,8 +239,8 @@ namespace Fermion {
     void Renderer3D::drawSkybox(const TextureCube *cubemap,
                                 const glm::mat4 &view,
                                 const glm::mat4 &projection) {
-        s_Data.SkyboxPipeline->Bind();
-        auto skyBoxShader = s_Data.SkyboxPipeline->GetShader();
+        s_Data.skyboxPipeline->bind();
+        auto skyBoxShader = s_Data.skyboxPipeline->getShader();
         skyBoxShader->bind();
         skyBoxShader->setMat4("u_View", glm::mat4(glm::mat3(view)));
         skyBoxShader->setMat4("u_Projection", projection);

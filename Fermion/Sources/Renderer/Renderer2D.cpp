@@ -6,6 +6,7 @@
 #include "Renderer/Pipeline.hpp"
 #include "glad/glad.h"
 #include "glm/gtc/matrix_transform.hpp"
+#include "Renderer.hpp"
 #include "Renderer2D.hpp"
 #include "Font/MSDFData.hpp"
 #include <filesystem>
@@ -69,8 +70,8 @@ namespace Fermion
 
     struct Renderer2DData
     {
-        std::shared_ptr<Pipeline> OutlinePipeline;
-        std::shared_ptr<Pipeline> DefaultPipeline;
+        std::shared_ptr<Pipeline> outlinePipeline;
+        std::shared_ptr<Pipeline> defaultPipeline;
 
         static const uint32_t MaxQuads = 10000;
         static const uint32_t MaxVertices = MaxQuads * 4;
@@ -143,19 +144,19 @@ namespace Fermion
         {
             PipelineSpecification outlineSpec;
             // outlineSpec.Shader = Shader::create(config.ShaderPath + "Outline.glsl");
-            outlineSpec.DepthTest = false;
-            outlineSpec.DepthWrite = false; 
-            outlineSpec.Cull = CullMode::None; 
-            outlineSpec.DepthOperator = DepthCompareOperator::Always; 
+            outlineSpec.depthTest = false;
+            outlineSpec.depthWrite = false; 
+            outlineSpec.cull = CullMode::None; 
+            outlineSpec.depthOperator = DepthCompareOperator::Always; 
 
-            s_Data.OutlinePipeline = Pipeline::Create(outlineSpec);
+            s_Data.outlinePipeline = Pipeline::create(outlineSpec);
         }
 
         // default pipeline
         {
             PipelineSpecification defaultSpec;
-            defaultSpec.Cull = CullMode::None;
-            s_Data.DefaultPipeline = Pipeline::Create(defaultSpec);
+            defaultSpec.cull = CullMode::None;
+            s_Data.defaultPipeline = Pipeline::create(defaultSpec);
         }
 
 
@@ -239,11 +240,11 @@ namespace Fermion
         s_Data.WhiteTexture->setData(&whiteTextureData, sizeof(uint32_t));
 
         std::filesystem::path shaderBase = config.ShaderPath;
-        s_Data.QuadShader = Shader::create((shaderBase / "Quad.glsl").string());
-        s_Data.QuadInstanceShader = Shader::create((shaderBase / "QuadInstance.glsl").string());
-        s_Data.CircleShader = Shader::create((shaderBase / "Circle.glsl").string());
-        s_Data.LineShader = Shader::create((shaderBase / "Line.glsl").string());
-        s_Data.TextShader = Shader::create((shaderBase / "Text.glsl").string());
+        s_Data.QuadShader = Renderer::getShaderLibrary()->get("Quad");
+        s_Data.QuadInstanceShader = Renderer::getShaderLibrary()->get("QuadInstance");
+        s_Data.CircleShader = Renderer::getShaderLibrary()->get("Circle");
+        s_Data.LineShader = Renderer::getShaderLibrary()->get("Line");
+        s_Data.TextShader = Renderer::getShaderLibrary()->get("Text");
 
         s_Data.QuadShader->bind();
         int samplers[s_Data.MaxTextureSlots];
@@ -405,7 +406,7 @@ namespace Fermion
     {
         FM_PROFILE_FUNCTION();
 
-        s_Data.DefaultPipeline->Bind();
+        s_Data.defaultPipeline->bind();
         // glFrontFace(GL_CCW);
         // TODO:，当数量大的时候切换为实例化渲染
         if (s_Data.QuadIndexCount)
@@ -449,7 +450,7 @@ namespace Fermion
         }
         if (s_Data.LineVertexCount)
         {
-            s_Data.OutlinePipeline->Bind();
+            s_Data.outlinePipeline->bind();
             uint32_t dataSize = (uint32_t)((uint8_t *)s_Data.LineVertexBufferPtr - (uint8_t *)s_Data.LineVertexBufferBase);
             s_Data.LineVertexBuffer->setData(s_Data.LineVertexBufferBase, dataSize);
 

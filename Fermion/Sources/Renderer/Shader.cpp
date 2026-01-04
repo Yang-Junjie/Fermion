@@ -46,9 +46,9 @@ std::shared_ptr<Shader> ShaderLibrary::load(const std::string &name, const std::
     return shader;
 }
 
-std::shared_ptr<Shader> ShaderLibrary::get(const std::string &name) {
+std::shared_ptr<Shader> ShaderLibrary::get(const std::string &name) const{
     FERMION_ASSERT(exists(name), "Shader not found!");
-    return m_Shaders[name];
+    return m_Shaders.at(name);
 }
 
 bool ShaderLibrary::exists(const std::string &name) const {

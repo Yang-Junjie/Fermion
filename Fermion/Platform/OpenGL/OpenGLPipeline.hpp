@@ -5,13 +5,13 @@ namespace Fermion {
 class OpenGLPipeline : public Pipeline {
 public:
     OpenGLPipeline(const PipelineSpecification &spec);
-    virtual PipelineSpecification &GetSpecification() override;
-    virtual const PipelineSpecification &GetSpecification() const override;
-    virtual void Bind() override;
-    virtual std::shared_ptr<Shader> GetShader() const override;
+    virtual PipelineSpecification &getSpecification() override;
+    virtual const PipelineSpecification &getSpecification() const override;
+    virtual void bind() override;
+    virtual std::shared_ptr<Shader> getShader() const override;
     virtual ~OpenGLPipeline() = default;
 
 private:
-    PipelineSpecification m_Specification;
+    PipelineSpecification m_specification;
 };
 } // namespace Fermion
