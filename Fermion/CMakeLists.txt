@@ -138,6 +138,11 @@ set(ENGINE_SOURCES
 
 add_library(engine STATIC ${ENGINE_SOURCES})
 
+# 添加Debug模式的编译定义
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+    target_compile_definitions(engine PUBLIC FERMION_DEBUG)
+endif()
+
 add_custom_command(
     TARGET engine POST_BUILD 
     COMMAND ${CMAKE_COMMAND} -E copy # 使用 CMake 内置命令 copy

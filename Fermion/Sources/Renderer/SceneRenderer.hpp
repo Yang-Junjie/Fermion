@@ -27,6 +27,7 @@ namespace Fermion {
             SceneRendererCamera sceneCamera;
             EnvironmentLight sceneEnvironmentLight;
             bool showSkybox = true;
+            bool enableShadows = true;
             glm::vec4 meshOutlineColor = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
         };
 
@@ -111,10 +112,14 @@ namespace Fermion {
         std::shared_ptr<DebugRenderer> m_debugRenderer;
 
         std::shared_ptr<Scene> m_scene;
+
         std::vector<MeshDrawCommand> s_MeshDrawList;
+
         std::unique_ptr<TextureCube> m_skybox = nullptr;
+        std::shared_ptr<VertexArray> m_cubeVA = nullptr;
 
         std::shared_ptr<Pipeline> m_MeshPipeline;
+        std::shared_ptr<Pipeline> m_SkyboxPipeline;
 
         RenderGraph m_RenderGraph;
         RenderCommandQueue m_CommandQueue;

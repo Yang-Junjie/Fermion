@@ -14,6 +14,7 @@ namespace Fermion
         m_debugRenderer = std::make_shared<DebugRenderer>();
         m_skybox = TextureCube::create("../Boson/projects/Assets/textures/skybox");
 
+        // Mesh Pipeline
         {
             PipelineSpecification meshSpec;
             meshSpec.shader = Renderer::getShaderLibrary()->get("Mesh");
@@ -24,6 +25,48 @@ namespace Fermion
 
             m_MeshPipeline = Pipeline::create(meshSpec);
         }
+
+        // Skybox Pipeline
+        {
+            PipelineSpecification skyboxSpec;
+            skyboxSpec.shader = Renderer::getShaderLibrary()->get("Skybox");
+            skyboxSpec.depthTest = true;
+            skyboxSpec.depthWrite = false;
+            skyboxSpec.depthOperator = DepthCompareOperator::LessOrEqual;
+            skyboxSpec.cull = CullMode::None;
+
+            m_SkyboxPipeline = Pipeline::create(skyboxSpec);
+        }
+
+        // Skybox VAO
+        float skyboxVertices[] = {
+            -1.0f, 1.0f, -1.0f,
+            -1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f, 1.0f, -1.0f,
+            -1.0f, 1.0f, 1.0f,
+            -1.0f, -1.0f, 1.0f,
+            1.0f, -1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f
+        };
+
+        uint32_t skyboxIndices[] = {
+            0, 1, 2, 2, 3, 0,
+            4, 5, 6, 6, 7, 4,
+            4, 5, 1, 1, 0, 4,
+            3, 2, 6, 6, 7, 3,
+            4, 0, 3, 3, 7, 4,
+            1, 5, 6, 6, 2, 1
+        };
+
+        auto vertexBuffer = VertexBuffer::create(skyboxVertices, sizeof(skyboxVertices));
+        vertexBuffer->setLayout({{ShaderDataType::Float3, "a_Position"}});
+
+        auto indexBuffer = IndexBuffer::create(skyboxIndices, sizeof(skyboxIndices) / sizeof(uint32_t));
+
+        m_cubeVA = VertexArray::create();
+        m_cubeVA->addVertexBuffer(vertexBuffer);
+        m_cubeVA->setIndexBuffer(indexBuffer);
     }
 
     void SceneRenderer::beginScene(const Camera &camera, const glm::mat4 &transform)
@@ -171,8 +214,14 @@ namespace Fermion
             {.Name = "SkyboxPass",
              .Execute = [this](CommandBuffer &commandBuffer)
              {
-                 Renderer3D::recordSkyboxPass(commandBuffer, m_skybox.get(), m_sceneData.sceneCamera.view,
-                                              m_sceneData.sceneCamera.camera.getProjection());
+                 SkyboxDrawCommand cmd;
+                 cmd.pipeline = m_SkyboxPipeline;
+                 cmd.vao = m_cubeVA;
+                 cmd.cubemap = m_skybox.get();
+                 cmd.view = m_sceneData.sceneCamera.view;
+                 cmd.projection = m_sceneData.sceneCamera.camera.getProjection();
+
+                 Renderer3D::recordSkyboxPass(commandBuffer, cmd);
              }});
     }
 

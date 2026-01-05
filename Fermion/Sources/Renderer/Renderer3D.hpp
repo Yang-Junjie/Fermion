@@ -21,20 +21,9 @@ namespace Fermion {
 
         static void updateViewState(const EditorCamera &camera, const EnvironmentLight &light);
 
-        static void drawMesh(const std::shared_ptr<Mesh> &mesh, const glm::mat4 &transform, int objectID = -1);
-
-        static void drawMesh(const std::shared_ptr<Mesh> &mesh, const std::shared_ptr<Material> &material,
-                             const glm::mat4 &transform, int objectID = -1);
-
-
-        static void drawSkybox(const TextureCube* cubeMap, const glm::mat4 &view,
-                               const glm::mat4 &projection);
-
         static void recordGeometryPass(CommandBuffer &commandBuffer, const std::vector<MeshDrawCommand> &drawCommands);
 
-        
-        static void recordSkyboxPass(CommandBuffer &commandBuffer, const TextureCube *cubeMap,
-                                     const glm::mat4 &view, const glm::mat4 &projection);
+        static void recordSkyboxPass(CommandBuffer &commandBuffer, const SkyboxDrawCommand &drawCommand);
 
 
     };

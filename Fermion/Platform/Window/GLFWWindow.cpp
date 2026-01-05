@@ -128,15 +128,13 @@ void GLFWWindow::init(const WindowProps &props) {
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
 			MouseScrolledEvent event((float)xOffset, (float)yOffset);
-			data.eventCallback(event);
-            Log::Trace(std::format("Mouse scrolled: {}, {}", xOffset, yOffset)); });
+			data.eventCallback(event); });
 
     glfwSetCursorPosCallback(m_window, [](GLFWwindow *window, double xPos, double yPos) {
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
 			MouseMovedEvent event((float)xPos, (float)yPos);
-			data.eventCallback(event); 
-            Log::Trace(std::format("Mouse moved: {}, {}", xPos, yPos)); });
+			data.eventCallback(event);  }); 
 }
 
 void GLFWWindow::shutdown() {
