@@ -153,7 +153,6 @@ namespace Fermion {
             displayAddComponentEntry<BoxSensor2DComponent>("Box Sensor2D");
             ImGui::SeparatorText("3D Component");
             displayAddComponentEntry<MeshComponent>("Mesh");
-            displayAddComponentEntry<MaterialComponent>("Material");
             displayAddComponentEntry<Rigidbody3DComponent>("Rigidbody3D");
             displayAddComponentEntry<BoxCollider3DComponent>("Box Collider3D");
             displayAddComponentEntry<DirectionalLightComponent>("Directional Light");
@@ -350,21 +349,6 @@ namespace Fermion {
                 }
                 component.memoryOnly = true;
                 ImGui::EndPopup();
-            }
-        });
-        drawComponent<MaterialComponent>("Material", entity, [](auto &component) {
-            bool overrideMaterial = component.overrideMaterial;
-            if (ImGui::Checkbox("Override Material", &overrideMaterial)) {
-                component.overrideMaterial = overrideMaterial;
-            }
-            auto materialInstance = component.MaterialInstance;
-            glm::vec3 ambient = glm::vec3(materialInstance->getAmbientColor());
-            if (drawVec3Control("Ambient", ambient, 0.0f)) {
-                materialInstance->setAmbientColor(glm::vec4(ambient, 1.0f));
-            }
-            glm::vec3 diffuse = glm::vec3(materialInstance->getDiffuseColor());
-            if (drawVec3Control("Diffuse", diffuse, 0.0f)) {
-                materialInstance->setDiffuseColor(glm::vec4(diffuse, 1.0f));
             }
         });
         drawComponent<DirectionalLightComponent>("Directional Light", entity, [](auto &component) {

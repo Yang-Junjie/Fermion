@@ -105,7 +105,7 @@ namespace Fermion {
 
         static void setLineWidth(float width);
         
-        static void recordOutlinePass(CommandBuffer &commandBuffer, const std::vector<MeshDrawCommand> &drawCommands,glm::vec4 outlineColor);
+        static void recordOutlinePass(CommandBuffer &commandBuffer, const std::vector<MeshDrawCommand> &drawCommands,const glm::vec4& outlineColor);
 
         struct TextParams {
             glm::vec4 color{1.0f};

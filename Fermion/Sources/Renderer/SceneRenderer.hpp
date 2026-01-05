@@ -80,9 +80,6 @@ namespace Fermion {
 
         void submitMesh(MeshComponent &meshComponent, glm::mat4 transform, int objectId = -1, bool drawOutline = false);
 
-        void submitMesh(MeshComponent &meshComponent, MaterialComponent &materialComponent, glm::mat4 transform,
-                        int objectId = -1, bool drawOutline = false);
-
         void setScene(std::shared_ptr<Scene> scene) {
             m_scene = scene;
         }
@@ -116,6 +113,8 @@ namespace Fermion {
         std::shared_ptr<Scene> m_scene;
         std::vector<MeshDrawCommand> s_MeshDrawList;
         std::unique_ptr<TextureCube> m_skybox = nullptr;
+
+        std::shared_ptr<Pipeline> m_MeshPipeline;
 
         RenderGraph m_RenderGraph;
         RenderCommandQueue m_CommandQueue;

@@ -93,17 +93,6 @@ namespace Fermion {
         MeshComponent(const MeshComponent &) = default;
     };
 
-    struct MaterialComponent {
-        std::shared_ptr<Material> MaterialInstance;
-        bool overrideMaterial = false;
-
-        MaterialComponent() {
-            MaterialInstance = std::make_shared<Material>();
-        }
-
-        MaterialComponent(const MaterialComponent &) = default;
-    };
-
     struct TextComponent {
         std::string textString;
         std::shared_ptr<Font> fontAsset = Font::getDefault();
@@ -315,7 +304,7 @@ namespace Fermion {
     };
 
     using AllComponents =
-    ComponentGroup<TransformComponent, SpriteRendererComponent, MeshComponent, MaterialComponent,
+    ComponentGroup<TransformComponent, SpriteRendererComponent, MeshComponent,
         CircleRendererComponent,
         CameraComponent,
         ScriptComponent,

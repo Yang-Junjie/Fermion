@@ -175,67 +175,6 @@ namespace Fermion {
                                        submesh.IndexOffset);
         }
     }
-
-    void Renderer3D::drawMesh(const std::shared_ptr<Mesh> &mesh,
-                              const std::shared_ptr<Material> &material,
-                              const glm::mat4 &transform,
-                              int objectID) {
-        s_Data.meshPipeline->bind();
-        auto meshShader = s_Data.meshPipeline->getShader();
-        meshShader->setMat4("u_Model", transform);
-        meshShader->setInt("u_ObjectID", objectID);
-
-        {
-            const auto &dirLight = s_Data.EnvLight.directionalLight;
-
-            glm::vec3 dir = -dirLight.direction; // 注意：光照方向指向场景
-            meshShader->setFloat3("u_DirectionalLight.direction", dir);
-            meshShader->setFloat3("u_DirectionalLight.color", dirLight.color);
-            meshShader->setFloat("u_DirectionalLight.intensity", dirLight.intensity);
-        }
-
-        const auto &pointLights = s_Data.EnvLight.pointLights;
-        uint32_t pointCount = std::min(s_Data.maxLights, (uint32_t) pointLights.size());
-
-        meshShader->setInt("u_PointLightCount", pointCount);
-
-        for (uint32_t i = 0; i < pointCount; i++) {
-            const auto &l = pointLights[i];
-            std::string base = "u_PointLights[" + std::to_string(i) + "]";
-
-            meshShader->setFloat3(base + ".position", l.position);
-            meshShader->setFloat3(base + ".color", l.color);
-            meshShader->setFloat(base + ".intensity", l.intensity);
-            meshShader->setFloat(base + ".range", l.range);
-        }
-
-        const auto &spotLights = s_Data.EnvLight.spotLights;
-        uint32_t spotCount = std::min(s_Data.maxLights, (uint32_t) spotLights.size());
-
-        meshShader->setInt("u_SpotLightCount", spotCount);
-
-        for (uint32_t i = 0; i < spotCount; i++) {
-            const auto &l = spotLights[i];
-            std::string base = "u_SpotLights[" + std::to_string(i) + "]";
-
-            meshShader->setFloat3(base + ".position", l.position);
-            meshShader->setFloat3(base + ".direction", glm::normalize(l.direction));
-
-            meshShader->setFloat3(base + ".color", l.color);
-            meshShader->setFloat(base + ".intensity", l.intensity);
-
-            meshShader->setFloat(base + ".range", l.range);
-            meshShader->setFloat(base + ".innerConeAngle", l.innerConeAngle);
-            meshShader->setFloat(base + ".outerConeAngle", l.outerConeAngle);
-        }
-
-        auto &submeshes = mesh->getSubMeshes();
-        for (auto &submesh: submeshes) {
-            material->bind(meshShader);
-            RenderCommand::drawIndexed(mesh->getVertexArray(), submesh.IndexCount, submesh.IndexOffset);
-        }
-    }
-
     void Renderer3D::drawSkybox(const TextureCube *cubemap,
                                 const glm::mat4 &view,
                                 const glm::mat4 &projection) {
@@ -254,17 +193,61 @@ namespace Fermion {
 
     void Renderer3D::recordGeometryPass(CommandBuffer &commandBuffer,
                                         const std::vector<MeshDrawCommand> &drawCommands) {
-        const auto *commands = &drawCommands;
-        commandBuffer.Record(
-            [commands](RendererAPI &) {
-                for (auto &mesh: *commands) {
-                    if (mesh.material) {
-                        Renderer3D::drawMesh(mesh.mesh, mesh.material, mesh.transform, mesh.objectID);
-                    } else {
-                        Renderer3D::drawMesh(mesh.mesh, mesh.transform, mesh.objectID);
-                    }
+        commandBuffer.Record([&drawCommands](RendererAPI &api) {
+            std::shared_ptr<Pipeline> currentPipeline = nullptr;
+
+            for (auto &cmd : drawCommands) {
+                if (currentPipeline != cmd.pipeline) {
+                    currentPipeline = cmd.pipeline;
+                    currentPipeline->bind();
                 }
-            });
+
+                auto shader = currentPipeline->getShader();
+                shader->setMat4("u_Model", cmd.transform);
+                shader->setInt("u_ObjectID", cmd.objectID);
+                
+                const auto &dirLight = s_Data.EnvLight.directionalLight;
+                shader->setFloat3("u_DirectionalLight.direction", -dirLight.direction);
+                shader->setFloat3("u_DirectionalLight.color", dirLight.color);
+                shader->setFloat("u_DirectionalLight.intensity", dirLight.intensity);
+
+                // PointLight
+                uint32_t pointCount = std::min(s_Data.maxLights, (uint32_t)s_Data.EnvLight.pointLights.size());
+                shader->setInt("u_PointLightCount", pointCount);
+                for (uint32_t i = 0; i < pointCount; i++)
+                {
+                    const auto &l = s_Data.EnvLight.pointLights[i];
+                    std::string base = "u_PointLights[" + std::to_string(i) + "]";
+                    shader->setFloat3(base + ".position", l.position);
+                    shader->setFloat3(base + ".color", l.color);
+                    shader->setFloat(base + ".intensity", l.intensity);
+                    shader->setFloat(base + ".range", l.range);
+                }
+
+                // SpotLight
+                uint32_t spotCount = std::min(s_Data.maxLights, (uint32_t)s_Data.EnvLight.spotLights.size());
+                shader->setInt("u_SpotLightCount", spotCount);
+                for (uint32_t i = 0; i < spotCount; i++)
+                {
+                    const auto &l = s_Data.EnvLight.spotLights[i];
+                    std::string base = "u_SpotLights[" + std::to_string(i) + "]";
+                    shader->setFloat3(base + ".position", l.position);
+                    shader->setFloat3(base + ".direction", glm::normalize(l.direction));
+                    shader->setFloat3(base + ".color", l.color);
+                    shader->setFloat(base + ".intensity", l.intensity);
+                    shader->setFloat(base + ".range", l.range);
+                    shader->setFloat(base + ".innerConeAngle", l.innerConeAngle);
+                    shader->setFloat(base + ".outerConeAngle", l.outerConeAngle);
+                }
+                if (cmd.material)
+                    cmd.material->bind(shader);
+                RenderCommand::drawIndexed(cmd.vao,
+                                            cmd.indexCount,
+                                            cmd.indexOffset);
+        }
+            
+        }
+        );
     }
 
 

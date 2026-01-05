@@ -235,13 +235,7 @@ namespace Fermion {
                 for (auto entity: view) {
                     auto &transform = view.get<TransformComponent>(entity);
                     auto &mesh = view.get<MeshComponent>(entity);
-
-                    if (m_registry.any_of<MaterialComponent>(entity)) {
-                        auto &material = m_registry.get<MaterialComponent>(entity);
-                        renderer->submitMesh(mesh, material, transform.getTransform(), (int) entity);
-                    } else {
-                        renderer->submitMesh(mesh, transform.getTransform(), (int) entity);
-                    }
+                    renderer->submitMesh(mesh, transform.getTransform(), (int) entity);
                 }
             }
 
@@ -535,12 +529,8 @@ namespace Fermion {
                             auto &transform = view.get<TransformComponent>(entity);
                             auto &mesh = view.get<MeshComponent>(entity);
 
-                            if (m_registry.any_of<MaterialComponent>(entity)) {
-                                auto &material = m_registry.get<MaterialComponent>(entity);
-                                renderer->submitMesh(mesh, material, transform.getTransform(), (int) entity);
-                            } else {
-                                renderer->submitMesh(mesh, transform.getTransform(), (int) entity);
-                            }
+                            renderer->submitMesh(mesh, transform.getTransform(), (int) entity);
+
                         }
                     }
                     // Directional Lights
