@@ -22,6 +22,12 @@ public:
     virtual uint32_t getColorAttachmentRendererID(uint32_t index = 0) const override {
         return m_colorAttachments[index];
     }
+    
+    virtual uint32_t getDepthAttachmentRendererID() const override {
+        return m_depthAttachment;
+    }
+    
+    virtual void bindDepthAttachment(uint32_t slot = 0) const override;
 
     virtual const FramebufferSpecification &getSpecification() const override {
         return m_specification;

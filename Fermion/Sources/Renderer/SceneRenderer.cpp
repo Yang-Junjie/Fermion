@@ -37,6 +37,29 @@ namespace Fermion
 
             m_SkyboxPipeline = Pipeline::create(skyboxSpec);
         }
+        
+        // Shadow Pipeline
+        {
+            PipelineSpecification shadowSpec;
+            shadowSpec.shader = Renderer::getShaderLibrary()->get("Shadow");
+            shadowSpec.depthTest = true;
+            shadowSpec.depthWrite = true;
+            shadowSpec.depthOperator = DepthCompareOperator::Less;
+            shadowSpec.cull = CullMode::Back;
+            
+            m_ShadowPipeline = Pipeline::create(shadowSpec);
+        }
+        
+        // Shadow Map Framebuffer
+        {
+            FramebufferSpecification shadowFBSpec;
+            shadowFBSpec.width = m_sceneData.shadowMapSize;
+            shadowFBSpec.height = m_sceneData.shadowMapSize;
+            shadowFBSpec.attachments = {FramebufferTextureFormat::DEPTH_COMPONENT32F};
+            shadowFBSpec.swapChainTarget = false;
+            
+            m_shadowMapFB = Framebuffer::create(shadowFBSpec);
+        }
 
         // Skybox VAO
         float skyboxVertices[] = {
@@ -194,7 +217,71 @@ namespace Fermion
             {.Name = "GeometryPass",
              .Execute = [this](CommandBuffer &commandBuffer)
              {
-                 Renderer3D::recordGeometryPass(commandBuffer, s_MeshDrawList);
+                 commandBuffer.Record([this](RendererAPI &api) {
+                     std::shared_ptr<Pipeline> currentPipeline = nullptr;
+                     
+                     for (auto &cmd : s_MeshDrawList) {
+                         if (currentPipeline != cmd.pipeline) {
+                             currentPipeline = cmd.pipeline;
+                             currentPipeline->bind();
+                         }
+                         
+                         auto shader = currentPipeline->getShader();
+                         shader->setMat4("u_Model", cmd.transform);
+                         shader->setInt("u_ObjectID", cmd.objectID);
+                         
+                         // Shadow mapping uniforms
+                         shader->setBool("u_EnableShadows", m_sceneData.enableShadows);
+                         if (m_sceneData.enableShadows) {
+                             shader->setMat4("u_LightSpaceMatrix", m_lightSpaceMatrix);
+                             shader->setFloat("u_ShadowBias", m_sceneData.shadowBias);
+                             shader->setFloat("u_ShadowSoftness", m_sceneData.shadowSoftness);
+                             shader->setInt("u_ShadowMap", 10);  // Use texture unit 10 for shadow map
+                             
+                             // Bind shadow map texture
+                             m_shadowMapFB->bindDepthAttachment(10);
+                         }
+                         
+                         // Directional light
+                         const auto &dirLight = m_sceneData.sceneEnvironmentLight.directionalLight;
+                         shader->setFloat3("u_DirectionalLight.direction", -dirLight.direction);
+                         shader->setFloat3("u_DirectionalLight.color", dirLight.color);
+                         shader->setFloat("u_DirectionalLight.intensity", dirLight.intensity);
+                         
+                         // Point lights
+                         uint32_t maxLights = 16;
+                         uint32_t pointCount = std::min(maxLights, (uint32_t)m_sceneData.sceneEnvironmentLight.pointLights.size());
+                         shader->setInt("u_PointLightCount", pointCount);
+                         for (uint32_t i = 0; i < pointCount; i++) {
+                             const auto &l = m_sceneData.sceneEnvironmentLight.pointLights[i];
+                             std::string base = "u_PointLights[" + std::to_string(i) + "]";
+                             shader->setFloat3(base + ".position", l.position);
+                             shader->setFloat3(base + ".color", l.color);
+                             shader->setFloat(base + ".intensity", l.intensity);
+                             shader->setFloat(base + ".range", l.range);
+                         }
+                         
+                         // Spot lights
+                         uint32_t spotCount = std::min(maxLights, (uint32_t)m_sceneData.sceneEnvironmentLight.spotLights.size());
+                         shader->setInt("u_SpotLightCount", spotCount);
+                         for (uint32_t i = 0; i < spotCount; i++) {
+                             const auto &l = m_sceneData.sceneEnvironmentLight.spotLights[i];
+                             std::string base = "u_SpotLights[" + std::to_string(i) + "]";
+                             shader->setFloat3(base + ".position", l.position);
+                             shader->setFloat3(base + ".direction", glm::normalize(l.direction));
+                             shader->setFloat3(base + ".color", l.color);
+                             shader->setFloat(base + ".intensity", l.intensity);
+                             shader->setFloat(base + ".range", l.range);
+                             shader->setFloat(base + ".innerConeAngle", l.innerConeAngle);
+                             shader->setFloat(base + ".outerConeAngle", l.outerConeAngle);
+                         }
+                         
+                         if (cmd.material)
+                             cmd.material->bind(shader);
+                             
+                         RenderCommand::drawIndexed(cmd.vao, cmd.indexCount, cmd.indexOffset);
+                     }
+                 });
              }});
     }
 
@@ -228,6 +315,10 @@ namespace Fermion
     void SceneRenderer::FlushDrawList()
     {
         m_RenderGraph.Reset();
+        
+        if (m_sceneData.enableShadows)
+            ShadowPass();
+            
         if (m_sceneData.showSkybox)
             SkyboxPass();
         OutlinePass();
@@ -237,5 +328,70 @@ namespace Fermion
         RendererBackend backend(RenderCommand::GetRendererAPI());
         m_RenderGraph.Execute(m_CommandQueue, backend);
         s_MeshDrawList.clear();
+    }
+    
+    void SceneRenderer::ShadowPass()
+    {
+        if (m_shadowMapFB->getSpecification().width != m_sceneData.shadowMapSize) {
+            FramebufferSpecification shadowFBSpec;
+            shadowFBSpec.width = m_sceneData.shadowMapSize;
+            shadowFBSpec.height = m_sceneData.shadowMapSize;
+            shadowFBSpec.attachments = {FramebufferTextureFormat::DEPTH_COMPONENT32F};
+            shadowFBSpec.swapChainTarget = false;
+            
+            m_shadowMapFB = Framebuffer::create(shadowFBSpec);
+        }
+        
+        m_lightSpaceMatrix = calculateLightSpaceMatrix(m_sceneData.sceneEnvironmentLight.directionalLight);
+        
+        m_RenderGraph.AddPass(
+            {.Name = "ShadowPass",
+             .Execute = [this](CommandBuffer &commandBuffer)
+             {
+                 commandBuffer.Record([this](RendererAPI &api) {
+                     m_shadowMapFB->bind();
+                     RenderCommand::clear();
+                     
+                     m_ShadowPipeline->bind();
+                     auto shader = m_ShadowPipeline->getShader();
+                     shader->setMat4("u_LightSpaceMatrix", m_lightSpaceMatrix);
+                     
+                     for (auto &cmd : s_MeshDrawList) {
+                         shader->setMat4("u_Model", cmd.transform);
+                         RenderCommand::drawIndexed(cmd.vao, cmd.indexCount, cmd.indexOffset);
+                     }
+                     
+                     if (m_targetFramebuffer) {
+                         m_targetFramebuffer->bind();
+                     } else {
+                         m_shadowMapFB->unbind();  
+                     }
+                 });
+             }});
+    }
+    
+    glm::mat4 SceneRenderer::calculateLightSpaceMatrix(const DirectionalLight& light, float orthoSize)
+    {
+        glm::vec3 lightDir = glm::normalize(light.direction);
+        glm::vec3 lightPos = lightDir * orthoSize; 
+        
+        glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+        if (glm::abs(glm::dot(lightDir, up)) > 0.99f) {
+            up = glm::vec3(1.0f, 0.0f, 0.0f);
+        }
+        
+        glm::mat4 lightView = glm::lookAt(
+            lightPos,
+            glm::vec3(0.0f, 0.0f, 0.0f),
+            up
+        );
+        
+        glm::mat4 lightProjection = glm::ortho(
+            -orthoSize, orthoSize,
+            -orthoSize, orthoSize,
+            0.1f, orthoSize * 3.0f
+        );
+        
+        return lightProjection * lightView;
     }
 } // namespace Fermion

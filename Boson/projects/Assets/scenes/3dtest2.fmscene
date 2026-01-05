@@ -1,5 +1,16 @@
 Scene: Name
 Entities:
+  - Entity: 7258722879697457253
+    TagComponent:
+      Tag: floor
+    TransformComponent:
+      Translation: [0, -0.6552228, 0]
+      Rotation: [0, -0, 0]
+      Scale: [21.96672, 0.30817777, 19.206135]
+    MeshComponent:
+      MeshHandle: 16073272781620069904
+      MemoryOnly: true
+      MemoryMeshType: 1
   - Entity: 7603478768360360452
     TagComponent:
       Tag: cylinder
@@ -8,18 +19,18 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      MeshHandle: 12434606366386177774
+      MeshHandle: 8812578007361942239
       MemoryOnly: true
       MemoryMeshType: 3
   - Entity: 18244896960270514207
     TagComponent:
       Tag: capsule
     TransformComponent:
-      Translation: [5.5513873, 0, 0]
+      Translation: [5.5513873, 0.24266988, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      MeshHandle: 4359736224655968434
+      MeshHandle: 16928918168905533437
       MemoryOnly: true
       MemoryMeshType: 4
   - Entity: 8687271565181739526
@@ -30,7 +41,7 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      MeshHandle: 10617800440691030022
+      MeshHandle: 1446954203593057403
       MemoryOnly: true
       MemoryMeshType: 5
   - Entity: 9907014946661456453
@@ -41,7 +52,7 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      MeshHandle: 10748747572622530520
+      MeshHandle: 16073272781620069904
       MemoryOnly: true
       MemoryMeshType: 1
   - Entity: 11505097444607132680
@@ -52,15 +63,15 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      MeshHandle: 4230062149749861968
+      MeshHandle: 15831189057410626509
       MemoryOnly: true
       MemoryMeshType: 2
   - Entity: 7117036960198529399
     TagComponent:
       Tag: dl
     TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
+      Translation: [4.222568, 0, 6.275901]
+      Rotation: [-0.462469, 0.26113647, -0.12800503]
       Scale: [1, 1, 1]
     DirectionalLightComponent:
       Color: [1, 1, 1]

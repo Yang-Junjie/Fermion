@@ -6,7 +6,7 @@
 #include "Camera/Camera.hpp"
 #include "Camera/EditorCamera.hpp"
 #include "DebugRenderer.hpp"
-
+#include "Framebuffer.hpp"
 #include "RenderPass.hpp"
 #include "RenderGraph.hpp"
 #include "RenderDrawCommand.hpp"
@@ -29,6 +29,11 @@ namespace Fermion {
             bool showSkybox = true;
             bool enableShadows = true;
             glm::vec4 meshOutlineColor = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+            
+            // Shadow mapping settings
+            uint32_t shadowMapSize = 2048;
+            float shadowBias = 0.01f; 
+            float shadowSoftness = 1.0f;  
         };
 
         struct Statistics {
@@ -49,11 +54,15 @@ namespace Fermion {
         SceneRenderer();
 
         void beginScene(const Camera &camera, const glm::mat4 &transform);
-
+    
         void beginScene(const EditorCamera &camera);
-
+    
         void beginScene(const SceneRendererCamera &camera);
-
+        
+        void setTargetFramebuffer(std::shared_ptr<Framebuffer> framebuffer) {
+            m_targetFramebuffer = framebuffer;
+        }
+    
         void endScene();
 
         void drawSprite(const glm::mat4 &transform, SpriteRendererComponent &sprite, int objectID = -1);
@@ -101,12 +110,16 @@ namespace Fermion {
 
     private:
         void GeometryPass();
-
+    
         void OutlinePass();
-
+    
         void SkyboxPass();
-
+        
+        void ShadowPass();
+    
         void FlushDrawList();
+        
+        glm::mat4 calculateLightSpaceMatrix(const DirectionalLight& light, float orthoSize = 20.0f);
 
     private:
         std::shared_ptr<DebugRenderer> m_debugRenderer;
@@ -120,7 +133,12 @@ namespace Fermion {
 
         std::shared_ptr<Pipeline> m_MeshPipeline;
         std::shared_ptr<Pipeline> m_SkyboxPipeline;
-
+        std::shared_ptr<Pipeline> m_ShadowPipeline;
+        
+        std::shared_ptr<Framebuffer> m_shadowMapFB;
+        std::shared_ptr<Framebuffer> m_targetFramebuffer;
+        glm::mat4 m_lightSpaceMatrix;
+    
         RenderGraph m_RenderGraph;
         RenderCommandQueue m_CommandQueue;
         SceneInfo m_sceneData;

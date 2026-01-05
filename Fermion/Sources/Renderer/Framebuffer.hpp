@@ -11,6 +11,7 @@ enum class FramebufferTextureFormat {
 
     // Depth/stencil
     DEPTH24STENCIL8,
+    DEPTH_COMPONENT32F,  // For shadow mapping
 
     // Defaults
     Depth = DEPTH24STENCIL8
@@ -54,6 +55,10 @@ public:
     virtual void clearAttachment(uint32_t attachmentIndex, int value) = 0;
 
     virtual uint32_t getColorAttachmentRendererID(uint32_t index = 0) const = 0;
+    
+    virtual uint32_t getDepthAttachmentRendererID() const = 0;
+    
+    virtual void bindDepthAttachment(uint32_t slot = 0) const = 0;
 
     virtual const FramebufferSpecification &getSpecification() const = 0;
 

@@ -4,11 +4,11 @@ Entities:
     TagComponent:
       Tag: box
     TransformComponent:
-      Translation: [-1.0895733, 1.0408926, 0]
+      Translation: [-0.05264306, 3.1211128, 1.7881393e-07]
       Rotation: [0, 0, 0]
-      Scale: [6.352535, 1, 0.16094027]
+      Scale: [1.1522586, 4.8660913, 0.18912014]
     MeshComponent:
-      MeshHandle: 17943059845704542242
+      MeshHandle: 16289865323299700150
       MemoryOnly: true
       MemoryMeshType: 1
     Rigidbody3DComponent:
@@ -66,7 +66,7 @@ Entities:
     TagComponent:
       Tag: camera
     TransformComponent:
-      Translation: [8.977794, 8.803601, 15.206821]
+      Translation: [8.865722, 9.277449, 15.093205]
       Rotation: [-0.2961477, 0.6783256, 0.043076396]
       Scale: [1, 1, 1]
     SpriteRendererComponent:
@@ -90,7 +90,7 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [17.990356, 0.68592894, 25.107412]
     MeshComponent:
-      MeshHandle: 17943059845704542242
+      MeshHandle: 16289865323299700150
       MemoryOnly: true
       MemoryMeshType: 1
     Rigidbody3DComponent:
@@ -173,11 +173,11 @@ Entities:
     TagComponent:
       Tag: box3
     TransformComponent:
-      Translation: [0.016967965, 6.1779275, 0.32977113]
-      Rotation: [0.45815924, -0, 0]
+      Translation: [3.1914976, 4.154521, 0.32977113]
+      Rotation: [1.5707964, 0, 0]
       Scale: [0.98999995, 0.98999995, 7.221636]
     MeshComponent:
-      MeshHandle: 17943059845704542242
+      MeshHandle: 16289865323299700150
       MemoryOnly: true
       MemoryMeshType: 1
     Rigidbody3DComponent:

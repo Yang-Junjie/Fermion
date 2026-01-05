@@ -150,6 +150,9 @@ namespace Fermion {
         RenderCommand::setClearColor({0.1f, 0.1f, 0.1f, 1.0f});
         RenderCommand::clear();
         m_framebuffer->clearAttachment(1, -1);
+        
+        // Tell SceneRenderer which framebuffer to restore after shadow pass
+        m_viewportRenderer->setTargetFramebuffer(m_framebuffer);
 
         // Update the active scene based on the current scene state
         if (m_sceneState == SceneState::Play) {
@@ -450,6 +453,8 @@ namespace Fermion {
         }
 
         ImGui::Begin("Settings");
+        auto& sceneInfo = m_viewportRenderer->getSceneInfo();
+
         ImGui::Text("hovered entity: %s", name.c_str());
         ImGui::Text("Statistics");
         const SceneRenderer::Statistics stats = m_viewportRenderer
@@ -466,7 +471,37 @@ namespace Fermion {
         ImGui::Checkbox("showPhysicsColliders", &m_showPhysicsColliders);
         ImGui::Checkbox("showRenderEntities", &m_showRenderEntities);
         ImGui::Checkbox("showSkybox", &m_viewportRenderer->getSceneInfo().showSkybox);
-        
+        ImGui::Checkbox("enable shadows",&m_viewportRenderer->getSceneInfo().enableShadows);
+
+        ImGui::Separator();
+        ImGui::DragFloat("Shadow Bias", &m_viewportRenderer->getSceneInfo().shadowBias, 0.0001f, 0.0f, 0.1f);
+        ImGui::Separator();
+        static const float kShadowSoftnessLevels[] = {0.0f,1.0f,2.0f,3.0f,4.0f,5.0f,6.0f,7.0f,8.0f,9.0f,10.0f};
+        static int softnessIndex = 0;
+
+        ImGui::Text("Shadow Softness = %.1f", sceneInfo.shadowSoftness);
+        if (ImGui::SliderInt(
+                "##Shadow Softness",
+                &softnessIndex,
+                0,
+                IM_ARRAYSIZE(kShadowSoftnessLevels)-1))
+        {
+            sceneInfo.shadowSoftness = kShadowSoftnessLevels[softnessIndex];
+        }
+        ImGui::Separator();
+        static const float kShadowMapSizeLevels[] = {1024,2048,3072,4096,5120};
+        static int shadowMapSizeIndex = 0;
+        ImGui::Text("Shadow MapSize = %.u", sceneInfo.shadowMapSize);
+        if (ImGui::SliderInt(
+                "##ShadowMapSize",
+                &shadowMapSizeIndex,
+                0,
+                IM_ARRAYSIZE(kShadowMapSizeLevels) - 1))
+        {
+            sceneInfo.shadowMapSize = kShadowMapSizeLevels[shadowMapSizeIndex];
+        }
+        ImGui::Separator();
+
         ImGui::ColorEdit4("Mesh Pick Outline Color", glm::value_ptr(m_viewportRenderer->getSceneInfo().meshOutlineColor));
         ImGui::Separator();
         ImGui::Image((ImTextureID) s_Font->getAtlasTexture()->getRendererID(),

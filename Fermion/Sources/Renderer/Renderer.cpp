@@ -17,6 +17,7 @@ namespace Fermion
 
         s_shaderLibrary->load(s_config.ShaderPath + "Mesh.glsl");
         s_shaderLibrary->load(s_config.ShaderPath + "Skybox.glsl");
+        s_shaderLibrary->load(s_config.ShaderPath + "Shadow.glsl");
 
         s_shaderLibrary->load(s_config.ShaderPath + "Quad.glsl");
         s_shaderLibrary->load(s_config.ShaderPath + "QuadInstance.glsl");

@@ -42,18 +42,28 @@ static void attachColorTexture(uint32_t id, int samples, GLenum internalFormat, 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, textureTarget(multisampled), id, 0);
 }
 
-static void attachDepthTexture(uint32_t id, int samples, GLenum format, GLenum attachmentType, uint32_t width, uint32_t height) {
+static void attachDepthTexture(uint32_t id, int samples, GLenum format, GLenum attachmentType, uint32_t width, uint32_t height, bool isShadowMap = false) {
     bool multisampled = samples > 1;
     if (multisampled) {
         glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, format, width, height, GL_FALSE);
     } else {
         glTexStorage2D(GL_TEXTURE_2D, 1, format, width, height);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        if (isShadowMap) {
+            // Shadow map specific settings
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+            float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+            glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+        } else {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        }
     }
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, attachmentType, textureTarget(multisampled), id, 0);
@@ -62,6 +72,7 @@ static void attachDepthTexture(uint32_t id, int samples, GLenum format, GLenum a
 static bool isDepthFormat(FramebufferTextureFormat format) {
     switch (format) {
     case FramebufferTextureFormat::DEPTH24STENCIL8:
+    case FramebufferTextureFormat::DEPTH_COMPONENT32F:
         return true;
     }
 
@@ -151,6 +162,9 @@ void OpenGLFramebuffer::invalidate() {
         case FramebufferTextureFormat::DEPTH24STENCIL8:
             Utils::attachDepthTexture(m_depthAttachment, m_specification.samples, GL_DEPTH24_STENCIL8, GL_DEPTH_STENCIL_ATTACHMENT, m_specification.width, m_specification.height);
             break;
+        case FramebufferTextureFormat::DEPTH_COMPONENT32F:
+            Utils::attachDepthTexture(m_depthAttachment, m_specification.samples, GL_DEPTH_COMPONENT32F, GL_DEPTH_ATTACHMENT, m_specification.width, m_specification.height, true);
+            break;
         }
     }
 
@@ -208,6 +222,11 @@ void OpenGLFramebuffer::clearAttachment(uint32_t attachmentIndex, int value) {
         glClearTexImage(m_colorAttachments[attachmentIndex], 0,
                         Utils::fermionFBBaseFormatToGL(spec.textureFormat), GL_INT, clearColor);
     }
+}
+
+void OpenGLFramebuffer::bindDepthAttachment(uint32_t slot) const {
+    glActiveTexture(GL_TEXTURE0 + slot);
+    glBindTexture(GL_TEXTURE_2D, m_depthAttachment);
 }
 
 } // namespace Fermion
