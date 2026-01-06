@@ -48,4 +48,15 @@ namespace Fermion
         }
         return nullptr;
     }
+    std::unique_ptr<TextureCube> TextureCube::create(const TextureCubeSpecification &spec)
+    {
+        switch (Renderer::getAPI())
+        {
+        case RendererAPI::API::None:
+            return nullptr;
+        case RendererAPI::API::OpenGL:
+            return std::make_unique<OpenGLTextureCube>(spec);
+        }
+        return nullptr;
+    }
 }

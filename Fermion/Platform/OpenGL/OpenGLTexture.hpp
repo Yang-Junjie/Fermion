@@ -56,6 +56,7 @@ private:
 class OpenGLTextureCube : public TextureCube {
 public:
     OpenGLTextureCube(const std::string &path);
+    OpenGLTextureCube(const TextureCubeSpecification &spec);
     virtual ~OpenGLTextureCube();
 
     virtual const TextureSpecification &getSpecification() const override {

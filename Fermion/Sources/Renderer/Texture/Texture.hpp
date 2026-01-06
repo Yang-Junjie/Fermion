@@ -46,9 +46,28 @@ namespace Fermion
         static std::unique_ptr<Texture2D> create(const TextureSpecification &spec);
     };
 
+    enum class TextureCubeFace : uint8_t
+    {
+        Front = 4,
+        Back = 5,
+        Left = 1,
+        Right = 0,
+        Up = 2,
+        Down = 3
+    };
+
+    struct TextureCubeSpecification
+    {
+        std::filesystem::path path;
+        std::unordered_map<TextureCubeFace, std::string> names;
+        bool flip = false;
+    };
+
     class TextureCube : public Texture
     {
     public:
+        virtual ~TextureCube() = default;
         static std::unique_ptr<TextureCube> create(const std::string &path);
+        static std::unique_ptr<TextureCube> create(const TextureCubeSpecification &spec);
     };
 }

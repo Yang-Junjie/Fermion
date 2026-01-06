@@ -154,7 +154,7 @@ OpenGLTextureCube::OpenGLTextureCube(const std::string &path) : m_path(path) {
     // 文件名规则为: right, left, top, bottom, front, back
     std::vector<std::string> faces = {
         "right.jpg", "left.jpg",
-        "top.jpg", "bottom.jpg",
+        "up.jpg", "down.jpg",
         "front.jpg", "back.jpg"};
 
     stbi_set_flip_vertically_on_load(false);
@@ -188,6 +188,38 @@ OpenGLTextureCube::OpenGLTextureCube(const std::string &path) : m_path(path) {
     m_width = width;
     m_height = height;
     m_isLoaded = true;
+}
+
+OpenGLTextureCube::OpenGLTextureCube(const TextureCubeSpecification &spec)
+{
+    glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &m_rendererID);
+    stbi_set_flip_vertically_on_load(spec.flip);
+     int width, height, channels;
+    for (auto &[face, name] : spec.names) { 
+        std::string path = (spec.path / name).string();
+        stbi_uc *data = stbi_load(path.c_str(), &width, &height, &channels, 4);
+        if (!data) {
+            Log::Error(std::format("Failed to load cubemap texture at path: {}", path));
+            continue;
+        }
+        glTextureStorage2D(m_rendererID, 1, GL_RGBA8, width, height);
+        glTextureSubImage3D(
+            m_rendererID,
+            0,
+            0, 0, static_cast<int>(face), // xoffset, yoffset, zoffset = face index
+            width, height, 1,
+            GL_RGBA, GL_UNSIGNED_BYTE, data);
+        stbi_image_free(data);
+    }
+    glTextureParameteri(m_rendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    m_width = width;
+    m_height = height;
+    m_isLoaded = true;
+
 }
 
 OpenGLTextureCube::~OpenGLTextureCube() {

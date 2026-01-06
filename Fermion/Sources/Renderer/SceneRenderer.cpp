@@ -12,8 +12,21 @@ namespace Fermion
     SceneRenderer::SceneRenderer()
     {
         m_debugRenderer = std::make_shared<DebugRenderer>();
-        m_skybox = TextureCube::create("../Boson/projects/Assets/textures/skybox");
 
+        // Skybox create
+        {
+            TextureCubeSpecification spec;
+            spec.flip = false;
+            spec.path = "../Boson/projects/Assets/textures/skybox2";
+            spec.names[TextureCubeFace::Front] = "posz.jpg";
+            spec.names[TextureCubeFace::Back] = "negz.jpg";
+            spec.names[TextureCubeFace::Left] = "negx.jpg";
+            spec.names[TextureCubeFace::Right] = "posx.jpg";
+            spec.names[TextureCubeFace::Up] = "posy.jpg";
+            spec.names[TextureCubeFace::Down] = "negy.jpg";
+
+            m_skybox = TextureCube::create(spec);
+        }
         // Mesh Pipeline
         {
             PipelineSpecification meshSpec;
@@ -37,7 +50,7 @@ namespace Fermion
 
             m_SkyboxPipeline = Pipeline::create(skyboxSpec);
         }
-        
+
         // Shadow Pipeline
         {
             PipelineSpecification shadowSpec;
@@ -46,10 +59,10 @@ namespace Fermion
             shadowSpec.depthWrite = true;
             shadowSpec.depthOperator = DepthCompareOperator::Less;
             shadowSpec.cull = CullMode::Back;
-            
+
             m_ShadowPipeline = Pipeline::create(shadowSpec);
         }
-        
+
         // Shadow Map Framebuffer
         {
             FramebufferSpecification shadowFBSpec;
@@ -57,7 +70,7 @@ namespace Fermion
             shadowFBSpec.height = m_sceneData.shadowMapSize;
             shadowFBSpec.attachments = {FramebufferTextureFormat::DEPTH_COMPONENT32F};
             shadowFBSpec.swapChainTarget = false;
-            
+
             m_shadowMapFB = Framebuffer::create(shadowFBSpec);
         }
 
@@ -70,8 +83,7 @@ namespace Fermion
             -1.0f, 1.0f, 1.0f,
             -1.0f, -1.0f, 1.0f,
             1.0f, -1.0f, 1.0f,
-            1.0f, 1.0f, 1.0f
-        };
+            1.0f, 1.0f, 1.0f};
 
         uint32_t skyboxIndices[] = {
             0, 1, 2, 2, 3, 0,
@@ -79,8 +91,7 @@ namespace Fermion
             4, 5, 1, 1, 0, 4,
             3, 2, 6, 6, 7, 3,
             4, 0, 3, 3, 7, 4,
-            1, 5, 6, 6, 2, 1
-        };
+            1, 5, 6, 6, 2, 1};
 
         auto vertexBuffer = VertexBuffer::create(skyboxVertices, sizeof(skyboxVertices));
         vertexBuffer->setLayout({{ShaderDataType::Float3, "a_Position"}});
@@ -217,7 +228,8 @@ namespace Fermion
             {.Name = "GeometryPass",
              .Execute = [this](CommandBuffer &commandBuffer)
              {
-                 commandBuffer.Record([this](RendererAPI &api) {
+                 commandBuffer.Record([this](RendererAPI &api)
+                                      {
                      std::shared_ptr<Pipeline> currentPipeline = nullptr;
                      
                      for (auto &cmd : s_MeshDrawList) {
@@ -280,8 +292,7 @@ namespace Fermion
                              cmd.material->bind(shader);
                              
                          RenderCommand::drawIndexed(cmd.vao, cmd.indexCount, cmd.indexOffset);
-                     }
-                 });
+                     } });
              }});
     }
 
@@ -315,10 +326,10 @@ namespace Fermion
     void SceneRenderer::FlushDrawList()
     {
         m_RenderGraph.Reset();
-        
+
         if (m_sceneData.enableShadows)
             ShadowPass();
-            
+
         if (m_sceneData.showSkybox)
             SkyboxPass();
         OutlinePass();
@@ -329,26 +340,28 @@ namespace Fermion
         m_RenderGraph.Execute(m_CommandQueue, backend);
         s_MeshDrawList.clear();
     }
-    
+
     void SceneRenderer::ShadowPass()
     {
-        if (m_shadowMapFB->getSpecification().width != m_sceneData.shadowMapSize) {
+        if (m_shadowMapFB->getSpecification().width != m_sceneData.shadowMapSize)
+        {
             FramebufferSpecification shadowFBSpec;
             shadowFBSpec.width = m_sceneData.shadowMapSize;
             shadowFBSpec.height = m_sceneData.shadowMapSize;
             shadowFBSpec.attachments = {FramebufferTextureFormat::DEPTH_COMPONENT32F};
             shadowFBSpec.swapChainTarget = false;
-            
+
             m_shadowMapFB = Framebuffer::create(shadowFBSpec);
         }
-        
+
         m_lightSpaceMatrix = calculateLightSpaceMatrix(m_sceneData.sceneEnvironmentLight.directionalLight);
-        
+
         m_RenderGraph.AddPass(
             {.Name = "ShadowPass",
              .Execute = [this](CommandBuffer &commandBuffer)
              {
-                 commandBuffer.Record([this](RendererAPI &api) {
+                 commandBuffer.Record([this](RendererAPI &api)
+                                      {
                      m_shadowMapFB->bind();
                      RenderCommand::clear();
                      
@@ -365,33 +378,31 @@ namespace Fermion
                          m_targetFramebuffer->bind();
                      } else {
                          m_shadowMapFB->unbind();  
-                     }
-                 });
+                     } });
              }});
     }
-    
-    glm::mat4 SceneRenderer::calculateLightSpaceMatrix(const DirectionalLight& light, float orthoSize)
+
+    glm::mat4 SceneRenderer::calculateLightSpaceMatrix(const DirectionalLight &light, float orthoSize)
     {
         glm::vec3 lightDir = glm::normalize(light.direction);
-        glm::vec3 lightPos = lightDir * orthoSize; 
-        
+        glm::vec3 lightPos = lightDir * orthoSize;
+
         glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-        if (glm::abs(glm::dot(lightDir, up)) > 0.99f) {
+        if (glm::abs(glm::dot(lightDir, up)) > 0.99f)
+        {
             up = glm::vec3(1.0f, 0.0f, 0.0f);
         }
-        
+
         glm::mat4 lightView = glm::lookAt(
             lightPos,
             glm::vec3(0.0f, 0.0f, 0.0f),
-            up
-        );
-        
+            up);
+
         glm::mat4 lightProjection = glm::ortho(
             -orthoSize, orthoSize,
             -orthoSize, orthoSize,
-            0.1f, orthoSize * 3.0f
-        );
-        
+            0.1f, orthoSize * 3.0f);
+
         return lightProjection * lightView;
     }
 } // namespace Fermion
