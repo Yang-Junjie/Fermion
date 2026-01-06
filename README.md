@@ -6,13 +6,11 @@ Fermion 是一款基于 C++20 自研游戏引擎。
 
 - **Fermion（费米子）**：对应引擎核心。费米子是构成物质的基本粒子，象征核心运行时负责承载游戏世界中的一切对象与逻辑。
 - **Boson（玻色子）**：对应编辑器。玻色子是传递费米子之间的相互作用的媒介粒子，象征编辑器作为开发者与引擎之间的“交互媒介”，用于搭建场景、调整参数、驱动物体。
-- **Higgs（希格斯粒子）**：对应物理模块。希格斯场赋予粒子质量，物理系统则为引擎中的对象带来“重量”“惯性”和真实的运动行为。
 - **Photon（光子）**: 对应脚本系统。光子是一种玻色子，标志着Photoon是编辑器的一部分。并且光子轻、快象征着脚本的轻、快。
 - **Neutrino（中微子）**：对应引擎的运行时(Runtime)。中微子是一种费米子，标志着运行时是引擎的一部分。并且中微子几乎不与物质相互作用，就像运行时不直接被玩家看见负责维持内部机制正常运转。
 - **HilbertSpace(希艾伯特空间)** :插件系统
 
 ## 设计目标
-- 用于锻炼我自己的编程/架构/图形/抽象能力的游戏引擎
 - 开发者通过插件机制对 Boson 编辑器进行定制或功能扩展，将其转变为适配特定需求的专用工具。
 - 用户能够轻松的使用脚本或者蓝图创建游戏
 - 打造一款简单易用的扩展性强的通用跨平台游戏引擎
@@ -29,7 +27,7 @@ Fermion 是一款基于 C++20 自研游戏引擎。
 - [ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo) – 编辑器中的变换 Gizmo
 - [GLFW](https://github.com/glfw/glfw) – 跨平台窗口与输入管理
 - [GLAD](https://glad.dav1d.de/) – OpenGL 函数加载器
-- [stb](https://github.com/nothings/stb) – 使用 `stb_image` 进行纹理加载
+- [stb](https://github.com/nothings/stb) – 使用进行纹理加载和保存
 - [yaml-cpp](https://github.com/jbeder/yaml-cpp) – YAML 序列化（场景保存/加载）
 - [box2d](https://github.com/erincatto/box2d) – 2D 刚体物理引擎
 - [msdf-atlas-gen](https://github.com/Chlumsky/msdf-atlas-gen) - MSDF 纹理生成
