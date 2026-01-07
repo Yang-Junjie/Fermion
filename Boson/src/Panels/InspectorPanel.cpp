@@ -12,23 +12,28 @@
 
 #include "Renderer/Model/MeshFactory.hpp"
 
-namespace Fermion {
-    InspectorPanel::InspectorPanel() {
+namespace Fermion
+{
+    InspectorPanel::InspectorPanel()
+    {
         m_spriteComponentDefaultTexture = Texture2D::create(1, 1);
         uint32_t white = 0xffffffff;
         m_spriteComponentDefaultTexture->setData(&white, sizeof(uint32_t));
     }
 
-    void InspectorPanel::onImGuiRender() {
+    void InspectorPanel::onImGuiRender()
+    {
         ImGui::Begin("Inspector");
-        if (m_selectedEntity) {
+        if (m_selectedEntity)
+        {
             drawComponents(m_selectedEntity);
         }
         ImGui::End();
     }
 
     static bool drawVec3Control(const std::string &label, glm::vec3 &values, float resetValue = 0.0f,
-                                float columnWidth = 100.0f) {
+                                float columnWidth = 100.0f)
+    {
         ImGuiIO &io = ImGui::GetIO();
         auto boldFont = io.Fonts->Fonts[0];
         bool changed = false;
@@ -48,7 +53,8 @@ namespace Fermion {
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.9f, 0.2f, 0.2f, 1.0f});
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.8f, 0.1f, 0.15f, 1.0f});
         ImGui::PushFont(boldFont);
-        if (ImGui::Button("X", buttonSize)) {
+        if (ImGui::Button("X", buttonSize))
+        {
             values.x = resetValue;
         }
         ImGui::PopFont();
@@ -63,7 +69,8 @@ namespace Fermion {
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.3f, 0.8f, 0.3f, 1.0f});
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.2f, 0.7f, 0.2f, 1.0f});
         ImGui::PushFont(boldFont);
-        if (ImGui::Button("Y", buttonSize)) {
+        if (ImGui::Button("Y", buttonSize))
+        {
             values.y = resetValue;
         }
         ImGui::PopFont();
@@ -78,7 +85,8 @@ namespace Fermion {
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.2f, 0.35f, 0.9f, 1.0f});
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.1f, 0.25f, 0.8f, 1.0f});
         ImGui::PushFont(boldFont);
-        if (ImGui::Button("Z", buttonSize)) {
+        if (ImGui::Button("Z", buttonSize))
+        {
             values.z = resetValue;
         }
         ImGui::PopFont();
@@ -94,8 +102,9 @@ namespace Fermion {
         return changed;
     }
 
-    template<typename T, typename UIFunction>
-    static void drawComponent(const std::string &name, Entity entity, UIFunction uiFunction) {
+    template <typename T, typename UIFunction>
+    static void drawComponent(const std::string &name, Entity entity, UIFunction uiFunction)
+    {
         if (!entity.hasComponent<T>())
             return;
 
@@ -105,19 +114,21 @@ namespace Fermion {
         ImGui::Separator();
 
         const ImGuiTreeNodeFlags treeNodeFlags =
-                ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_FramePadding;
+            ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_FramePadding;
 
-        bool open = ImGui::TreeNodeEx((void *) typeid(T).hash_code(), treeNodeFlags, name.c_str());
+        bool open = ImGui::TreeNodeEx((void *)typeid(T).hash_code(), treeNodeFlags, name.c_str());
         ImGui::PopStyleVar();
 
         bool removeComponent = false;
-        if (ImGui::BeginPopupContextItem("ComponentSettings")) {
+        if (ImGui::BeginPopupContextItem("ComponentSettings"))
+        {
             if (ImGui::MenuItem("Remove component"))
                 removeComponent = true;
             ImGui::EndPopup();
         }
 
-        if (open) {
+        if (open)
+        {
             uiFunction(component);
             ImGui::TreePop();
         }
@@ -126,23 +137,28 @@ namespace Fermion {
             entity.removeComponent<T>();
     }
 
-    void InspectorPanel::drawComponents(Entity entity) {
-        if (entity.hasComponent<TagComponent>()) {
+    void InspectorPanel::drawComponents(Entity entity)
+    {
+        if (entity.hasComponent<TagComponent>())
+        {
             auto &tag = entity.getComponent<TagComponent>().tag;
 
             char buffer[256];
             memset(buffer, 0, sizeof(buffer));
             strncpy_s(buffer, tag.c_str(), sizeof(buffer));
 
-            if (ImGui::InputText("##Tag", buffer, sizeof(buffer))) {
+            if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
+            {
                 tag = std::string(buffer);
             }
         }
         ImGui::SameLine();
-        if (ImGui::Button("Add Component")) {
+        if (ImGui::Button("Add Component"))
+        {
             ImGui::OpenPopup("Add Component");
         }
-        if (ImGui::BeginPopup("Add Component")) {
+        if (ImGui::BeginPopup("Add Component"))
+        {
             ImGui::SeparatorText("2D Component");
             displayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
             displayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
@@ -159,6 +175,13 @@ namespace Fermion {
             displayAddComponentEntry<PointLightComponent>("Point Light");
             displayAddComponentEntry<SpotLightComponent>("Spot Light");
 
+            ImGui::SeparatorText("Materials");
+            if (!(entity.hasComponent<PhongMaterialComponent>() || entity.hasComponent<PBRMaterialComponent>()))
+            {
+                displayAddComponentEntry<PhongMaterialComponent>("Phong Material");
+                displayAddComponentEntry<PBRMaterialComponent>("PBR Material");
+            }
+
             ImGui::SeparatorText("Other");
             displayAddComponentEntry<CameraComponent>("Camera");
             displayAddComponentEntry<ScriptContainerComponent>("Scripts");
@@ -172,8 +195,6 @@ namespace Fermion {
             // 	displayAddComponentEntry<ScriptContainerComponent>("Script Container");
             // }
 
-
-
             // if (ImGui::MenuItem("Native Script"))
             // {
             // 	m_selectedEntity.addComponent<NativeScriptComponent>().bind<CameraController>();
@@ -183,7 +204,8 @@ namespace Fermion {
             ImGui::EndPopup();
         }
 
-        drawComponent<TransformComponent>("Transform", entity, [](auto &component) {
+        drawComponent<TransformComponent>("Transform", entity, [](auto &component)
+                                          {
             drawVec3Control("Translation", component.translation);
 
 
@@ -191,10 +213,10 @@ namespace Fermion {
             drawVec3Control("Rotation", rotationDeg);
             component.setRotationEuler(glm::radians(rotationDeg));
 
-            drawVec3Control("Scale", component.scale, 1.0f);
-        });
+            drawVec3Control("Scale", component.scale, 1.0f); });
 
-        drawComponent<CameraComponent>("Camera", entity, [](auto &component) {
+        drawComponent<CameraComponent>("Camera", entity, [](auto &component)
+                                       {
             auto &camera = component.camera;
 
             ImGui::Checkbox("Primary", &component.primary);
@@ -247,9 +269,9 @@ namespace Fermion {
                 }
 
                 ImGui::Checkbox("Fixed Aspect Ratio", &component.fixedAspectRatio);
-            }
-        });
-        drawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [this](auto &component) {
+            } });
+        drawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [this](auto &component)
+                                               {
             ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
 
 
@@ -292,9 +314,9 @@ namespace Fermion {
                 ImGui::EndDragDropTarget();
             }
 
-            ImGui::DragFloat("Tiling Factor", &component.tilingFactor, 0.1f, 0.0f, 100.0f);
-        });
-        drawComponent<MeshComponent>("Mesh", entity, [](auto &component) {
+            ImGui::DragFloat("Tiling Factor", &component.tilingFactor, 0.1f, 0.0f, 100.0f); });
+        drawComponent<MeshComponent>("Mesh", entity, [](auto &component)
+                                     {
             ImGui::Text("Mesh Handle: %s", std::to_string(component.meshHandle).c_str());
             {
                 ImGui::Button("Change or Add");
@@ -323,45 +345,45 @@ namespace Fermion {
                 ImGui::Separator();
 
                 if (ImGui::Selectable("Cube")) {
-                    component.meshHandle = MeshFactory::GetMemoryMeshHandle(MemoryMeshType::Cube);
+                    component.meshHandle = MeshFactory::CreateBox(glm::vec3(1));
                     component.memoryMeshType = MemoryMeshType::Cube;
                     ImGui::CloseCurrentPopup();
                 }
                 if (ImGui::Selectable("Sphere")) {
-                    component.meshHandle = MeshFactory::GetMemoryMeshHandle(MemoryMeshType::Sphere);
+                    component.meshHandle = MeshFactory::CreateSphere(0.5f);
                     component.memoryMeshType = MemoryMeshType::Sphere;
                     ImGui::CloseCurrentPopup();
                 }
                 if (ImGui::Selectable("Cylinder")) {
-                    component.meshHandle = MeshFactory::GetMemoryMeshHandle(MemoryMeshType::Cylinder);
+                    component.meshHandle = MeshFactory::CreateCylinder(0.5f, 1.0f, 32);
                     component.memoryMeshType = MemoryMeshType::Cylinder;
                     ImGui::CloseCurrentPopup();
                 }
                 if (ImGui::Selectable("Capsule")) {
-                    component.meshHandle = MeshFactory::GetMemoryMeshHandle(MemoryMeshType::Capsule);
+                    component.meshHandle = MeshFactory::CreateCapsule(0.5f, 1.5f, 32, 8);
                     component.memoryMeshType = MemoryMeshType::Capsule;
                     ImGui::CloseCurrentPopup();
                 }
                 if (ImGui::Selectable("Cone")) {
-                    component.meshHandle = MeshFactory::GetMemoryMeshHandle(MemoryMeshType::Cone);
+                    component.meshHandle = MeshFactory::CreateCone(0.5f, 1.0f, 32);
                     component.memoryMeshType = MemoryMeshType::Cone;
                     ImGui::CloseCurrentPopup();
                 }
                 component.memoryOnly = true;
                 ImGui::EndPopup();
-            }
-        });
-        drawComponent<DirectionalLightComponent>("Directional Light", entity, [](auto &component) {
+            } });
+        drawComponent<DirectionalLightComponent>("Directional Light", entity, [](auto &component)
+                                                 {
             ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
             ImGui::DragFloat("Intensity", &component.intensity, 0.1f, 0.0f);
-            ImGui::Checkbox("Main Light", &component.mainLight);
-        });
-        drawComponent<PointLightComponent>("Point Light", entity, [](auto &component) {
+            ImGui::Checkbox("Main Light", &component.mainLight); });
+        drawComponent<PointLightComponent>("Point Light", entity, [](auto &component)
+                                           {
             ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
             ImGui::DragFloat("Intensity", &component.intensity, 0.1f, 0.0f);
-            ImGui::DragFloat("Range", &component.range, 0.1f, 0.0f);
-        });
-        drawComponent<SpotLightComponent>("Spot Light", entity, [](auto &c) {
+            ImGui::DragFloat("Range", &component.range, 0.1f, 0.0f); });
+        drawComponent<SpotLightComponent>("Spot Light", entity, [](auto &c)
+                                          {
             ImGui::ColorEdit4("Color", glm::value_ptr(c.color));
             ImGui::DragFloat("Intensity", &c.intensity, 0.1f, 0.0f, 100.0f);
             ImGui::DragFloat("Range", &c.range, 0.1f, 0.0f, 1000.0f);
@@ -370,10 +392,10 @@ namespace Fermion {
             ImGui::Text("Cone");
 
             ImGui::DragFloat("Angle (deg)", &c.angle, 0.5f, 1.0f, 89.0f);
-            ImGui::DragFloat("Softness", &c.softness, 0.01f, 0.0f, 1.0f, "%.3f");
-        });
+            ImGui::DragFloat("Softness", &c.softness, 0.01f, 0.0f, 1.0f, "%.3f"); });
 
-        drawComponent<TextComponent>("Text", entity, [](auto &component) {
+        drawComponent<TextComponent>("Text", entity, [](auto &component)
+                                     {
             char buffer[1024];
             strncpy(buffer, component.textString.c_str(), sizeof(buffer));
             buffer[sizeof(buffer) - 1] = '\0';
@@ -383,8 +405,7 @@ namespace Fermion {
             }
             ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
             ImGui::DragFloat("Kerning", &component.kerning, 0.025f);
-            ImGui::DragFloat("Line Spacing", &component.lineSpacing, 0.025f);
-        });
+            ImGui::DragFloat("Line Spacing", &component.lineSpacing, 0.025f); });
 
         // drawComponent<ScriptComponent>("Script", entity, [](auto &component)
         //                                {
@@ -403,7 +424,8 @@ namespace Fermion {
         // 			}
         // 		}
         // 	} });
-        drawComponent<ScriptContainerComponent>("Scripts Container", entity, [](auto &component) {
+        drawComponent<ScriptContainerComponent>("Scripts Container", entity, [](auto &component)
+                                                {
             static std::unordered_map<std::string, bool> checkedState;
 
             auto allClasses = ScriptManager::getALLEntityClasses();
@@ -464,16 +486,16 @@ namespace Fermion {
 
                 ImGui::SameLine();
                 ImGui::Text("%s", name.c_str());
-            }
-        });
+            } });
 
-        drawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto &component) {
+        drawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto &component)
+                                               {
             ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
             ImGui::DragFloat("Thickness", &component.thickness, 0.025f, 0.0f, 1.0f);
-            ImGui::DragFloat("Fade", &component.fade, 0.00025f, 0.0f, 1.0f);
-        });
+            ImGui::DragFloat("Fade", &component.fade, 0.00025f, 0.0f, 1.0f); });
 
-        drawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [](auto &component) {
+        drawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [](auto &component)
+                                            {
             const char *bodyTypeStrings[] = {"Static", "Dynamic", "Kinematic"};
             const char *currentBodyTypeString = bodyTypeStrings[(int) component.type];
             if (ImGui::BeginCombo("Body Type", currentBodyTypeString)) {
@@ -491,30 +513,30 @@ namespace Fermion {
                 ImGui::EndCombo();
             }
 
-            ImGui::Checkbox("Fixed Rotation", &component.fixedRotation);
-        });
+            ImGui::Checkbox("Fixed Rotation", &component.fixedRotation); });
 
-        drawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](auto &component) {
+        drawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](auto &component)
+                                              {
             ImGui::DragFloat2("Offset", glm::value_ptr(component.offset));
             ImGui::DragFloat2("Size", glm::value_ptr(component.size));
             ImGui::DragFloat("Density", &component.density, 0.01f, 0.0f, 1.0f);
             ImGui::DragFloat("Friction", &component.friction, 0.01f, 0.0f, 1.0f);
             ImGui::DragFloat("Restitution", &component.restitution, 0.01f, 0.0f, 1.0f);
-            ImGui::DragFloat("Restitution Threshold", &component.restitutionThreshold, 0.01f, 0.0f);
-        });
-        drawComponent<CircleCollider2DComponent>("Circle Collider 2D", entity, [](auto &component) {
+            ImGui::DragFloat("Restitution Threshold", &component.restitutionThreshold, 0.01f, 0.0f); });
+        drawComponent<CircleCollider2DComponent>("Circle Collider 2D", entity, [](auto &component)
+                                                 {
             ImGui::DragFloat2("Offset", glm::value_ptr(component.offset));
             ImGui::DragFloat("Radius", &component.radius);
             ImGui::DragFloat("Density", &component.density, 0.01f, 0.0f, 1.0f);
             ImGui::DragFloat("Friction", &component.friction, 0.01f, 0.0f, 1.0f);
             ImGui::DragFloat("Restitution", &component.restitution, 0.01f, 0.0f, 1.0f);
-            ImGui::DragFloat("Restitution Threshold", &component.restitutionThreshold, 0.01f, 0.0f);
-        });
-        drawComponent<BoxSensor2DComponent>("Box Sensor 2D", entity, [](auto &component) {
+            ImGui::DragFloat("Restitution Threshold", &component.restitutionThreshold, 0.01f, 0.0f); });
+        drawComponent<BoxSensor2DComponent>("Box Sensor 2D", entity, [](auto &component)
+                                            {
             ImGui::DragFloat2("Offset", glm::value_ptr(component.offset), 0.01f);
-            ImGui::DragFloat2("Size", glm::value_ptr(component.size), 0.01f);
-        });
-        drawComponent<Rigidbody3DComponent>("Rigidbody 3D", entity, [](auto &component) {
+            ImGui::DragFloat2("Size", glm::value_ptr(component.size), 0.01f); });
+        drawComponent<Rigidbody3DComponent>("Rigidbody 3D", entity, [](auto &component)
+                                            {
             const char *bodyTypeStrings[] = {"Static", "Dynamic", "Kinematic"};
             const char *currentBodyTypeString = bodyTypeStrings[(int) component.type];
             if (ImGui::BeginCombo("Body Type##3D", currentBodyTypeString)) {
@@ -533,22 +555,223 @@ namespace Fermion {
             ImGui::DragFloat("Mass", &component.mass, 0.01f, 0.0f, 1000.0f);
             ImGui::DragFloat("Linear Damping", &component.linearDamping, 0.01f, 0.0f, 10.0f);
             ImGui::DragFloat("Angular Damping", &component.angularDamping, 0.01f, 0.0f, 10.0f);
-            ImGui::Checkbox("Use Gravity", &component.useGravity);
-        });
-        drawComponent<BoxCollider3DComponent>("Box Collider 3D", entity, [](auto &component) {
+            ImGui::Checkbox("Use Gravity", &component.useGravity); });
+        drawComponent<BoxCollider3DComponent>("Box Collider 3D", entity, [](auto &component)
+                                              {
             ImGui::DragFloat3("Offset##3d", glm::value_ptr(component.offset), 0.01f);
             ImGui::DragFloat3("Size##3d", glm::value_ptr(component.size), 0.01f);
             ImGui::DragFloat("Density##3d", &component.density, 0.01f, 0.0f, 10.0f);
             ImGui::DragFloat("Friction##3d", &component.friction, 0.01f, 0.0f, 1.0f);
             ImGui::DragFloat("Restitution##3d", &component.restitution, 0.01f, 0.0f, 1.0f);
-            ImGui::Checkbox("Trigger##3d", &component.isTrigger);
-        });
+            ImGui::Checkbox("Trigger##3d", &component.isTrigger); });
+
+        drawComponent<PhongMaterialComponent>("Phong Material", entity, [entity](auto &component) mutable
+                                              {
+           
+            
+            ImGui::Text("Phong Lighting Model");
+            ImGui::Separator();
+            
+            ImGui::ColorEdit4("Diffuse Color", glm::value_ptr(component.diffuseColor));
+            ImGui::ColorEdit4("Ambient Color", glm::value_ptr(component.ambientColor));
+            
+            ImGui::Separator();
+            ImGui::Text("Texture Settings");
+            ImGui::Checkbox("Use Texture", &component.useTexture);
+            
+            if (component.useTexture) {
+                ImGui::Checkbox("Flip UV", &component.flipUV);
+                
+                ImGui::Text("Diffuse Texture");
+                ImGui::SameLine();
+                ImGui::Button("Drag texture here##phong");
+                
+                if (ImGui::BeginDragDropTarget()) {
+                    if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_TEXTURE")) {
+                        const char *path = static_cast<const char *>(payload->Data);
+                        if (path && path[0]) {
+                            auto editorAssets = Project::getEditorAssetManager();
+                            AssetHandle handle = editorAssets->importAsset(std::filesystem::path(path));
+                            if (static_cast<uint64_t>(handle) != 0) {
+                                component.diffuseTextureHandle = handle;
+                            }
+                        }
+                    }
+                    ImGui::EndDragDropTarget();
+                }
+                
+                if (static_cast<uint64_t>(component.diffuseTextureHandle) != 0) {
+                    ImGui::Text("Handle: %llu", static_cast<uint64_t>(component.diffuseTextureHandle));
+                }
+            } });
+
+        drawComponent<PBRMaterialComponent>("PBR Material", entity, [entity](auto &component) mutable
+                                            {
+            ImGui::Text("Physically Based Rendering");
+            ImGui::Separator();
+            
+            ImGui::ColorEdit3("Albedo", glm::value_ptr(component.albedo));
+            ImGui::SliderFloat("Metallic", &component.metallic, 0.0f, 1.0f);
+            ImGui::SliderFloat("Roughness", &component.roughness, 0.0f, 1.0f);
+            ImGui::SliderFloat("Ambient Occlusion", &component.ao, 0.0f, 1.0f);
+            
+            ImGui::Separator();
+            ImGui::Checkbox("Flip UV", &component.flipUV);
+            
+            ImGui::Separator();
+            ImGui::Text("Texture Maps");
+            
+            // Albedo Map
+            ImGui::Text("Albedo Map");
+            ImGui::SameLine();
+            ImGui::Button("Drag texture##albedo");
+            if (ImGui::BeginDragDropTarget()) {
+                if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_TEXTURE")) {
+                    const char *path = static_cast<const char *>(payload->Data);
+                    if (path && path[0]) {
+                        auto editorAssets = Project::getEditorAssetManager();
+                        AssetHandle handle = editorAssets->importAsset(std::filesystem::path(path));
+                        if (static_cast<uint64_t>(handle) != 0) {
+                            component.albedoMapHandle = handle;
+                        }
+                    }
+                }
+                ImGui::EndDragDropTarget();
+            }
+            if (static_cast<uint64_t>(component.albedoMapHandle) != 0) {
+                ImGui::SameLine();
+                ImGui::Text("(%llu)", static_cast<uint64_t>(component.albedoMapHandle));
+                
+                auto texture = Project::getEditorAssetManager()->getAsset<Texture2D>(component.albedoMapHandle);
+                if (texture && texture->isLoaded()) {
+                    ImTextureID textureID = (ImTextureID)(uintptr_t)texture->getRendererID();
+                    ImGui::Image(textureID, ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
+                }
+            }
+            
+            // Normal Map
+            ImGui::Text("Normal Map");
+            ImGui::SameLine();
+            ImGui::Button("Drag texture##normal");
+            if (ImGui::BeginDragDropTarget()) {
+                if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_TEXTURE")) {
+                    const char *path = static_cast<const char *>(payload->Data);
+                    if (path && path[0]) {
+                        auto editorAssets = Project::getEditorAssetManager();
+                        AssetHandle handle = editorAssets->importAsset(std::filesystem::path(path));
+                        if (static_cast<uint64_t>(handle) != 0) {
+                            component.normalMapHandle = handle;
+                        }
+                    }
+                }
+                ImGui::EndDragDropTarget();
+            }
+            if (static_cast<uint64_t>(component.normalMapHandle) != 0) {
+                ImGui::SameLine();
+                ImGui::Text("(%llu)", static_cast<uint64_t>(component.normalMapHandle));
+                
+                auto texture = Project::getEditorAssetManager()->getAsset<Texture2D>(component.normalMapHandle);
+                if (texture && texture->isLoaded()) {
+                    ImTextureID textureID = (ImTextureID)(uintptr_t)texture->getRendererID();
+                    ImGui::Image(textureID, ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
+                }
+            }
+            
+            // Metallic Map
+            ImGui::Text("Metallic Map");
+            ImGui::SameLine();
+            ImGui::Button("Drag texture##metallic");
+            if (ImGui::BeginDragDropTarget()) {
+                if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_TEXTURE")) {
+                    const char *path = static_cast<const char *>(payload->Data);
+                    if (path && path[0]) {
+                        auto editorAssets = Project::getEditorAssetManager();
+                        AssetHandle handle = editorAssets->importAsset(std::filesystem::path(path));
+                        if (static_cast<uint64_t>(handle) != 0) {
+                            component.metallicMapHandle = handle;
+                        }
+                    }
+                }
+                ImGui::EndDragDropTarget();
+            }
+            if (static_cast<uint64_t>(component.metallicMapHandle) != 0) {
+                ImGui::SameLine();
+                ImGui::Text("(%llu)", static_cast<uint64_t>(component.metallicMapHandle));
+                
+                auto texture = Project::getEditorAssetManager()->getAsset<Texture2D>(component.metallicMapHandle);
+                if (texture && texture->isLoaded()) {
+                    ImTextureID textureID = (ImTextureID)(uintptr_t)texture->getRendererID();
+                    ImGui::Image(textureID, ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
+                }
+            }
+            
+            // Roughness Map
+            ImGui::Text("Roughness Map");
+            ImGui::SameLine();
+            ImGui::Button("Drag texture##roughness");
+            if (ImGui::BeginDragDropTarget()) {
+                if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_TEXTURE")) {
+                    const char *path = static_cast<const char *>(payload->Data);
+                    if (path && path[0]) {
+                        auto editorAssets = Project::getEditorAssetManager();
+                        AssetHandle handle = editorAssets->importAsset(std::filesystem::path(path));
+                        if (static_cast<uint64_t>(handle) != 0) {
+                            component.roughnessMapHandle = handle;
+                        }
+                    }
+                }
+                ImGui::EndDragDropTarget();
+            }
+            if (static_cast<uint64_t>(component.roughnessMapHandle) != 0) {
+                ImGui::SameLine();
+                ImGui::Text("(%llu)", static_cast<uint64_t>(component.roughnessMapHandle));
+                
+                auto texture = Project::getEditorAssetManager()->getAsset<Texture2D>(component.roughnessMapHandle);
+                if (texture && texture->isLoaded()) {
+                    ImTextureID textureID = (ImTextureID)(uintptr_t)texture->getRendererID();
+                    ImGui::Image(textureID, ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
+                }
+            }
+            
+            // AO Map
+            ImGui::Text("AO Map");
+            ImGui::SameLine();
+            ImGui::Button("Drag texture##ao");
+            if (ImGui::BeginDragDropTarget()) {
+                if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_TEXTURE")) {
+                    const char *path = static_cast<const char *>(payload->Data);
+                    if (path && path[0]) {
+                        auto editorAssets = Project::getEditorAssetManager();
+                        AssetHandle handle = editorAssets->importAsset(std::filesystem::path(path));
+                        if (static_cast<uint64_t>(handle) != 0) {
+                            component.aoMapHandle = handle;
+                        }
+                    }
+                }
+                ImGui::EndDragDropTarget();
+            }
+            if (static_cast<uint64_t>(component.aoMapHandle) != 0) {
+                ImGui::SameLine();
+                ImGui::Text("(%llu)", static_cast<uint64_t>(component.aoMapHandle));
+                
+                auto texture = Project::getEditorAssetManager()->getAsset<Texture2D>(component.aoMapHandle);
+                if (texture && texture->isLoaded()) {
+                    ImTextureID textureID = (ImTextureID)(uintptr_t)texture->getRendererID();
+                    ImGui::Image(textureID, ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
+                }
+            }
+            
+            ImGui::Separator();
+            ImGui::TextWrapped("Tip: Drag texture files from Content Browser to assign maps"); });
     }
 
-    template<typename T>
-    inline void InspectorPanel::displayAddComponentEntry(const std::string &entryName) {
-        if (!m_selectedEntity.hasComponent<T>()) {
-            if (ImGui::MenuItem(entryName.c_str())) {
+    template <typename T>
+    inline void InspectorPanel::displayAddComponentEntry(const std::string &entryName)
+    {
+        if (!m_selectedEntity.hasComponent<T>())
+        {
+            if (ImGui::MenuItem(entryName.c_str()))
+            {
                 m_selectedEntity.addComponent<T>();
                 ImGui::CloseCurrentPopup();
             }

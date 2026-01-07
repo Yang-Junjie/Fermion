@@ -9,10 +9,13 @@
 #include <fstream>
 #include <yaml-cpp/yaml.h>
 
-namespace YAML {
-    template<>
-    struct convert<glm::vec2> {
-        static Node encode(const glm::vec2 &rhs) {
+namespace YAML
+{
+    template <>
+    struct convert<glm::vec2>
+    {
+        static Node encode(const glm::vec2 &rhs)
+        {
             Node node;
             node.push_back(rhs.x);
             node.push_back(rhs.y);
@@ -20,7 +23,8 @@ namespace YAML {
             return node;
         }
 
-        static bool decode(const Node &node, glm::vec2 &rhs) {
+        static bool decode(const Node &node, glm::vec2 &rhs)
+        {
             if (!node.IsSequence() || node.size() != 2)
                 return false;
 
@@ -30,9 +34,11 @@ namespace YAML {
         }
     };
 
-    template<>
-    struct convert<glm::vec3> {
-        static Node encode(const glm::vec3 &rhs) {
+    template <>
+    struct convert<glm::vec3>
+    {
+        static Node encode(const glm::vec3 &rhs)
+        {
             Node node;
             node.push_back(rhs.x);
             node.push_back(rhs.y);
@@ -41,7 +47,8 @@ namespace YAML {
             return node;
         }
 
-        static bool decode(const Node &node, glm::vec3 &rhs) {
+        static bool decode(const Node &node, glm::vec3 &rhs)
+        {
             if (!node.IsSequence() || node.size() != 3)
                 return false;
 
@@ -52,9 +59,11 @@ namespace YAML {
         }
     };
 
-    template<>
-    struct convert<glm::vec4> {
-        static Node encode(const glm::vec4 &rhs) {
+    template <>
+    struct convert<glm::vec4>
+    {
+        static Node encode(const glm::vec4 &rhs)
+        {
             Node node;
             node.push_back(rhs.x);
             node.push_back(rhs.y);
@@ -64,7 +73,8 @@ namespace YAML {
             return node;
         }
 
-        static bool decode(const Node &node, glm::vec4 &rhs) {
+        static bool decode(const Node &node, glm::vec4 &rhs)
+        {
             if (!node.IsSequence() || node.size() != 4)
                 return false;
 
@@ -76,40 +86,48 @@ namespace YAML {
         }
     };
 
-    YAML::Emitter &operator<<(YAML::Emitter &out, const glm::vec2 &v) {
+    YAML::Emitter &operator<<(YAML::Emitter &out, const glm::vec2 &v)
+    {
         out << YAML::Flow;
         out << YAML::BeginSeq << v.x << v.y << YAML::EndSeq;
         return out;
     }
 
-    YAML::Emitter &operator<<(YAML::Emitter &out, const glm::vec3 &v) {
+    YAML::Emitter &operator<<(YAML::Emitter &out, const glm::vec3 &v)
+    {
         out << YAML::Flow;
         out << YAML::BeginSeq << v.x << v.y << v.z << YAML::EndSeq;
         return out;
     }
 
-    YAML::Emitter &operator<<(YAML::Emitter &out, const glm::vec4 &v) {
+    YAML::Emitter &operator<<(YAML::Emitter &out, const glm::vec4 &v)
+    {
         out << YAML::Flow;
         out << YAML::BeginSeq << v.x << v.y << v.z << v.w << YAML::EndSeq;
         return out;
     }
 } // namespace YAML
-namespace Fermion {
-    SceneSerializer::SceneSerializer(const std::shared_ptr<Scene> &scene) : m_scene(scene) {
+namespace Fermion
+{
+    SceneSerializer::SceneSerializer(const std::shared_ptr<Scene> &scene) : m_scene(scene)
+    {
     }
 
-    static void serializeEntity(YAML::Emitter &out, Entity entity) {
+    static void serializeEntity(YAML::Emitter &out, Entity entity)
+    {
         FERMION_ASSERT(entity.hasComponent<IDComponent>(), "Entity must have an IDComponent");
         out << YAML::BeginMap;
         out << YAML::Key << "Entity" << YAML::Value << entity.getUUID();
-        if (entity.hasComponent<TagComponent>()) {
+        if (entity.hasComponent<TagComponent>())
+        {
             out << YAML::Key << "TagComponent";
             out << YAML::BeginMap;
             out << YAML::Key << "Tag" << YAML::Value << entity.getComponent<TagComponent>().tag;
             out << YAML::EndMap;
         }
 
-        if (entity.hasComponent<TransformComponent>()) {
+        if (entity.hasComponent<TransformComponent>())
+        {
             out << YAML::Key << "TransformComponent";
             out << YAML::BeginMap;
             auto &tc = entity.getComponent<TransformComponent>();
@@ -118,7 +136,8 @@ namespace Fermion {
             out << YAML::Key << "Scale" << YAML::Value << tc.scale;
             out << YAML::EndMap;
         }
-        if (entity.hasComponent<SpriteRendererComponent>()) {
+        if (entity.hasComponent<SpriteRendererComponent>())
+        {
             out << YAML::Key << "SpriteRendererComponent";
             out << YAML::BeginMap;
             auto &sprite = entity.getComponent<SpriteRendererComponent>();
@@ -127,7 +146,8 @@ namespace Fermion {
                 out << YAML::Key << "TextureHandle" << YAML::Value << static_cast<uint64_t>(sprite.textureHandle);
             out << YAML::EndMap;
         }
-        if (entity.hasComponent<MeshComponent>()) {
+        if (entity.hasComponent<MeshComponent>())
+        {
             out << YAML::Key << "MeshComponent";
             out << YAML::BeginMap;
             auto &mesh = entity.getComponent<MeshComponent>();
@@ -135,12 +155,13 @@ namespace Fermion {
                 if (static_cast<uint64_t>(mesh.meshHandle) != 0)
                     out << YAML::Key << "MeshHandle" << YAML::Value << static_cast<uint64_t>(mesh.meshHandle);
 
-                out << YAML::Key << "MemoryOnly" << YAML::Value << (mesh.memoryOnly ? true : false);
+                out << YAML::Key << "MemoryOnly" << YAML::Value << mesh.memoryOnly;
                 out << YAML::Key << "MemoryMeshType" << YAML::Value << static_cast<uint16_t>(mesh.memoryMeshType);
             }
             out << YAML::EndMap;
         }
-        if (entity.hasComponent<DirectionalLightComponent>()) {
+        if (entity.hasComponent<DirectionalLightComponent>())
+        {
             out << YAML::Key << "DirectionalLightComponent";
             out << YAML::BeginMap;
             auto &directionalLightComponent = entity.getComponent<DirectionalLightComponent>();
@@ -151,7 +172,8 @@ namespace Fermion {
             }
             out << YAML::EndMap;
         }
-        if (entity.hasComponent<PointLightComponent>()) {
+        if (entity.hasComponent<PointLightComponent>())
+        {
             out << YAML::Key << "PointLightComponent";
             out << YAML::BeginMap;
             auto &pointLightComponent = entity.getComponent<PointLightComponent>();
@@ -162,7 +184,8 @@ namespace Fermion {
             }
             out << YAML::EndMap;
         }
-        if (entity.hasComponent<SpotLightComponent>()) {
+        if (entity.hasComponent<SpotLightComponent>())
+        {
             out << YAML::Key << "SpotLightComponent";
             out << YAML::BeginMap;
             auto &spotLightComponent = entity.getComponent<SpotLightComponent>();
@@ -175,7 +198,8 @@ namespace Fermion {
             }
             out << YAML::EndMap;
         }
-        if (entity.hasComponent<CircleRendererComponent>()) {
+        if (entity.hasComponent<CircleRendererComponent>())
+        {
             out << YAML::Key << "CircleRendererComponent";
             out << YAML::BeginMap;
             auto &circleComponent = entity.getComponent<CircleRendererComponent>();
@@ -184,7 +208,8 @@ namespace Fermion {
             out << YAML::Key << "Fade" << YAML::Value << circleComponent.fade;
             out << YAML::EndMap;
         }
-        if (entity.hasComponent<TextComponent>()) {
+        if (entity.hasComponent<TextComponent>())
+        {
             out << YAML::Key << "TextComponent";
             out << YAML::BeginMap;
             auto &textComponent = entity.getComponent<TextComponent>();
@@ -196,7 +221,8 @@ namespace Fermion {
             out << YAML::Key << "LineSpacing" << YAML::Value << textComponent.lineSpacing;
             out << YAML::EndMap;
         }
-        if (entity.hasComponent<Rigidbody2DComponent>()) {
+        if (entity.hasComponent<Rigidbody2DComponent>())
+        {
             out << YAML::Key << "Rigidbody2DComponent";
             out << YAML::BeginMap;
 
@@ -206,7 +232,8 @@ namespace Fermion {
 
             out << YAML::EndMap;
         }
-        if (entity.hasComponent<BoxCollider2DComponent>()) {
+        if (entity.hasComponent<BoxCollider2DComponent>())
+        {
             out << YAML::Key << "BoxCollider2DComponent";
             out << YAML::BeginMap;
 
@@ -220,7 +247,8 @@ namespace Fermion {
 
             out << YAML::EndMap;
         }
-        if (entity.hasComponent<CircleCollider2DComponent>()) {
+        if (entity.hasComponent<CircleCollider2DComponent>())
+        {
             out << YAML::Key << "CircleCollider2DComponent";
             out << YAML::BeginMap;
             auto &cc = entity.getComponent<CircleCollider2DComponent>();
@@ -232,7 +260,8 @@ namespace Fermion {
             out << YAML::Key << "RestitutionThreshold" << YAML::Value << cc.restitutionThreshold;
             out << YAML::EndMap;
         }
-        if (entity.hasComponent<Rigidbody3DComponent>()) {
+        if (entity.hasComponent<Rigidbody3DComponent>())
+        {
             out << YAML::Key << "Rigidbody3DComponent";
             out << YAML::BeginMap;
             auto &rb = entity.getComponent<Rigidbody3DComponent>();
@@ -243,7 +272,8 @@ namespace Fermion {
             out << YAML::Key << "UseGravity" << YAML::Value << rb.useGravity;
             out << YAML::EndMap;
         }
-        if (entity.hasComponent<BoxCollider3DComponent>()) {
+        if (entity.hasComponent<BoxCollider3DComponent>())
+        {
             out << YAML::Key << "BoxCollider3DComponent";
             out << YAML::BeginMap;
             auto &bc = entity.getComponent<BoxCollider3DComponent>();
@@ -255,7 +285,8 @@ namespace Fermion {
             out << YAML::Key << "IsTrigger" << YAML::Value << bc.isTrigger;
             out << YAML::EndMap;
         }
-        if (entity.hasComponent<BoxSensor2DComponent>()) {
+        if (entity.hasComponent<BoxSensor2DComponent>())
+        {
             out << YAML::Key << "BoxSensor2DComponent";
             out << YAML::BeginMap;
             auto &cc = entity.getComponent<BoxSensor2DComponent>();
@@ -265,7 +296,8 @@ namespace Fermion {
             out << YAML::Key << "Size" << YAML::Value << cc.size;
             out << YAML::EndMap;
         }
-        if (entity.hasComponent<CameraComponent>()) {
+        if (entity.hasComponent<CameraComponent>())
+        {
             out << YAML::Key << "CameraComponent";
             out << YAML::BeginMap;
             auto &cc = entity.getComponent<CameraComponent>();
@@ -285,23 +317,60 @@ namespace Fermion {
             out << YAML::Key << "FixedAspectRatio" << YAML::Value << cc.fixedAspectRatio;
             out << YAML::EndMap;
         }
-        if (entity.hasComponent<ScriptComponent>()) {
+        if (entity.hasComponent<ScriptComponent>())
+        {
             out << YAML::Key << "ScriptComponent";
             out << YAML::BeginMap;
             auto &sc = entity.getComponent<ScriptComponent>();
             out << YAML::Key << "ClassName" << YAML::Value << sc.className;
             out << YAML::EndMap;
         }
-        if (entity.hasComponent<ScriptContainerComponent>()) {
+        if (entity.hasComponent<ScriptContainerComponent>())
+        {
             out << YAML::Key << "ScriptContainerComponent";
             out << YAML::BeginMap;
 
             auto &scc = entity.getComponent<ScriptContainerComponent>();
 
             out << YAML::Key << "ScriptClassNames" << YAML::Value << YAML::BeginSeq;
-            for (auto &name: scc.scriptClassNames)
+            for (auto &name : scc.scriptClassNames)
                 out << name;
             out << YAML::EndSeq;
+            out << YAML::EndMap;
+        }
+        if (entity.hasComponent<PhongMaterialComponent>())
+        {
+            out << YAML::Key << "PhongMaterialComponent";
+            out << YAML::BeginMap;
+            auto &phong = entity.getComponent<PhongMaterialComponent>();
+            out << YAML::Key << "DiffuseColor" << YAML::Value << phong.diffuseColor;
+            out << YAML::Key << "AmbientColor" << YAML::Value << phong.ambientColor;
+            if (static_cast<uint64_t>(phong.diffuseTextureHandle) != 0)
+                out << YAML::Key << "DiffuseTextureHandle" << YAML::Value << static_cast<uint64_t>(phong.diffuseTextureHandle);
+            out << YAML::Key << "UseTexture" << YAML::Value << phong.useTexture;
+            out << YAML::Key << "FlipUV" << YAML::Value << phong.flipUV;
+            out << YAML::EndMap;
+        }
+        if (entity.hasComponent<PBRMaterialComponent>())
+        {
+            out << YAML::Key << "PBRMaterialComponent";
+            out << YAML::BeginMap;
+            auto &pbr = entity.getComponent<PBRMaterialComponent>();
+            out << YAML::Key << "Albedo" << YAML::Value << pbr.albedo;
+            out << YAML::Key << "Metallic" << YAML::Value << pbr.metallic;
+            out << YAML::Key << "Roughness" << YAML::Value << pbr.roughness;
+            out << YAML::Key << "AO" << YAML::Value << pbr.ao;
+            if (static_cast<uint64_t>(pbr.albedoMapHandle) != 0)
+                out << YAML::Key << "AlbedoMapHandle" << YAML::Value << static_cast<uint64_t>(pbr.albedoMapHandle);
+            if (static_cast<uint64_t>(pbr.normalMapHandle) != 0)
+                out << YAML::Key << "NormalMapHandle" << YAML::Value << static_cast<uint64_t>(pbr.normalMapHandle);
+            if (static_cast<uint64_t>(pbr.metallicMapHandle) != 0)
+                out << YAML::Key << "MetallicMapHandle" << YAML::Value << static_cast<uint64_t>(pbr.metallicMapHandle);
+            if (static_cast<uint64_t>(pbr.roughnessMapHandle) != 0)
+                out << YAML::Key << "RoughnessMapHandle" << YAML::Value << static_cast<uint64_t>(pbr.roughnessMapHandle);
+            if (static_cast<uint64_t>(pbr.aoMapHandle) != 0)
+                out << YAML::Key << "AOMapHandle" << YAML::Value << static_cast<uint64_t>(pbr.aoMapHandle);
+            out << YAML::Key << "FlipUV" << YAML::Value << pbr.flipUV;
             out << YAML::EndMap;
         }
 
@@ -309,14 +378,16 @@ namespace Fermion {
         out << YAML::EndMap;
     }
 
-    void SceneSerializer::serialize(const std::filesystem::path &filepath) {
+    void SceneSerializer::serialize(const std::filesystem::path &filepath)
+    {
         YAML::Emitter out;
         out << YAML::BeginMap;
         out << YAML::Key << "Scene" << YAML::Value << "Name";
         out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 
         auto view = m_scene->m_registry.view<TransformComponent>();
-        for (auto entityID: view) {
+        for (auto entityID : view)
+        {
             Entity entity = {entityID, m_scene.get()};
             if (!entity)
                 continue;
@@ -328,10 +399,12 @@ namespace Fermion {
         fout << out.c_str();
     }
 
-    void SceneSerializer::serializeRuntime(const std::filesystem::path &filepath) {
+    void SceneSerializer::serializeRuntime(const std::filesystem::path &filepath)
+    {
     }
 
-    bool SceneSerializer::deserialize(const std::filesystem::path &filepath) {
+    bool SceneSerializer::deserialize(const std::filesystem::path &filepath)
+    {
         std::ifstream stream(filepath);
         std::stringstream strStream;
         strStream << stream.rdbuf();
@@ -342,15 +415,19 @@ namespace Fermion {
         std::string sceneName = data["Scene"].as<std::string>();
         Log::Info(std::format("Deserializing scene '{}'", sceneName));
         const auto &entities = data["Entities"];
-        if (entities && entities.IsSequence()) {
-            for (auto entity: entities) {
-                if (!entity.IsMap()) {
+        if (entities && entities.IsSequence())
+        {
+            for (auto entity : entities)
+            {
+                if (!entity.IsMap())
+                {
                     Log::Warn("Skip non-map entity entry in YAML");
                     continue;
                 }
 
                 auto idNode = entity["Entity"];
-                if (!idNode) {
+                if (!idNode)
+                {
                     Log::Warn("Entity missing ID; skipping");
                     continue;
                 }
@@ -358,14 +435,16 @@ namespace Fermion {
 
                 std::string name;
                 auto tagComponent = entity["TagComponent"];
-                if (tagComponent && tagComponent.IsMap() && tagComponent["Tag"]) {
+                if (tagComponent && tagComponent.IsMap() && tagComponent["Tag"])
+                {
                     name = tagComponent["Tag"].as<std::string>();
                 }
                 Log::Info(std::format("Deserialized entity with ID = {0}, name = {1}", uuid, name));
                 Entity deserializedEntity = m_scene->createEntityWithUUID(uuid, name);
 
                 auto transformComponent = entity["TransformComponent"];
-                if (transformComponent && transformComponent.IsMap()) {
+                if (transformComponent && transformComponent.IsMap())
+                {
                     auto &tc = deserializedEntity.getComponent<TransformComponent>();
                     if (auto n = transformComponent["Translation"]; n)
                         tc.translation = n.as<glm::vec3>();
@@ -376,13 +455,16 @@ namespace Fermion {
                 }
 
                 auto spriteRendererComponent = entity["SpriteRendererComponent"];
-                if (spriteRendererComponent && spriteRendererComponent.IsMap()) {
+                if (spriteRendererComponent && spriteRendererComponent.IsMap())
+                {
                     auto &src = deserializedEntity.addComponent<SpriteRendererComponent>();
                     if (auto n = spriteRendererComponent["Color"]; n)
                         src.color = n.as<glm::vec4>();
-                    if (auto n = spriteRendererComponent["TextureHandle"]; n) {
+                    if (auto n = spriteRendererComponent["TextureHandle"]; n)
+                    {
                         uint64_t handleValue = n.as<uint64_t>();
-                        if (handleValue != 0) {
+                        if (handleValue != 0)
+                        {
                             src.textureHandle = AssetHandle(handleValue);
                             // auto runtimeAssets = Project::getRuntimeAssetManager();
                         }
@@ -390,21 +472,35 @@ namespace Fermion {
                 }
 
                 auto meshComponent = entity["MeshComponent"];
-                if (meshComponent) {
+                if (meshComponent)
+                {
+
                     auto &src = deserializedEntity.addComponent<MeshComponent>();
 
-                    if (auto n = meshComponent["MemoryMeshType"]; n) {
-                        src.memoryMeshType = MemoryMeshType(n.as<uint16_t>());
+                    if (auto n = meshComponent["MemoryMeshType"]; n)
+                    {
+                        src.memoryMeshType = static_cast<MemoryMeshType>(n.as<uint16_t>());
                     }
-                    if (auto n = meshComponent["MemoryOnly"]; n) {
-                        src.memoryOnly = n.as<bool>();
+
+                    bool memoryOnly = false;
+                    if (auto n = meshComponent["MemoryOnly"]; n)
+                    {
+                        memoryOnly = n.as<bool>();
                     }
-                    if (auto n = meshComponent["MeshHandle"]; n) {
-                        if (src.memoryOnly) {
-                            src.meshHandle = MeshFactory::GetMemoryMeshHandle(src.memoryMeshType);
-                        } else {
+
+                    src.memoryOnly = memoryOnly;
+
+                    if (memoryOnly)
+                    {
+                        src.meshHandle = MeshFactory::createMemoryMesh(src.memoryMeshType);
+                    }
+                    else
+                    {
+                        if (auto n = meshComponent["MeshHandle"]; n)
+                        {
                             uint64_t handleValue = n.as<uint64_t>();
-                            if (handleValue != 0) {
+                            if (handleValue != 0)
+                            {
                                 src.meshHandle = AssetHandle(handleValue);
                             }
                         }
@@ -412,7 +508,8 @@ namespace Fermion {
                 }
 
                 auto directionalLightComponent = entity["DirectionalLightComponent"];
-                if (directionalLightComponent) {
+                if (directionalLightComponent)
+                {
                     auto &dlc = deserializedEntity.addComponent<DirectionalLightComponent>();
                     if (auto n = directionalLightComponent["Color"]; n)
                         dlc.color = n.as<glm::vec3>();
@@ -423,7 +520,8 @@ namespace Fermion {
                 }
 
                 auto pointLightComponent = entity["PointLightComponent"];
-                if (pointLightComponent) {
+                if (pointLightComponent)
+                {
                     auto &plc = deserializedEntity.addComponent<PointLightComponent>();
                     if (auto n = pointLightComponent["Color"]; n)
                         plc.color = n.as<glm::vec3>();
@@ -434,7 +532,8 @@ namespace Fermion {
                 }
 
                 auto spotLightComponent = entity["SpotLightComponent"];
-                if (spotLightComponent) {
+                if (spotLightComponent)
+                {
                     auto &splc = deserializedEntity.addComponent<SpotLightComponent>();
                     if (auto n = spotLightComponent["Color"]; n)
                         splc.color = n.as<glm::vec3>();
@@ -450,9 +549,9 @@ namespace Fermion {
                         splc.softness = n.as<float>();
                 }
 
-
                 auto circleRendererComponent = entity["CircleRendererComponent"];
-                if (circleRendererComponent && circleRendererComponent.IsMap()) {
+                if (circleRendererComponent && circleRendererComponent.IsMap())
+                {
                     auto &cr = deserializedEntity.addComponent<CircleRendererComponent>();
                     if (auto n = circleRendererComponent["Color"]; n)
                         cr.color = n.as<glm::vec4>();
@@ -462,7 +561,8 @@ namespace Fermion {
                         cr.fade = n.as<float>();
                 }
                 auto textComponent = entity["TextComponent"];
-                if (textComponent && textComponent.IsMap()) {
+                if (textComponent && textComponent.IsMap())
+                {
                     auto &tc = deserializedEntity.addComponent<TextComponent>();
 
                     if (auto n = textComponent["Text"]; n)
@@ -474,9 +574,11 @@ namespace Fermion {
                         tc.kerning = n.as<float>();
                     if (auto n = textComponent["LineSpacing"]; n)
                         tc.lineSpacing = n.as<float>();
-                    if (auto n = textComponent["FontHandle"]; n) {
+                    if (auto n = textComponent["FontHandle"]; n)
+                    {
                         uint64_t handleValue = n.as<uint64_t>();
-                        if (handleValue != 0) {
+                        if (handleValue != 0)
+                        {
                             tc.fontHandle = AssetHandle(handleValue);
                             auto runtimeAssets = Project::getRuntimeAssetManager();
                             tc.fontAsset = runtimeAssets->getAsset<Font>(tc.fontHandle);
@@ -485,7 +587,8 @@ namespace Fermion {
                 }
 
                 auto rigidbody2DComponent = entity["Rigidbody2DComponent"];
-                if (rigidbody2DComponent && rigidbody2DComponent.IsMap()) {
+                if (rigidbody2DComponent && rigidbody2DComponent.IsMap())
+                {
                     auto &rb = deserializedEntity.addComponent<Rigidbody2DComponent>();
                     if (auto n = rigidbody2DComponent["BodyType"]; n)
                         rb.type = static_cast<Rigidbody2DComponent::BodyType>(n.as<int>());
@@ -494,7 +597,8 @@ namespace Fermion {
                 }
 
                 auto boxCollider2DComponent = entity["BoxCollider2DComponent"];
-                if (boxCollider2DComponent && boxCollider2DComponent.IsMap()) {
+                if (boxCollider2DComponent && boxCollider2DComponent.IsMap())
+                {
                     auto &bc = deserializedEntity.addComponent<BoxCollider2DComponent>();
                     if (auto n = boxCollider2DComponent["Offset"]; n)
                         bc.offset = n.as<glm::vec2>();
@@ -510,7 +614,8 @@ namespace Fermion {
                         bc.restitutionThreshold = n.as<float>();
                 }
                 auto circleCollider2DComponent = entity["CircleCollider2DComponent"];
-                if (circleCollider2DComponent && circleCollider2DComponent.IsMap()) {
+                if (circleCollider2DComponent && circleCollider2DComponent.IsMap())
+                {
                     auto &cc = deserializedEntity.addComponent<CircleCollider2DComponent>();
                     if (auto n = circleCollider2DComponent["Offset"]; n)
                         cc.offset = n.as<glm::vec2>();
@@ -526,7 +631,8 @@ namespace Fermion {
                         cc.restitutionThreshold = n.as<float>();
                 }
                 auto rigidbody3DComponent = entity["Rigidbody3DComponent"];
-                if (rigidbody3DComponent && rigidbody3DComponent.IsMap()) {
+                if (rigidbody3DComponent && rigidbody3DComponent.IsMap())
+                {
                     auto &rb = deserializedEntity.addComponent<Rigidbody3DComponent>();
                     if (auto n = rigidbody3DComponent["BodyType"]; n)
                         rb.type = static_cast<Rigidbody3DComponent::BodyType>(n.as<int>());
@@ -540,7 +646,8 @@ namespace Fermion {
                         rb.useGravity = n.as<bool>();
                 }
                 auto boxCollider3DComponent = entity["BoxCollider3DComponent"];
-                if (boxCollider3DComponent && boxCollider3DComponent.IsMap()) {
+                if (boxCollider3DComponent && boxCollider3DComponent.IsMap())
+                {
                     auto &bc = deserializedEntity.addComponent<BoxCollider3DComponent>();
                     if (auto n = boxCollider3DComponent["Offset"]; n)
                         bc.offset = n.as<glm::vec3>();
@@ -556,7 +663,8 @@ namespace Fermion {
                         bc.isTrigger = n.as<bool>();
                 }
                 auto boxSensor2DComponent = entity["BoxSensor2DComponent"];
-                if (boxSensor2DComponent && boxSensor2DComponent.IsMap()) {
+                if (boxSensor2DComponent && boxSensor2DComponent.IsMap())
+                {
                     auto &bs2c = deserializedEntity.addComponent<BoxSensor2DComponent>();
                     if (auto n = boxSensor2DComponent["SensorBegin"]; n)
                         bs2c.sensorBegin = n.as<bool>();
@@ -569,11 +677,13 @@ namespace Fermion {
                 }
 
                 auto cameraComponent = entity["CameraComponent"];
-                if (cameraComponent && cameraComponent.IsMap()) {
+                if (cameraComponent && cameraComponent.IsMap())
+                {
                     auto &cc = deserializedEntity.addComponent<CameraComponent>();
                     auto &camera = cc.camera;
                     auto camNode = cameraComponent["Camera"];
-                    if (camNode && camNode.IsMap()) {
+                    if (camNode && camNode.IsMap())
+                    {
                         if (auto n = camNode["ProjectionType"]; n)
                             camera.setProjectionType(static_cast<SceneCamera::ProjectionType>(n.as<int>()));
                         if (auto n = camNode["PerspectiveFOV"]; n)
@@ -595,29 +705,102 @@ namespace Fermion {
                         cc.fixedAspectRatio = n.as<bool>();
                 }
                 auto scriptComponent = entity["ScriptComponent"];
-                if (scriptComponent && scriptComponent.IsMap()) {
+                if (scriptComponent && scriptComponent.IsMap())
+                {
                     auto &sc = deserializedEntity.addComponent<ScriptComponent>();
-                    if (auto n = scriptComponent["ClassName"]; n) {
+                    if (auto n = scriptComponent["ClassName"]; n)
+                    {
                         sc.className = n.as<std::string>();
                         Log::Info(std::format("  ScriptComponent: ClassName = {}", sc.className));
                     }
                 }
                 auto scriptContainerNode = entity["ScriptContainerComponent"];
-                if (scriptContainerNode && scriptContainerNode.IsMap()) {
+                if (scriptContainerNode && scriptContainerNode.IsMap())
+                {
                     auto &sc = deserializedEntity.addComponent<ScriptContainerComponent>();
 
                     auto classNamesNode = scriptContainerNode["ScriptClassNames"];
-                    if (classNamesNode && classNamesNode.IsSequence()) {
-                        for (auto classNode: classNamesNode)
+                    if (classNamesNode && classNamesNode.IsSequence())
+                    {
+                        for (auto classNode : classNamesNode)
                             sc.scriptClassNames.push_back(classNode.as<std::string>());
                     }
+                }
+
+                auto phongMaterialComponent = entity["PhongMaterialComponent"];
+                if (phongMaterialComponent && phongMaterialComponent.IsMap())
+                {
+                    auto &phong = deserializedEntity.addComponent<PhongMaterialComponent>();
+                    if (auto n = phongMaterialComponent["DiffuseColor"]; n)
+                        phong.diffuseColor = n.as<glm::vec4>();
+                    if (auto n = phongMaterialComponent["AmbientColor"]; n)
+                        phong.ambientColor = n.as<glm::vec4>();
+                    if (auto n = phongMaterialComponent["DiffuseTextureHandle"]; n)
+                    {
+                        uint64_t handleValue = n.as<uint64_t>();
+                        if (handleValue != 0)
+                        {
+                            phong.diffuseTextureHandle = AssetHandle(handleValue);
+                        }
+                    }
+                    if (auto n = phongMaterialComponent["UseTexture"]; n)
+                        phong.useTexture = n.as<bool>();
+                    if (auto n = phongMaterialComponent["FlipUV"]; n)
+                        phong.flipUV = n.as<bool>();
+                }
+
+                auto pbrMaterialComponent = entity["PBRMaterialComponent"];
+                if (pbrMaterialComponent && pbrMaterialComponent.IsMap())
+                {
+                    auto &pbr = deserializedEntity.addComponent<PBRMaterialComponent>();
+                    if (auto n = pbrMaterialComponent["Albedo"]; n)
+                        pbr.albedo = n.as<glm::vec3>();
+                    if (auto n = pbrMaterialComponent["Metallic"]; n)
+                        pbr.metallic = n.as<float>();
+                    if (auto n = pbrMaterialComponent["Roughness"]; n)
+                        pbr.roughness = n.as<float>();
+                    if (auto n = pbrMaterialComponent["AO"]; n)
+                        pbr.ao = n.as<float>();
+                    if (auto n = pbrMaterialComponent["AlbedoMapHandle"]; n)
+                    {
+                        uint64_t handleValue = n.as<uint64_t>();
+                        if (handleValue != 0)
+                            pbr.albedoMapHandle = AssetHandle(handleValue);
+                    }
+                    if (auto n = pbrMaterialComponent["NormalMapHandle"]; n)
+                    {
+                        uint64_t handleValue = n.as<uint64_t>();
+                        if (handleValue != 0)
+                            pbr.normalMapHandle = AssetHandle(handleValue);
+                    }
+                    if (auto n = pbrMaterialComponent["MetallicMapHandle"]; n)
+                    {
+                        uint64_t handleValue = n.as<uint64_t>();
+                        if (handleValue != 0)
+                            pbr.metallicMapHandle = AssetHandle(handleValue);
+                    }
+                    if (auto n = pbrMaterialComponent["RoughnessMapHandle"]; n)
+                    {
+                        uint64_t handleValue = n.as<uint64_t>();
+                        if (handleValue != 0)
+                            pbr.roughnessMapHandle = AssetHandle(handleValue);
+                    }
+                    if (auto n = pbrMaterialComponent["AOMapHandle"]; n)
+                    {
+                        uint64_t handleValue = n.as<uint64_t>();
+                        if (handleValue != 0)
+                            pbr.aoMapHandle = AssetHandle(handleValue);
+                    }
+                    if (auto n = pbrMaterialComponent["FlipUV"]; n)
+                        pbr.flipUV = n.as<bool>();
                 }
             }
         }
         return true;
     }
 
-    bool SceneSerializer::deserializeRuntime(const std::filesystem::path &filepath) {
+    bool SceneSerializer::deserializeRuntime(const std::filesystem::path &filepath)
+    {
         return false;
     }
 } // namespace Fermion

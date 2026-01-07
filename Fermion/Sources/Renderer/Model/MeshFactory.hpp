@@ -25,6 +25,8 @@ namespace Fermion {
         static AssetHandle CreateCone(float radius = 0.5f, float height = 1.0f,
                                       uint32_t radialSegments = 32);
 
+        static AssetHandle createMemoryMesh(MemoryMeshType type);
+
         static void Init() {
             if (s_Initialized)
                 return;

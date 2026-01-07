@@ -27,7 +27,7 @@ namespace Fermion
 
             m_skybox = TextureCube::create(spec);
         }
-        // Mesh Pipeline
+        // Phong Mesh Pipeline
         {
             PipelineSpecification meshSpec;
             meshSpec.shader = Renderer::getShaderLibrary()->get("Mesh");
@@ -37,6 +37,18 @@ namespace Fermion
             meshSpec.cull = CullMode::Back;
 
             m_MeshPipeline = Pipeline::create(meshSpec);
+        }
+
+        // PBR Mesh Pipeline
+        {
+            PipelineSpecification pbrSpec;
+            pbrSpec.shader = Renderer::getShaderLibrary()->get("PBRMesh");
+            pbrSpec.depthTest = true;
+            pbrSpec.depthWrite = true;
+            pbrSpec.depthOperator = DepthCompareOperator::Less;
+            pbrSpec.cull = CullMode::Back;
+
+            m_PBRMeshPipeline = Pipeline::create(pbrSpec);
         }
 
         // Skybox Pipeline
@@ -201,6 +213,141 @@ namespace Fermion
             }
         }
     }
+
+    void SceneRenderer::submitMesh(MeshComponent &meshComponent, PBRMaterialComponent &pbrMaterial,
+                                   glm::mat4 transform, int objectId, bool drawOutline)
+    {
+        if (static_cast<uint64_t>(meshComponent.meshHandle) != 0)
+        {
+            auto mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
+            if (mesh)
+            {
+                for (auto &submesh : mesh->getSubMeshes())
+                {
+                    MeshDrawCommand cmd;
+                    cmd.pipeline = m_PBRMeshPipeline;
+                    cmd.vao = mesh->getVertexArray();
+
+                    auto material = mesh->getMaterials()[submesh.MaterialIndex];
+                    if (!material)
+                    {
+                        material = std::make_shared<Material>();
+                    }
+
+                    material->setMaterialType(MaterialType::PBR);
+                    material->setAlbedo(pbrMaterial.albedo);
+                    material->setMetallic(pbrMaterial.metallic);
+                    material->setRoughness(pbrMaterial.roughness);
+                    material->setAO(pbrMaterial.ao);
+
+                    auto assetManager = Project::getRuntimeAssetManager();
+
+                    if (static_cast<uint64_t>(pbrMaterial.albedoMapHandle) != 0)
+                    {
+                        auto texture = assetManager->getAsset<Texture2D>(pbrMaterial.albedoMapHandle);
+                        if (texture)
+                        {
+                            material->setAlbedoMapShared(texture);
+                        }
+                    }
+
+                    if (static_cast<uint64_t>(pbrMaterial.normalMapHandle) != 0)
+                    {
+                        auto texture = assetManager->getAsset<Texture2D>(pbrMaterial.normalMapHandle);
+                        if (texture)
+                        {
+                            material->setNormalMapShared(texture);
+                        }
+                    }
+
+                    if (static_cast<uint64_t>(pbrMaterial.metallicMapHandle) != 0)
+                    {
+                        auto texture = assetManager->getAsset<Texture2D>(pbrMaterial.metallicMapHandle);
+                        if (texture)
+                        {
+                            material->setMetallicMapShared(texture);
+                        }
+                    }
+
+                    if (static_cast<uint64_t>(pbrMaterial.roughnessMapHandle) != 0)
+                    {
+                        auto texture = assetManager->getAsset<Texture2D>(pbrMaterial.roughnessMapHandle);
+                        if (texture)
+                        {
+                            material->setRoughnessMapShared(texture);
+                        }
+                    }
+
+                    if (static_cast<uint64_t>(pbrMaterial.aoMapHandle) != 0)
+                    {
+                        auto texture = assetManager->getAsset<Texture2D>(pbrMaterial.aoMapHandle);
+                        if (texture)
+                        {
+                            material->setAOMapShared(texture);
+                        }
+                    }
+
+                    cmd.material = material;
+                    cmd.transform = transform;
+                    cmd.indexCount = submesh.IndexCount;
+                    cmd.indexOffset = submesh.IndexOffset;
+                    cmd.objectID = objectId;
+                    cmd.drawOutline = drawOutline;
+                    cmd.aabb = mesh->getBoundingBox();
+                    s_MeshDrawList.emplace_back(std::move(cmd));
+                }
+            }
+        }
+    }
+
+    void SceneRenderer::submitMesh(MeshComponent &meshComponent, PhongMaterialComponent &phongMaterial,
+                                   glm::mat4 transform, int objectId, bool drawOutline)
+    {
+        if (static_cast<uint64_t>(meshComponent.meshHandle) != 0)
+        {
+            auto mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
+            if (mesh)
+            {
+                for (auto &submesh : mesh->getSubMeshes())
+                {
+                    MeshDrawCommand cmd;
+                    // 使用Phong管线
+                    cmd.pipeline = m_MeshPipeline;
+                    cmd.vao = mesh->getVertexArray();
+
+                    // 创建Phong材质并加载纹理
+                    auto material = mesh->getMaterials()[submesh.MaterialIndex];
+                    if (!material)
+                    {
+                        material = std::make_shared<Material>();
+                    }
+
+                    material->setMaterialType(MaterialType::Phong);
+                    material->setDiffuseColor(phongMaterial.diffuseColor);
+                    material->setAmbientColor(phongMaterial.ambientColor);
+
+                    // 从AssetHandle加载漫反射纹理
+                    if (phongMaterial.useTexture && static_cast<uint64_t>(phongMaterial.diffuseTextureHandle) != 0)
+                    {
+                        auto texture = Project::getRuntimeAssetManager()->getAsset<Texture2D>(phongMaterial.diffuseTextureHandle);
+                        if (texture)
+                        {
+                            material->setTextureShared(texture);
+                        }
+                    }
+
+                    cmd.material = material;
+                    cmd.transform = transform;
+                    cmd.indexCount = submesh.IndexCount;
+                    cmd.indexOffset = submesh.IndexOffset;
+                    cmd.objectID = objectId;
+                    cmd.drawOutline = drawOutline;
+                    cmd.aabb = mesh->getBoundingBox();
+                    s_MeshDrawList.emplace_back(std::move(cmd));
+                }
+            }
+        }
+    }
     void SceneRenderer::drawLine(const glm::vec3 &start, const glm::vec3 &end, const glm::vec4 &color)
     {
         Renderer2D::drawLine(start, end, color);
@@ -230,27 +377,33 @@ namespace Fermion
              {
                  commandBuffer.Record([this](RendererAPI &api)
                                       {
-                     std::shared_ptr<Pipeline> currentPipeline = nullptr;
+                 std::shared_ptr<Pipeline> currentPipeline = nullptr;
+                 
+                 for (auto &cmd : s_MeshDrawList) {
+                     if (currentPipeline != cmd.pipeline) {
+                         currentPipeline = cmd.pipeline;
+                         currentPipeline->bind();
+                     }
                      
-                     for (auto &cmd : s_MeshDrawList) {
-                         if (currentPipeline != cmd.pipeline) {
-                             currentPipeline = cmd.pipeline;
-                             currentPipeline->bind();
-                         }
+                     auto shader = currentPipeline->getShader();
+                     shader->setMat4("u_Model", cmd.transform);
+                     shader->setInt("u_ObjectID", cmd.objectID);
+                     
+                     if (cmd.pipeline == m_PBRMeshPipeline) {
+                         glm::vec3 cameraPos = glm::vec3(glm::inverse(m_sceneData.sceneCamera.view)[3]);
+                         shader->setFloat3("u_CameraPosition", cameraPos);
+                         shader->setFloat("u_AmbientIntensity", 0.03f); 
+                     }
                          
-                         auto shader = currentPipeline->getShader();
-                         shader->setMat4("u_Model", cmd.transform);
-                         shader->setInt("u_ObjectID", cmd.objectID);
-                         
-                         // Shadow mapping uniforms
+                         // Shadow mapping
                          shader->setBool("u_EnableShadows", m_sceneData.enableShadows);
                          if (m_sceneData.enableShadows) {
                              shader->setMat4("u_LightSpaceMatrix", m_lightSpaceMatrix);
                              shader->setFloat("u_ShadowBias", m_sceneData.shadowBias);
                              shader->setFloat("u_ShadowSoftness", m_sceneData.shadowSoftness);
-                             shader->setInt("u_ShadowMap", 10);  // Use texture unit 10 for shadow map
+                             shader->setInt("u_ShadowMap", 10); 
                              
-                             // Bind shadow map texture
+
                              m_shadowMapFB->bindDepthAttachment(10);
                          }
                          

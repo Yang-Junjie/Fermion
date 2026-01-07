@@ -14,30 +14,36 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
-namespace Fermion {
-    struct IDComponent {
+namespace Fermion
+{
+    struct IDComponent
+    {
         UUID ID;
 
         IDComponent() = default;
 
         IDComponent(const IDComponent &) = default;
 
-        IDComponent(const UUID &id) : ID(id) {
+        IDComponent(const UUID &id) : ID(id)
+        {
         }
     };
 
-    struct TagComponent {
+    struct TagComponent
+    {
         std::string tag;
 
         TagComponent() = default;
 
-        TagComponent(const std::string &tag) : tag(tag) {
+        TagComponent(const std::string &tag) : tag(tag)
+        {
         }
 
         TagComponent(const TagComponent &tag) = default;
     };
 
-    struct TransformComponent {
+    struct TransformComponent
+    {
         glm::vec3 translation{0.0f, 0.0f, 0.0f};
         // Euler angles in radians (pitch = x, yaw = y, roll = z)
         glm::vec3 rotation{0.0f, 0.0f, 0.0f};
@@ -45,30 +51,36 @@ namespace Fermion {
 
         TransformComponent() = default;
 
-        TransformComponent(const glm::vec3 &translation) : translation(translation) {
+        TransformComponent(const glm::vec3 &translation) : translation(translation)
+        {
         }
 
         TransformComponent(const TransformComponent &transform) = default;
 
-        glm::vec3 getRotationEuler() const {
+        glm::vec3 getRotationEuler() const
+        {
             return rotation;
         }
 
-        void setRotationEuler(const glm::vec3 &eulerRadians) {
+        void setRotationEuler(const glm::vec3 &eulerRadians)
+        {
             rotation = eulerRadians;
         }
 
-        glm::mat4 getTransform() const {
+        glm::mat4 getTransform() const
+        {
             glm::mat4 rotationMatrix = glm::toMat4(glm::quat(rotation));
             return glm::translate(glm::mat4(1.0f), translation) * rotationMatrix * glm::scale(glm::mat4(1.0f), scale);
         }
 
-        glm::vec3 getForward() const {
+        glm::vec3 getForward() const
+        {
             return glm::normalize(glm::rotate(glm::quat(rotation), glm::vec3(0.0f, 0.0f, -1.0f)));
         }
     };
 
-    struct SpriteRendererComponent {
+    struct SpriteRendererComponent
+    {
         glm::vec4 color{1.0f, 1.0f, 1.0f, 1.0f};
         std::shared_ptr<Texture2D> texture = nullptr;
         float tilingFactor = 1.0f;
@@ -76,13 +88,15 @@ namespace Fermion {
 
         SpriteRendererComponent() = default;
 
-        SpriteRendererComponent(const glm::vec4 &color) : color(color) {
+        SpriteRendererComponent(const glm::vec4 &color) : color(color)
+        {
         }
 
         SpriteRendererComponent(const SpriteRendererComponent &) = default;
     };
 
-    struct MeshComponent {
+    struct MeshComponent
+    {
         AssetHandle meshHandle = AssetHandle(0);
 
         bool memoryOnly = false;
@@ -93,7 +107,8 @@ namespace Fermion {
         MeshComponent(const MeshComponent &) = default;
     };
 
-    struct TextComponent {
+    struct TextComponent
+    {
         std::string textString;
         std::shared_ptr<Font> fontAsset = Font::getDefault();
         glm::vec4 color{1.0f};
@@ -102,7 +117,8 @@ namespace Fermion {
         AssetHandle fontHandle = AssetHandle(0);
     };
 
-    struct CircleRendererComponent {
+    struct CircleRendererComponent
+    {
         glm::vec4 color{1.0f, 1.0f, 1.0f, 1.0f};
         float thickness = 1.0f;
         float fade = 0.005f;
@@ -112,20 +128,23 @@ namespace Fermion {
         CircleRendererComponent(const CircleRendererComponent &) = default;
     };
 
-    struct CameraComponent {
+    struct CameraComponent
+    {
         SceneCamera camera;
         bool primary = true;
         bool fixedAspectRatio = false;
 
         CameraComponent() = default;
 
-        CameraComponent(const glm::mat4 &projection) : camera(projection) {
+        CameraComponent(const glm::mat4 &projection) : camera(projection)
+        {
         }
 
         CameraComponent(const CameraComponent &camera) = default;
     };
 
-    struct ScriptComponent {
+    struct ScriptComponent
+    {
         std::string className;
 
         ScriptComponent() = default;
@@ -133,25 +152,30 @@ namespace Fermion {
         ScriptComponent(const ScriptComponent &script) = default;
     };
 
-    struct ScriptContainerComponent {
+    struct ScriptContainerComponent
+    {
         std::vector<std::string> scriptClassNames;
     };
 
     class ScriptableEntity;
 
-    struct NativeScriptComponent {
+    struct NativeScriptComponent
+    {
         ScriptableEntity *instance = nullptr;
 
         ScriptableEntity *(*instantiateScript)();
 
         void (*destroyScript)(NativeScriptComponent *);
 
-        template<typename T>
-        void bind() {
-            instantiateScript = []() {
+        template <typename T>
+        void bind()
+        {
+            instantiateScript = []()
+            {
                 return static_cast<ScriptableEntity *>(new T());
             };
-            destroyScript = [](NativeScriptComponent *nsc) {
+            destroyScript = [](NativeScriptComponent *nsc)
+            {
                 delete nsc->instance;
                 nsc->instance = nullptr;
             };
@@ -160,8 +184,10 @@ namespace Fermion {
 
     // Physics
 
-    struct Rigidbody2DComponent {
-        enum class BodyType {
+    struct Rigidbody2DComponent
+    {
+        enum class BodyType
+        {
             Static = 0,
             Dynamic,
             Kinematic
@@ -178,7 +204,8 @@ namespace Fermion {
         Rigidbody2DComponent(const Rigidbody2DComponent &) = default;
     };
 
-    struct BoxCollider2DComponent {
+    struct BoxCollider2DComponent
+    {
         glm::vec2 offset = {0.0f, 0.0f};
         glm::vec2 size = {0.5f, 0.5f};
 
@@ -196,7 +223,8 @@ namespace Fermion {
         BoxCollider2DComponent(const BoxCollider2DComponent &) = default;
     };
 
-    struct BoxSensor2DComponent {
+    struct BoxSensor2DComponent
+    {
         glm::vec2 offset = {0.0f, 0.0f};
         glm::vec2 size = {0.5f, 0.5f};
         bool sensorBegin = false;
@@ -210,7 +238,8 @@ namespace Fermion {
         BoxSensor2DComponent(const BoxSensor2DComponent &) = default;
     };
 
-    struct CircleCollider2DComponent {
+    struct CircleCollider2DComponent
+    {
         glm::vec2 offset = {0.0f, 0.0f};
         float radius = 0.5f;
 
@@ -228,8 +257,10 @@ namespace Fermion {
         CircleCollider2DComponent(const CircleCollider2DComponent &) = default;
     };
 
-    struct Rigidbody3DComponent {
-        enum class BodyType {
+    struct Rigidbody3DComponent
+    {
+        enum class BodyType
+        {
             Static = 0,
             Dynamic,
             Kinematic
@@ -248,7 +279,8 @@ namespace Fermion {
         Rigidbody3DComponent(const Rigidbody3DComponent &) = default;
     };
 
-    struct BoxCollider3DComponent {
+    struct BoxCollider3DComponent
+    {
         glm::vec3 offset = {0.0f, 0.0f, 0.0f};
         glm::vec3 size = {0.5f, 0.5f, 0.5f};
 
@@ -264,7 +296,8 @@ namespace Fermion {
         BoxCollider3DComponent(const BoxCollider3DComponent &) = default;
     };
 
-    struct DirectionalLightComponent {
+    struct DirectionalLightComponent
+    {
         glm::vec3 color{1.0f, 1.0f, 1.0f};
         float intensity = 1.0f;
 
@@ -275,7 +308,8 @@ namespace Fermion {
         DirectionalLightComponent(const DirectionalLightComponent &) = default;
     };
 
-    struct PointLightComponent {
+    struct PointLightComponent
+    {
         glm::vec3 color{1.0f, 1.0f, 1.0f};
         float intensity = 1.0f;
         float range = 10.0f;
@@ -285,7 +319,8 @@ namespace Fermion {
         PointLightComponent(const PointLightComponent &) = default;
     };
 
-    struct SpotLightComponent {
+    struct SpotLightComponent
+    {
         glm::vec3 color{1.0f, 1.0f, 1.0f};
         float intensity = 1.0f;
 
@@ -299,24 +334,69 @@ namespace Fermion {
         SpotLightComponent(const SpotLightComponent &) = default;
     };
 
-    template<typename... Component>
-    struct ComponentGroup {
+    struct PhongMaterialComponent
+    {
+        // Phong材质参数
+        glm::vec4 diffuseColor{1.0f, 1.0f, 1.0f, 1.0f}; // 漫反射颜色
+        glm::vec4 ambientColor{0.1f, 0.1f, 0.1f, 1.0f}; // 环境光颜色
+
+        // 纹理资源句柄
+        AssetHandle diffuseTextureHandle = AssetHandle(0);
+
+        bool useTexture = false;
+        bool flipUV = false;
+
+        PhongMaterialComponent() = default;
+
+        PhongMaterialComponent(const PhongMaterialComponent &) = default;
+    };
+
+    struct PBRMaterialComponent
+    {
+        // PBR材质参数
+        glm::vec3 albedo{1.0f, 1.0f, 1.0f};
+        float metallic = 0.0f;
+        float roughness = 0.5f;
+        float ao = 1.0f;
+
+        // 纹理资源句柄
+        AssetHandle albedoMapHandle = AssetHandle(0);
+        AssetHandle normalMapHandle = AssetHandle(0);
+        AssetHandle metallicMapHandle = AssetHandle(0);
+        AssetHandle roughnessMapHandle = AssetHandle(0);
+        AssetHandle aoMapHandle = AssetHandle(0);
+
+        bool flipUV = false;
+
+        PBRMaterialComponent() = default;
+
+        PBRMaterialComponent(const PBRMaterialComponent &) = default;
+    };
+
+    template <typename... Component>
+    struct ComponentGroup
+    {
     };
 
     using AllComponents =
-    ComponentGroup<TransformComponent, SpriteRendererComponent, MeshComponent,
-        CircleRendererComponent,
-        CameraComponent,
-        ScriptComponent,
-        ScriptContainerComponent,
-        NativeScriptComponent,
-        Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, BoxSensor2DComponent,
-        Rigidbody3DComponent, BoxCollider3DComponent,
-        TextComponent,
+        ComponentGroup<TransformComponent, SpriteRendererComponent, MeshComponent,
+                       CircleRendererComponent,
+                       CameraComponent,
+                       ScriptComponent,
+                       ScriptContainerComponent,
+                       NativeScriptComponent,
+                       Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, BoxSensor2DComponent,
+                       Rigidbody3DComponent, BoxCollider3DComponent,
+                       TextComponent,
 
-        /* Lighting */
-        PointLightComponent,
-        SpotLightComponent,
-        DirectionalLightComponent
-        /************/>;
+                       /* Lighting */
+                       PointLightComponent,
+                       SpotLightComponent,
+                       DirectionalLightComponent,
+                       /************/
+
+                       /* Materials */
+                       PhongMaterialComponent,
+                       PBRMaterialComponent
+                       /************/>;
 } // namespace Fermion

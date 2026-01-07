@@ -231,10 +231,30 @@ namespace Fermion {
         renderer->beginScene(camera);
         if (showRenderEntities) {
             {
-                auto view = m_registry.view<TransformComponent, MeshComponent>();
-                for (auto entity: view) {
-                    auto &transform = view.get<TransformComponent>(entity);
-                    auto &mesh = view.get<MeshComponent>(entity);
+                // 渲染带PBR材质的对象
+                auto pbrView = m_registry.view<TransformComponent, MeshComponent, PBRMaterialComponent>();
+                for (auto entity: pbrView) {
+                    auto& transform = pbrView.get<TransformComponent>(entity);
+                    auto& mesh = pbrView.get<MeshComponent>(entity);
+                    auto& pbrMat = pbrView.get<PBRMaterialComponent>(entity);
+                    renderer->submitMesh(mesh, pbrMat, transform.getTransform(), (int) entity);
+                }
+                
+                // 渲染带Phong材质的对象
+                auto phongView = m_registry.view<TransformComponent, MeshComponent, PhongMaterialComponent>();
+                for (auto entity: phongView) {
+                    auto& transform = phongView.get<TransformComponent>(entity);
+                    auto& mesh = phongView.get<MeshComponent>(entity);
+                    auto& phongMat = phongView.get<PhongMaterialComponent>(entity);
+                    renderer->submitMesh(mesh, phongMat, transform.getTransform(), (int) entity);
+                }
+                
+                // 渲染没有材质组件的对象（使用mesh默认材质）
+                auto defaultView = m_registry.view<TransformComponent, MeshComponent>(
+                    entt::exclude<PBRMaterialComponent, PhongMaterialComponent>);
+                for (auto entity: defaultView) {
+                    auto& transform = defaultView.get<TransformComponent>(entity);
+                    auto& mesh = defaultView.get<MeshComponent>(entity);
                     renderer->submitMesh(mesh, transform.getTransform(), (int) entity);
                 }
             }
@@ -523,14 +543,31 @@ namespace Fermion {
                     m_environmentLight.directionalLight.intensity = 0.0f;
 
                     {
-                        auto view = m_registry.view<TransformComponent, MeshComponent>();
-
-                        for (auto entity: view) {
-                            auto &transform = view.get<TransformComponent>(entity);
-                            auto &mesh = view.get<MeshComponent>(entity);
-
+                        // 渲染带PBR材质的对象
+                        auto pbrView = m_registry.view<TransformComponent, MeshComponent, PBRMaterialComponent>();
+                        for (auto entity: pbrView) {
+                            auto& transform = pbrView.get<TransformComponent>(entity);
+                            auto& mesh = pbrView.get<MeshComponent>(entity);
+                            auto& pbrMat = pbrView.get<PBRMaterialComponent>(entity);
+                            renderer->submitMesh(mesh, pbrMat, transform.getTransform(), (int) entity);
+                        }
+                        
+                        // 渲染带Phong材质的对象
+                        auto phongView = m_registry.view<TransformComponent, MeshComponent, PhongMaterialComponent>();
+                        for (auto entity: phongView) {
+                            auto& transform = phongView.get<TransformComponent>(entity);
+                            auto& mesh = phongView.get<MeshComponent>(entity);
+                            auto& phongMat = phongView.get<PhongMaterialComponent>(entity);
+                            renderer->submitMesh(mesh, phongMat, transform.getTransform(), (int) entity);
+                        }
+                        
+                        // 渲染没有材质组件的对象（使用mesh默认材质）
+                        auto defaultView = m_registry.view<TransformComponent, MeshComponent>(
+                            entt::exclude<PBRMaterialComponent, PhongMaterialComponent>);
+                        for (auto entity: defaultView) {
+                            auto& transform = defaultView.get<TransformComponent>(entity);
+                            auto& mesh = defaultView.get<MeshComponent>(entity);
                             renderer->submitMesh(mesh, transform.getTransform(), (int) entity);
-
                         }
                     }
                     // Directional Lights

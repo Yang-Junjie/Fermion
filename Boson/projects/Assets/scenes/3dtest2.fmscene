@@ -1,77 +1,104 @@
 Scene: Name
 Entities:
-  - Entity: 7258722879697457253
-    TagComponent:
-      Tag: floor
-    TransformComponent:
-      Translation: [0, -0.6552228, 0]
-      Rotation: [0, -0, 0]
-      Scale: [21.96672, 0.30817777, 19.206135]
-    MeshComponent:
-      MeshHandle: 16073272781620069904
-      MemoryOnly: true
-      MemoryMeshType: 1
-  - Entity: 7603478768360360452
-    TagComponent:
-      Tag: cylinder
-    TransformComponent:
-      Translation: [6.923809, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      MeshHandle: 8812578007361942239
-      MemoryOnly: true
-      MemoryMeshType: 3
-  - Entity: 18244896960270514207
+  - Entity: 15257039527707661464
     TagComponent:
       Tag: capsule
     TransformComponent:
-      Translation: [5.5513873, 0.24266988, 0]
+      Translation: [3.6039007, 0.8756945, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      MeshHandle: 16928918168905533437
+      MeshHandle: 6646083139146491415
       MemoryOnly: true
       MemoryMeshType: 4
-  - Entity: 8687271565181739526
+  - Entity: 16081347473010776866
     TagComponent:
-      Tag: cone
+      Tag: cylinder
     TransformComponent:
-      Translation: [-2.8378963, 0, 0]
+      Translation: [2.3240802, 0.80614066, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      MeshHandle: 1446954203593057403
+      MeshHandle: 8479856583388682795
       MemoryOnly: true
-      MemoryMeshType: 5
-  - Entity: 9907014946661456453
-    TagComponent:
-      Tag: cube
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      MeshHandle: 16073272781620069904
-      MemoryOnly: true
-      MemoryMeshType: 1
-  - Entity: 11505097444607132680
+      MemoryMeshType: 3
+  - Entity: 16449860847702860093
     TagComponent:
       Tag: sphere
     TransformComponent:
-      Translation: [2.8708599, 0, 0]
+      Translation: [1.226969, 0.62576985, 4.656613e-10]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      MeshHandle: 15831189057410626509
+      MeshHandle: 10132615964862901005
       MemoryOnly: true
       MemoryMeshType: 2
-  - Entity: 7117036960198529399
+  - Entity: 13596458327916403171
+    TagComponent:
+      Tag: cone
+    TransformComponent:
+      Translation: [0, 0.6707794, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      MeshHandle: 17688661164577598008
+      MemoryOnly: true
+      MemoryMeshType: 5
+  - Entity: 1214625920770253982
+    TagComponent:
+      Tag: car
+    TransformComponent:
+      Translation: [-1.2395644, 0.15020163, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.0033512, 0.0033512, 0.0033512]
+    MeshComponent:
+      MeshHandle: 16584299943829371167
+      MemoryOnly: false
+      MemoryMeshType: 0
+    PhongMaterialComponent:
+      DiffuseColor: [1, 1, 1, 1]
+      AmbientColor: [0.1, 0.1, 0.1, 1]
+      DiffuseTextureHandle: 3914983344752951145
+      UseTexture: true
+      FlipUV: false
+  - Entity: 12703848604684242753
+    TagComponent:
+      Tag: cube
+    TransformComponent:
+      Translation: [-2.558185, 0.6965798, 2.9802322e-08]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      MeshHandle: 3571534181496546377
+      MemoryOnly: true
+      MemoryMeshType: 1
+    PhongMaterialComponent:
+      DiffuseColor: [1, 1, 1, 1]
+      AmbientColor: [0.1, 0.1, 0.1, 1]
+      UseTexture: false
+      FlipUV: false
+  - Entity: 14364034156530371027
+    TagComponent:
+      Tag: floor
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, -0, 0]
+      Scale: [11.824283, 0.32187447, 13.289282]
+    MeshComponent:
+      MeshHandle: 14193838803292380990
+      MemoryOnly: true
+      MemoryMeshType: 1
+    PhongMaterialComponent:
+      DiffuseColor: [1, 1, 1, 1]
+      AmbientColor: [0.1, 0.1, 0.1, 1]
+      UseTexture: false
+      FlipUV: false
+  - Entity: 13192142759119736963
     TagComponent:
       Tag: dl
     TransformComponent:
-      Translation: [4.222568, 0, 6.275901]
-      Rotation: [-0.462469, 0.26113647, -0.12800503]
+      Translation: [-0.08539449, 1.2431291, 6.080263]
+      Rotation: [-0.2264573, 0.3027384, -1.951387e-08]
       Scale: [1, 1, 1]
     DirectionalLightComponent:
       Color: [1, 1, 1]

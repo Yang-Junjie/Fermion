@@ -89,6 +89,12 @@ namespace Fermion {
         void setLineWidth(float thickness);
 
         void submitMesh(MeshComponent &meshComponent, glm::mat4 transform, int objectId = -1, bool drawOutline = false);
+        
+        void submitMesh(MeshComponent &meshComponent, PBRMaterialComponent &pbrMaterial,
+                       glm::mat4 transform, int objectId = -1, bool drawOutline = false);
+        
+        void submitMesh(MeshComponent &meshComponent, PhongMaterialComponent &phongMaterial,
+                       glm::mat4 transform, int objectId = -1, bool drawOutline = false);
 
         void setScene(std::shared_ptr<Scene> scene) {
             m_scene = scene;
@@ -131,7 +137,8 @@ namespace Fermion {
         std::unique_ptr<TextureCube> m_skybox = nullptr;
         std::shared_ptr<VertexArray> m_cubeVA = nullptr;
 
-        std::shared_ptr<Pipeline> m_MeshPipeline;
+        std::shared_ptr<Pipeline> m_MeshPipeline;       
+        std::shared_ptr<Pipeline> m_PBRMeshPipeline;    
         std::shared_ptr<Pipeline> m_SkyboxPipeline;
         std::shared_ptr<Pipeline> m_ShadowPipeline;
         

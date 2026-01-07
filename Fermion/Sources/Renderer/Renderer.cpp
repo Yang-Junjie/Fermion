@@ -16,6 +16,7 @@ namespace Fermion
         s_shaderLibrary = std::make_unique<ShaderLibrary>();
 
         s_shaderLibrary->load(s_config.ShaderPath + "Mesh.glsl");
+        s_shaderLibrary->load(s_config.ShaderPath + "PBRMesh.glsl");
         s_shaderLibrary->load(s_config.ShaderPath + "Skybox.glsl");
         s_shaderLibrary->load(s_config.ShaderPath + "Shadow.glsl");
 
