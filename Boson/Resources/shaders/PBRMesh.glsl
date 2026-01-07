@@ -134,6 +134,13 @@ uniform sampler2D u_ShadowMap;
 uniform float u_ShadowBias;
 uniform float u_ShadowSoftness;
 
+// IBL
+uniform bool u_UseIBL;
+uniform samplerCube u_IrradianceMap;
+uniform samplerCube u_PrefilterMap;
+uniform sampler2D u_BRDFLT;
+uniform float u_PrefilterMaxLOD;
+
 // ============================================================================
 // PBR函数
 // ============================================================================
@@ -176,6 +183,11 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
 // Fresnel方程
 vec3 fresnelSchlick(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}
+
+// Fresnel方程带粗糙度 - 用于IBL
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness) {
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
 // 阴影计算
@@ -366,9 +378,52 @@ void main() {
     }
 
     // ========================================================================
-    // 环境光
+    // 环境光 (IBL或简单环境光)
     // ========================================================================
-    vec3 ambient = vec3(u_AmbientIntensity) * albedo * ao;
+    vec3 ambient = vec3(0.0);
+    
+    if (u_UseIBL) {
+        // IBL环境光照
+        vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
+        
+        // 漫反射部分
+        vec3 kS = F;
+        vec3 kD = (vec3(1.0) - kS) * (1.0 - metallic);
+        
+        // 诊断：尝试不同的采样方向
+        // 方案1: 使用原始法线
+        vec3 irradiance = texture(u_IrradianceMap, N).rgb;
+        
+        // 方案2: 尝试翻转Y轴（取消注释以测试）
+        // vec3 irradiance = texture(u_IrradianceMap, vec3(N.x, -N.y, N.z)).rgb;
+        
+        // 方案3: 直接从environment cubemap采样以验证坐标系（取消注释以测试）
+        // vec3 irradiance = texture(u_PrefilterMap, N).rgb;
+        
+        // 调试: 如果辐照度为0,使用一个小的fallback值
+        if (length(irradiance) < 0.001) {
+            irradiance = vec3(0.03); // fallback环境光
+        }
+        
+        vec3 diffuse = irradiance * albedo;
+        
+        // 镜面反射部分
+        vec3 R = reflect(-V, N);
+        vec3 prefilteredColor = textureLod(u_PrefilterMap, R, roughness * u_PrefilterMaxLOD).rgb;
+        
+        // 调试: 如果预过滤颜色为0,也使用fallback
+        if (length(prefilteredColor) < 0.001) {
+            prefilteredColor = vec3(0.03);
+        }
+        
+        vec2 brdf = texture(u_BRDFLT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+        vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
+        
+        ambient = (kD * diffuse + specular) * ao;
+    } else {
+        // 简单环境光
+        ambient = vec3(u_AmbientIntensity) * albedo * ao;
+    }
     
     vec3 color = ambient + Lo;
 

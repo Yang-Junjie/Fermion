@@ -32,8 +32,15 @@ namespace Fermion {
             
             // Shadow mapping settings
             uint32_t shadowMapSize = 2048;
-            float shadowBias = 0.01f; 
-            float shadowSoftness = 1.0f;  
+            float shadowBias = 0.01f;
+            float shadowSoftness = 1.0f;
+            
+            // IBL settings
+            bool useIBL = true;
+            uint32_t irradianceMapSize = 32;
+            uint32_t prefilterMapSize = 128;
+            uint32_t brdfLUTSize = 512;
+            uint32_t prefilterMaxMipLevels = 5;
         };
 
         struct Statistics {
@@ -122,10 +129,16 @@ namespace Fermion {
         void SkyboxPass();
         
         void ShadowPass();
-    
+        
+
         void FlushDrawList();
         
         glm::mat4 calculateLightSpaceMatrix(const DirectionalLight& light, float orthoSize = 20.0f);
+        
+        void initializeIBL();
+        void generateIrradianceMap();
+        void generatePrefilterMap();
+        void generateBRDFLUT();
 
     private:
         std::shared_ptr<DebugRenderer> m_debugRenderer;
@@ -137,10 +150,22 @@ namespace Fermion {
         std::unique_ptr<TextureCube> m_skybox = nullptr;
         std::shared_ptr<VertexArray> m_cubeVA = nullptr;
 
-        std::shared_ptr<Pipeline> m_MeshPipeline;       
-        std::shared_ptr<Pipeline> m_PBRMeshPipeline;    
+        std::shared_ptr<Pipeline> m_MeshPipeline;
+        std::shared_ptr<Pipeline> m_PBRMeshPipeline;
         std::shared_ptr<Pipeline> m_SkyboxPipeline;
         std::shared_ptr<Pipeline> m_ShadowPipeline;
+        
+        // IBL resources
+        std::shared_ptr<Pipeline> m_IBLIrradiancePipeline;
+        std::shared_ptr<Pipeline> m_IBLPrefilterPipeline;
+        std::shared_ptr<Pipeline> m_IBLBRDFPipeline;
+        std::shared_ptr<Pipeline> m_EquirectToCubePipeline;
+        
+        std::unique_ptr<TextureCube> m_irradianceMap = nullptr;
+        std::unique_ptr<TextureCube> m_prefilterMap = nullptr;
+        std::unique_ptr<Texture2D> m_brdfLUT = nullptr;
+        
+        bool m_iblInitialized = false;
         
         std::shared_ptr<Framebuffer> m_shadowMapFB;
         std::shared_ptr<Framebuffer> m_targetFramebuffer;
@@ -151,3 +176,4 @@ namespace Fermion {
         SceneInfo m_sceneData;
     };
 } // namespace Fermion
+

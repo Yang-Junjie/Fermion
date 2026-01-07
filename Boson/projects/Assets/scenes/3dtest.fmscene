@@ -8,7 +8,7 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      MeshHandle: 4751519580417057606
+      MeshHandle: 13575070222350876000
       MemoryOnly: true
       MemoryMeshType: 2
     PBRMaterialComponent:
@@ -29,7 +29,7 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [13.970743, 1, 18.775244]
     MeshComponent:
-      MeshHandle: 2748885773049508112
+      MeshHandle: 11249631030416246366
       MemoryOnly: true
       MemoryMeshType: 1
     PBRMaterialComponent:
@@ -47,7 +47,7 @@ Entities:
     TagComponent:
       Tag: coffee
     TransformComponent:
-      Translation: [0, -0.5017496, 0]
+      Translation: [0.32088238, -0.5000723, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
@@ -68,11 +68,11 @@ Entities:
     TagComponent:
       Tag: cube
     TransformComponent:
-      Translation: [1.5966574, 0.01852405, 0]
+      Translation: [1.9555454, 0.01852405, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      MeshHandle: 1883653848475069576
+      MeshHandle: 13229551157091409747
       MemoryOnly: true
       MemoryMeshType: 1
     PBRMaterialComponent:
@@ -90,12 +90,12 @@ Entities:
     TagComponent:
       Tag: point light 1
     TransformComponent:
-      Translation: [-1.103147, 2.6635103, -0.66132545]
+      Translation: [-0.5536025, 1.63377, -0.66132545]
       Rotation: [0, -0, 0]
       Scale: [1, 1, 1]
     PointLightComponent:
       Color: [0.03826713, 0.31169114, 0.5830116]
-      Intensity: 5.2
+      Intensity: 35.1
       Range: 10.5
     ScriptContainerComponent:
       ScriptClassNames:
@@ -109,7 +109,7 @@ Entities:
       Scale: [1, 1, 1]
     DirectionalLightComponent:
       Color: [1, 1, 1]
-      Intensity: 10
+      Intensity: 8
       MainLight: true
   - Entity: 18415657991614262539
     TagComponent:
@@ -140,7 +140,7 @@ Entities:
       Scale: [1, 1, 1]
     PointLightComponent:
       Color: [1, 0, 0]
-      Intensity: 3.2
+      Intensity: 31.2
       Range: 10
     ScriptContainerComponent:
       ScriptClassNames:
@@ -149,12 +149,33 @@ Entities:
     TagComponent:
       Tag: spot light
     TransformComponent:
-      Translation: [1.8950677, 6.4491205, -4.432129]
-      Rotation: [0.5292739, 0.1830998, 0.10610594]
+      Translation: [1.8950733, 0.9929904, -7.5526443]
+      Rotation: [2.9699883, -0.035994958, -3.1209974]
       Scale: [1.6792017, 0.58927274, 1]
     SpotLightComponent:
       Color: [0.26254833, 1, 0]
-      Intensity: 4.2
+      Intensity: 31.8
       Range: 14.1
       Angle: 19.5
       Softness: 0.3
+  - Entity: 15275614337768985203
+    TagComponent:
+      Tag: sphere2
+    TransformComponent:
+      Translation: [4.170317, 0, -1.4901161e-08]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      MeshHandle: 12720188017167767782
+      MemoryOnly: true
+      MemoryMeshType: 2
+    PBRMaterialComponent:
+      Albedo: [1, 1, 1]
+      Metallic: 0
+      Roughness: 0.5
+      AO: 1
+      AlbedoMapHandle: 2003938330590131204
+      NormalMapHandle: 13586197093745247284
+      MetallicMapHandle: 9861096440576352054
+      RoughnessMapHandle: 4533912333430544589
+      FlipUV: false

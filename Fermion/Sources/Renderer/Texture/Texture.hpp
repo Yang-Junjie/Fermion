@@ -9,7 +9,9 @@ namespace Fermion
         R8,
         RGB8,
         RGBA8,
-        RGBA32F
+        RGBA32F,
+        RGB16F,    // IBL: 辐照度贴图和预过滤贴图
+        RG16F      // IBL: BRDF查找表
     };
 
     struct TextureSpecification
@@ -44,6 +46,8 @@ namespace Fermion
         static std::unique_ptr<Texture2D> create(uint32_t width, uint32_t height);
         static std::unique_ptr<Texture2D> create(const std::string &path);
         static std::unique_ptr<Texture2D> create(const TextureSpecification &spec);
+        
+        virtual void copyFromFramebuffer(std::shared_ptr<class Framebuffer> fb, uint32_t x, uint32_t y) = 0;
     };
 
     enum class TextureCubeFace : uint8_t
@@ -58,6 +62,14 @@ namespace Fermion
 
     struct TextureCubeSpecification
     {
+        // 运行时创建选项
+        uint32_t width = 512;
+        uint32_t height = 512;
+        ImageFormat format = ImageFormat::RGB8;
+        bool generateMips = false;
+        uint32_t maxMipLevels = 1;
+        
+        // 从文件加载选项
         std::filesystem::path path;
         std::unordered_map<TextureCubeFace, std::string> names;
         bool flip = false;
@@ -69,5 +81,7 @@ namespace Fermion
         virtual ~TextureCube() = default;
         static std::unique_ptr<TextureCube> create(const std::string &path);
         static std::unique_ptr<TextureCube> create(const TextureCubeSpecification &spec);
+        
+        virtual void copyFromFramebuffer(std::shared_ptr<class Framebuffer> fb, uint32_t face, uint32_t mipLevel) = 0;
     };
 }

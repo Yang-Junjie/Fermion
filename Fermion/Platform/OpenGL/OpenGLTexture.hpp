@@ -6,6 +6,9 @@
 
 namespace Fermion {
 
+// 前向声明
+class Framebuffer;
+
 class OpenGLTexture2D : public Texture2D {
 public:
     OpenGLTexture2D(const TextureSpecification &specification, bool generateMipmap = false);
@@ -42,6 +45,9 @@ public:
     virtual bool operator==(const Texture &other) const override {
         return m_rendererID == other.getRendererID();
     }
+    
+    // IBL support: 从framebuffer复制数据到2D纹理
+    void copyFromFramebuffer(std::shared_ptr<Framebuffer> fb, uint32_t x, uint32_t y);
 
 private:
     TextureSpecification m_specification;
@@ -84,12 +90,19 @@ public:
     virtual bool operator==(const Texture &other) const override {
         return m_rendererID == other.getRendererID();
     }
+    
+    // IBL support
+    void copyFromFramebuffer(std::shared_ptr<Framebuffer> fb, uint32_t face, uint32_t mipLevel);
+
+private:
+    void createRuntimeTexture(const TextureCubeSpecification &spec);
 
 private:
     std::string m_path;
     uint32_t m_rendererID = 0;
     uint32_t m_width = 0, m_height = 0;
     TextureSpecification m_specification;
+    TextureCubeSpecification m_cubeSpec;
     bool m_isLoaded = false;
 };
 } // namespace Fermion

@@ -75,6 +75,30 @@ namespace Fermion
             m_ShadowPipeline = Pipeline::create(shadowSpec);
         }
 
+        // IBL Pipelines
+        {
+            PipelineSpecification iblIrradianceSpec;
+            iblIrradianceSpec.shader = Renderer::getShaderLibrary()->get("IBLPreprocess");
+            iblIrradianceSpec.depthTest = false;
+            iblIrradianceSpec.depthWrite = false;
+            iblIrradianceSpec.cull = CullMode::None;
+            m_IBLIrradiancePipeline = Pipeline::create(iblIrradianceSpec);
+
+            PipelineSpecification iblPrefilterSpec;
+            iblPrefilterSpec.shader = Renderer::getShaderLibrary()->get("IBLPrefilter");
+            iblPrefilterSpec.depthTest = false;
+            iblPrefilterSpec.depthWrite = false;
+            iblPrefilterSpec.cull = CullMode::None;
+            m_IBLPrefilterPipeline = Pipeline::create(iblPrefilterSpec);
+
+            PipelineSpecification iblBRDFSpec;
+            iblBRDFSpec.shader = Renderer::getShaderLibrary()->get("BRDFLUT");
+            iblBRDFSpec.depthTest = false;
+            iblBRDFSpec.depthWrite = false;
+            iblBRDFSpec.cull = CullMode::None;
+            m_IBLBRDFPipeline = Pipeline::create(iblBRDFSpec);
+        }
+
         // Shadow Map Framebuffer
         {
             FramebufferSpecification shadowFBSpec;
@@ -392,7 +416,25 @@ namespace Fermion
                      if (cmd.pipeline == m_PBRMeshPipeline) {
                          glm::vec3 cameraPos = glm::vec3(glm::inverse(m_sceneData.sceneCamera.view)[3]);
                          shader->setFloat3("u_CameraPosition", cameraPos);
-                         shader->setFloat("u_AmbientIntensity", 0.03f); 
+                         shader->setFloat("u_AmbientIntensity", 0.03f);
+                         
+                         // IBL
+                         if (!m_iblInitialized && m_sceneData.useIBL) {
+                             initializeIBL();
+                         }
+                         
+                         shader->setBool("u_UseIBL", m_sceneData.useIBL && m_iblInitialized);
+                         if (m_sceneData.useIBL && m_iblInitialized) {
+                             shader->setInt("u_IrradianceMap", 11);
+                             shader->setInt("u_PrefilterMap", 12);
+                             shader->setInt("u_BRDFLT", 13);
+                             shader->setFloat("u_PrefilterMaxLOD", static_cast<float>(m_sceneData.prefilterMaxMipLevels - 1));
+                             
+                             // Bind IBL textures
+                             m_irradianceMap->bind(11);
+                             m_prefilterMap->bind(12);
+                             m_brdfLUT->bind(13);
+                         }
                      }
                          
                          // Shadow mapping
@@ -557,5 +599,194 @@ namespace Fermion
             0.1f, orthoSize * 3.0f);
 
         return lightProjection * lightView;
+    }
+
+    void SceneRenderer::initializeIBL()
+    {
+        if (m_iblInitialized || !m_skybox)
+            return;
+
+        Log::Info("Initializing IBL...");
+
+        generateIrradianceMap();
+        generatePrefilterMap();
+        generateBRDFLUT();
+
+        m_iblInitialized = true;
+        Log::Info("IBL initialization completed");
+    }
+
+    void SceneRenderer::generateIrradianceMap()
+    {
+        Log::Info(std::format("Generating irradiance map (size: {}x{})...",
+                  m_sceneData.irradianceMapSize, m_sceneData.irradianceMapSize));
+        
+        // 创建辐照度贴图
+        TextureCubeSpecification irradianceSpec;
+        irradianceSpec.width = m_sceneData.irradianceMapSize;
+        irradianceSpec.height = m_sceneData.irradianceMapSize;
+        irradianceSpec.format = ImageFormat::RGB16F;
+        irradianceSpec.generateMips = false;
+        irradianceSpec.maxMipLevels = 1;
+        m_irradianceMap = TextureCube::create(irradianceSpec);
+
+        // 创建帧缓冲用于渲染
+        FramebufferSpecification fbSpec;
+        fbSpec.width = m_sceneData.irradianceMapSize;
+        fbSpec.height = m_sceneData.irradianceMapSize;
+        fbSpec.attachments = {FramebufferTextureFormat::RGB16F};
+        fbSpec.swapChainTarget = false;
+        auto captureFB = Framebuffer::create(fbSpec);
+
+        // 设置投影矩阵
+        glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+
+        glm::mat4 captureViews[] = {
+            glm::lookAt(glm::vec3(0.0f), glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
+        };
+
+        m_IBLIrradiancePipeline->bind();
+        auto shader = m_IBLIrradiancePipeline->getShader();
+        shader->setInt("u_EnvironmentMap", 0);
+        shader->setMat4("u_Projection", captureProjection);
+        m_skybox->bind(0);
+
+        const char* faceNames[] = {"+X (Right)", "-X (Left)", "+Y (Up)", "-Y (Down)", "+Z (Front)", "-Z (Back)"};
+        
+
+        for (uint32_t i = 0; i < 6; ++i) {
+            Log::Info(std::format("  Rendering irradiance face {} ({})", i, faceNames[i]));
+            
+            // 打印视图矩阵
+            glm::vec3 lookDir;
+            switch(i) {
+                case 0: lookDir = glm::vec3( 1.0f,  0.0f,  0.0f); break;  // +X
+                case 1: lookDir = glm::vec3(-1.0f,  0.0f,  0.0f); break;  // -X
+                case 2: lookDir = glm::vec3( 0.0f,  1.0f,  0.0f); break;  // +Y
+                case 3: lookDir = glm::vec3( 0.0f, -1.0f,  0.0f); break;  // -Y
+                case 4: lookDir = glm::vec3( 0.0f,  0.0f,  1.0f); break;  // +Z
+                case 5: lookDir = glm::vec3( 0.0f,  0.0f, -1.0f); break;  // -Z
+            }
+            Log::Info(std::format("    Look direction: ({:.2f}, {:.2f}, {:.2f})", lookDir.x, lookDir.y, lookDir.z));
+            
+            shader->setMat4("u_View", captureViews[i]);
+            captureFB->bind();
+            RenderCommand::setViewport(0, 0, m_sceneData.irradianceMapSize, m_sceneData.irradianceMapSize);
+            RenderCommand::clear();
+            RenderCommand::drawIndexed(m_cubeVA, m_cubeVA->getIndexBuffer()->getCount());
+            
+            // 将渲染结果复制到cubemap的对应面
+            m_irradianceMap->copyFromFramebuffer(captureFB, i, 0);
+        }
+
+        captureFB->unbind();
+        
+        // 恢复原始framebuffer
+        if (m_targetFramebuffer) {
+            m_targetFramebuffer->bind();
+        }
+        
+        Log::Info("Irradiance map generation completed");
+    }
+
+    void SceneRenderer::generatePrefilterMap()
+    {
+        // 创建预过滤贴图
+        TextureCubeSpecification prefilterSpec;
+        prefilterSpec.width = m_sceneData.prefilterMapSize;
+        prefilterSpec.height = m_sceneData.prefilterMapSize;
+        prefilterSpec.format = ImageFormat::RGB16F;
+        prefilterSpec.generateMips = true;
+        prefilterSpec.maxMipLevels = m_sceneData.prefilterMaxMipLevels;
+        m_prefilterMap = TextureCube::create(prefilterSpec);
+
+        glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+        glm::mat4 captureViews[] = {
+            glm::lookAt(glm::vec3(0.0f), glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
+        };
+
+        m_IBLPrefilterPipeline->bind();
+        auto shader = m_IBLPrefilterPipeline->getShader();
+        shader->setInt("u_EnvironmentMap", 0);
+        shader->setMat4("u_Projection", captureProjection);
+        m_skybox->bind(0);
+
+        // 为每个mip级别生成预过滤贴图
+        for (uint32_t mip = 0; mip < m_sceneData.prefilterMaxMipLevels; ++mip) {
+            uint32_t mipWidth = static_cast<uint32_t>(m_sceneData.prefilterMapSize * std::pow(0.5, mip));
+            uint32_t mipHeight = mipWidth;
+            
+            FramebufferSpecification fbSpec;
+            fbSpec.width = mipWidth;
+            fbSpec.height = mipHeight;
+            fbSpec.attachments = {FramebufferTextureFormat::RGB16F};
+            fbSpec.swapChainTarget = false;
+            auto captureFB = Framebuffer::create(fbSpec);
+
+            float roughness = static_cast<float>(mip) / static_cast<float>(m_sceneData.prefilterMaxMipLevels - 1);
+            shader->setFloat("u_Roughness", roughness);
+
+            for (uint32_t i = 0; i < 6; ++i) {
+                shader->setMat4("u_View", captureViews[i]);
+                captureFB->bind();
+                RenderCommand::setViewport(0, 0, mipWidth, mipHeight);
+                RenderCommand::clear();
+                RenderCommand::drawIndexed(m_cubeVA, m_cubeVA->getIndexBuffer()->getCount());
+                
+                m_prefilterMap->copyFromFramebuffer(captureFB, i, mip);
+            }
+            
+            captureFB->unbind();
+        }
+        
+        if (m_targetFramebuffer) {
+            m_targetFramebuffer->bind();
+        }
+    }
+
+    void SceneRenderer::generateBRDFLUT()
+    {
+        // 创建BRDF LUT纹理
+        TextureSpecification brdfSpec;
+        brdfSpec.Width = m_sceneData.brdfLUTSize;
+        brdfSpec.Height = m_sceneData.brdfLUTSize;
+        brdfSpec.Format = ImageFormat::RG16F;
+        brdfSpec.GenerateMips = false;
+        m_brdfLUT = Texture2D::create(brdfSpec);
+
+        // 创建帧缓冲
+        FramebufferSpecification fbSpec;
+        fbSpec.width = m_sceneData.brdfLUTSize;
+        fbSpec.height = m_sceneData.brdfLUTSize;
+        fbSpec.attachments = {FramebufferTextureFormat::RG16F};
+        fbSpec.swapChainTarget = false;
+        auto captureFB = Framebuffer::create(fbSpec);
+
+        captureFB->bind();
+        RenderCommand::setViewport(0, 0, m_sceneData.brdfLUTSize, m_sceneData.brdfLUTSize);
+
+        m_IBLBRDFPipeline->bind();
+        RenderCommand::clear();
+        
+        RenderCommand::drawIndexed(m_cubeVA, 6);
+
+        // 复制到纹理
+        m_brdfLUT->copyFromFramebuffer(captureFB, 0, 0);
+
+        captureFB->unbind();
+        
+        if (m_targetFramebuffer) {
+            m_targetFramebuffer->bind();
+        }
     }
 } // namespace Fermion

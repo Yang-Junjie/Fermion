@@ -26,8 +26,14 @@ static void attachColorTexture(uint32_t id, int samples, GLenum internalFormat, 
     if (multisampled) {
         glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, internalFormat, width, height, GL_FALSE);
     } else {
-        // Choose data type and filtering based on format (integer vs normalized)
-        GLenum type = (format == GL_RED_INTEGER) ? GL_INT : GL_UNSIGNED_BYTE;
+        // Choose data type based on format
+        GLenum type = GL_UNSIGNED_BYTE;
+        if (format == GL_RED_INTEGER) {
+            type = GL_INT;
+        } else if (internalFormat == GL_RGB16F || internalFormat == GL_RG16F) {
+            type = GL_FLOAT;
+        }
+        
         glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, nullptr);
 
         // Integer textures must use NEAREST filtering
@@ -85,6 +91,10 @@ static GLenum fermionFBTextureFormatToGL(FramebufferTextureFormat format) {
         return GL_RGBA8;
     case FramebufferTextureFormat::RED_INTEGER:
         return GL_RED_INTEGER;
+    case FramebufferTextureFormat::RGB16F:
+        return GL_RGB16F;
+    case FramebufferTextureFormat::RG16F:
+        return GL_RG16F;
     }
 
     FERMION_ASSERT(false, "Invalid framebuffer texture format!");
@@ -98,6 +108,10 @@ static GLenum fermionFBBaseFormatToGL(FramebufferTextureFormat format) {
         return GL_RGBA;
     case FramebufferTextureFormat::RED_INTEGER:
         return GL_RED_INTEGER;
+    case FramebufferTextureFormat::RGB16F:
+        return GL_RGB;
+    case FramebufferTextureFormat::RG16F:
+        return GL_RG;
     }
     FERMION_ASSERT(false, "Invalid framebuffer base format!");
     return 0;
@@ -150,6 +164,12 @@ void OpenGLFramebuffer::invalidate() {
                 break;
             case FramebufferTextureFormat::RED_INTEGER:
                 Utils::attachColorTexture(m_colorAttachments[i], m_specification.samples, GL_R32I, GL_RED_INTEGER, m_specification.width, m_specification.height, (int)i);
+                break;
+            case FramebufferTextureFormat::RGB16F:
+                Utils::attachColorTexture(m_colorAttachments[i], m_specification.samples, GL_RGB16F, GL_RGB, m_specification.width, m_specification.height, (int)i);
+                break;
+            case FramebufferTextureFormat::RG16F:
+                Utils::attachColorTexture(m_colorAttachments[i], m_specification.samples, GL_RG16F, GL_RG, m_specification.width, m_specification.height, (int)i);
                 break;
             }
         }
