@@ -76,8 +76,10 @@ struct PointLight {
 struct SpotLight {
     vec3 position;
     vec3 direction;
+
     vec3 color;
     float intensity;
+
     float range;
     float innerConeAngle;
     float outerConeAngle;
@@ -355,7 +357,7 @@ void main() {
         L = normalize(L);
 
         // 聚光灯衰减
-        float theta = dot(L, normalize(-light.direction));
+        float theta = dot(L, normalize(light.direction));
         float epsilon = light.innerConeAngle - light.outerConeAngle;
         float spotIntensity = clamp((theta - light.outerConeAngle) / epsilon, 0.0, 1.0);
         
