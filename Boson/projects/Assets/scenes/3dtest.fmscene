@@ -8,7 +8,7 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      MeshHandle: 18200033644699174611
+      MeshHandle: 15932736796703317893
       MemoryOnly: true
       MemoryMeshType: 1
     PBRMaterialComponent:
@@ -26,7 +26,7 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      MeshHandle: 5814349134685802595
+      MeshHandle: 17542015104815559918
       MemoryOnly: true
       MemoryMeshType: 2
     PBRMaterialComponent:
@@ -47,7 +47,7 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      MeshHandle: 6986336979333668366
+      MeshHandle: 6071264070727970043
       MemoryOnly: true
       MemoryMeshType: 2
     PBRMaterialComponent:
@@ -123,13 +123,26 @@ Entities:
     TagComponent:
       Tag: cube
     TransformComponent:
-      Translation: [1.9555454, 0.01852405, 0]
+      Translation: [1.9555454, 0.9692451, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      MeshHandle: 6889792745108086870
+      MeshHandle: 16813941423455721265
       MemoryOnly: true
       MemoryMeshType: 1
+    Rigidbody3DComponent:
+      BodyType: 1
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
     PBRMaterialComponent:
       Albedo: [1, 1, 1]
       Metallic: 0
@@ -170,9 +183,22 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [13.970743, 1, 18.775244]
     MeshComponent:
-      MeshHandle: 13581240324089472219
+      MeshHandle: 11839271703127003005
       MemoryOnly: true
       MemoryMeshType: 1
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0.75
+      IsTrigger: false
     PBRMaterialComponent:
       Albedo: [1, 1, 1]
       Metallic: 0

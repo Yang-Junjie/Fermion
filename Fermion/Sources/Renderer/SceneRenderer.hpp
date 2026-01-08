@@ -24,6 +24,7 @@ namespace Fermion
         {
             Camera camera;
             glm::mat4 view;
+            float farClip = 0.0f;
         };
 
         struct SceneInfo
@@ -99,6 +100,7 @@ namespace Fermion
                                const std::shared_ptr<Texture2D> &texture, float tilingFactor = 1.0f,
                                const glm::vec4 &tintColor = glm::vec4(1.0f), int objectId = -1);
 
+        void drawInfiniteLine(const glm::vec3 &point, const glm::vec3 &direction, const glm::vec4 &color);
         void drawLine(const glm::vec3 &start, const glm::vec3 &end, const glm::vec4 &color);
 
         void setLineWidth(float thickness);

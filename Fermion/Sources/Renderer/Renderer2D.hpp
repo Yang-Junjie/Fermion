@@ -10,8 +10,10 @@
 #include "Renderer/RenderDrawCommand.hpp"
 #include "Renderer/CommandBuffer.hpp"
 
-namespace Fermion {
-    class Renderer2D {
+namespace Fermion
+{
+    class Renderer2D
+    {
     public:
         static void init(const RendererConfig &config);
 
@@ -58,8 +60,8 @@ namespace Fermion {
         static void drawQuadBillboard(const glm::vec3 &position, const glm::vec2 &size,
                                       const std::shared_ptr<Texture2D> &texture, float tilingFactor = 1.0f,
                                       const glm::vec4 &tintColor = glm::vec4(1.0f), int objectId = -1);
-        
-        static void drawAABB(const AABB& aabb,const glm::mat4& transform,const glm::vec4& color, int objectId = -1);
+
+        static void drawAABB(const AABB &aabb, const glm::mat4 &transform, const glm::vec4 &color, int objectId = -1);
 
         static void drawQuad(const glm::mat4 &transform, const std::shared_ptr<SubTexture2D> &subTexture,
                              float tilingFactor = 1.0f, glm::vec4 tintColor = glm::vec4(1.0f));
@@ -104,10 +106,11 @@ namespace Fermion {
         static float getLineWidth();
 
         static void setLineWidth(float width);
-        
-        static void recordOutlinePass(CommandBuffer &commandBuffer, const std::vector<MeshDrawCommand> &drawCommands,const glm::vec4& outlineColor);
 
-        struct TextParams {
+        static void recordOutlinePass(CommandBuffer &commandBuffer, const std::vector<MeshDrawCommand> &drawCommands, const glm::vec4 &outlineColor);
+
+        struct TextParams
+        {
             glm::vec4 color{1.0f};
             float kerning = 0.0f;
             float lineSpacing = 0.0f;
@@ -116,17 +119,20 @@ namespace Fermion {
         static void drawString(const std::string &string, std::shared_ptr<Font> font, const glm::mat4 &transform,
                                const TextParams &textParams, int objectId = -1);
 
-        struct Satistics {
+        struct Satistics
+        {
             uint32_t drawCalls = 0;
             uint32_t quadCount = 0;
             uint32_t lineCount = 0;
             uint32_t circleCount = 0;
 
-            uint32_t getTotalVertexCount() {
+            uint32_t getTotalVertexCount()
+            {
                 return quadCount * 4 + lineCount * 2 + circleCount * 4;
             }
 
-            uint32_t getTotalIndexCount() {
+            uint32_t getTotalIndexCount()
+            {
                 return quadCount * 6 + circleCount * 6;
             }
         };

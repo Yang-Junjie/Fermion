@@ -336,8 +336,8 @@ void OpenGLTextureCube::copyFromFramebuffer(std::shared_ptr<Framebuffer> fb, uin
     uint32_t mipWidth = m_width >> mipLevel;
     uint32_t mipHeight = m_height >> mipLevel;
     
-    const char* faceNames[] = {"+X", "-X", "+Y", "-Y", "+Z", "-Z"};
-    Log::Info(std::format("    Copying face {} ({}) from framebuffer, size: {}x{}", face, faceNames[face], mipWidth, mipHeight));
+    // const char* faceNames[] = {"+X", "-X", "+Y", "-Y", "+Z", "-Z"};
+    // Log::Info(std::format("    Copying face {} ({}) from framebuffer, size: {}x{}", face, faceNames[face], mipWidth, mipHeight));
     
     // 从当前绑定的framebuffer复制到纹理
     glCopyTexSubImage2D(

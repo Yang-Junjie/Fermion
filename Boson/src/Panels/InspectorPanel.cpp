@@ -32,7 +32,7 @@ namespace Fermion
     }
 
     static bool drawVec3Control(const std::string &label, glm::vec3 &values, float resetValue = 0.0f,
-                                float columnWidth = 100.0f)
+                                float columnWidth = 100.0f, float dragSpeed = 0.1f)
     {
         ImGuiIO &io = ImGui::GetIO();
         auto boldFont = io.Fonts->Fonts[0];
@@ -61,7 +61,7 @@ namespace Fermion
         ImGui::PopStyleColor(3);
 
         ImGui::SameLine();
-        changed |= ImGui::DragFloat("##X", &values.x, 0.01f);
+        changed |= ImGui::DragFloat("##X", &values.x, dragSpeed);
         ImGui::PopItemWidth();
         ImGui::SameLine();
 
@@ -77,7 +77,7 @@ namespace Fermion
         ImGui::PopStyleColor(3);
 
         ImGui::SameLine();
-        changed |= ImGui::DragFloat("##Y", &values.y, 0.01f);
+        changed |= ImGui::DragFloat("##Y", &values.y, dragSpeed);
         ImGui::PopItemWidth();
         ImGui::SameLine();
 
@@ -93,7 +93,7 @@ namespace Fermion
         ImGui::PopStyleColor(3);
 
         ImGui::SameLine();
-        changed |= ImGui::DragFloat("##Z", &values.z, 0.01f);
+        changed |= ImGui::DragFloat("##Z", &values.z, dragSpeed);
         ImGui::PopItemWidth();
         ImGui::PopStyleVar();
 
@@ -175,9 +175,9 @@ namespace Fermion
             displayAddComponentEntry<PointLightComponent>("Point Light");
             displayAddComponentEntry<SpotLightComponent>("Spot Light");
 
-            ImGui::SeparatorText("Materials");
             if (!(entity.hasComponent<PhongMaterialComponent>() || entity.hasComponent<PBRMaterialComponent>()))
             {
+                ImGui::SeparatorText("Materials");
                 displayAddComponentEntry<PhongMaterialComponent>("Phong Material");
                 displayAddComponentEntry<PBRMaterialComponent>("PBR Material");
             }
@@ -210,7 +210,7 @@ namespace Fermion
 
 
             glm::vec3 rotationDeg = glm::degrees(component.getRotationEuler());
-            drawVec3Control("Rotation", rotationDeg);
+            drawVec3Control("Rotation", rotationDeg,0.0f,100.f,1.0f);
             component.setRotationEuler(glm::radians(rotationDeg));
 
             drawVec3Control("Scale", component.scale, 1.0f); });

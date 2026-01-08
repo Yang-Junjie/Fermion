@@ -146,7 +146,7 @@ namespace Fermion
 
     void SceneRenderer::beginScene(const EditorCamera &camera)
     {
-        beginScene({camera, camera.getViewMatrix()});
+        beginScene({camera, camera.getViewMatrix(),camera.getFarCilp()});
     }
 
     void SceneRenderer::beginScene(const SceneRendererCamera &camera)
@@ -343,6 +343,14 @@ namespace Fermion
             cmd.aabb = mesh->getBoundingBox();
             s_MeshDrawList.emplace_back(std::move(cmd));
         }
+    }
+    void SceneRenderer::drawInfiniteLine(const glm::vec3 &point, const glm::vec3 &direction, const glm::vec4 &color)
+    {
+        float big = m_sceneData.sceneCamera.farClip * 2.0f;
+
+        glm::vec3 p0 = point - direction * big;
+        glm::vec3 p1 = point + direction * big;
+        Renderer2D::drawLine(p0, p1, color);
     }
     void SceneRenderer::drawLine(const glm::vec3 &start, const glm::vec3 &end, const glm::vec4 &color)
     {
@@ -631,7 +639,7 @@ namespace Fermion
 
         for (uint32_t i = 0; i < 6; ++i)
         {
-            Log::Info(std::format("  Rendering irradiance face {} ({})", i, faceNames[i]));
+            // Log::Info(std::format("  Rendering irradiance face {} ({})", i, faceNames[i]));
 
             // 打印视图矩阵
             glm::vec3 lookDir;

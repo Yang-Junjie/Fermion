@@ -361,6 +361,15 @@ namespace Fermion {
             for (auto &&func: debugRenderer->GetRenderQueue())
                 func(renderer);
             debugRenderer->ClearRenderQueue();
+
+            // TODO(Yang) : 升级2DRenderer
+            // // X aixs
+            // renderer->drawInfiniteLine(glm::vec3(0), glm::vec3(1,0,0),glm::vec4(0.5f,1.0f,0.3f,1.0f)); 
+            // // Y aixs
+            // renderer->drawInfiniteLine(glm::vec3(0), glm::vec3(0,1,0),glm::vec4(0.3f,0.5f,1.0f,1.0f));
+            // // Z aixs
+            // renderer->drawInfiniteLine(glm::vec3(0), glm::vec3(0,0,1),glm::vec4(1.0f,0.3f,0.5f,1.0f));
+
         }
 
         renderer->endScene();
@@ -604,8 +613,6 @@ namespace Fermion {
                                     .intensity = pointLight.intensity,
                                     .range = pointLight.range
                                 });
-                            renderer->drawQuadBillboard(transform.translation, glm::vec2{1.0f, 1.0f},m_lightTexture, 1.0f,
-                                                        glm::vec4{pointLight.color, 1.0f}, (int) entity);
                         }
                     }
                     // Spotlights
@@ -632,8 +639,6 @@ namespace Fermion {
                                     .innerConeAngle = glm::cos(innerRad),
                                     .outerConeAngle = glm::cos(outerRad)
                                 });
-                            renderer->drawQuadBillboard(transform.translation, glm::vec2{1.0f, 1.0f},m_lightTexture, 1.0f,
-                                                        glm::vec4{spotLight.color, 1.0f}, (int) entity);
                         }
                     }
                 }

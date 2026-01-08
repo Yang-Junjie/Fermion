@@ -1,11 +1,12 @@
 #pragma once
 #include "SceneRenderer.hpp"
 
-
-namespace Fermion {
-    class DebugRenderer {
+namespace Fermion
+{
+    class DebugRenderer
+    {
     public:
-        using RenderQueue = std::vector<std::function<void(std::shared_ptr<SceneRenderer>)> >;
+        using RenderQueue = std::vector<std::function<void(std::shared_ptr<SceneRenderer>)>>;
 
     public:
         DebugRenderer() = default;
@@ -16,14 +17,17 @@ namespace Fermion {
 
         void drawQuadBillboard(const glm::vec3 &translation, const glm::vec2 &size,
                                const glm::vec4 &color = glm::vec4(1.0f));
+        void drawInfiniteLine(const glm::vec3 &point, const glm::vec3 &direction, const glm::vec4 &color, const EditorCamera &camera);
 
         void SetLineWidth(float thickness);
 
-        RenderQueue &GetRenderQueue() {
+        RenderQueue &GetRenderQueue()
+        {
             return m_renderQueue;
         }
 
-        void ClearRenderQueue() {
+        void ClearRenderQueue()
+        {
             m_renderQueue.clear();
         }
 

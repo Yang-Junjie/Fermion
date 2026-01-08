@@ -145,9 +145,9 @@ namespace Fermion
             PipelineSpecification outlineSpec;
             // outlineSpec.Shader = Shader::create(config.ShaderPath + "Outline.glsl");
             outlineSpec.depthTest = false;
-            outlineSpec.depthWrite = false; 
-            outlineSpec.cull = CullMode::None; 
-            outlineSpec.depthOperator = DepthCompareOperator::Always; 
+            outlineSpec.depthWrite = false;
+            outlineSpec.cull = CullMode::None;
+            outlineSpec.depthOperator = DepthCompareOperator::Always;
 
             s_Data.outlinePipeline = Pipeline::create(outlineSpec);
         }
@@ -158,7 +158,6 @@ namespace Fermion
             defaultSpec.cull = CullMode::None;
             s_Data.defaultPipeline = Pipeline::create(defaultSpec);
         }
-
 
         s_Data.QuadVertexArray = VertexArray::create();
         s_Data.QuadVertexBuffer = VertexBuffer::create(s_Data.MaxVertices * sizeof(QuadVertices));
@@ -820,7 +819,7 @@ namespace Fermion
     void Renderer2D::drawAABB(const AABB &aabb, const glm::mat4 &transform, const glm::vec4 &color, int objectId)
     {
         FM_PROFILE_FUNCTION();
-        
+
         glm::vec4 min = {aabb.min.x, aabb.min.y, aabb.min.z, 1.0f};
         glm::vec4 max = {aabb.max.x, aabb.max.y, aabb.max.z, 1.0f};
 
@@ -1120,6 +1119,16 @@ namespace Fermion
         s_Data.LineWidth = width;
     }
 
+    // void Renderer2D::drawInfiniteLine(const glm::vec3 &point, const glm::vec3 &direction, const glm::vec4 &color, const EditorCamera &camera)
+    // {
+    //     float big = camera.getFarCilp() * 2.0f;
+
+    //     glm::vec3 p0 = point - direction * big;
+    //     glm::vec3 p1 = point + direction * big;
+
+    //     drawLine(p0, p1, color);
+    // }
+
     void Renderer2D::drawString(const std::string &string, std::shared_ptr<Font> font, const glm::mat4 &transform,
                                 const TextParams &textParams, int objectId)
     {
@@ -1247,19 +1256,17 @@ namespace Fermion
             }
         }
     }
-    void Renderer2D::recordOutlinePass(CommandBuffer &commandBuffer, const std::vector<MeshDrawCommand> &drawCommands,const glm::vec4& outlineColor)
+    void Renderer2D::recordOutlinePass(CommandBuffer &commandBuffer, const std::vector<MeshDrawCommand> &drawCommands, const glm::vec4 &outlineColor)
     {
-        commandBuffer.Record([&drawCommands,&outlineColor](RendererAPI &api)
-            {
+        commandBuffer.Record([&drawCommands, &outlineColor](RendererAPI &api)
+                             {
                 for (auto &cmd : drawCommands)
                 {
                     if (cmd.drawOutline)
                     {
                         Renderer2D::drawAABB(cmd.aabb, cmd.transform, outlineColor, cmd.objectID);
                     }
-                }
-            }
-        );
+                } });
     }
 
     void Renderer2D::resetStatistics()

@@ -52,10 +52,10 @@ public:
         return m_yaw;
     }
 
-    // float getFov() const { return m_fov; }
-    // float getAspectRatio() const { return m_aspectRatio; }
-    // float getNearCilp() const { return m_nearClip; }
-    // float getFarCilp() const { return m_farClip; }
+    float getFov() const { return m_fov; }
+    float getAspectRatio() const { return m_aspectRatio; }
+    float getNearCilp() const { return m_nearClip; }
+    float getFarCilp() const { return m_farClip; }
 
 private:
     void updateProjection();
