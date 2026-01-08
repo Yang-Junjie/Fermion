@@ -27,13 +27,16 @@ namespace Fermion {
         }
 
         void setTexture(std::unique_ptr<Texture2D> texture) {
-            UseTexture = (texture && texture->isLoaded());
-            DiffuseTexture = std::move(texture);
+            if (texture) {
+                setTextureShared(std::shared_ptr<Texture2D>(std::move(texture)));
+            } else {
+                setTextureShared(nullptr);
+            }
         }
         
         void setTextureShared(std::shared_ptr<Texture2D> texture) {
-            UseTexture = (texture && texture->isLoaded());
-            DiffuseTextureShared = texture;
+            DiffuseTextureShared = std::move(texture);
+            UseTexture = (DiffuseTextureShared && DiffuseTextureShared->isLoaded());
         }
 
         // PBR setters
@@ -58,7 +61,11 @@ namespace Fermion {
         }
 
         void setAlbedoMap(std::unique_ptr<Texture2D> texture) {
-            AlbedoMap = std::move(texture);
+            if (texture) {
+                AlbedoMapShared = std::shared_ptr<Texture2D>(std::move(texture));
+            } else {
+                AlbedoMapShared.reset();
+            }
         }
         
         void setAlbedoMapShared(std::shared_ptr<Texture2D> texture) {
@@ -66,7 +73,11 @@ namespace Fermion {
         }
 
         void setNormalMap(std::unique_ptr<Texture2D> texture) {
-            NormalMap = std::move(texture);
+            if (texture) {
+                NormalMapShared = std::shared_ptr<Texture2D>(std::move(texture));
+            } else {
+                NormalMapShared.reset();
+            }
         }
         
         void setNormalMapShared(std::shared_ptr<Texture2D> texture) {
@@ -74,7 +85,11 @@ namespace Fermion {
         }
 
         void setMetallicMap(std::unique_ptr<Texture2D> texture) {
-            MetallicMap = std::move(texture);
+            if (texture) {
+                MetallicMapShared = std::shared_ptr<Texture2D>(std::move(texture));
+            } else {
+                MetallicMapShared.reset();
+            }
         }
         
         void setMetallicMapShared(std::shared_ptr<Texture2D> texture) {
@@ -82,7 +97,11 @@ namespace Fermion {
         }
 
         void setRoughnessMap(std::unique_ptr<Texture2D> texture) {
-            RoughnessMap = std::move(texture);
+            if (texture) {
+                RoughnessMapShared = std::shared_ptr<Texture2D>(std::move(texture));
+            } else {
+                RoughnessMapShared.reset();
+            }
         }
         
         void setRoughnessMapShared(std::shared_ptr<Texture2D> texture) {
@@ -90,7 +109,11 @@ namespace Fermion {
         }
 
         void setAOMap(std::unique_ptr<Texture2D> texture) {
-            AOMap = std::move(texture);
+            if (texture) {
+                AOMapShared = std::shared_ptr<Texture2D>(std::move(texture));
+            } else {
+                AOMapShared.reset();
+            }
         }
         
         void setAOMapShared(std::shared_ptr<Texture2D> texture) {
@@ -103,6 +126,31 @@ namespace Fermion {
             } else {
                 bindPhong(shader, slot);
             }
+        }
+
+        std::shared_ptr<Material> clone() const {
+            auto result = std::make_shared<Material>();
+            result->copyFrom(*this);
+            return result;
+        }
+
+        void copyFrom(const Material &other) {
+            DiffuseColor = other.DiffuseColor;
+            AmbientColor = other.AmbientColor;
+            DiffuseTextureShared = other.DiffuseTextureShared;
+            UseTexture = (DiffuseTextureShared && DiffuseTextureShared->isLoaded());
+
+            Type = other.Type;
+            Albedo = other.Albedo;
+            Metallic = other.Metallic;
+            Roughness = other.Roughness;
+            AO = other.AO;
+
+            AlbedoMapShared = other.AlbedoMapShared;
+            NormalMapShared = other.NormalMapShared;
+            MetallicMapShared = other.MetallicMapShared;
+            RoughnessMapShared = other.RoughnessMapShared;
+            AOMapShared = other.AOMapShared;
         }
 
         // Getters
@@ -119,7 +167,7 @@ namespace Fermion {
         }
 
         Texture2D *getTexture() const {
-            return DiffuseTexture.get();
+            return DiffuseTextureShared.get();
         }
 
         MaterialType getType() const {
@@ -144,16 +192,13 @@ namespace Fermion {
 
     private:
         void bindPhong(const std::shared_ptr<Shader> &shader, int slot) const {
-            shader->setBool("u_UseTexture", UseTexture);
+            bool hasTexture = DiffuseTextureShared && DiffuseTextureShared->isLoaded();
+            shader->setBool("u_UseTexture", hasTexture);
             shader->setFloat4("u_Kd", DiffuseColor);
             shader->setFloat4("u_Ka", AmbientColor);
 
-            if (UseTexture) {
-                if (DiffuseTextureShared && DiffuseTextureShared->isLoaded()) {
-                    DiffuseTextureShared->bind(slot);
-                } else if (DiffuseTexture && DiffuseTexture->isLoaded()) {
-                    DiffuseTexture->bind(slot);
-                }
+            if (hasTexture) {
+                DiffuseTextureShared->bind(slot);
                 shader->setInt("u_Texture", slot);
             }
         }
@@ -167,12 +212,8 @@ namespace Fermion {
             int currentSlot = slot;
             
             // Albedo Map
-            if ((AlbedoMapShared && AlbedoMapShared->isLoaded()) || (AlbedoMap && AlbedoMap->isLoaded())) {
-                if (AlbedoMapShared && AlbedoMapShared->isLoaded()) {
-                    AlbedoMapShared->bind(currentSlot);
-                } else {
-                    AlbedoMap->bind(currentSlot);
-                }
+            if (AlbedoMapShared && AlbedoMapShared->isLoaded()) {
+                AlbedoMapShared->bind(currentSlot);
                 shader->setInt("u_AlbedoMap", currentSlot);
                 shader->setBool("u_UseAlbedoMap", true);
                 currentSlot++;
@@ -181,12 +222,8 @@ namespace Fermion {
             }
 
             // Normal Map
-            if ((NormalMapShared && NormalMapShared->isLoaded()) || (NormalMap && NormalMap->isLoaded())) {
-                if (NormalMapShared && NormalMapShared->isLoaded()) {
-                    NormalMapShared->bind(currentSlot);
-                } else {
-                    NormalMap->bind(currentSlot);
-                }
+            if (NormalMapShared && NormalMapShared->isLoaded()) {
+                NormalMapShared->bind(currentSlot);
                 shader->setInt("u_NormalMap", currentSlot);
                 shader->setBool("u_UseNormalMap", true);
                 currentSlot++;
@@ -195,12 +232,8 @@ namespace Fermion {
             }
 
             // Metallic Map
-            if ((MetallicMapShared && MetallicMapShared->isLoaded()) || (MetallicMap && MetallicMap->isLoaded())) {
-                if (MetallicMapShared && MetallicMapShared->isLoaded()) {
-                    MetallicMapShared->bind(currentSlot);
-                } else {
-                    MetallicMap->bind(currentSlot);
-                }
+            if (MetallicMapShared && MetallicMapShared->isLoaded()) {
+                MetallicMapShared->bind(currentSlot);
                 shader->setInt("u_MetallicMap", currentSlot);
                 shader->setBool("u_UseMetallicMap", true);
                 currentSlot++;
@@ -209,12 +242,8 @@ namespace Fermion {
             }
 
             // Roughness Map
-            if ((RoughnessMapShared && RoughnessMapShared->isLoaded()) || (RoughnessMap && RoughnessMap->isLoaded())) {
-                if (RoughnessMapShared && RoughnessMapShared->isLoaded()) {
-                    RoughnessMapShared->bind(currentSlot);
-                } else {
-                    RoughnessMap->bind(currentSlot);
-                }
+            if (RoughnessMapShared && RoughnessMapShared->isLoaded()) {
+                RoughnessMapShared->bind(currentSlot);
                 shader->setInt("u_RoughnessMap", currentSlot);
                 shader->setBool("u_UseRoughnessMap", true);
                 currentSlot++;
@@ -223,12 +252,8 @@ namespace Fermion {
             }
 
             // AO Map
-            if ((AOMapShared && AOMapShared->isLoaded()) || (AOMap && AOMap->isLoaded())) {
-                if (AOMapShared && AOMapShared->isLoaded()) {
-                    AOMapShared->bind(currentSlot);
-                } else {
-                    AOMap->bind(currentSlot);
-                }
+            if (AOMapShared && AOMapShared->isLoaded()) {
+                AOMapShared->bind(currentSlot);
                 shader->setInt("u_AOMap", currentSlot);
                 shader->setBool("u_UseAOMap", true);
                 currentSlot++;
@@ -243,7 +268,6 @@ namespace Fermion {
         glm::vec4 DiffuseColor; // Kd 漫反射
         glm::vec4 AmbientColor; // Ka 环境光
         bool UseTexture;
-        std::unique_ptr<Texture2D> DiffuseTexture = nullptr;
         std::shared_ptr<Texture2D> DiffuseTextureShared = nullptr;
 
         glm::vec3 Albedo;        
@@ -251,15 +275,10 @@ namespace Fermion {
         float Roughness;       
         float AO;               
 
-        std::unique_ptr<Texture2D> AlbedoMap = nullptr;
         std::shared_ptr<Texture2D> AlbedoMapShared = nullptr;
-        std::unique_ptr<Texture2D> NormalMap = nullptr;
         std::shared_ptr<Texture2D> NormalMapShared = nullptr;
-        std::unique_ptr<Texture2D> MetallicMap = nullptr;
         std::shared_ptr<Texture2D> MetallicMapShared = nullptr;
-        std::unique_ptr<Texture2D> RoughnessMap = nullptr;
         std::shared_ptr<Texture2D> RoughnessMapShared = nullptr;
-        std::unique_ptr<Texture2D> AOMap = nullptr;
         std::shared_ptr<Texture2D> AOMapShared = nullptr;
     };
 } // namespace Fermion

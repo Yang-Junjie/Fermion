@@ -238,138 +238,110 @@ namespace Fermion
         }
     }
 
-    void SceneRenderer::submitMesh(MeshComponent &meshComponent, PBRMaterialComponent &pbrMaterial,
-                                   glm::mat4 transform, int objectId, bool drawOutline)
+    void SceneRenderer::submitMesh(MeshComponent &meshComponent,
+                                   PBRMaterialComponent &pbrMaterial,
+                                   const glm::mat4 &transform,
+                                   int objectId,
+                                   bool drawOutline)
     {
-        if (static_cast<uint64_t>(meshComponent.meshHandle) != 0)
+        if (static_cast<uint64_t>(meshComponent.meshHandle) == 0)
+            return;
+
+        auto assetManager = Project::getRuntimeAssetManager();
+        auto mesh = assetManager->getAsset<Mesh>(meshComponent.meshHandle);
+        if (!mesh)
+            return;
+
+        auto vao = mesh->getVertexArray();
+
+        auto bindTexture = [&](AssetHandle handle, auto &&setter)
         {
-            auto mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
-            if (mesh)
+            if (static_cast<uint64_t>(handle) != 0)
             {
-                for (auto &submesh : mesh->getSubMeshes())
-                {
-                    MeshDrawCommand cmd;
-                    cmd.pipeline = m_PBRMeshPipeline;
-                    cmd.vao = mesh->getVertexArray();
-
-                    auto material = mesh->getMaterials()[submesh.MaterialIndex];
-                    if (!material)
-                    {
-                        material = std::make_shared<Material>();
-                    }
-
-                    material->setMaterialType(MaterialType::PBR);
-                    material->setAlbedo(pbrMaterial.albedo);
-                    material->setMetallic(pbrMaterial.metallic);
-                    material->setRoughness(pbrMaterial.roughness);
-                    material->setAO(pbrMaterial.ao);
-
-                    auto assetManager = Project::getRuntimeAssetManager();
-
-                    if (static_cast<uint64_t>(pbrMaterial.albedoMapHandle) != 0)
-                    {
-                        auto texture = assetManager->getAsset<Texture2D>(pbrMaterial.albedoMapHandle);
-                        if (texture)
-                        {
-                            material->setAlbedoMapShared(texture);
-                        }
-                    }
-
-                    if (static_cast<uint64_t>(pbrMaterial.normalMapHandle) != 0)
-                    {
-                        auto texture = assetManager->getAsset<Texture2D>(pbrMaterial.normalMapHandle);
-                        if (texture)
-                        {
-                            material->setNormalMapShared(texture);
-                        }
-                    }
-
-                    if (static_cast<uint64_t>(pbrMaterial.metallicMapHandle) != 0)
-                    {
-                        auto texture = assetManager->getAsset<Texture2D>(pbrMaterial.metallicMapHandle);
-                        if (texture)
-                        {
-                            material->setMetallicMapShared(texture);
-                        }
-                    }
-
-                    if (static_cast<uint64_t>(pbrMaterial.roughnessMapHandle) != 0)
-                    {
-                        auto texture = assetManager->getAsset<Texture2D>(pbrMaterial.roughnessMapHandle);
-                        if (texture)
-                        {
-                            material->setRoughnessMapShared(texture);
-                        }
-                    }
-
-                    if (static_cast<uint64_t>(pbrMaterial.aoMapHandle) != 0)
-                    {
-                        auto texture = assetManager->getAsset<Texture2D>(pbrMaterial.aoMapHandle);
-                        if (texture)
-                        {
-                            material->setAOMapShared(texture);
-                        }
-                    }
-
-                    cmd.material = material;
-                    cmd.transform = transform;
-                    cmd.indexCount = submesh.IndexCount;
-                    cmd.indexOffset = submesh.IndexOffset;
-                    cmd.objectID = objectId;
-                    cmd.drawOutline = drawOutline;
-                    cmd.aabb = mesh->getBoundingBox();
-                    s_MeshDrawList.emplace_back(std::move(cmd));
-                }
+                setter(assetManager->getAsset<Texture2D>(handle));
             }
+            else
+            {
+                setter(nullptr);
+            }
+        };
+
+        for (auto &submesh : mesh->getSubMeshes())
+        {
+            auto material = mesh->cloneMaterial(submesh.MaterialIndex);
+            material->setMaterialType(MaterialType::PBR);
+            material->setAlbedo(pbrMaterial.albedo);
+            material->setMetallic(pbrMaterial.metallic);
+            material->setRoughness(pbrMaterial.roughness);
+            material->setAO(pbrMaterial.ao);
+
+            bindTexture(pbrMaterial.albedoMapHandle, [&](auto tex)
+                        { material->setAlbedoMapShared(tex); });
+            bindTexture(pbrMaterial.normalMapHandle, [&](auto tex)
+                        { material->setNormalMapShared(tex); });
+            bindTexture(pbrMaterial.metallicMapHandle, [&](auto tex)
+                        { material->setMetallicMapShared(tex); });
+            bindTexture(pbrMaterial.roughnessMapHandle, [&](auto tex)
+                        { material->setRoughnessMapShared(tex); });
+            bindTexture(pbrMaterial.aoMapHandle, [&](auto tex)
+                        { material->setAOMapShared(tex); });
+
+            MeshDrawCommand cmd;
+            cmd.pipeline = m_PBRMeshPipeline;
+            cmd.vao = vao;
+            cmd.material = material;
+            cmd.transform = transform;
+            cmd.indexCount = submesh.IndexCount;
+            cmd.indexOffset = submesh.IndexOffset;
+            cmd.objectID = objectId;
+            cmd.drawOutline = drawOutline;
+            cmd.aabb = mesh->getBoundingBox();
+
+            s_MeshDrawList.emplace_back(std::move(cmd));
         }
     }
 
     void SceneRenderer::submitMesh(MeshComponent &meshComponent, PhongMaterialComponent &phongMaterial,
                                    glm::mat4 transform, int objectId, bool drawOutline)
     {
-        if (static_cast<uint64_t>(meshComponent.meshHandle) != 0)
+        if (static_cast<uint64_t>(meshComponent.meshHandle) == 0)
+            return;
+
+        auto assetManager = Project::getRuntimeAssetManager();
+        auto mesh = assetManager->getAsset<Mesh>(meshComponent.meshHandle);
+        if (!mesh)
+            return;
+
+        for (auto &submesh : mesh->getSubMeshes())
         {
-            auto mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
-            if (mesh)
+            MeshDrawCommand cmd;
+            // 使用Phong管线
+            cmd.pipeline = m_MeshPipeline;
+            cmd.vao = mesh->getVertexArray();
+
+            // 创建Phong材质并加载纹理
+            auto material = mesh->cloneMaterial(submesh.MaterialIndex);
+
+            material->setMaterialType(MaterialType::Phong);
+            material->setDiffuseColor(phongMaterial.diffuseColor);
+            material->setAmbientColor(phongMaterial.ambientColor);
+
+            // 从AssetHandle加载漫反射纹理
+            std::shared_ptr<Texture2D> texture = nullptr;
+            if (phongMaterial.useTexture && static_cast<uint64_t>(phongMaterial.diffuseTextureHandle) != 0)
             {
-                for (auto &submesh : mesh->getSubMeshes())
-                {
-                    MeshDrawCommand cmd;
-                    // 使用Phong管线
-                    cmd.pipeline = m_MeshPipeline;
-                    cmd.vao = mesh->getVertexArray();
-
-                    // 创建Phong材质并加载纹理
-                    auto material = mesh->getMaterials()[submesh.MaterialIndex];
-                    if (!material)
-                    {
-                        material = std::make_shared<Material>();
-                    }
-
-                    material->setMaterialType(MaterialType::Phong);
-                    material->setDiffuseColor(phongMaterial.diffuseColor);
-                    material->setAmbientColor(phongMaterial.ambientColor);
-
-                    // 从AssetHandle加载漫反射纹理
-                    if (phongMaterial.useTexture && static_cast<uint64_t>(phongMaterial.diffuseTextureHandle) != 0)
-                    {
-                        auto texture = Project::getRuntimeAssetManager()->getAsset<Texture2D>(phongMaterial.diffuseTextureHandle);
-                        if (texture)
-                        {
-                            material->setTextureShared(texture);
-                        }
-                    }
-
-                    cmd.material = material;
-                    cmd.transform = transform;
-                    cmd.indexCount = submesh.IndexCount;
-                    cmd.indexOffset = submesh.IndexOffset;
-                    cmd.objectID = objectId;
-                    cmd.drawOutline = drawOutline;
-                    cmd.aabb = mesh->getBoundingBox();
-                    s_MeshDrawList.emplace_back(std::move(cmd));
-                }
+                texture = assetManager->getAsset<Texture2D>(phongMaterial.diffuseTextureHandle);
             }
+            material->setTextureShared(texture);
+
+            cmd.material = material;
+            cmd.transform = transform;
+            cmd.indexCount = submesh.IndexCount;
+            cmd.indexOffset = submesh.IndexOffset;
+            cmd.objectID = objectId;
+            cmd.drawOutline = drawOutline;
+            cmd.aabb = mesh->getBoundingBox();
+            s_MeshDrawList.emplace_back(std::move(cmd));
         }
     }
     void SceneRenderer::drawLine(const glm::vec3 &start, const glm::vec3 &end, const glm::vec4 &color)
@@ -619,8 +591,8 @@ namespace Fermion
     void SceneRenderer::generateIrradianceMap()
     {
         Log::Info(std::format("Generating irradiance map (size: {}x{})...",
-                  m_sceneData.irradianceMapSize, m_sceneData.irradianceMapSize));
-        
+                              m_sceneData.irradianceMapSize, m_sceneData.irradianceMapSize));
+
         // 创建辐照度贴图
         TextureCubeSpecification irradianceSpec;
         irradianceSpec.width = m_sceneData.irradianceMapSize;
@@ -642,13 +614,12 @@ namespace Fermion
         glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
 
         glm::mat4 captureViews[] = {
-            glm::lookAt(glm::vec3(0.0f), glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-            glm::lookAt(glm::vec3(0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-            glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
-            glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
-            glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-            glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
-        };
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f))};
 
         m_IBLIrradiancePipeline->bind();
         auto shader = m_IBLIrradiancePipeline->getShader();
@@ -656,41 +627,55 @@ namespace Fermion
         shader->setMat4("u_Projection", captureProjection);
         m_skybox->bind(0);
 
-        const char* faceNames[] = {"+X (Right)", "-X (Left)", "+Y (Up)", "-Y (Down)", "+Z (Front)", "-Z (Back)"};
-        
+        const char *faceNames[] = {"+X (Right)", "-X (Left)", "+Y (Up)", "-Y (Down)", "+Z (Front)", "-Z (Back)"};
 
-        for (uint32_t i = 0; i < 6; ++i) {
+        for (uint32_t i = 0; i < 6; ++i)
+        {
             Log::Info(std::format("  Rendering irradiance face {} ({})", i, faceNames[i]));
-            
+
             // 打印视图矩阵
             glm::vec3 lookDir;
-            switch(i) {
-                case 0: lookDir = glm::vec3( 1.0f,  0.0f,  0.0f); break;  // +X
-                case 1: lookDir = glm::vec3(-1.0f,  0.0f,  0.0f); break;  // -X
-                case 2: lookDir = glm::vec3( 0.0f,  1.0f,  0.0f); break;  // +Y
-                case 3: lookDir = glm::vec3( 0.0f, -1.0f,  0.0f); break;  // -Y
-                case 4: lookDir = glm::vec3( 0.0f,  0.0f,  1.0f); break;  // +Z
-                case 5: lookDir = glm::vec3( 0.0f,  0.0f, -1.0f); break;  // -Z
+            switch (i)
+            {
+            case 0:
+                lookDir = glm::vec3(1.0f, 0.0f, 0.0f);
+                break; // +X
+            case 1:
+                lookDir = glm::vec3(-1.0f, 0.0f, 0.0f);
+                break; // -X
+            case 2:
+                lookDir = glm::vec3(0.0f, 1.0f, 0.0f);
+                break; // +Y
+            case 3:
+                lookDir = glm::vec3(0.0f, -1.0f, 0.0f);
+                break; // -Y
+            case 4:
+                lookDir = glm::vec3(0.0f, 0.0f, 1.0f);
+                break; // +Z
+            case 5:
+                lookDir = glm::vec3(0.0f, 0.0f, -1.0f);
+                break; // -Z
             }
             Log::Info(std::format("    Look direction: ({:.2f}, {:.2f}, {:.2f})", lookDir.x, lookDir.y, lookDir.z));
-            
+
             shader->setMat4("u_View", captureViews[i]);
             captureFB->bind();
             RenderCommand::setViewport(0, 0, m_sceneData.irradianceMapSize, m_sceneData.irradianceMapSize);
             RenderCommand::clear();
             RenderCommand::drawIndexed(m_cubeVA, m_cubeVA->getIndexBuffer()->getCount());
-            
+
             // 将渲染结果复制到cubemap的对应面
             m_irradianceMap->copyFromFramebuffer(captureFB, i, 0);
         }
 
         captureFB->unbind();
-        
+
         // 恢复原始framebuffer
-        if (m_targetFramebuffer) {
+        if (m_targetFramebuffer)
+        {
             m_targetFramebuffer->bind();
         }
-        
+
         Log::Info("Irradiance map generation completed");
     }
 
@@ -707,13 +692,12 @@ namespace Fermion
 
         glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
         glm::mat4 captureViews[] = {
-            glm::lookAt(glm::vec3(0.0f), glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-            glm::lookAt(glm::vec3(0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-            glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
-            glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
-            glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-            glm::lookAt(glm::vec3(0.0f), glm::vec3( 0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
-        };
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f))};
 
         m_IBLPrefilterPipeline->bind();
         auto shader = m_IBLPrefilterPipeline->getShader();
@@ -722,10 +706,11 @@ namespace Fermion
         m_skybox->bind(0);
 
         // 为每个mip级别生成预过滤贴图
-        for (uint32_t mip = 0; mip < m_sceneData.prefilterMaxMipLevels; ++mip) {
+        for (uint32_t mip = 0; mip < m_sceneData.prefilterMaxMipLevels; ++mip)
+        {
             uint32_t mipWidth = static_cast<uint32_t>(m_sceneData.prefilterMapSize * std::pow(0.5, mip));
             uint32_t mipHeight = mipWidth;
-            
+
             FramebufferSpecification fbSpec;
             fbSpec.width = mipWidth;
             fbSpec.height = mipHeight;
@@ -736,20 +721,22 @@ namespace Fermion
             float roughness = static_cast<float>(mip) / static_cast<float>(m_sceneData.prefilterMaxMipLevels - 1);
             shader->setFloat("u_Roughness", roughness);
 
-            for (uint32_t i = 0; i < 6; ++i) {
+            for (uint32_t i = 0; i < 6; ++i)
+            {
                 shader->setMat4("u_View", captureViews[i]);
                 captureFB->bind();
                 RenderCommand::setViewport(0, 0, mipWidth, mipHeight);
                 RenderCommand::clear();
                 RenderCommand::drawIndexed(m_cubeVA, m_cubeVA->getIndexBuffer()->getCount());
-                
+
                 m_prefilterMap->copyFromFramebuffer(captureFB, i, mip);
             }
-            
+
             captureFB->unbind();
         }
-        
-        if (m_targetFramebuffer) {
+
+        if (m_targetFramebuffer)
+        {
             m_targetFramebuffer->bind();
         }
     }
@@ -777,15 +764,16 @@ namespace Fermion
 
         m_IBLBRDFPipeline->bind();
         RenderCommand::clear();
-        
+
         RenderCommand::drawIndexed(m_cubeVA, 6);
 
         // 复制到纹理
         m_brdfLUT->copyFromFramebuffer(captureFB, 0, 0);
 
         captureFB->unbind();
-        
-        if (m_targetFramebuffer) {
+
+        if (m_targetFramebuffer)
+        {
             m_targetFramebuffer->bind();
         }
     }

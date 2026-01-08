@@ -27,6 +27,14 @@ namespace Fermion {
         calculateBoundingBox();
     }
 
+    std::shared_ptr<Material> Mesh::cloneMaterial(uint32_t index) const
+    {
+        if (index >= m_Materials.size() || !m_Materials[index])
+            return std::make_shared<Material>();
+
+        return m_Materials[index]->clone();
+    }
+
     void Mesh::debugMeshLog() const
     {
         Log::Info("-------------------Mesh Info----------------------");

@@ -81,6 +81,8 @@ namespace Fermion
             return m_Materials;
         }
 
+        std::shared_ptr<Material> cloneMaterial(uint32_t index) const;
+
         const std::vector<SubMesh> &getSubMeshes() const
         {
             return m_SubMeshes;
