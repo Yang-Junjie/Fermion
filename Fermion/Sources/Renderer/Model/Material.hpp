@@ -45,17 +45,28 @@ namespace Fermion
         const glm::vec4 &getDiffuseColor() const;
         const glm::vec4 &getAmbientColor() const;
         AssetHandle getDiffuseTexture() const;
+        AssetHandle& getDiffuseTexture();
         MaterialType getType() const;
         const glm::vec3 &getAlbedo() const;
         float getMetallic() const;
         float getRoughness() const;
         float getAO() const;
-        
+
         AssetHandle getAlbedoMap() const;
         AssetHandle getNormalMap() const;
         AssetHandle getMetallicMap() const;
         AssetHandle getRoughnessMap() const;
         AssetHandle getAOMap() const;
+
+        AssetHandle &getAlbedoMap();
+        AssetHandle &getNormalMap();
+        AssetHandle &getMetallicMap();
+        AssetHandle &getRoughnessMap();
+        AssetHandle &getAOMap();
+        virtual AssetType getAssetsType() const override
+        {
+            return AssetType::Material;
+        }
 
     private:
         void bindPhong(const std::shared_ptr<Shader> &shader, int slot) const;
@@ -75,11 +86,14 @@ namespace Fermion
         float Roughness;
         float AO;
 
-        AssetHandle AlbedoMapHandle = AssetHandle(0);
-        AssetHandle NormalMapHandle = AssetHandle(0);
-        AssetHandle MetallicMapHandle = AssetHandle(0);
-        AssetHandle RoughnessMapHandle = AssetHandle(0);
-        AssetHandle AOMapHandle = AssetHandle(0);
+        struct MapAssets
+        {
+            AssetHandle AlbedoMapHandle = AssetHandle(0);
+            AssetHandle NormalMapHandle = AssetHandle(0);
+            AssetHandle MetallicMapHandle = AssetHandle(0);
+            AssetHandle RoughnessMapHandle = AssetHandle(0);
+            AssetHandle AOMapHandle = AssetHandle(0);
+        } m_Maps;
     };
 
 } // namespace Fermion

@@ -55,27 +55,27 @@ namespace Fermion
 
     void Material::setAlbedoMap(AssetHandle textureHandle)
     {
-        AlbedoMapHandle = textureHandle;
+        m_Maps.AlbedoMapHandle = textureHandle;
     }
 
     void Material::setNormalMap(AssetHandle textureHandle)
     {
-        NormalMapHandle = textureHandle;
+        m_Maps.NormalMapHandle = textureHandle;
     }
 
     void Material::setMetallicMap(AssetHandle textureHandle)
     {
-        MetallicMapHandle = textureHandle;
+        m_Maps.MetallicMapHandle = textureHandle;
     }
 
     void Material::setRoughnessMap(AssetHandle textureHandle)
     {
-        RoughnessMapHandle = textureHandle;
+        m_Maps.RoughnessMapHandle = textureHandle;
     }
 
     void Material::setAOMap(AssetHandle textureHandle)
     {
-        AOMapHandle = textureHandle;
+        m_Maps.AOMapHandle = textureHandle;
     }
 
     // Bind
@@ -111,11 +111,11 @@ namespace Fermion
         Roughness = other.Roughness;
         AO = other.AO;
 
-        AlbedoMapHandle = other.AlbedoMapHandle;
-        NormalMapHandle = other.NormalMapHandle;
-        MetallicMapHandle = other.MetallicMapHandle;
-        RoughnessMapHandle = other.RoughnessMapHandle;
-        AOMapHandle = other.AOMapHandle;
+        m_Maps.AlbedoMapHandle = other.m_Maps.AlbedoMapHandle;
+        m_Maps.NormalMapHandle = other.m_Maps.NormalMapHandle;
+        m_Maps.MetallicMapHandle = other.m_Maps.MetallicMapHandle;
+        m_Maps.RoughnessMapHandle = other.m_Maps.RoughnessMapHandle;
+        m_Maps.AOMapHandle = other.m_Maps.AOMapHandle;
     }
 
     // Getters
@@ -123,29 +123,37 @@ namespace Fermion
     const glm::vec4 &Material::getDiffuseColor() const { return DiffuseColor; }
     const glm::vec4 &Material::getAmbientColor() const { return AmbientColor; }
     AssetHandle Material::getDiffuseTexture() const { return DiffuseTextureHandle; }
+    AssetHandle &Material::getDiffuseTexture() { return DiffuseTextureHandle; }
+
     MaterialType Material::getType() const { return Type; }
     const glm::vec3 &Material::getAlbedo() const { return Albedo; }
     float Material::getMetallic() const { return Metallic; }
     float Material::getRoughness() const { return Roughness; }
     float Material::getAO() const { return AO; }
-    
-    AssetHandle Material::getAlbedoMap() const { return AlbedoMapHandle; }
-    AssetHandle Material::getNormalMap() const { return NormalMapHandle; }
-    AssetHandle Material::getMetallicMap() const { return MetallicMapHandle; }
-    AssetHandle Material::getRoughnessMap() const { return RoughnessMapHandle; }
-    AssetHandle Material::getAOMap() const { return AOMapHandle; }
+
+    AssetHandle Material::getAlbedoMap() const { return m_Maps.AlbedoMapHandle; }
+    AssetHandle Material::getNormalMap() const { return m_Maps.NormalMapHandle; }
+    AssetHandle Material::getMetallicMap() const { return m_Maps.MetallicMapHandle; }
+    AssetHandle Material::getRoughnessMap() const { return m_Maps.RoughnessMapHandle; }
+    AssetHandle Material::getAOMap() const { return m_Maps.AOMapHandle; }
+
+    AssetHandle &Material::getAlbedoMap() { return m_Maps.AlbedoMapHandle; }
+    AssetHandle &Material::getNormalMap() { return m_Maps.NormalMapHandle; }
+    AssetHandle &Material::getMetallicMap() { return m_Maps.MetallicMapHandle; }
+    AssetHandle &Material::getRoughnessMap() { return m_Maps.RoughnessMapHandle; }
+    AssetHandle &Material::getAOMap() { return m_Maps.AOMapHandle; }
 
     // Private binding helpers
     void Material::bindPhong(const std::shared_ptr<Shader> &shader, int slot) const
     {
         auto assetManager = Project::getRuntimeAssetManager();
         std::shared_ptr<Texture2D> texture = nullptr;
-        
+
         if (static_cast<uint64_t>(DiffuseTextureHandle) != 0)
         {
             texture = assetManager->getAsset<Texture2D>(DiffuseTextureHandle);
         }
-        
+
         bool hasTexture = texture && texture->isLoaded();
         shader->setBool("u_UseTexture", hasTexture);
         shader->setFloat4("u_Kd", DiffuseColor);
@@ -185,11 +193,11 @@ namespace Fermion
             shader->setBool(useFlag, false);
         };
 
-        bindMap(AlbedoMapHandle, "u_AlbedoMap", "u_UseAlbedoMap");
-        bindMap(NormalMapHandle, "u_NormalMap", "u_UseNormalMap");
-        bindMap(MetallicMapHandle, "u_MetallicMap", "u_UseMetallicMap");
-        bindMap(RoughnessMapHandle, "u_RoughnessMap", "u_UseRoughnessMap");
-        bindMap(AOMapHandle, "u_AOMap", "u_UseAOMap");
+        bindMap(m_Maps.AlbedoMapHandle, "u_AlbedoMap", "u_UseAlbedoMap");
+        bindMap(m_Maps.NormalMapHandle, "u_NormalMap", "u_UseNormalMap");
+        bindMap(m_Maps.MetallicMapHandle, "u_MetallicMap", "u_UseMetallicMap");
+        bindMap(m_Maps.RoughnessMapHandle, "u_RoughnessMap", "u_UseRoughnessMap");
+        bindMap(m_Maps.AOMapHandle, "u_AOMap", "u_UseAOMap");
     }
 
 } // namespace Fermion

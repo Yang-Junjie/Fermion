@@ -175,11 +175,12 @@ namespace Fermion
             displayAddComponentEntry<PointLightComponent>("Point Light");
             displayAddComponentEntry<SpotLightComponent>("Spot Light");
 
-            if (!(entity.hasComponent<PhongMaterialComponent>() || entity.hasComponent<PBRMaterialComponent>()))
+            if (!(entity.hasComponent<PhongMaterialComponent>() || entity.hasComponent<PBRMaterialComponent>() || entity.hasComponent<MaterialSlotsComponent>()))
             {
                 ImGui::SeparatorText("Materials");
                 displayAddComponentEntry<PhongMaterialComponent>("Phong Material");
                 displayAddComponentEntry<PBRMaterialComponent>("PBR Material");
+                displayAddComponentEntry<MaterialSlotsComponent>("Material Slots");
             }
 
             ImGui::SeparatorText("Other");
@@ -750,19 +751,198 @@ namespace Fermion
                 }
                 ImGui::EndDragDropTarget();
             }
-            if (static_cast<uint64_t>(component.aoMapHandle) != 0) {
-                ImGui::SameLine();
-                ImGui::Text("(%llu)", static_cast<uint64_t>(component.aoMapHandle));
-                
-                auto texture = Project::getEditorAssetManager()->getAsset<Texture2D>(component.aoMapHandle);
-                if (texture && texture->isLoaded()) {
-                    ImTextureID textureID = (ImTextureID)(uintptr_t)texture->getRendererID();
-                    ImGui::Image(textureID, ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
+                if (static_cast<uint64_t>(component.aoMapHandle) != 0) {
+                    ImGui::SameLine();
+                    ImGui::Text("(%llu)", static_cast<uint64_t>(component.aoMapHandle));
+                    
+                    auto texture = Project::getEditorAssetManager()->getAsset<Texture2D>(component.aoMapHandle);
+                    if (texture && texture->isLoaded()) {
+                        ImTextureID textureID = (ImTextureID)(uintptr_t)texture->getRendererID();
+                        ImGui::Image(textureID, ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
+                    }
                 }
-            }
             
             ImGui::Separator();
             ImGui::TextWrapped("Tip: Drag texture files from Content Browser to assign maps"); });
+
+        drawComponent<MaterialSlotsComponent>("Material Slots", entity, [entity](auto &component) mutable
+                                              {
+            ImGui::Text("Multi-Material");
+            ImGui::Separator();
+
+            // 获取 Mesh 和 SubMesh 数量
+            uint32_t subMeshCount = 0;
+            std::shared_ptr<Mesh> mesh = nullptr;
+
+            if (entity.hasComponent<MeshComponent>()) {
+                auto &meshComponent = entity.getComponent<MeshComponent>();
+                if (static_cast<uint64_t>(meshComponent.meshHandle) != 0) {
+                    mesh = Project::getEditorAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
+                    if (mesh)
+                        subMeshCount = static_cast<uint32_t>(mesh->getSubMeshes().size());
+                }
+            }
+
+            if (subMeshCount == 0) {
+                ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "Warning: No mesh attached or mesh has no submeshes");
+                return;
+            }
+
+            ImGui::Text("SubMesh Count: %u", subMeshCount);
+            ImGui::Separator();
+
+            // 确保材质槽位数组大小匹配SubMesh数量
+            if (component.materials.size() < subMeshCount)
+                component.materials.resize(subMeshCount, nullptr);
+
+            auto editorAssets = Project::getEditorAssetManager();
+
+            // Drag & Drop + 缩略图函数
+            auto handleTextureDragDropWithPreview = [&](const char* label, AssetHandle& textureHandle, auto setTextureCallback) {
+                ImGui::Text("%s:", label);
+                ImGui::SameLine();
+                ImGui::Button(("Drag##" + std::string(label)).c_str());
+
+                // Drag & Drop 逻辑
+                if (ImGui::BeginDragDropTarget()) {
+                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("FERMION_TEXTURE")) {
+                        const char* path = static_cast<const char*>(payload->Data);
+                        if (path && path[0]) {
+                            AssetHandle handle = editorAssets->importAsset(std::filesystem::path(path));
+                            if (static_cast<uint64_t>(handle) != 0) {
+                                setTextureCallback(handle);
+                                textureHandle = handle;
+                            }
+                        }
+                    }
+                    ImGui::EndDragDropTarget();
+                }
+                // 显示 handle
+                ImGui::SameLine();
+                ImGui::Text("(%llu)", static_cast<uint64_t>(textureHandle));
+
+                // 显示缩略图
+                if (static_cast<uint64_t>(textureHandle) != 0) {
+                    auto texture = editorAssets->getAsset<Texture2D>(textureHandle);
+                    if (texture && texture->isLoaded()) {
+                        ImTextureID textureID = (ImTextureID)(uintptr_t)texture->getRendererID();
+                        ImGui::Image(textureID, ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
+                    }
+                }
+            };
+
+            // 绘制材质 UI
+            auto drawMaterialUI = [&](std::shared_ptr<Material>& material) {
+                if (!material) {
+                    if (ImGui::Button("Create New Material")) {
+                        material = std::make_shared<Material>();
+                        material->setMaterialType(MaterialType::Phong);
+                        material->setDiffuseColor(glm::vec4(0.8f));
+                        material->setAmbientColor(glm::vec4(0.1f));
+                    }
+                    return;
+                }
+
+                // 材质类型选择
+                const char* materialTypeStrings[] = { "Phong", "PBR" };
+                int currentType = (material->getType() == MaterialType::PBR) ? 1 : 0;
+                if (ImGui::Combo("Material Type", &currentType, materialTypeStrings, 2)) {
+                    MaterialType newType = (currentType == 1) ? MaterialType::PBR : MaterialType::Phong;
+                    material->setMaterialType(newType);
+
+                    // 默认参数
+                    if (newType == MaterialType::Phong) {
+                        material->setDiffuseColor(glm::vec4(0.8f));
+                        material->setAmbientColor(glm::vec4(0.1f));
+                    } else {
+                        material->setAlbedo(glm::vec3(0.8f));
+                        material->setMetallic(0.0f);
+                        material->setRoughness(0.5f);
+                        material->setAO(1.0f);
+                    }
+                }
+
+                ImGui::Separator();
+
+                if (material->getType() == MaterialType::Phong) {
+                    ImGui::Text("Phong Material Properties");
+
+                    glm::vec4 diffuse = material->getDiffuseColor();
+                    if (ImGui::ColorEdit4("Diffuse Color", glm::value_ptr(diffuse)))
+                        material->setDiffuseColor(diffuse);
+
+                    glm::vec4 ambient = material->getAmbientColor();
+                    if (ImGui::ColorEdit4("Ambient Color", glm::value_ptr(ambient)))
+                        material->setAmbientColor(ambient);
+
+                    // Diffuse Texture
+                    handleTextureDragDropWithPreview("Diffuse Texture", material->getDiffuseTexture(),
+                        [&](AssetHandle h) { material->setDiffuseTexture(h); });
+
+                } else { // PBR
+                    ImGui::Text("PBR Material Properties");
+
+                    glm::vec3 albedo = material->getAlbedo();
+                    if (ImGui::ColorEdit3("Albedo", glm::value_ptr(albedo)))
+                        material->setAlbedo(albedo);
+
+                    float metallic = material->getMetallic();
+                    if (ImGui::SliderFloat("Metallic", &metallic, 0.0f, 1.0f))
+                        material->setMetallic(metallic);
+
+                    float roughness = material->getRoughness();
+                    if (ImGui::SliderFloat("Roughness", &roughness, 0.0f, 1.0f))
+                        material->setRoughness(roughness);
+
+                    float ao = material->getAO();
+                    if (ImGui::SliderFloat("AO", &ao, 0.0f, 1.0f))
+                        material->setAO(ao);
+
+                    ImGui::Separator();
+                    ImGui::Text("Texture Maps:");
+
+                    const char* mapNames[] = { "Albedo", "Normal", "Metallic", "Roughness", "AO" };
+                    for (int m = 0; m < 5; m++) {
+                        AssetHandle* handlePtr = nullptr;
+                        switch(m) {
+                            case 0: handlePtr = &material->getAlbedoMap(); break;
+                            case 1: handlePtr = &material->getNormalMap(); break;
+                            case 2: handlePtr = &material->getMetallicMap(); break;
+                            case 3: handlePtr = &material->getRoughnessMap(); break;
+                            case 4: handlePtr = &material->getAOMap(); break;
+                        }
+                        if (handlePtr) {
+                            handleTextureDragDropWithPreview(mapNames[m], *handlePtr, [&](AssetHandle h){
+                                switch(m) {
+                                    case 0: material->setAlbedoMap(h); break;
+                                    case 1: material->setNormalMap(h); break;
+                                    case 2: material->setMetallicMap(h); break;
+                                    case 3: material->setRoughnessMap(h); break;
+                                    case 4: material->setAOMap(h); break;
+                                }
+                            });
+                        }
+                    }
+                }
+
+                ImGui::Separator();
+                if (ImGui::Button("Remove Material"))
+                    material = nullptr;
+            };
+
+            // 绘制每个 SubMesh 材质
+            for (uint32_t i = 0; i < subMeshCount; i++) {
+                ImGui::PushID(i);
+                if (ImGui::TreeNodeEx(("SubMesh " + std::to_string(i)).c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+                    drawMaterialUI(component.materials[i]);
+                    ImGui::TreePop();
+                }
+                ImGui::Spacing();
+                ImGui::PopID();
+            }
+
+            ImGui::Separator();
+            ImGui::TextWrapped("Tip: Create and configure materials for each SubMesh. Drag textures from Content Browser."); });
     }
 
     template <typename T>

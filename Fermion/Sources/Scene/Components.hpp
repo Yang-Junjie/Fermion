@@ -98,7 +98,6 @@ namespace Fermion
     struct MeshComponent
     {
         AssetHandle meshHandle = AssetHandle(0);
-        std::vector<AssetHandle> materials;
 
         bool memoryOnly = false;
         MemoryMeshType memoryMeshType = MemoryMeshType::None;
@@ -106,6 +105,40 @@ namespace Fermion
         MeshComponent() = default;
 
         MeshComponent(const MeshComponent &) = default;
+    };
+
+    // 材质槽位组件 - 存储Mesh使用的所有材质
+    struct MaterialSlotsComponent
+    {
+        // 材质槽位数组，每个SubMesh通过MaterialSlotIndex索引到对应材质
+        std::vector<std::shared_ptr<Material>> materials;
+        
+        MaterialSlotsComponent() = default;
+        MaterialSlotsComponent(const MaterialSlotsComponent &) = default;
+        
+        // 设置槽位材质
+        void setMaterial(uint32_t slotIndex, std::shared_ptr<Material> material)
+        {
+            if (slotIndex >= materials.size())
+            {
+                materials.resize(slotIndex + 1, nullptr);
+            }
+            materials[slotIndex] = material;
+        }
+        
+        // 获取槽位材质
+        std::shared_ptr<Material> getMaterial(uint32_t slotIndex) const
+        {
+            if (slotIndex < materials.size())
+                return materials[slotIndex];
+            return nullptr;
+        }
+        
+        // 获取槽位数量
+        size_t getSlotCount() const
+        {
+            return materials.size();
+        }
     };
 
     struct TextComponent
@@ -398,6 +431,7 @@ namespace Fermion
 
                        /* Materials */
                        PhongMaterialComponent,
-                       PBRMaterialComponent
+                       PBRMaterialComponent,
+                       MaterialSlotsComponent
                        /************/>;
 } // namespace Fermion

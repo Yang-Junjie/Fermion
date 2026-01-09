@@ -373,6 +373,54 @@ namespace Fermion
             out << YAML::Key << "FlipUV" << YAML::Value << pbr.flipUV;
             out << YAML::EndMap;
         }
+        if (entity.hasComponent<MaterialSlotsComponent>())
+        {
+            out << YAML::Key << "MaterialSlotsComponent";
+            out << YAML::BeginMap;
+            auto &materialSlots = entity.getComponent<MaterialSlotsComponent>();
+            
+            out << YAML::Key << "Materials" << YAML::Value << YAML::BeginSeq;
+            for (const auto &material : materialSlots.materials)
+            {
+                if (material)
+                {
+                    out << YAML::BeginMap;
+                    out << YAML::Key << "Type" << YAML::Value << static_cast<int>(material->getType());
+                    
+                    // Phong
+                    out << YAML::Key << "DiffuseColor" << YAML::Value << material->getDiffuseColor();
+                    out << YAML::Key << "AmbientColor" << YAML::Value << material->getAmbientColor();
+                    if (static_cast<uint64_t>(material->getDiffuseTexture()) != 0)
+                        out << YAML::Key << "DiffuseTextureHandle" << YAML::Value << static_cast<uint64_t>(material->getDiffuseTexture());
+                    
+                    // PBR
+                    out << YAML::Key << "Albedo" << YAML::Value << material->getAlbedo();
+                    out << YAML::Key << "Metallic" << YAML::Value << material->getMetallic();
+                    out << YAML::Key << "Roughness" << YAML::Value << material->getRoughness();
+                    out << YAML::Key << "AO" << YAML::Value << material->getAO();
+                    
+                    if (static_cast<uint64_t>(material->getAlbedoMap()) != 0)
+                        out << YAML::Key << "AlbedoMapHandle" << YAML::Value << static_cast<uint64_t>(material->getAlbedoMap());
+                    if (static_cast<uint64_t>(material->getNormalMap()) != 0)
+                        out << YAML::Key << "NormalMapHandle" << YAML::Value << static_cast<uint64_t>(material->getNormalMap());
+                    if (static_cast<uint64_t>(material->getMetallicMap()) != 0)
+                        out << YAML::Key << "MetallicMapHandle" << YAML::Value << static_cast<uint64_t>(material->getMetallicMap());
+                    if (static_cast<uint64_t>(material->getRoughnessMap()) != 0)
+                        out << YAML::Key << "RoughnessMapHandle" << YAML::Value << static_cast<uint64_t>(material->getRoughnessMap());
+                    if (static_cast<uint64_t>(material->getAOMap()) != 0)
+                        out << YAML::Key << "AOMapHandle" << YAML::Value << static_cast<uint64_t>(material->getAOMap());
+                    
+                    out << YAML::EndMap;
+                }
+                else
+                {
+                    // null
+                    out << YAML::Null;
+                }
+            }
+            out << YAML::EndSeq;
+            out << YAML::EndMap;
+        }
 
         // Close entity map after writing all components
         out << YAML::EndMap;
@@ -793,6 +841,89 @@ namespace Fermion
                     }
                     if (auto n = pbrMaterialComponent["FlipUV"]; n)
                         pbr.flipUV = n.as<bool>();
+                }
+
+                auto materialSlotsComponent = entity["MaterialSlotsComponent"];
+                if (materialSlotsComponent && materialSlotsComponent.IsMap())
+                {
+                    auto &materialSlots = deserializedEntity.addComponent<MaterialSlotsComponent>();
+                    auto materialsNode = materialSlotsComponent["Materials"];
+                    if (materialsNode && materialsNode.IsSequence())
+                    {
+                        for (size_t i = 0; i < materialsNode.size(); ++i)
+                        {
+                            auto materialNode = materialsNode[i];
+                            if (materialNode.IsNull())
+                            {
+                                // null
+                                materialSlots.materials.push_back(nullptr);
+                            }
+                            else if (materialNode.IsMap())
+                            {
+                                auto material = std::make_shared<Material>();
+                                
+                                if (auto n = materialNode["Type"]; n)
+                                {
+                                    material->setMaterialType(static_cast<MaterialType>(n.as<int>()));
+                                }
+                                
+                                // Phong
+                                if (auto n = materialNode["DiffuseColor"]; n)
+                                    material->setDiffuseColor(n.as<glm::vec4>());
+                                if (auto n = materialNode["AmbientColor"]; n)
+                                    material->setAmbientColor(n.as<glm::vec4>());
+                                if (auto n = materialNode["DiffuseTextureHandle"]; n)
+                                {
+                                    uint64_t handleValue = n.as<uint64_t>();
+                                    if (handleValue != 0)
+                                        material->setDiffuseTexture(AssetHandle(handleValue));
+                                }
+                                
+                                // PBR
+                                if (auto n = materialNode["Albedo"]; n)
+                                    material->setAlbedo(n.as<glm::vec3>());
+                                if (auto n = materialNode["Metallic"]; n)
+                                    material->setMetallic(n.as<float>());
+                                if (auto n = materialNode["Roughness"]; n)
+                                    material->setRoughness(n.as<float>());
+                                if (auto n = materialNode["AO"]; n)
+                                    material->setAO(n.as<float>());
+                                
+                                if (auto n = materialNode["AlbedoMapHandle"]; n)
+                                {
+                                    uint64_t handleValue = n.as<uint64_t>();
+                                    if (handleValue != 0)
+                                        material->setAlbedoMap(AssetHandle(handleValue));
+                                }
+                                if (auto n = materialNode["NormalMapHandle"]; n)
+                                {
+                                    uint64_t handleValue = n.as<uint64_t>();
+                                    if (handleValue != 0)
+                                        material->setNormalMap(AssetHandle(handleValue));
+                                }
+                                if (auto n = materialNode["MetallicMapHandle"]; n)
+                                {
+                                    uint64_t handleValue = n.as<uint64_t>();
+                                    if (handleValue != 0)
+                                        material->setMetallicMap(AssetHandle(handleValue));
+                                }
+                                if (auto n = materialNode["RoughnessMapHandle"]; n)
+                                {
+                                    uint64_t handleValue = n.as<uint64_t>();
+                                    if (handleValue != 0)
+                                        material->setRoughnessMap(AssetHandle(handleValue));
+                                }
+                                if (auto n = materialNode["AOMapHandle"]; n)
+                                {
+                                    uint64_t handleValue = n.as<uint64_t>();
+                                    if (handleValue != 0)
+                                        material->setAOMap(AssetHandle(handleValue));
+                                }
+                                
+                                materialSlots.materials.push_back(material);
+                            }
+                        }
+                    }
                 }
             }
         }

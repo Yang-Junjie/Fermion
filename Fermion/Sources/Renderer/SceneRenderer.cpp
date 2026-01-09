@@ -220,7 +220,6 @@ namespace Fermion
             auto mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
             if (mesh)
             {
-                // 创建默认材质用于不带材质组件的Mesh
                 auto material = std::make_shared<Material>();
                 material->setDiffuseColor(glm::vec4(0.8f, 0.8f, 0.8f, 1.0f));
                 material->setAmbientColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
@@ -240,6 +239,50 @@ namespace Fermion
                     s_MeshDrawList.emplace_back(std::move(cmd));
                 }
             }
+        }
+    }
+
+    void SceneRenderer::submitMesh(MeshComponent &meshComponent,
+                                   MaterialSlotsComponent &materialSlots,
+                                   const glm::mat4 &transform,
+                                   int objectId,
+                                   bool drawOutline)
+    {
+        if (static_cast<uint64_t>(meshComponent.meshHandle) == 0)
+            return;
+
+        auto assetManager = Project::getRuntimeAssetManager();
+        auto mesh = assetManager->getAsset<Mesh>(meshComponent.meshHandle);
+        if (!mesh)
+            return;
+
+        auto vao = mesh->getVertexArray();
+
+        for (auto &submesh : mesh->getSubMeshes())
+        {
+            std::shared_ptr<Material> material = materialSlots.getMaterial(submesh.MaterialSlotIndex);
+            
+            if (!material)
+            {
+                material = std::make_shared<Material>();
+                material->setMaterialType(MaterialType::Phong);
+                material->setDiffuseColor(glm::vec4(0.8f, 0.8f, 0.8f, 1.0f));
+                material->setAmbientColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
+            }
+
+            MaterialType matType = material->getType();
+            MeshDrawCommand cmd;
+            cmd.pipeline = (matType == MaterialType::PBR) ? m_PBRMeshPipeline : m_MeshPipeline;
+            cmd.vao = vao;
+            cmd.material = material;
+            cmd.transform = transform;
+            cmd.indexCount = submesh.IndexCount;
+            cmd.indexOffset = submesh.IndexOffset;
+            cmd.objectID = objectId;
+            cmd.drawOutline = drawOutline;
+            cmd.aabb = mesh->getBoundingBox();
+
+            s_MeshDrawList.emplace_back(std::move(cmd));
         }
     }
 

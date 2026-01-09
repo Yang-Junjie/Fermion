@@ -113,6 +113,9 @@ namespace Fermion
         void submitMesh(MeshComponent &meshComponent, PhongMaterialComponent &phongMaterial,
                         glm::mat4 transform, int objectId = -1, bool drawOutline = false);
 
+        void submitMesh(MeshComponent &meshComponent, MaterialSlotsComponent &materialSlots,
+                        const glm::mat4 &transform, int objectId = -1, bool drawOutline = false);
+
         void setScene(std::shared_ptr<Scene> scene)
         {
             m_scene = scene;
