@@ -35,6 +35,9 @@ namespace Fermion
             bool enableShadows = true;
             glm::vec4 meshOutlineColor = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
 
+
+            float ambientIntensity = 0.1f;
+
             // Shadow mapping settings
             uint32_t shadowMapSize = 2048;
             float shadowBias = 0.01f;
@@ -46,6 +49,7 @@ namespace Fermion
             uint32_t prefilterMapSize = 128;
             uint32_t brdfLUTSize = 512;
             uint32_t prefilterMaxMipLevels = 5;
+
         };
 
         struct Statistics

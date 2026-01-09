@@ -20,6 +20,7 @@ struct ApplicationSpecification {
     std::string name = "Fermion";
     uint32_t windowWidth = 1600, windowHeight = 900;
     RendererConfig rendererConfig = {""};
+    bool maximized = false;
 };
 class Application {
 public:
@@ -45,6 +46,10 @@ public:
         return *s_instance;
     }
 
+    Timestep getTimestep() const {
+        return m_timestep;
+    }
+
 private:
     void onEvent(IEvent &event); 
     bool onWindowResize(const WindowResizeEvent &event);
@@ -55,11 +60,12 @@ private:
     bool m_minimized = false;
 
     std::unique_ptr<IWindow> m_window;
-
+   
     std::unique_ptr<ImGuiLayer> m_imGuiLayer; // 管理生命周期
     ImGuiLayer *m_imGuiLayerRaw = nullptr;    // 供开发者访问
     LayerStack m_layerStack;
 
+    Timestep m_timestep;
     std::unique_ptr<ITimer> m_timer;
     float m_lastFrameTime = 0.0f;
     static Application *s_instance;

@@ -497,67 +497,94 @@ namespace Fermion
 
     void BosonLayer::onSettingsPanel()
     {
-        std::string name = "None";
-        if (m_hoveredEntity && m_hoveredEntity.hasComponent<TagComponent>())
+
         {
-            name = m_hoveredEntity.getComponent<TagComponent>().tag;
+            ImGui::Begin("Renderer Info");
+            ImGui::SeparatorText("Device Info");
+            DeviceInfo info = Application::get().getWindow().getDeviceInfo();
+            ImGui::Text("vendor: %s", info.vendor.c_str());
+            ImGui::Text("renderer: %s", info.renderer.c_str());
+            ImGui::Text("version: %s", info.version.c_str());
+            float frameTimeMs = Application::get().getTimestep().getMilliseconds();
+            static float avgFrameTimeMs = frameTimeMs;
+            const float smoothing = 0.01f; // 0.0~1.0 越小越平滑
+
+            avgFrameTimeMs = avgFrameTimeMs * (1.0f - smoothing) + frameTimeMs * smoothing;
+
+            ImGui::Text("Frame time: %.3f ms", avgFrameTimeMs);
+            ImGui::Text("FPS: %.1f FPS", 1000.0f / avgFrameTimeMs);
+
+            ImGui::SeparatorText("Renderer Statistics");
+            const SceneRenderer::Statistics stats = m_viewportRenderer
+                                                        ? m_viewportRenderer->getStatistics()
+                                                        : SceneRenderer::Statistics{};
+            ImGui::Text("Draw Calls: %d", stats.drawCalls);
+            ImGui::Text("Quads: %d", stats.quadCount);
+            ImGui::Text("Lines: %d", stats.lineCount);
+            ImGui::Text("Circles: %d", stats.circleCount);
+            ImGui::Text("Vertices: %d", stats.getTotalVertexCount());
+            ImGui::Text("Indices: %d", stats.getTotalIndexCount());
+            ImGui::End();
         }
 
-        ImGui::Begin("Settings");
-        auto &sceneInfo = m_viewportRenderer->getSceneInfo();
-
-        ImGui::Text("hovered entity: %s", name.c_str());
-        ImGui::Text("Statistics");
-        const SceneRenderer::Statistics stats = m_viewportRenderer
-                                                    ? m_viewportRenderer->getStatistics()
-                                                    : SceneRenderer::Statistics{};
-        ImGui::Text("Draw Calls: %d", stats.drawCalls);
-        ImGui::Text("Quads: %d", stats.quadCount);
-        ImGui::Text("Lines: %d", stats.lineCount);
-        ImGui::Text("Circles: %d", stats.circleCount);
-        ImGui::Text("Vertices: %d", stats.getTotalVertexCount());
-        ImGui::Text("Indices: %d", stats.getTotalIndexCount());
-
-        ImGui::Separator();
-        ImGui::Checkbox("showPhysicsColliders", &m_showPhysicsColliders);
-        ImGui::Checkbox("showRenderEntities", &m_showRenderEntities);
-        ImGui::Checkbox("showSkybox", &m_viewportRenderer->getSceneInfo().showSkybox);
-        ImGui::Checkbox("enable shadows", &m_viewportRenderer->getSceneInfo().enableShadows);
-
-        ImGui::Separator();
-        ImGui::DragFloat("Shadow Bias", &m_viewportRenderer->getSceneInfo().shadowBias, 0.0001f, 0.0f, 0.1f);
-        ImGui::Separator();
-        static const float kShadowSoftnessLevels[] = {0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f};
-        static int softnessIndex = 0;
-
-        ImGui::Text("Shadow Softness = %.1f", sceneInfo.shadowSoftness);
-        if (ImGui::SliderInt(
-                "##Shadow Softness",
-                &softnessIndex,
-                0,
-                IM_ARRAYSIZE(kShadowSoftnessLevels) - 1))
         {
-            sceneInfo.shadowSoftness = kShadowSoftnessLevels[softnessIndex];
-        }
-        ImGui::Separator();
-        static const float kShadowMapSizeLevels[] = {1024, 2048, 3072, 4096, 5120};
-        static int shadowMapSizeIndex = 0;
-        ImGui::Text("Shadow MapSize = %.u", sceneInfo.shadowMapSize);
-        if (ImGui::SliderInt(
-                "##ShadowMapSize",
-                &shadowMapSizeIndex,
-                0,
-                IM_ARRAYSIZE(kShadowMapSizeLevels) - 1))
-        {
-            sceneInfo.shadowMapSize = kShadowMapSizeLevels[shadowMapSizeIndex];
-        }
-        ImGui::Separator();
+            ImGui::Begin("Environment Settings");
+            auto &sceneInfo = m_viewportRenderer->getSceneInfo();
+            ImGui::Checkbox("showSkybox", &m_viewportRenderer->getSceneInfo().showSkybox);
+            ImGui::Checkbox("enable shadows", &m_viewportRenderer->getSceneInfo().enableShadows);
+            ImGui::Checkbox("use IBL", &m_viewportRenderer->getSceneInfo().useIBL);
+            ImGui::DragFloat("Ambient Intensity", &m_viewportRenderer->getSceneInfo().ambientIntensity, 0.01f, 0.0f, 1.0f);
 
-        ImGui::ColorEdit4("Mesh Pick Outline Color", glm::value_ptr(m_viewportRenderer->getSceneInfo().meshOutlineColor));
-        ImGui::Separator();
-        ImGui::Image((ImTextureID)s_Font->getAtlasTexture()->getRendererID(),
-                     {512, 512}, {0, 1}, {1, 0});
-        ImGui::End();
+            ImGui::Separator();
+            ImGui::DragFloat("Shadow Bias", &m_viewportRenderer->getSceneInfo().shadowBias, 0.0001f, 0.0f, 0.1f);
+            ImGui::Separator();
+            static const float kShadowSoftnessLevels[] = {0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f};
+            static int softnessIndex = 0;
+
+            ImGui::Text("Shadow Softness = %.1f", sceneInfo.shadowSoftness);
+            if (ImGui::SliderInt(
+                    "##Shadow Softness",
+                    &softnessIndex,
+                    0,
+                    IM_ARRAYSIZE(kShadowSoftnessLevels) - 1))
+            {
+                sceneInfo.shadowSoftness = kShadowSoftnessLevels[softnessIndex];
+            }
+            ImGui::Separator();
+            static const float kShadowMapSizeLevels[] = {1024, 2048, 3072, 4096, 5120};
+            static int shadowMapSizeIndex = 0;
+            ImGui::Text("Shadow MapSize = %.u", sceneInfo.shadowMapSize);
+            if (ImGui::SliderInt(
+                    "##ShadowMapSize",
+                    &shadowMapSizeIndex,
+                    0,
+                    IM_ARRAYSIZE(kShadowMapSizeLevels) - 1))
+            {
+                sceneInfo.shadowMapSize = kShadowMapSizeLevels[shadowMapSizeIndex];
+            }
+            ImGui::End();
+        }
+
+        {
+            std::string name = "None";
+            if (m_hoveredEntity && m_hoveredEntity.hasComponent<TagComponent>())
+            {
+                name = m_hoveredEntity.getComponent<TagComponent>().tag;
+            }
+            ImGui::Begin("Debug Settings");
+
+            ImGui::Text("hovered entity: %s", name.c_str());
+
+            ImGui::Separator();
+            ImGui::Checkbox("showPhysicsColliders", &m_showPhysicsColliders);
+            ImGui::Checkbox("showRenderEntities", &m_showRenderEntities);
+
+            ImGui::ColorEdit4("Mesh Pick Outline Color", glm::value_ptr(m_viewportRenderer->getSceneInfo().meshOutlineColor));
+            ImGui::Separator();
+            ImGui::Image((ImTextureID)s_Font->getAtlasTexture()->getRendererID(),
+                         {512, 512}, {0, 1}, {1, 0});
+            ImGui::End();
+        }
     }
 
     void BosonLayer::onViewportPanel()

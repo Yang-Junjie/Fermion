@@ -424,7 +424,7 @@ namespace Fermion
                      if (cmd.pipeline == m_PBRMeshPipeline) {
                          glm::vec3 cameraPos = glm::vec3(glm::inverse(m_sceneData.sceneCamera.view)[3]);
                          shader->setFloat3("u_CameraPosition", cameraPos);
-                         shader->setFloat("u_AmbientIntensity", 0.03f);
+                         shader->setFloat("u_AmbientIntensity", m_sceneData.ambientIntensity);
                          
                          // IBL
                          if (!m_iblInitialized && m_sceneData.useIBL) {

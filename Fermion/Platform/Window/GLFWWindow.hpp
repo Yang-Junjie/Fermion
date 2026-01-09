@@ -5,7 +5,7 @@
     用于创建 GLFW 窗口、设置窗口属性，和处理窗口事件。
 */
 #pragma once
-#include "Renderer/GraphicsContext.hpp"
+
 #include <GLFW/glfw3.h>
 #include "Core/Window.hpp"
 namespace Fermion {
@@ -34,8 +34,11 @@ public:
     virtual void setRestored() override;
     virtual void setMinimized() override;
 
+
     void setVSync(bool enabled) override;
     bool isVSync() const override;
+
+    DeviceInfo getDeviceInfo() const override;
 
     virtual void *getNativeWindow() const override {
         return m_window;

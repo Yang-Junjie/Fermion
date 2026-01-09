@@ -276,7 +276,9 @@ void main() {
         uv.y = 1.0 - uv.y;
 
     // 获取材质属性
-    vec3 albedo = u_UseAlbedoMap ? pow(texture(u_AlbedoMap, uv).rgb, vec3(2.2)) : u_Material.albedo;
+    vec3 baseColorLinear = pow(u_Material.albedo, vec3(2.2));
+    vec3 texColorLinear = u_UseAlbedoMap ? pow(texture(u_AlbedoMap, uv).rgb, vec3(2.2)) : vec3(1.0);
+    vec3 albedo = texColorLinear * baseColorLinear;
     float metallic = u_UseMetallicMap ? texture(u_MetallicMap, uv).r : u_Material.metallic;
     float roughness = u_UseRoughnessMap ? texture(u_RoughnessMap, uv).r : u_Material.roughness;
     float ao = u_UseAOMap ? texture(u_AOMap, uv).r : u_Material.ao;
@@ -380,7 +382,7 @@ void main() {
     }
 
     // ========================================================================
-    // 环境光 (IBL或简单环境光)
+    // 环境光
     // ========================================================================
     vec3 ambient = vec3(0.0);
     
@@ -392,17 +394,8 @@ void main() {
         vec3 kS = F;
         vec3 kD = (vec3(1.0) - kS) * (1.0 - metallic);
         
-        // 诊断：尝试不同的采样方向
-        // 方案1: 使用原始法线
         vec3 irradiance = texture(u_IrradianceMap, N).rgb;
         
-        // 方案2: 尝试翻转Y轴（取消注释以测试）
-        // vec3 irradiance = texture(u_IrradianceMap, vec3(N.x, -N.y, N.z)).rgb;
-        
-        // 方案3: 直接从environment cubemap采样以验证坐标系（取消注释以测试）
-        // vec3 irradiance = texture(u_PrefilterMap, N).rgb;
-        
-        // 调试: 如果辐照度为0,使用一个小的fallback值
         if (length(irradiance) < 0.001) {
             irradiance = vec3(0.03); // fallback环境光
         }
