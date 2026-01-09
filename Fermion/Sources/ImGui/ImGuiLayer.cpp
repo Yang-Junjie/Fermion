@@ -24,8 +24,8 @@ namespace Fermion {
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
-        const char *fontBoldPath = "../Boson/Resources/assets/fonts/opensans/static/OpenSans-Bold.ttf";
-        const char *fontRegularPath = "../Boson/Resources/assets/fonts/opensans/static/OpenSans-Regular.ttf";
+        const char *fontBoldPath = "../Boson/Resources/assets/fonts/Cuprum-Bold.ttf";
+        const char *fontRegularPath = "../Boson/Resources/assets/fonts/Play-Regular.ttf";
 
         ImFont *fontRegular = nullptr;
         ImFont *fontBold = nullptr;

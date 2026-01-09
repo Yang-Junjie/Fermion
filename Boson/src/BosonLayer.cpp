@@ -21,18 +21,21 @@
 #include <glm/glm.hpp>
 #include <utility>
 
-namespace {
-    bool isProjectDescriptor(const std::filesystem::path &path) {
+namespace
+{
+    bool isProjectDescriptor(const std::filesystem::path &path)
+    {
         auto ext = path.extension().string();
-        std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c) {
-            return static_cast<char>(std::tolower(c));
-        });
+        std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c)
+                       { return static_cast<char>(std::tolower(c)); });
         return ext == ".fmproj";
     }
 
-    std::filesystem::path findProjectFileInDirectory(const std::filesystem::path &directory) {
+    std::filesystem::path findProjectFileInDirectory(const std::filesystem::path &directory)
+    {
         std::error_code ec;
-        for (std::filesystem::directory_iterator it(directory, ec), end; it != end; it.increment(ec)) {
+        for (std::filesystem::directory_iterator it(directory, ec), end; it != end; it.increment(ec))
+        {
             if (ec)
                 break;
 
@@ -47,17 +50,21 @@ namespace {
     }
 } // namespace
 
-namespace Fermion {
+namespace Fermion
+{
     static std::shared_ptr<Font> s_Font; // TODO:  Temporary
-    BosonLayer::BosonLayer(const std::string &name, std::filesystem::path initialProjectPath) : Layer(name),
-        m_pendingProjectPath(std::move(initialProjectPath)) {
+    BosonLayer::BosonLayer(const std::string &name,
+                           std::filesystem::path initialProjectPath)
+        : Layer(name),
+          m_pendingProjectPath(std::move(initialProjectPath))
+    {
         s_Font = Font::getDefault();
-        m_contentBrowserPanel.setProjectOpenCallback([this](const std::filesystem::path &path) {
-            openProject(path);
-        });
+        m_contentBrowserPanel.setProjectOpenCallback([this](const std::filesystem::path &path)
+                                                     { openProject(path); });
     }
 
-    void BosonLayer::onAttach() {
+    void BosonLayer::onAttach()
+    {
         FM_PROFILE_FUNCTION();
 
         // Initialize icons
@@ -74,8 +81,7 @@ namespace Fermion {
         fbSpec.attachments = {
             FramebufferTextureFormat::RGBA8,
             FramebufferTextureFormat::RED_INTEGER,
-            FramebufferTextureFormat::DEPTH24STENCIL8
-        };
+            FramebufferTextureFormat::DEPTH24STENCIL8};
         m_framebuffer = Framebuffer::create(fbSpec);
 
         // Initialize render about something
@@ -83,10 +89,7 @@ namespace Fermion {
         m_viewportRenderer = std::make_shared<SceneRenderer>();
         m_editorScene = m_activeScene;
         const float aspectRatio = static_cast<float>(fbSpec.width) / static_cast<float>(fbSpec.height);
-        m_editorCamera = EditorCamera(45.0f,
-                                      aspectRatio,
-                                      0.1f,
-                                      1000.0f);
+        m_editorCamera = EditorCamera(45.0f, aspectRatio, 0.1f, 1000.0f);
 
         m_sceneHierarchyPanel.setContext(m_activeScene);
         m_viewportRenderer->setScene(m_activeScene);
@@ -96,48 +99,59 @@ namespace Fermion {
 
         // Initialize menu bar
         MenuBarCallbacks callbacks;
-        callbacks.NewScene = [this]() { newScene(); };
-        callbacks.OpenScene = [this]() { openScene(); };
-        callbacks.SaveScene = [this]() { saveScene(); };
-        callbacks.SaveSceneAs = [this]() { saveSceneAs(); };
-        callbacks.NewProject = [this]() { newProject(); };
-        callbacks.OpenProject = [this]() { openProject(); };
-        callbacks.SaveProject = [this]() { saveProject(); };
-        callbacks.ExitApplication = [this]() {
+        callbacks.NewScene = [this]()
+        { newScene(); };
+        callbacks.OpenScene = [this]()
+        { openScene(); };
+        callbacks.SaveScene = [this]()
+        { saveScene(); };
+        callbacks.SaveSceneAs = [this]()
+        { saveSceneAs(); };
+        callbacks.NewProject = [this]()
+        { newProject(); };
+        callbacks.OpenProject = [this]()
+        { openProject(); };
+        callbacks.SaveProject = [this]()
+        { saveProject(); };
+        callbacks.ExitApplication = [this]()
+        {
             saveProject();
             Application::get().close();
         };
-        callbacks.ShowAbout = [this]() { m_isAboutWindowOpen = true; };
+        callbacks.ShowAbout = [this]()
+        { m_isAboutWindowOpen = true; };
         m_menuBarPanel.SetCallbacks(callbacks);
 
-
         m_isInitialized = true;
-        if (!m_pendingProjectPath.empty()) {
+        if (!m_pendingProjectPath.empty())
+        {
             const auto pendingPath = m_pendingProjectPath;
             m_pendingProjectPath.clear();
             openProject(pendingPath);
         }
     }
 
-    void BosonLayer::onDetach() {
+    void BosonLayer::onDetach()
+    {
         FM_PROFILE_FUNCTION();
     }
 
-    void BosonLayer::onUpdate(Timestep dt) {
+    void BosonLayer::onUpdate(Timestep dt)
+    {
         FM_PROFILE_FUNCTION();
 
         // Resize
         const auto viewportWidth = static_cast<uint32_t>(m_viewportSize.x);
         const auto viewportHeight = static_cast<uint32_t>(m_viewportSize.y);
 
-        if (viewportWidth > 0 && viewportHeight > 0) {
+        if (viewportWidth > 0 && viewportHeight > 0)
+        {
             const FramebufferSpecification spec = m_framebuffer->getSpecification();
 
-            const bool needResize =
-                    spec.width != viewportWidth ||
-                    spec.height != viewportHeight;
+            const bool needResize = spec.width != viewportWidth || spec.height != viewportHeight;
 
-            if (needResize) {
+            if (needResize)
+            {
                 m_framebuffer->resize(viewportWidth, viewportHeight);
                 m_editorCamera.setViewportSize(static_cast<float>(viewportWidth), static_cast<float>(viewportHeight));
                 m_activeScene->onViewportResize(viewportWidth, viewportHeight);
@@ -150,18 +164,23 @@ namespace Fermion {
         RenderCommand::setClearColor({0.1f, 0.1f, 0.1f, 1.0f});
         RenderCommand::clear();
         m_framebuffer->clearAttachment(1, -1);
-        
+
         // Tell SceneRenderer which framebuffer to restore after shadow pass
         m_viewportRenderer->setTargetFramebuffer(m_framebuffer);
 
         // Update the active scene based on the current scene state
-        if (m_sceneState == SceneState::Play) {
+        if (m_sceneState == SceneState::Play)
+        {
             m_activeScene->onUpdateRuntime(m_viewportRenderer, dt, m_showRenderEntities);
             m_sceneHierarchyPanel.setSelectedEntity({});
-        } else if (m_sceneState == SceneState::Simulate) {
+        }
+        else if (m_sceneState == SceneState::Simulate)
+        {
             m_editorCamera.onUpdate(dt);
             m_activeScene->onUpdateSimulation(m_viewportRenderer, dt, m_editorCamera, m_showRenderEntities);
-        } else {
+        }
+        else
+        {
             m_editorCamera.onUpdate(dt);
             m_activeScene->onUpdateEditor(m_viewportRenderer, dt, m_editorCamera, m_showRenderEntities);
         }
@@ -173,17 +192,20 @@ namespace Fermion {
         m_framebuffer->unbind();
     }
 
-    void BosonLayer::onImGuiRender() {
+    void BosonLayer::onImGuiRender()
+    {
         FM_PROFILE_FUNCTION();
 
         static bool dockspaceOpen = true;
-        if (dockspaceOpen) {
+        if (dockspaceOpen)
+        {
             static bool opt_fullscreen = true;
             static bool opt_padding = false;
             static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
             ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
-            if (opt_fullscreen) {
+            if (opt_fullscreen)
+            {
                 const ImGuiViewport *viewport = ImGui::GetMainViewport();
                 ImVec2 dockspacePos = viewport->WorkPos;
                 dockspacePos.y += m_menuBarPanel.GetMenuBarHeight();
@@ -195,9 +217,11 @@ namespace Fermion {
                 ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
                 ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
                 window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
-                        ImGuiWindowFlags_NoMove;
+                                ImGuiWindowFlags_NoMove;
                 window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-            } else {
+            }
+            else
+            {
                 dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
             }
             if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
@@ -219,7 +243,8 @@ namespace Fermion {
                 ImGuiStyle &style = ImGui::GetStyle();
                 float minWinSizeX = style.WindowMinSize.x;
                 style.WindowMinSize.x = 370.0f;
-                if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable) {
+                if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+                {
                     ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
                     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
                 }
@@ -242,78 +267,92 @@ namespace Fermion {
         }
     }
 
-    void BosonLayer::onEvent(IEvent &event) {
+    void BosonLayer::onEvent(IEvent &event)
+    {
         EventDispatcher dispatcher(event);
-        dispatcher.dispatch<WindowResizeEvent>([](WindowResizeEvent &e) { return false; });
-        dispatcher.dispatch<KeyPressedEvent>([this](KeyPressedEvent &e) { return this->onKeyPressedEvent(e); });
-        dispatcher.dispatch<MouseButtonPressedEvent>([this](MouseButtonPressedEvent &e) {
-            return this->onMouseButtonPressedEvent(e);
-        });
+        dispatcher.dispatch<WindowResizeEvent>([](WindowResizeEvent &e)
+                                               { return false; });
+        dispatcher.dispatch<KeyPressedEvent>([this](KeyPressedEvent &e)
+                                             { return this->onKeyPressedEvent(e); });
+        dispatcher.dispatch<MouseButtonPressedEvent>([this](MouseButtonPressedEvent &e)
+                                                     { return this->onMouseButtonPressedEvent(e); });
         // m_cameraController.onEvent(event);
         m_editorCamera.onEvent(event);
     }
 
-    bool BosonLayer::onKeyPressedEvent(KeyPressedEvent &e) {
-        if (e.isRepeat()) {
+    bool BosonLayer::onKeyPressedEvent(KeyPressedEvent &e)
+    {
+        if (e.isRepeat())
+        {
             return false;
         }
 
         const bool control = Input::isKeyPressed(KeyCode::LeftControl) || Input::isKeyPressed(KeyCode::RightControl);
         const bool shift = Input::isKeyPressed(KeyCode::LeftShift) || Input::isKeyPressed(KeyCode::RightShift);
 
-        switch (e.getKeyCode()) {
-            case KeyCode::S:
-                if (control && shift) {
-                    saveSceneAs();
-                    return true;
-                } else if (control) {
-                    saveScene();
-                    return true;
+        switch (e.getKeyCode())
+        {
+        case KeyCode::S:
+            if (control && shift)
+            {
+                saveSceneAs();
+                return true;
+            }
+            else if (control)
+            {
+                saveScene();
+                return true;
+            }
+            break;
+        case KeyCode::N:
+            if (control)
+            {
+                newScene();
+                return true;
+            }
+            break;
+        case KeyCode::O:
+            if (control)
+            {
+                openScene();
+                return true;
+            }
+            break;
+        case KeyCode::D:
+            if (control)
+            {
+                if (const Entity selected = m_sceneHierarchyPanel.getSelectedEntity(); selected)
+                {
+                    m_activeScene->destroyEntity(selected);
+                    m_sceneHierarchyPanel.setSelectedEntity({});
                 }
-                break;
-            case KeyCode::N:
-                if (control) {
-                    newScene();
-                    return true;
-                }
-                break;
-            case KeyCode::O:
-                if (control) {
-                    openScene();
-                    return true;
-                }
-                break;
-            case KeyCode::D:
-                if (control) {
-                    if (const Entity selected = m_sceneHierarchyPanel.getSelectedEntity(); selected) {
-                        m_activeScene->destroyEntity(selected);
-                        m_sceneHierarchyPanel.setSelectedEntity({});
-                    }
-                }
-                break;
+            }
+            break;
 
-            case KeyCode::Q:
-                m_gizmoType = -1;
-                break;
-            case KeyCode::W:
-                m_gizmoType = ImGuizmo::OPERATION::TRANSLATE;
-                break;
-            case KeyCode::E:
-                m_gizmoType = ImGuizmo::OPERATION::ROTATE;
-                break;
-            case KeyCode::R:
-                if (control)
-                    onDuplicateEntity();
-                m_gizmoType = ImGuizmo::OPERATION::SCALE;
-                break;
-            default: ;
+        case KeyCode::Q:
+            m_gizmoType = -1;
+            break;
+        case KeyCode::W:
+            m_gizmoType = ImGuizmo::OPERATION::TRANSLATE;
+            break;
+        case KeyCode::E:
+            m_gizmoType = ImGuizmo::OPERATION::ROTATE;
+            break;
+        case KeyCode::R:
+            if (control)
+                onDuplicateEntity();
+            m_gizmoType = ImGuizmo::OPERATION::SCALE;
+            break;
+        default:;
         }
 
         return false;
     }
 
-    bool BosonLayer::onMouseButtonPressedEvent(const MouseButtonPressedEvent &e) {
-        if (e.getMouseButton() == MouseCode::Left) {
+    bool BosonLayer::onMouseButtonPressedEvent(const MouseButtonPressedEvent &e)
+    {
+        if (e.getMouseButton() == MouseCode::Left)
+        {
             if (m_viewportHovered && !ImGuizmo::IsOver())
                 m_sceneHierarchyPanel.setSelectedEntity(m_hoveredEntity && m_hoveredEntity.isValid()
                                                             ? m_hoveredEntity
@@ -322,7 +361,8 @@ namespace Fermion {
         return false;
     }
 
-    void BosonLayer::onUIToolPanel() {
+    void BosonLayer::onUIToolPanel()
+    {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
         ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
@@ -349,7 +389,8 @@ namespace Fermion {
         const bool hasSimulateButton = m_sceneState == SceneState::Edit || m_sceneState == SceneState::Simulate;
         const bool hasPauseButton = m_sceneState != SceneState::Edit && m_sceneState != SceneState::Play;
 
-        if (hasPlayButton) {
+        if (hasPlayButton)
+        {
             const Texture2D *icon = (m_sceneState == SceneState::Edit || m_sceneState == SceneState::Simulate)
                                         ? m_iconPlay.get()
                                         : m_iconStop.get();
@@ -357,7 +398,8 @@ namespace Fermion {
                                    (ImTextureID) static_cast<uint64_t>(icon->getRendererID()),
                                    ImVec2(size, size),
                                    ImVec2(0, 0), ImVec2(1, 1),
-                                   ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor)) {
+                                   ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor))
+            {
                 if (m_sceneState == SceneState::Edit || m_sceneState == SceneState::Simulate)
                     onScenePlay();
                 else if (m_sceneState == SceneState::Play)
@@ -365,49 +407,55 @@ namespace Fermion {
             }
         }
 
-        if (hasSimulateButton) {
+        if (hasSimulateButton)
+        {
             if (hasPlayButton)
                 ImGui::SameLine();
 
             const Texture2D *icon = (m_sceneState == SceneState::Edit || m_sceneState == SceneState::Play)
-                                                  ? m_iconSimulate.get()
-                                                  : m_iconStop.get();
+                                        ? m_iconSimulate.get()
+                                        : m_iconStop.get();
             if (ImGui::ImageButton("##toolbar_simulatebtn",
-                                   (ImTextureID) (uint64_t) icon->getRendererID(),
+                                   (ImTextureID)(uint64_t)icon->getRendererID(),
                                    ImVec2(size, size),
                                    ImVec2(0, 0), ImVec2(1, 1),
-                                   ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor)) {
+                                   ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor))
+            {
                 if (m_sceneState == SceneState::Edit || m_sceneState == SceneState::Play)
                     onSceneSimulate();
                 else if (m_sceneState == SceneState::Simulate)
                     onSceneStop();
             }
         }
-        if (hasPauseButton) {
+        if (hasPauseButton)
+        {
             bool isPaused = m_activeScene->isPaused();
             ImGui::SameLine();
             {
-                const Texture2D* icon = m_iconPause.get();
+                const Texture2D *icon = m_iconPause.get();
                 if (ImGui::ImageButton("##toolbar_pausebtn",
                                        (ImTextureID) static_cast<uint64_t>(icon->getRendererID()),
                                        ImVec2(size, size),
                                        ImVec2(0, 0), ImVec2(1, 1),
-                                       ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor)) {
+                                       ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor))
+                {
                     m_activeScene->setPaused(!isPaused);
                 }
             }
 
             // Step button
-            if (isPaused) {
+            if (isPaused)
+            {
                 ImGui::SameLine();
                 {
-                    const Texture2D* icon = m_iconStep.get();
+                    const Texture2D *icon = m_iconStep.get();
                     bool isPaused = m_activeScene->isPaused();
                     if (ImGui::ImageButton("##toolbar_stepbtn",
                                            (ImTextureID) static_cast<uint64_t>(icon->getRendererID()),
                                            ImVec2(size, size),
                                            ImVec2(0, 0), ImVec2(1, 1),
-                                           ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor)) {
+                                           ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor))
+                    {
                         m_activeScene->step();
                     }
                 }
@@ -418,13 +466,14 @@ namespace Fermion {
         ImGui::End();
     }
 
-    void BosonLayer::onHelpPanel() {
-        if (m_isAboutWindowOpen) {
+    void BosonLayer::onHelpPanel()
+    {
+        if (m_isAboutWindowOpen)
+        {
             ImGui::SetNextWindowSize(ImVec2(350, 0), ImGuiCond_FirstUseEver);
 
             ImGui::Begin("About Fermion", &m_isAboutWindowOpen,
-                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar
-                         | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoDocking);
+                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoDocking);
 
             ImGui::SeparatorText("About Fermion");
             ImGui::Text("Fermion Engine v0.1");
@@ -446,14 +495,16 @@ namespace Fermion {
         }
     }
 
-    void BosonLayer::onSettingsPanel() {
+    void BosonLayer::onSettingsPanel()
+    {
         std::string name = "None";
-        if (m_hoveredEntity && m_hoveredEntity.hasComponent<TagComponent>()) {
+        if (m_hoveredEntity && m_hoveredEntity.hasComponent<TagComponent>())
+        {
             name = m_hoveredEntity.getComponent<TagComponent>().tag;
         }
 
         ImGui::Begin("Settings");
-        auto& sceneInfo = m_viewportRenderer->getSceneInfo();
+        auto &sceneInfo = m_viewportRenderer->getSceneInfo();
 
         ImGui::Text("hovered entity: %s", name.c_str());
         ImGui::Text("Statistics");
@@ -471,12 +522,12 @@ namespace Fermion {
         ImGui::Checkbox("showPhysicsColliders", &m_showPhysicsColliders);
         ImGui::Checkbox("showRenderEntities", &m_showRenderEntities);
         ImGui::Checkbox("showSkybox", &m_viewportRenderer->getSceneInfo().showSkybox);
-        ImGui::Checkbox("enable shadows",&m_viewportRenderer->getSceneInfo().enableShadows);
+        ImGui::Checkbox("enable shadows", &m_viewportRenderer->getSceneInfo().enableShadows);
 
         ImGui::Separator();
         ImGui::DragFloat("Shadow Bias", &m_viewportRenderer->getSceneInfo().shadowBias, 0.0001f, 0.0f, 0.1f);
         ImGui::Separator();
-        static const float kShadowSoftnessLevels[] = {0.0f,1.0f,2.0f,3.0f,4.0f,5.0f,6.0f,7.0f,8.0f,9.0f,10.0f};
+        static const float kShadowSoftnessLevels[] = {0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f};
         static int softnessIndex = 0;
 
         ImGui::Text("Shadow Softness = %.1f", sceneInfo.shadowSoftness);
@@ -484,12 +535,12 @@ namespace Fermion {
                 "##Shadow Softness",
                 &softnessIndex,
                 0,
-                IM_ARRAYSIZE(kShadowSoftnessLevels)-1))
+                IM_ARRAYSIZE(kShadowSoftnessLevels) - 1))
         {
             sceneInfo.shadowSoftness = kShadowSoftnessLevels[softnessIndex];
         }
         ImGui::Separator();
-        static const float kShadowMapSizeLevels[] = {1024,2048,3072,4096,5120};
+        static const float kShadowMapSizeLevels[] = {1024, 2048, 3072, 4096, 5120};
         static int shadowMapSizeIndex = 0;
         ImGui::Text("Shadow MapSize = %.u", sceneInfo.shadowMapSize);
         if (ImGui::SliderInt(
@@ -504,12 +555,13 @@ namespace Fermion {
 
         ImGui::ColorEdit4("Mesh Pick Outline Color", glm::value_ptr(m_viewportRenderer->getSceneInfo().meshOutlineColor));
         ImGui::Separator();
-        ImGui::Image((ImTextureID) s_Font->getAtlasTexture()->getRendererID(),
+        ImGui::Image((ImTextureID)s_Font->getAtlasTexture()->getRendererID(),
                      {512, 512}, {0, 1}, {1, 0});
         ImGui::End();
     }
 
-    void BosonLayer::onViewportPanel() {
+    void BosonLayer::onViewportPanel()
+    {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{0, 0});
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4{0.117f, 0.117f, 0.117f, 1.0f});
         ImGui::Begin("Viewport");
@@ -538,20 +590,26 @@ namespace Fermion {
                      ImVec2(0, 1), ImVec2(1, 0));
 
         // 接收 .fmscene 拖放
-        if (ImGui::BeginDragDropTarget()) {
-            if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_SCENE")) {
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_SCENE"))
+            {
                 const char *path = static_cast<const char *>(payload->Data);
-                if (path && path[0]) {
+                if (path && path[0])
+                {
                     openScene(std::string(path));
                 }
             }
             ImGui::EndDragDropTarget();
         }
         // 接受 .fmproj 拖放
-        if (ImGui::BeginDragDropTarget()) {
-            if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_PROJECT")) {
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_PROJECT"))
+            {
                 const char *path = static_cast<const char *>(payload->Data);
-                if (path && path[0]) {
+                if (path && path[0])
+                {
                     openProject(std::string(path));
                 }
             }
@@ -562,22 +620,19 @@ namespace Fermion {
 
         m_viewport.min = {
             windowPos.x + viewportOffset.x,
-            windowPos.y + viewportOffset.y
-        };
+            windowPos.y + viewportOffset.y};
 
         m_viewport.max = {
             m_viewport.min.x + viewportPanelSize.x,
-            m_viewport.min.y + viewportPanelSize.y
-        };
-
+            m_viewport.min.y + viewportPanelSize.y};
 
         // ImGuiZmo
         Entity selectedEntity = m_sceneHierarchyPanel.getSelectedEntity();
-        if (selectedEntity && m_gizmoType != -1) {
+        if (selectedEntity && m_gizmoType != -1)
+        {
             ImGuizmo::SetOrthographic(false);
             ImGuizmo::SetDrawlist();
             ImGuizmo::SetRect(m_viewport.min.x, m_viewport.min.y, m_viewport.size().x, m_viewport.size().y);
-
 
             // editorCamera
             const glm::mat4 &cameraProjection = m_editorCamera.getProjection();
@@ -594,25 +649,27 @@ namespace Fermion {
 
             float snapValues[3] = {snapValue, snapValue, snapValue};
             ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
-                                 (ImGuizmo::OPERATION) m_gizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform), nullptr,
+                                 (ImGuizmo::OPERATION)m_gizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform), nullptr,
                                  snap ? snapValues : nullptr);
 
-            if (ImGuizmo::IsUsing()) {
+            if (ImGuizmo::IsUsing())
+            {
                 glm::vec3 translation, rotation, scale;
                 Math::decomposeTransform(transform, translation, rotation, scale);
 
-                switch ((ImGuizmo::OPERATION) m_gizmoType) {
-                    case ImGuizmo::TRANSLATE:
-                        transformComponent.translation = translation;
-                        break;
-                    case ImGuizmo::ROTATE:
-                        transformComponent.setRotationEuler(rotation);
-                        break;
-                    case ImGuizmo::SCALE:
-                        transformComponent.scale = scale;
-                        break;
-                    default:
-                        break;
+                switch ((ImGuizmo::OPERATION)m_gizmoType)
+                {
+                case ImGuizmo::TRANSLATE:
+                    transformComponent.translation = translation;
+                    break;
+                case ImGuizmo::ROTATE:
+                    transformComponent.setRotationEuler(rotation);
+                    break;
+                case ImGuizmo::SCALE:
+                    transformComponent.scale = scale;
+                    break;
+                default:
+                    break;
                 }
             }
         }
@@ -622,7 +679,8 @@ namespace Fermion {
         ImGui::PopStyleVar();
     }
 
-    void BosonLayer::updateMousePicking() {
+    void BosonLayer::updateMousePicking()
+    {
         m_hoveredEntity = {};
 
         if (!m_viewport.isValid())
@@ -645,33 +703,35 @@ namespace Fermion {
         if (entityID == -1)
             return;
 
-        const Entity hovered{
-            static_cast<entt::entity>(entityID),
-            m_activeScene.get()
-        };
+        const Entity hovered{static_cast<entt::entity>(entityID), m_activeScene.get()};
 
         if (hovered.isValid())
             m_hoveredEntity = hovered;
     }
 
-
-    void BosonLayer::onOverlayRender() const {
-        if (m_sceneState == SceneState::Play) {
+    void BosonLayer::onOverlayRender() const
+    {
+        if (m_sceneState == SceneState::Play)
+        {
             Entity camera = m_activeScene->getPrimaryCameraEntity();
             if (!camera)
                 return;
 
             m_viewportRenderer->beginScene(camera.getComponent<CameraComponent>().camera,
                                            camera.getComponent<TransformComponent>().getTransform());
-        } else {
+        }
+        else
+        {
             m_viewportRenderer->beginScene(m_editorCamera);
         }
 
-        if (m_showPhysicsColliders) {
+        if (m_showPhysicsColliders)
+        {
             // Box Colliders
             {
                 auto view = m_activeScene->getAllEntitiesWith<TransformComponent, BoxCollider2DComponent>();
-                for (auto entity: view) {
+                for (auto entity : view)
+                {
                     auto [tc, bc2d] = view.get<TransformComponent, BoxCollider2DComponent>(entity);
 
                     glm::vec3 translation = tc.translation + glm::vec3(bc2d.offset, 0.001f);
@@ -679,8 +739,7 @@ namespace Fermion {
 
                     glm::mat4 transform = glm::translate(glm::mat4(1.0f), tc.translation) *
                                           glm::rotate(glm::mat4(1.0f), tc.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) *
-                                          glm::translate(glm::mat4(1.0f), glm::vec3(bc2d.offset, 0.001f)) * glm::scale(
-                                              glm::mat4(1.0f), scale);
+                                          glm::translate(glm::mat4(1.0f), glm::vec3(bc2d.offset, 0.001f)) * glm::scale(glm::mat4(1.0f), scale);
 
                     m_viewportRenderer->drawRect(transform, glm::vec4(0, 1, 0, 1));
                 }
@@ -689,7 +748,8 @@ namespace Fermion {
             // Circle Colliders
             {
                 auto view = m_activeScene->getAllEntitiesWith<TransformComponent, CircleCollider2DComponent>();
-                for (auto entity: view) {
+                for (auto entity : view)
+                {
                     auto [tc, cc2d] = view.get<TransformComponent, CircleCollider2DComponent>(entity);
 
                     // 单位 quad 半径 0.5 * scale.x = cc2d.radius * tc.scale.x
@@ -697,9 +757,7 @@ namespace Fermion {
 
                     // 先平移到实体，再旋转，再平移 offset，再缩放
                     glm::mat4 transform =
-                            glm::translate(glm::mat4(1.0f), tc.translation) * glm::rotate(
-                                glm::mat4(1.0f), tc.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) * glm::translate(
-                                glm::mat4(1.0f), glm::vec3(cc2d.offset, 0.001f)) * glm::scale(glm::mat4(1.0f), scale);
+                        glm::translate(glm::mat4(1.0f), tc.translation) * glm::rotate(glm::mat4(1.0f), tc.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(cc2d.offset, 0.001f)) * glm::scale(glm::mat4(1.0f), scale);
 
                     m_viewportRenderer->drawCircle(transform, glm::vec4(0, 1, 0, 1), 0.1f);
                 }
@@ -707,7 +765,8 @@ namespace Fermion {
             // Box Sensor
             {
                 auto view = m_activeScene->getAllEntitiesWith<TransformComponent, BoxSensor2DComponent>();
-                for (auto entity: view) {
+                for (auto entity : view)
+                {
                     Entity sensor = {entity, m_activeScene.get()};
                     auto [tc, bs2d] = view.get<TransformComponent, BoxSensor2DComponent>(entity);
                     glm::vec3 translation = tc.translation + glm::vec3(bs2d.offset, 0.001f);
@@ -715,8 +774,7 @@ namespace Fermion {
 
                     glm::mat4 transform = glm::translate(glm::mat4(1.0f), tc.translation) *
                                           glm::rotate(glm::mat4(1.0f), tc.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) *
-                                          glm::translate(glm::mat4(1.0f), glm::vec3(bs2d.offset, 0.001f)) * glm::scale(
-                                              glm::mat4(1.0f), scale);
+                                          glm::translate(glm::mat4(1.0f), glm::vec3(bs2d.offset, 0.001f)) * glm::scale(glm::mat4(1.0f), scale);
 
                     m_viewportRenderer->drawRect(transform, glm::vec4(0, 1, 1, 1));
                 }
@@ -725,14 +783,17 @@ namespace Fermion {
 
         // Draw selected entity outline
         {
-            if (Entity selectedEntity = m_sceneHierarchyPanel.getSelectedEntity(); selectedEntity) {
+            if (Entity selectedEntity = m_sceneHierarchyPanel.getSelectedEntity(); selectedEntity)
+            {
                 const TransformComponent &transform = selectedEntity.getComponent<TransformComponent>();
-                if (selectedEntity.hasComponent<MeshComponent>()) {
+                if (selectedEntity.hasComponent<MeshComponent>())
+                {
                     m_viewportRenderer->submitMesh(selectedEntity.getComponent<MeshComponent>(),
                                                    transform.getTransform(), -1, true);
                 }
-                else{
-                m_viewportRenderer->drawRect(transform.getTransform(), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+                else
+                {
+                    m_viewportRenderer->drawRect(transform.getTransform(), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
                 }
             }
         }
@@ -740,10 +801,12 @@ namespace Fermion {
         m_viewportRenderer->endScene();
     }
 
-    void BosonLayer::newProject() {
+    void BosonLayer::newProject()
+    {
         std::filesystem::path path = FileDialogs::saveFile(
             "Project (*.fmproj)\0*.fmproj\0", "../Boson/assets/project/");
-        if (path.empty()) {
+        if (path.empty())
+        {
             Log::Warn("Project Selection directory is empty!");
             return;
         }
@@ -772,10 +835,12 @@ namespace Fermion {
         m_contentBrowserPanel.setBaseDirectory(Project::getActive()->getConfig().assetDirectory);
     }
 
-    void BosonLayer::openProject() {
+    void BosonLayer::openProject()
+    {
         std::filesystem::path path = FileDialogs::openFile(
             "Project (*.fmproj)\0*.fmproj\0", "../Boson/assets/project/");
-        if (path.empty()) {
+        if (path.empty())
+        {
             Log::Warn("Project Selection directory is empty!");
             return;
         }
@@ -783,22 +848,27 @@ namespace Fermion {
         openProject(path);
     }
 
-    void BosonLayer::openProject(const std::filesystem::path &path) {
+    void BosonLayer::openProject(const std::filesystem::path &path)
+    {
         std::filesystem::path projectPath = path;
-        if (projectPath.empty()) {
+        if (projectPath.empty())
+        {
             Log::Warn("Empty project path supplied.");
             return;
         }
 
-        if (!m_isInitialized) {
+        if (!m_isInitialized)
+        {
             m_pendingProjectPath = projectPath;
             return;
         }
 
         std::error_code ec;
-        if (std::filesystem::is_directory(projectPath, ec) && !ec) {
+        if (std::filesystem::is_directory(projectPath, ec) && !ec)
+        {
             auto descriptor = findProjectFileInDirectory(projectPath);
-            if (descriptor.empty()) {
+            if (descriptor.empty())
+            {
                 Log::Error(std::format("No .fmproj/.fproject found inside directory: {}", projectPath.string()));
                 return;
             }
@@ -810,32 +880,39 @@ namespace Fermion {
         auto lastScene = Project::getActive()->getConfig().startScene;
         if (!lastScene.empty())
             openScene(lastScene);
-        m_contentBrowserPanel.setBaseDirectory(Project::getActive()->getConfig().assetDirectory);
+        m_contentBrowserPanel.setBaseDirectory(Project::getActive()->getProjectDirectory());
     }
 
-    void BosonLayer::saveProject() {
+    void BosonLayer::saveProject()
+    {
         saveScene();
         auto &config = Project::getActive()->getConfig();
         config.startScene = m_editorScenePath;
-        if (Project::saveActive(Fermion::Project::getProjectPath())) {
+        if (Project::saveActive(Fermion::Project::getProjectPath()))
+        {
             Log::Info("Project save successfully!");
-        } else {
+        }
+        else
+        {
             Log::Error("Project save failed!");
         }
     }
 
-    void BosonLayer::onDuplicateEntity() {
+    void BosonLayer::onDuplicateEntity()
+    {
         if (m_sceneState != SceneState::Edit)
             return;
 
         Entity selectedEntity = m_sceneHierarchyPanel.getSelectedEntity();
-        if (selectedEntity) {
+        if (selectedEntity)
+        {
             const Entity newEntity = m_editorScene->duplicateEntity(selectedEntity);
             m_sceneHierarchyPanel.setSelectedEntity(newEntity);
         }
     }
 
-    void BosonLayer::newScene() {
+    void BosonLayer::newScene()
+    {
         m_activeScene = std::make_shared<Scene>();
         m_activeScene->onViewportResize(static_cast<uint32_t>(m_viewportSize.x),
                                         static_cast<uint32_t>(m_viewportSize.y));
@@ -846,9 +923,11 @@ namespace Fermion {
         m_viewportRenderer->setScene(m_activeScene);
     }
 
-    void BosonLayer::saveSceneAs() {
+    void BosonLayer::saveSceneAs()
+    {
         std::string defaultDir = "../Boson/assets/scenes/";
-        if (auto project = Project::getActive()) {
+        if (auto project = Project::getActive())
+        {
             const auto &assetDir = project->getConfig().assetDirectory;
             if (!assetDir.empty())
                 defaultDir = assetDir.string();
@@ -872,8 +951,10 @@ namespace Fermion {
                               path.string()));
     }
 
-    void BosonLayer::saveScene() {
-        if (!m_editorScenePath.empty()) {
+    void BosonLayer::saveScene()
+    {
+        if (!m_editorScenePath.empty())
+        {
             SceneSerializer serializer(m_editorScene);
             serializer.serialize(m_editorScenePath);
 
@@ -884,14 +965,18 @@ namespace Fermion {
 
             Log::Info(std::format("Scene saved successfully! Path: {}",
                                   m_editorScenePath.string()));
-        } else {
+        }
+        else
+        {
             saveSceneAs();
         }
     }
 
-    void BosonLayer::openScene() {
+    void BosonLayer::openScene()
+    {
         std::string defaultDir = "../Boson/assets/scenes/";
-        if (auto project = Project::getActive()) {
+        if (auto project = Project::getActive())
+        {
             const auto &assetDir = project->getConfig().assetDirectory;
             if (!assetDir.empty())
                 defaultDir = assetDir.string();
@@ -899,36 +984,43 @@ namespace Fermion {
 
         std::filesystem::path path = FileDialogs::openFile(
             "Scene (*.fmscene)\0*.fmscene\0", defaultDir);
-        if (!path.empty()) {
+        if (!path.empty())
+        {
             openScene(path);
         }
     }
 
-    void BosonLayer::openScene(const std::filesystem::path &path) {
-        if (path.empty()) {
+    void BosonLayer::openScene(const std::filesystem::path &path)
+    {
+        if (path.empty())
+        {
             Log::Warn("openScene called with empty path");
             return;
         }
 
-        if (m_sceneState != SceneState::Edit) {
+        if (m_sceneState != SceneState::Edit)
+        {
             onSceneStop();
         }
         auto editorAssets = Project::getEditorAssetManager();
         AssetHandle handle = editorAssets->importAsset(path);
-        if (static_cast<uint64_t>(handle) == 0) {
+        if (static_cast<uint64_t>(handle) == 0)
+        {
             Log::Error(std::format("Scene open failed (invalid asset handle)! Path: {}",
                                    path.string()));
             return;
         }
 
         const auto sceneAsset = editorAssets->getAsset<SceneAsset>(handle);
-        if (!sceneAsset || !sceneAsset->scene) {
+        if (!sceneAsset || !sceneAsset->scene)
+        {
             Log::Error(std::format("Scene open failed (asset load failed)! Path: {}",
                                    path.string()));
             return;
         }
 
-        if (std::shared_ptr<Scene> newScene = sceneAsset->scene) {
+        if (std::shared_ptr<Scene> newScene = sceneAsset->scene)
+        {
             m_editorSceneHandle = handle;
             m_editorScene = newScene;
             m_editorScene->onViewportResize(static_cast<uint32_t>(m_viewportSize.x),
@@ -939,13 +1031,16 @@ namespace Fermion {
             m_viewportRenderer->setScene(m_activeScene);
             Log::Info(std::format("Scene opened successfully! Path: {}",
                                   path.string()));
-        } else {
+        }
+        else
+        {
             Log::Error(std::format("Scene open failed! Path: {}",
                                    path.string()));
         }
     }
 
-    void BosonLayer::onScenePlay() {
+    void BosonLayer::onScenePlay()
+    {
         m_hoveredEntity = {};
         if (m_sceneState == SceneState::Simulate)
             onSceneStop();
@@ -958,7 +1053,8 @@ namespace Fermion {
         m_sceneHierarchyPanel.setContext(m_activeScene);
     }
 
-    void BosonLayer::onSceneSimulate() {
+    void BosonLayer::onSceneSimulate()
+    {
         if (m_sceneState == SceneState::Play)
             onSceneStop();
         m_sceneState = SceneState::Simulate;
@@ -969,7 +1065,8 @@ namespace Fermion {
         m_sceneHierarchyPanel.setContext(m_activeScene);
     }
 
-    void BosonLayer::onSceneStop() {
+    void BosonLayer::onSceneStop()
+    {
         if (m_sceneState == SceneState::Play)
             m_activeScene->onRuntimeStop();
         else if (m_sceneState == SceneState::Simulate)

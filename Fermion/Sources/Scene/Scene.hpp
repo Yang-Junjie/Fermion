@@ -146,7 +146,7 @@ namespace Fermion {
         b2WorldId m_physicsWorld = b2_nullWorldId;
 
         bool m_hasDirectionalLight = false;
-        std::shared_ptr<Texture2D> m_lightTexture = nullptr;
+        std::shared_ptr<Texture2D> m_lightTexture = nullptr,m_cameraTexture = nullptr;
         std::unordered_map<UUID, entt::entity> m_entityMap;
         std::unordered_map<UUID, b2BodyId> m_physicsBodyMap;
 
