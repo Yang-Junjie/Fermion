@@ -220,12 +220,17 @@ namespace Fermion
             auto mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
             if (mesh)
             {
+                // 创建默认材质用于不带材质组件的Mesh
+                auto material = std::make_shared<Material>();
+                material->setDiffuseColor(glm::vec4(0.8f, 0.8f, 0.8f, 1.0f));
+                material->setAmbientColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
+                
                 for (auto &submesh : mesh->getSubMeshes())
                 {
                     MeshDrawCommand cmd;
                     cmd.pipeline = m_MeshPipeline;
                     cmd.vao = mesh->getVertexArray();
-                    cmd.material = mesh->getMaterials()[submesh.MaterialIndex];
+                    cmd.material = material;
                     cmd.transform = transform;
                     cmd.indexCount = submesh.IndexCount;
                     cmd.indexOffset = submesh.IndexOffset;
@@ -254,37 +259,20 @@ namespace Fermion
 
         auto vao = mesh->getVertexArray();
 
-        auto bindTexture = [&](AssetHandle handle, auto &&setter)
-        {
-            if (static_cast<uint64_t>(handle) != 0)
-            {
-                setter(assetManager->getAsset<Texture2D>(handle));
-            }
-            else
-            {
-                setter(nullptr);
-            }
-        };
-
         for (auto &submesh : mesh->getSubMeshes())
         {
-            auto material = mesh->cloneMaterial(submesh.MaterialIndex);
+            auto material = std::make_shared<Material>();
             material->setMaterialType(MaterialType::PBR);
             material->setAlbedo(pbrMaterial.albedo);
             material->setMetallic(pbrMaterial.metallic);
             material->setRoughness(pbrMaterial.roughness);
             material->setAO(pbrMaterial.ao);
 
-            bindTexture(pbrMaterial.albedoMapHandle, [&](auto tex)
-                        { material->setAlbedoMapShared(tex); });
-            bindTexture(pbrMaterial.normalMapHandle, [&](auto tex)
-                        { material->setNormalMapShared(tex); });
-            bindTexture(pbrMaterial.metallicMapHandle, [&](auto tex)
-                        { material->setMetallicMapShared(tex); });
-            bindTexture(pbrMaterial.roughnessMapHandle, [&](auto tex)
-                        { material->setRoughnessMapShared(tex); });
-            bindTexture(pbrMaterial.aoMapHandle, [&](auto tex)
-                        { material->setAOMapShared(tex); });
+            material->setAlbedoMap(pbrMaterial.albedoMapHandle);
+            material->setNormalMap(pbrMaterial.normalMapHandle);
+            material->setMetallicMap(pbrMaterial.metallicMapHandle);
+            material->setRoughnessMap(pbrMaterial.roughnessMapHandle);
+            material->setAOMap(pbrMaterial.aoMapHandle);
 
             MeshDrawCommand cmd;
             cmd.pipeline = m_PBRMeshPipeline;
@@ -320,19 +308,16 @@ namespace Fermion
             cmd.vao = mesh->getVertexArray();
 
             // 创建Phong材质并加载纹理
-            auto material = mesh->cloneMaterial(submesh.MaterialIndex);
-
+            auto material = std::make_shared<Material>();
             material->setMaterialType(MaterialType::Phong);
             material->setDiffuseColor(phongMaterial.diffuseColor);
             material->setAmbientColor(phongMaterial.ambientColor);
 
-            // 从AssetHandle加载漫反射纹理
-            std::shared_ptr<Texture2D> texture = nullptr;
-            if (phongMaterial.useTexture && static_cast<uint64_t>(phongMaterial.diffuseTextureHandle) != 0)
+            // 设置漫反射纹理
+            if (phongMaterial.useTexture)
             {
-                texture = assetManager->getAsset<Texture2D>(phongMaterial.diffuseTextureHandle);
+                material->setDiffuseTexture(phongMaterial.diffuseTextureHandle);
             }
-            material->setTextureShared(texture);
 
             cmd.material = material;
             cmd.transform = transform;

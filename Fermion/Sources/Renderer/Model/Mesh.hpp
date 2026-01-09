@@ -3,7 +3,6 @@
 #include "../Buffer.hpp"
 #include "../VertexArray.hpp"
 #include "../Texture/Texture.hpp"
-#include "Material.hpp"
 #include "Asset/Asset.hpp"
 #include "Math/AABB.hpp"
 #include <assimp/Importer.hpp>
@@ -22,7 +21,7 @@ namespace Fermion
 
     struct SubMesh
     {
-        uint32_t MaterialIndex = 0;
+        uint32_t MaterialSlotIndex = 0;  // 材质槽位索引
         uint32_t IndexOffset = 0;
         uint32_t IndexCount = 0;
     };
@@ -76,12 +75,6 @@ namespace Fermion
             return m_indices;
         }
 
-        const std::vector<std::shared_ptr<Material>> &getMaterials() const
-        {
-            return m_Materials;
-        }
-
-        std::shared_ptr<Material> cloneMaterial(uint32_t index) const;
 
         const std::vector<SubMesh> &getSubMeshes() const
         {
@@ -103,8 +96,8 @@ namespace Fermion
     private:
         std::vector<Vertex> m_vertices;
         std::vector<uint32_t> m_indices;
-        std::vector<std::shared_ptr<Material>> m_Materials;
         std::vector<SubMesh> m_SubMeshes;
+        
         std::string m_ModelPath;
         AABB m_BoundingBox;
 

@@ -21,13 +21,13 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [13.551621, 0.97, 18.211987]
     MeshComponent:
-      MeshHandle: 6900164407947268963
+      MeshHandle: 5628563151939768326
       MemoryOnly: true
       MemoryMeshType: 1
     Rigidbody3DComponent:
       BodyType: 0
       Mass: 1
-      LinearDamping: 0.01
+      LinearDamping: 0
       AngularDamping: 0.05
       UseGravity: true
     BoxCollider3DComponent:
@@ -72,7 +72,7 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      MeshHandle: 2177129254713832858
+      MeshHandle: 13648215076921245179
       MemoryOnly: true
       MemoryMeshType: 1
     Rigidbody3DComponent:
@@ -103,7 +103,7 @@ Entities:
     TagComponent:
       Tag: point light 1
     TransformComponent:
-      Translation: [-0.5536025, 1.63377, -0.66132545]
+      Translation: [-4.930496, 1.63377, -6.305187]
       Rotation: [0, -0, 0]
       Scale: [1, 1, 1]
     PointLightComponent:
@@ -118,7 +118,7 @@ Entities:
       Tag: dir light
     TransformComponent:
       Translation: [3.1233368, 5.75163, 16.821674]
-      Rotation: [-1.1449766, 0.019988438, -0.06045532]
+      Rotation: [-0.27963534, 0.26371697, -0.12964292]
       Scale: [1, 1, 1]
     DirectionalLightComponent:
       Color: [1, 1, 1]
@@ -164,7 +164,7 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      MeshHandle: 1045916181723697776
+      MeshHandle: 10516897388571329885
       MemoryOnly: true
       MemoryMeshType: 2
     PBRMaterialComponent:
@@ -185,7 +185,7 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      MeshHandle: 1694322356751037436
+      MeshHandle: 4696951869636421540
       MemoryOnly: true
       MemoryMeshType: 2
     PBRMaterialComponent:

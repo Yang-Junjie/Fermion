@@ -63,7 +63,7 @@ namespace Fermion
             indices.push_back(base + 0);
         }
         SubMesh sub;
-        sub.MaterialIndex = 0;
+        sub.MaterialSlotIndex = 0;
         sub.IndexOffset = 0;
         sub.IndexCount = (uint32_t)indices.size();
 
@@ -137,7 +137,7 @@ namespace Fermion
         }
 
         SubMesh sub;
-        sub.MaterialIndex = 0;
+        sub.MaterialSlotIndex = 0;
         sub.IndexOffset = 0;
         sub.IndexCount = (uint32_t)indices.size();
 
@@ -263,7 +263,7 @@ namespace Fermion
         // SubMesh
         // ======================
         SubMesh sub;
-        sub.MaterialIndex = 0;
+        sub.MaterialSlotIndex = 0;
         sub.IndexOffset = 0;
         sub.IndexCount = (uint32_t)indices.size();
 
@@ -450,7 +450,7 @@ namespace Fermion
         // SubMesh
         // ======================
         SubMesh sub;
-        sub.MaterialIndex = 0;
+        sub.MaterialSlotIndex = 0;
         sub.IndexOffset = 0;
         sub.IndexCount = (uint32_t)indices.size();
 
@@ -543,7 +543,7 @@ namespace Fermion
         // SubMesh
         // ======================
         SubMesh sub;
-        sub.MaterialIndex = 0;
+        sub.MaterialSlotIndex = 0;
         sub.IndexOffset = 0;
         sub.IndexCount = (uint32_t)indices.size();
 

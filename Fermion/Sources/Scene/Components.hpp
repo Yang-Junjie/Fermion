@@ -98,6 +98,7 @@ namespace Fermion
     struct MeshComponent
     {
         AssetHandle meshHandle = AssetHandle(0);
+        std::vector<AssetHandle> materials;
 
         bool memoryOnly = false;
         MemoryMeshType memoryMeshType = MemoryMeshType::None;

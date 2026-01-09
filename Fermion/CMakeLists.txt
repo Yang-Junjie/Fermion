@@ -66,6 +66,7 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Renderer/Font/Font.cpp
     ${FERMION_DIR}/Renderer/Model/Mesh.cpp
     ${FERMION_DIR}/Renderer/Model/MeshFactory.cpp
+    ${FERMION_DIR}/Renderer/Model/Material.cpp
 
     ${FERMION_DIR}/Project/ProJect.cpp
     ${FERMION_DIR}/Project/ProjectSerializer.cpp

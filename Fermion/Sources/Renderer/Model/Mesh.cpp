@@ -8,16 +8,8 @@ namespace Fermion {
                                                  m_SubMeshes(std::move(subMeshes)) {
         m_ModelPath = "<MemoryMesh>";
 
-        if (m_Materials.empty()) {
-            auto defaultMaterial = std::make_shared<Material>();
-            defaultMaterial->setDiffuseColor(glm::vec4(0.8f, 0.8f, 0.8f, 1.0f));
-            defaultMaterial->setAmbientColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
-            m_Materials.push_back(defaultMaterial);
-        }
-
         if (m_SubMeshes.empty() && !m_indices.empty()) {
             SubMesh sub;
-            sub.MaterialIndex = 0;
             sub.IndexOffset = 0;
             sub.IndexCount = static_cast<uint32_t>(m_indices.size());
             m_SubMeshes.push_back(sub);
@@ -27,13 +19,6 @@ namespace Fermion {
         calculateBoundingBox();
     }
 
-    std::shared_ptr<Material> Mesh::cloneMaterial(uint32_t index) const
-    {
-        if (index >= m_Materials.size() || !m_Materials[index])
-            return std::make_shared<Material>();
-
-        return m_Materials[index]->clone();
-    }
 
     void Mesh::debugMeshLog() const
     {
@@ -99,39 +84,8 @@ namespace Fermion {
         uint32_t vertexStart = (uint32_t) m_vertices.size();
         uint32_t indexStart = (uint32_t) m_indices.size();
 
-        std::shared_ptr<Material> material = std::make_shared<Material>();
-        glm::vec4 Kd(1.0f);
-        glm::vec4 Ka(0.0f);
-
-        if (scene->HasMaterials() && mesh->mMaterialIndex < scene->mNumMaterials) {
-            aiMaterial *aiMat = scene->mMaterials[mesh->mMaterialIndex];
-
-            aiColor4D diffColor(1, 1, 1, 1);
-            if (aiMat->Get(AI_MATKEY_COLOR_DIFFUSE, diffColor) == AI_SUCCESS)
-                Kd = glm::vec4(diffColor.r, diffColor.g, diffColor.b, diffColor.a);
-
-            aiColor4D ambientColor(0, 0, 0, 1);
-            if (aiMat->Get(AI_MATKEY_COLOR_AMBIENT, ambientColor) == AI_SUCCESS)
-                Ka = glm::vec4(ambientColor.r, ambientColor.g, ambientColor.b, ambientColor.a);
-
-            material->setDiffuseColor(Kd);
-            material->setAmbientColor(Ka);
-
-            // 加载贴图
-            if (aiMat->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
-                aiString texPath;
-                if (aiMat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == AI_SUCCESS && texPath.length > 0) {
-                    std::filesystem::path modelDir = std::filesystem::path(m_ModelPath).parent_path();
-                    std::filesystem::path fullTexPath = modelDir / texPath.C_Str();
-
-                    auto tex = Texture2D::create(fullTexPath.string());
-                    if (tex && tex->isLoaded())
-                        material->setTexture(std::move(tex));
-                }
-            }
-        }
-
-        m_Materials.push_back(material);
+        // 默认顶点颜色
+        glm::vec4 defaultColor(1.0f);
 
         // 顶点
         for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
@@ -140,7 +94,7 @@ namespace Fermion {
             v.Normal = mesh->HasNormals()
                            ? glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z)
                            : glm::vec3(0, 1, 0);
-            v.Color = material->hasTexture() ? glm::vec4(1.0f) : Kd;
+            v.Color = defaultColor;
             v.TexCoord = mesh->HasTextureCoords(0)
                              ? glm::vec2(mesh->mTextureCoords[0][i].x, 1.0f - mesh->mTextureCoords[0][i].y)
                              : glm::vec2(0.0f);
@@ -155,9 +109,9 @@ namespace Fermion {
                 m_indices.push_back(face.mIndices[j] + vertexStart);
         }
 
-        // 子网格
+        // 子网格 - 只存储材质槽位索引
         SubMesh submesh;
-        submesh.MaterialIndex = (unsigned int) (m_Materials.size() - 1);
+        submesh.MaterialSlotIndex = mesh->mMaterialIndex;  // 使用assimp的材质索引作为槽位索引
         submesh.IndexOffset = indexStart;
         submesh.IndexCount = (uint32_t) m_indices.size() - indexStart;
         m_SubMeshes.push_back(submesh);
