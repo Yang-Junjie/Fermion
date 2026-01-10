@@ -73,6 +73,8 @@ namespace Fermion {
 
         void onViewportPanel();
 
+        void verticalProgressBar(float value, float minValue, float maxValue, ImVec2 size);
+
         void updateMousePicking();
 
     private:

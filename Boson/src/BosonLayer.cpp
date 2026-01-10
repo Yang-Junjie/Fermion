@@ -258,7 +258,7 @@ namespace Fermion
             m_assetManagerPanel.onImGuiRender();
             m_menuBarPanel.OnImGuiRender();
             ConsolePanel::get().onImGuiRender();
-            //  ImGui::ShowDemoWindow();
+            // ImGui::ShowDemoWindow();
 
             onUIToolPanel();
             onHelpPanel();
@@ -277,6 +277,7 @@ namespace Fermion
         dispatcher.dispatch<MouseButtonPressedEvent>([this](MouseButtonPressedEvent &e)
                                                      { return this->onMouseButtonPressedEvent(e); });
         // m_cameraController.onEvent(event);
+
         m_editorCamera.onEvent(event);
     }
 
@@ -524,6 +525,9 @@ namespace Fermion
             ImGui::Text("Circles: %d", stats.circleCount);
             ImGui::Text("Vertices: %d", stats.getTotalVertexCount());
             ImGui::Text("Indices: %d", stats.getTotalIndexCount());
+            ImGui::SeparatorText("Editor Camera Info");
+            ImGui::Text("FPS speed: %.2f", m_editorCamera.getFPSSpeed());
+
             ImGui::End();
         }
 
@@ -574,6 +578,7 @@ namespace Fermion
             ImGui::Begin("Debug Settings");
 
             ImGui::Text("hovered entity: %s", name.c_str());
+            ImGui::Text("m_viewportFocused: %s", m_viewportFocused ? "yes" : "no");
 
             ImGui::Separator();
             ImGui::Checkbox("showPhysicsColliders", &m_showPhysicsColliders);
@@ -593,10 +598,17 @@ namespace Fermion
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4{0.117f, 0.117f, 0.117f, 1.0f});
         ImGui::Begin("Viewport");
         const auto viewportOffset = ImGui::GetCursorPos();
-
         m_viewportFocused = ImGui::IsWindowFocused();
         m_viewportHovered = ImGui::IsWindowHovered();
 
+        if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+        {
+            ImGui::SetWindowFocus();
+        }
+        if (m_viewportHovered)
+        {
+            ImGui::SetWindowFocus();
+        }
         ImGuiIO &io = ImGui::GetIO();
 
         if (m_viewportFocused && m_viewportHovered)
@@ -655,16 +667,15 @@ namespace Fermion
 
         // ImGuiZmo
         Entity selectedEntity = m_sceneHierarchyPanel.getSelectedEntity();
+
         if (selectedEntity && m_gizmoType != -1)
         {
             ImGuizmo::SetOrthographic(false);
             ImGuizmo::SetDrawlist();
             ImGuizmo::SetRect(m_viewport.min.x, m_viewport.min.y, m_viewport.size().x, m_viewport.size().y);
-
             // editorCamera
             const glm::mat4 &cameraProjection = m_editorCamera.getProjection();
             const glm::mat4 &cameraView = m_editorCamera.getViewMatrix();
-
             // Entity
             auto &transformComponent = selectedEntity.getComponent<TransformComponent>();
             glm::mat4 transform = transformComponent.getTransform();
@@ -700,10 +711,65 @@ namespace Fermion
                 }
             }
         }
+       
+        if (m_editorCamera.isFPSMode())
+        {
+            float centerY = m_viewport.size().y / 2.0f;
+            float leftPadding = 10.0f;
+            ImGui::SetCursorPos(ImVec2(leftPadding, centerY));
 
+            verticalProgressBar(m_editorCamera.getFPSSpeed(), 0.0f, 30.0f, ImVec2(20, 300.0f));
+        }
         ImGui::End();
         ImGui::PopStyleColor();
         ImGui::PopStyleVar();
+    }
+
+    void BosonLayer::verticalProgressBar(float value, float minValue, float maxValue, ImVec2 size)
+    {
+        ImDrawList *drawList = ImGui::GetWindowDrawList();
+        ImVec2 pos = ImGui::GetCursorScreenPos();
+
+        ImU32 bg = IM_COL32(40, 40, 40, 255);
+        ImU32 fill = IM_COL32(100, 220, 100, 255);
+        ImU32 border = IM_COL32(200, 200, 200, 255);
+
+        if (maxValue <= minValue)
+            maxValue = minValue + 0.0001f;
+
+        float fraction = (value - minValue) / (maxValue - minValue);
+
+        if (fraction < 0.0f)
+            fraction = 0.0f;
+        if (fraction > 1.0f)
+            fraction = 1.0f;
+
+        ImVec2 maxPos(pos.x + size.x, pos.y + size.y);
+
+        drawList->AddRectFilled(pos, maxPos, bg);
+        drawList->AddRect(pos, maxPos, border);
+
+        float h = size.y * fraction;
+
+        if (h > 0.0f)
+        {
+            float topY = pos.y + size.y - h;
+
+            float minY = pos.y + 2;
+            float maxY = pos.y + size.y - 2;
+
+            if (topY < minY)
+                topY = minY;
+            if (topY > maxY)
+                topY = maxY;
+
+            drawList->AddRectFilled(
+                ImVec2(pos.x + 2, topY),
+                ImVec2(pos.x + size.x - 2, maxY),
+                fill);
+        }
+
+        ImGui::Dummy(size);
     }
 
     void BosonLayer::updateMousePicking()
