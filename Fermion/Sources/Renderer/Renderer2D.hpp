@@ -1,4 +1,4 @@
-﻿#pragma once
+﻿    #pragma once
 #include "Texture/Texture.hpp"
 #include "Texture/SubTexture2D.hpp"
 #include "Camera/OrthographicCameraController.hpp"
@@ -9,6 +9,8 @@
 #include "Math/AABB.hpp"
 #include "Renderer/RenderDrawCommand.hpp"
 #include "Renderer/CommandBuffer.hpp"
+#include "Renderer/RenderGraph.hpp"
+#include "Renderer/RenderCommandQueue.hpp"
 
 namespace Fermion
 {
@@ -143,5 +145,10 @@ namespace Fermion
 
     private:
         static void flushAndReset();
+        static void QuadPass();
+        static void QuadInstancePass();
+        static void CirclePass();
+        static void LinePass();
+        static void TextPass();
     };
 } // namespace Fermion
