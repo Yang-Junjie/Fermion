@@ -1,78 +1,143 @@
 Scene: Name
 Entities:
-  - Entity: 7383789325647833737
+  - Entity: 5434223076201642167
     TagComponent:
-      Tag: spot light
+      Tag: Empty Entity
     TransformComponent:
-      Translation: [1.660531, 1.3044844, -7.821496]
-      Rotation: [0.7737189, -0.024697999, -0.011934972]
-      Scale: [1, 1, 1]
-    SpotLightComponent:
-      Color: [0.980695, 0, 0.97690904]
-      Intensity: 100
-      Range: 15.8
-      Angle: 30
-      Softness: 0.2
-  - Entity: 15185291457579198605
-    TagComponent:
-      Tag: floor
-    TransformComponent:
-      Translation: [4.656613e-10, -0.9793039, 0]
+      Translation: [-3.3169935, 0, 0]
       Rotation: [0, 0, 0]
-      Scale: [13.551621, 0.97, 18.211987]
+      Scale: [1, 1, 1]
     MeshComponent:
-      MeshHandle: 7860009679708055679
+      MeshHandle: 16484190341434004391
       MemoryOnly: true
-      MemoryMeshType: 1
-    Rigidbody3DComponent:
-      BodyType: 0
-      Mass: 1
-      LinearDamping: 0
-      AngularDamping: 0.05
-      UseGravity: true
-    BoxCollider3DComponent:
-      Offset: [0, 0, 0]
-      Size: [0.5, 0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      IsTrigger: false
+      MemoryMeshType: 5
+    PBRMaterialComponent:
+      Albedo: [1, 0, 0]
+      Metallic: 1
+      Roughness: 0
+      AO: 1
+      FlipUV: false
+  - Entity: 15275614337768985203
+    TagComponent:
+      Tag: sphere2
+    TransformComponent:
+      Translation: [4.170317, -7.450581e-09, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      MeshHandle: 11967236296015740920
+      MemoryOnly: true
+      MemoryMeshType: 2
     PBRMaterialComponent:
       Albedo: [1, 1, 1]
       Metallic: 0
-      Roughness: 1
-      AO: 0.112
+      Roughness: 0.571
+      AO: 1
+      AlbedoMapHandle: 2003938330590131204
+      NormalMapHandle: 13586197093745247284
+      MetallicMapHandle: 9861096440576352054
+      RoughnessMapHandle: 4533912333430544589
       FlipUV: false
-  - Entity: 828511274271775610
+  - Entity: 7973942402762895159
     TagComponent:
-      Tag: coffee
+      Tag: sphere
     TransformComponent:
-      Translation: [0.32088238, -0.5000723, 0]
+      Translation: [-0.7146495, 2.0921743, -6.1035156e-05]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      MeshHandle: 6464111564837725694
-      MemoryOnly: false
-      MemoryMeshType: 0
+      MeshHandle: 14335852003369394683
+      MemoryOnly: true
+      MemoryMeshType: 2
+    Rigidbody3DComponent:
+      BodyType: 1
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+    CircleCollider3DComponent:
+      Offset: [0, 0, 0]
+      Radius: 0.5
+      Density: 1
+      Friction: 1
+      Restitution: 0.23
+      IsTrigger: false
     PBRMaterialComponent:
       Albedo: [1, 1, 1]
       Metallic: 0
       Roughness: 0.5
       AO: 1
-      AlbedoMapHandle: 14965907563741501783
-      NormalMapHandle: 14908307116319306999
-      MetallicMapHandle: 14033000373010488179
-      RoughnessMapHandle: 7124407509709945697
+      AlbedoMapHandle: 5928333557972422862
+      NormalMapHandle: 18135350033626138210
+      MetallicMapHandle: 12930765037293295870
+      RoughnessMapHandle: 3187161284739519099
       FlipUV: false
+  - Entity: 18083371750882497292
+    TagComponent:
+      Tag: point light 2
+    TransformComponent:
+      Translation: [-4.7412004, 1.7948608, 5.8732452]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    PointLightComponent:
+      Color: [1, 0, 0]
+      Intensity: 3.5
+      Range: 10
+    ScriptContainerComponent:
+      ScriptClassNames:
+        - Sandbox.XAxisMove
+  - Entity: 18415657991614262539
+    TagComponent:
+      Tag: camera
+    TransformComponent:
+      Translation: [0, 0, 15.110502]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Camera:
+        ProjectionType: 1
+        PerspectiveFOV: 0.7853982
+        PerspectiveNear: 0.01
+        PerspectiveFar: 100
+        OrthographicSize: 10
+        OrthographicNear: -100
+        OrthographicFar: 100
+      Primary: true
+      FixedAspectRatio: false
+  - Entity: 1669450970559933596
+    TagComponent:
+      Tag: dir light
+    TransformComponent:
+      Translation: [3.1233368, 5.75163, 16.821674]
+      Rotation: [-0.27963534, 0.26371697, -0.12964292]
+      Scale: [1, 1, 1]
+    DirectionalLightComponent:
+      Color: [1, 1, 1]
+      Intensity: 16.5
+      MainLight: true
+  - Entity: 5449681077286385480
+    TagComponent:
+      Tag: point light 1
+    TransformComponent:
+      Translation: [3.1869366, 2.0007553, -0.68982375]
+      Rotation: [0, -0, 0]
+      Scale: [1, 1, 1]
+    PointLightComponent:
+      Color: [0.03826713, 0.31169114, 0.5830116]
+      Intensity: 72.7
+      Range: 4.9
+    ScriptContainerComponent:
+      ScriptClassNames:
+        - Sandbox.XAxisMove
   - Entity: 3900046245730622025
     TagComponent:
       Tag: cube
     TransformComponent:
       Translation: [1.9555454, 0.9692451, 0]
-      Rotation: [0, 0, 0]
+      Rotation: [-1.0521061, -0.066733666, -0.50968736]
       Scale: [1, 1, 1]
     MeshComponent:
-      MeshHandle: 9040021307813006242
+      MeshHandle: 12354171244746776756
       MemoryOnly: true
       MemoryMeshType: 1
     Rigidbody3DComponent:
@@ -99,119 +164,67 @@ Entities:
       RoughnessMapHandle: 6129762224840849498
       AOMapHandle: 6901544722382842703
       FlipUV: false
-  - Entity: 5449681077286385480
+  - Entity: 828511274271775610
     TagComponent:
-      Tag: point light 1
+      Tag: coffee
     TransformComponent:
-      Translation: [-4.930496, 1.63377, -6.305187]
-      Rotation: [0, -0, 0]
-      Scale: [1, 1, 1]
-    PointLightComponent:
-      Color: [0.03826713, 0.31169114, 0.5830116]
-      Intensity: 5.9
-      Range: 4.9
-    ScriptContainerComponent:
-      ScriptClassNames:
-        - Sandbox.XAxisMove
-  - Entity: 1669450970559933596
-    TagComponent:
-      Tag: dir light
-    TransformComponent:
-      Translation: [3.1233368, 5.75163, 16.821674]
-      Rotation: [-0.27963534, 0.26371697, -0.12964292]
-      Scale: [1, 1, 1]
-    DirectionalLightComponent:
-      Color: [1, 1, 1]
-      Intensity: 16.5
-      MainLight: true
-  - Entity: 18415657991614262539
-    TagComponent:
-      Tag: camera
-    TransformComponent:
-      Translation: [0, 0, 15.110502]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    CameraComponent:
-      Camera:
-        ProjectionType: 1
-        PerspectiveFOV: 0.7853982
-        PerspectiveNear: 0.01
-        PerspectiveFar: 100
-        OrthographicSize: 10
-        OrthographicNear: -100
-        OrthographicFar: 100
-      Primary: true
-      FixedAspectRatio: false
-  - Entity: 18083371750882497292
-    TagComponent:
-      Tag: point light 2
-    TransformComponent:
-      Translation: [-4.7412004, 1.7948608, 5.8732452]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    PointLightComponent:
-      Color: [1, 0, 0]
-      Intensity: 3.5
-      Range: 10
-    ScriptContainerComponent:
-      ScriptClassNames:
-        - Sandbox.XAxisMove
-  - Entity: 7973942402762895159
-    TagComponent:
-      Tag: sphere
-    TransformComponent:
-      Translation: [-1.0842915, 0.00975807, 0]
+      Translation: [0.32088238, -0.5000723, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      MeshHandle: 13203019091566594974
-      MemoryOnly: true
-      MemoryMeshType: 2
+      MeshHandle: 6464111564837725694
+      MemoryOnly: false
+      MemoryMeshType: 0
     PBRMaterialComponent:
       Albedo: [1, 1, 1]
       Metallic: 0
       Roughness: 0.5
       AO: 1
-      AlbedoMapHandle: 5928333557972422862
-      NormalMapHandle: 18135350033626138210
-      MetallicMapHandle: 12930765037293295870
-      RoughnessMapHandle: 3187161284739519099
+      AlbedoMapHandle: 14965907563741501783
+      NormalMapHandle: 14908307116319306999
+      MetallicMapHandle: 14033000373010488179
+      RoughnessMapHandle: 7124407509709945697
       FlipUV: false
-  - Entity: 15275614337768985203
+  - Entity: 15185291457579198605
     TagComponent:
-      Tag: sphere2
+      Tag: floor
     TransformComponent:
-      Translation: [4.170317, -7.450581e-09, 0]
+      Translation: [4.656613e-10, -0.9793039, 0]
       Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
+      Scale: [13.551621, 0.97, 18.211987]
     MeshComponent:
-      MeshHandle: 7700391540065102690
+      MeshHandle: 4857392914255456018
       MemoryOnly: true
-      MemoryMeshType: 2
+      MemoryMeshType: 1
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0
+      AngularDamping: 0.05
+      UseGravity: true
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
     PBRMaterialComponent:
       Albedo: [1, 1, 1]
       Metallic: 0
-      Roughness: 0.571
-      AO: 1
-      AlbedoMapHandle: 2003938330590131204
-      NormalMapHandle: 13586197093745247284
-      MetallicMapHandle: 9861096440576352054
-      RoughnessMapHandle: 4533912333430544589
+      Roughness: 1
+      AO: 0.112
       FlipUV: false
-  - Entity: 5434223076201642167
+  - Entity: 7383789325647833737
     TagComponent:
-      Tag: Empty Entity
+      Tag: spot light
     TransformComponent:
-      Translation: [-3.3169935, 0, 0]
-      Rotation: [0, 0, 0]
+      Translation: [1.660531, 1.3044844, -7.821496]
+      Rotation: [0.7737189, -0.024697999, -0.011934972]
       Scale: [1, 1, 1]
-    MeshComponent:
-      MeshHandle: 17491165563948930659
-      MemoryOnly: true
-      MemoryMeshType: 5
-    PBRMaterialComponent:
-      Albedo: [1, 0, 0]
-      Metallic: 0
-      Roughness: 0.375
-      AO: 1
-      FlipUV: false
+    SpotLightComponent:
+      Color: [0.980695, 0, 0.97690904]
+      Intensity: 100
+      Range: 15.8
+      Angle: 30
+      Softness: 0.2

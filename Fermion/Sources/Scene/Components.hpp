@@ -330,6 +330,23 @@ namespace Fermion
         BoxCollider3DComponent(const BoxCollider3DComponent &) = default;
     };
 
+    struct CircleCollider3DComponent
+    {
+        glm::vec3 offset = {0.0f, 0.0f, 0.0f};
+        float radius = 0.5f;
+
+        float density = 1.0f;
+        float friction = 0.5f;
+        float restitution = 0.0f;
+        bool isTrigger = false;
+
+        void *runtimeShape = nullptr;
+
+        CircleCollider3DComponent() = default;
+
+        CircleCollider3DComponent(const CircleCollider3DComponent &) = default;
+    };
+
     struct DirectionalLightComponent
     {
         glm::vec3 color{1.0f, 1.0f, 1.0f};
@@ -420,7 +437,7 @@ namespace Fermion
                        ScriptContainerComponent,
                        NativeScriptComponent,
                        Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, BoxSensor2DComponent,
-                       Rigidbody3DComponent, BoxCollider3DComponent,
+                       Rigidbody3DComponent, BoxCollider3DComponent, CircleCollider3DComponent,
                        TextComponent,
 
                        /* Lighting */

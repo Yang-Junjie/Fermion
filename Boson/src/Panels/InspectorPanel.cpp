@@ -171,6 +171,7 @@ namespace Fermion
             displayAddComponentEntry<MeshComponent>("Mesh");
             displayAddComponentEntry<Rigidbody3DComponent>("Rigidbody3D");
             displayAddComponentEntry<BoxCollider3DComponent>("Box Collider3D");
+            displayAddComponentEntry<CircleCollider3DComponent>("Circle Collider3D");
             displayAddComponentEntry<DirectionalLightComponent>("Directional Light");
             displayAddComponentEntry<PointLightComponent>("Point Light");
             displayAddComponentEntry<SpotLightComponent>("Spot Light");
@@ -565,6 +566,14 @@ namespace Fermion
             ImGui::DragFloat("Friction##3d", &component.friction, 0.01f, 0.0f, 1.0f);
             ImGui::DragFloat("Restitution##3d", &component.restitution, 0.01f, 0.0f, 1.0f);
             ImGui::Checkbox("Trigger##3d", &component.isTrigger); });
+        drawComponent<CircleCollider3DComponent>("Circle Collider 3D", entity, [](auto &component)
+                                                 {
+            ImGui::DragFloat3("Offset##circle3d", glm::value_ptr(component.offset), 0.01f);
+            ImGui::DragFloat("Radius##circle3d", &component.radius, 0.01f, 0.01f, 100.0f);
+            ImGui::DragFloat("Density##circle3d", &component.density, 0.01f, 0.0f, 10.0f);
+            ImGui::DragFloat("Friction##circle3d", &component.friction, 0.01f, 0.0f, 1.0f);
+            ImGui::DragFloat("Restitution##circle3d", &component.restitution, 0.01f, 0.0f, 1.0f);
+            ImGui::Checkbox("Trigger##circle3d", &component.isTrigger); });
 
         drawComponent<PhongMaterialComponent>("Phong Material", entity, [entity](auto &component) mutable
                                               {

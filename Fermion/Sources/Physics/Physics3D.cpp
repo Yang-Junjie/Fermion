@@ -25,6 +25,7 @@
 #include <Jolt/Physics/Body/BodyLock.h>
 #include <Jolt/Physics/Body/Body.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
+#include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Collision/Shape/Shape.h>
 #include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h>
 #include <Jolt/Physics/Collision/ObjectLayer.h>
@@ -189,6 +190,24 @@ namespace {
         }
         return result.Get();
     }
+
+    JPH::ShapeRefC CreateSphereShape(const Fermion::TransformComponent &transform,
+                                     const Fermion::CircleCollider3DComponent *collider) {
+        float radius = collider ? collider->radius : 0.5f;
+        // Use the maximum scale component for uniform sphere scaling
+        float maxScale = glm::max(glm::max(transform.scale.x, transform.scale.y), transform.scale.z);
+        radius *= maxScale;
+        constexpr float cMinRadius = 0.001f;
+        radius = glm::max(radius, cMinRadius);
+
+        JPH::SphereShapeSettings sphereSettings(radius);
+        JPH::ShapeSettings::ShapeResult result = sphereSettings.Create();
+        if (result.HasError()) {
+            Fermion::Log::Error(std::format("Failed to create SphereShape: {}", result.GetError()));
+            return nullptr;
+        }
+        return result.Get();
+    }
 } // namespace
 
 namespace Fermion {
@@ -235,16 +254,39 @@ namespace Fermion {
             Entity entity{entityID, scene};
             auto &rb = view.get<Rigidbody3DComponent>(entityID);
             auto &transform = view.get<TransformComponent>(entityID);
-            const BoxCollider3DComponent *collider = entity.hasComponent<BoxCollider3DComponent>()
-                                                     ? &entity.getComponent<BoxCollider3DComponent>()
-                                                     : nullptr;
+            
+            // Determine which collider type to use (prioritize BoxCollider, then CircleCollider)
+            JPH::ShapeRefC shape;
+            glm::vec3 offset{0.0f};
+            float friction = 0.5f;
+            float restitution = 0.0f;
+            bool isTrigger = false;
+            
+            if (entity.hasComponent<BoxCollider3DComponent>()) {
+                const auto &collider = entity.getComponent<BoxCollider3DComponent>();
+                shape = CreateBoxShape(transform, &collider);
+                offset = collider.offset;
+                friction = collider.friction;
+                restitution = collider.restitution;
+                isTrigger = collider.isTrigger;
+            }
+            else if (entity.hasComponent<CircleCollider3DComponent>()) {
+                const auto &collider = entity.getComponent<CircleCollider3DComponent>();
+                shape = CreateSphereShape(transform, &collider);
+                offset = collider.offset;
+                friction = collider.friction;
+                restitution = collider.restitution;
+                isTrigger = collider.isTrigger;
+            }
+            else {
+                // No collider component, skip
+                continue;
+            }
 
-            JPH::ShapeRefC shape = CreateBoxShape(transform, collider);
             if (!shape)
                 continue;
 
             glm::quat rotationQuat = glm::quat(transform.getRotationEuler());
-            glm::vec3 offset = collider ? collider->offset : glm::vec3{0.0f};
             glm::vec3 worldOffset = rotationQuat * offset;
             glm::vec3 bodyPosition = transform.translation + worldOffset;
 
@@ -256,9 +298,9 @@ namespace Fermion {
             bodySettings.mAllowSleeping = true;
             bodySettings.mLinearDamping = rb.linearDamping;
             bodySettings.mAngularDamping = rb.angularDamping;
-            bodySettings.mFriction = collider ? collider->friction : 0.5f;
-            bodySettings.mRestitution = collider ? collider->restitution : 0.0f;
-            bodySettings.mIsSensor = collider ? collider->isTrigger : false;
+            bodySettings.mFriction = friction;
+            bodySettings.mRestitution = restitution;
+            bodySettings.mIsSensor = isTrigger;
             bodySettings.mGravityFactor = rb.useGravity ? 1.0f : 0.0f;
             bodySettings.mUserData = static_cast<uint64_t>(entity.getUUID());
 
@@ -333,10 +375,13 @@ namespace Fermion {
             glm::quat rotation = ToGlmQuat(body.GetRotation());
 
             Entity entity{entityID, scene};
-            BoxCollider3DComponent *collider = entity.hasComponent<BoxCollider3DComponent>()
-                                               ? &entity.getComponent<BoxCollider3DComponent>()
-                                               : nullptr;
-            glm::vec3 offset = collider ? collider->offset : glm::vec3{0.0f};
+            glm::vec3 offset{0.0f};
+            if (entity.hasComponent<BoxCollider3DComponent>()) {
+                offset = entity.getComponent<BoxCollider3DComponent>().offset;
+            }
+            else if (entity.hasComponent<CircleCollider3DComponent>()) {
+                offset = entity.getComponent<CircleCollider3DComponent>().offset;
+            }
             glm::vec3 worldOffset = rotation * offset;
 
             auto &transform = view.get<TransformComponent>(entityID);

@@ -285,6 +285,19 @@ namespace Fermion
             out << YAML::Key << "IsTrigger" << YAML::Value << bc.isTrigger;
             out << YAML::EndMap;
         }
+        if (entity.hasComponent<CircleCollider3DComponent>())
+        {
+            out << YAML::Key << "CircleCollider3DComponent";
+            out << YAML::BeginMap;
+            auto &cc = entity.getComponent<CircleCollider3DComponent>();
+            out << YAML::Key << "Offset" << YAML::Value << cc.offset;
+            out << YAML::Key << "Radius" << YAML::Value << cc.radius;
+            out << YAML::Key << "Density" << YAML::Value << cc.density;
+            out << YAML::Key << "Friction" << YAML::Value << cc.friction;
+            out << YAML::Key << "Restitution" << YAML::Value << cc.restitution;
+            out << YAML::Key << "IsTrigger" << YAML::Value << cc.isTrigger;
+            out << YAML::EndMap;
+        }
         if (entity.hasComponent<BoxSensor2DComponent>())
         {
             out << YAML::Key << "BoxSensor2DComponent";
@@ -709,6 +722,23 @@ namespace Fermion
                         bc.restitution = n.as<float>();
                     if (auto n = boxCollider3DComponent["IsTrigger"]; n)
                         bc.isTrigger = n.as<bool>();
+                }
+                auto circleCollider3DComponent = entity["CircleCollider3DComponent"];
+                if (circleCollider3DComponent && circleCollider3DComponent.IsMap())
+                {
+                    auto &cc = deserializedEntity.addComponent<CircleCollider3DComponent>();
+                    if (auto n = circleCollider3DComponent["Offset"]; n)
+                        cc.offset = n.as<glm::vec3>();
+                    if (auto n = circleCollider3DComponent["Radius"]; n)
+                        cc.radius = n.as<float>();
+                    if (auto n = circleCollider3DComponent["Density"]; n)
+                        cc.density = n.as<float>();
+                    if (auto n = circleCollider3DComponent["Friction"]; n)
+                        cc.friction = n.as<float>();
+                    if (auto n = circleCollider3DComponent["Restitution"]; n)
+                        cc.restitution = n.as<float>();
+                    if (auto n = circleCollider3DComponent["IsTrigger"]; n)
+                        cc.isTrigger = n.as<bool>();
                 }
                 auto boxSensor2DComponent = entity["BoxSensor2DComponent"];
                 if (boxSensor2DComponent && boxSensor2DComponent.IsMap())

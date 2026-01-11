@@ -13,7 +13,7 @@ namespace Fermion
         PBR    // PBR材质
     };
 
-    class Material : public Asset
+    class Material
     {
     public:
         Material();
@@ -45,7 +45,7 @@ namespace Fermion
         const glm::vec4 &getDiffuseColor() const;
         const glm::vec4 &getAmbientColor() const;
         AssetHandle getDiffuseTexture() const;
-        AssetHandle& getDiffuseTexture();
+        AssetHandle &getDiffuseTexture();
         MaterialType getType() const;
         const glm::vec3 &getAlbedo() const;
         float getMetallic() const;
@@ -63,10 +63,6 @@ namespace Fermion
         AssetHandle &getMetallicMap();
         AssetHandle &getRoughnessMap();
         AssetHandle &getAOMap();
-        virtual AssetType getAssetsType() const override
-        {
-            return AssetType::Material;
-        }
 
     private:
         void bindPhong(const std::shared_ptr<Shader> &shader, int slot) const;
