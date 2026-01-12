@@ -138,6 +138,8 @@ namespace Fermion
 
         // Render
         Renderer2D::resetStatistics();
+        if (m_viewportRenderer)
+            m_viewportRenderer->resetStatistics();
         m_framebuffer->bind();
         RenderCommand::setClearColor({0.1f, 0.1f, 0.1f, 1.0f});
         RenderCommand::clear();
@@ -505,15 +507,26 @@ namespace Fermion
             ImGui::Text("FPS: %.1f FPS", 1000.0f / avgFrameTimeMs);
 
             ImGui::SeparatorText("Renderer Statistics");
-            const SceneRenderer::Statistics stats = m_viewportRenderer
+            const SceneRenderer::RenderStatistics stats = m_viewportRenderer
                                                         ? m_viewportRenderer->getStatistics()
-                                                        : SceneRenderer::Statistics{};
-            ImGui::Text("Draw Calls: %d", stats.drawCalls);
-            ImGui::Text("Quads: %d", stats.quadCount);
-            ImGui::Text("Lines: %d", stats.lineCount);
-            ImGui::Text("Circles: %d", stats.circleCount);
-            ImGui::Text("Vertices: %d", stats.getTotalVertexCount());
-            ImGui::Text("Indices: %d", stats.getTotalIndexCount());
+                                                        : SceneRenderer::RenderStatistics{};
+
+            ImGui::Text("Draw Calls (Total): %u", stats.getTotalDrawCalls());
+            ImGui::SeparatorText("Renderer2D");
+            ImGui::Text("Draw Calls: %u", stats.renderer2D.drawCalls);
+            ImGui::Text("Quads: %u", stats.renderer2D.quadCount);
+            ImGui::Text("Lines: %u", stats.renderer2D.lineCount);
+            ImGui::Text("Circles: %u", stats.renderer2D.circleCount);
+            ImGui::Text("Vertices: %u", stats.getTotalVertexCount());
+            ImGui::Text("Indices: %u", stats.getTotalIndexCount());
+
+            ImGui::SeparatorText("Renderer3D");
+            ImGui::Text("Meshes: %u", stats.renderer3D.meshCount);
+            ImGui::Text("Geometry Draw Calls: %u", stats.renderer3D.geometryDrawCalls);
+            ImGui::Text("Shadow Draw Calls: %u", stats.renderer3D.shadowDrawCalls);
+            ImGui::Text("Skybox Draw Calls: %u", stats.renderer3D.skyboxDrawCalls);
+            ImGui::Text("IBL Draw Calls: %u", stats.renderer3D.iblDrawCalls);
+            ImGui::Text("Draw Calls (3D Total): %u", stats.renderer3D.getTotalDrawCalls());
             ImGui::SeparatorText("Editor Camera Info");
             ImGui::Text("FPS speed: %.2f", m_editorCamera.getFPSSpeed());
 
@@ -790,12 +803,12 @@ namespace Fermion
             if (!camera)
                 return;
 
-            m_viewportRenderer->beginScene(camera.getComponent<CameraComponent>().camera,
-                                           camera.getComponent<TransformComponent>().getTransform());
+            m_viewportRenderer->beginOverlay(camera.getComponent<CameraComponent>().camera,
+                                             camera.getComponent<TransformComponent>().getTransform());
         }
         else
         {
-            m_viewportRenderer->beginScene(m_editorCamera);
+            m_viewportRenderer->beginOverlay(m_editorCamera);
         }
 
         if (m_showPhysicsColliders)
@@ -870,7 +883,7 @@ namespace Fermion
                 }
             }
         }
-        m_viewportRenderer->endScene();
+        m_viewportRenderer->endOverlay();
     }
 
     void BosonLayer::newProject()

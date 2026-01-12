@@ -17,7 +17,7 @@ namespace Fermion
         void onImGuiRender();
 
     private:
-        // TODO: 找一个好一点的位置放
+        // TODO: 找一个好一点的位置放（后期对imgui封装）
         bool InputTextStdString(const char *label, std::string &str)
         {
             char buffer[512];
@@ -52,6 +52,6 @@ namespace Fermion
         MaterialInfo m_MaterialInfo;
         bool m_isCreatePBRMaterial = true;
         bool m_useTexture = false;
-        bool m_isOpenned = true;
+        bool m_isOpenned = false;
     };
 } // namespace Fermion

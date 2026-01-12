@@ -10,8 +10,10 @@
 #include "Model/Material.hpp"
 #include "Scene/Scene.hpp"
 
-namespace Fermion {
-    class Renderer3D {
+namespace Fermion
+{
+    class Renderer3D
+    {
     public:
         static void init(const RendererConfig &config);
 
@@ -24,7 +26,5 @@ namespace Fermion {
         static void recordGeometryPass(CommandBuffer &commandBuffer, const std::vector<MeshDrawCommand> &drawCommands);
 
         static void recordSkyboxPass(CommandBuffer &commandBuffer, const SkyboxDrawCommand &drawCommand);
-
-
     };
 } // namespace Fermion

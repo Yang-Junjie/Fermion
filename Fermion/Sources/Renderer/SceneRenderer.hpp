@@ -52,21 +52,56 @@ namespace Fermion
 
         };
 
-        struct Statistics
+        struct RenderStatistics
         {
-            uint32_t drawCalls = 0;
-            uint32_t quadCount = 0;
-            uint32_t lineCount = 0;
-            uint32_t circleCount = 0;
+            struct Renderer2DStatistics
+            {
+                uint32_t drawCalls = 0;
+                uint32_t quadCount = 0;
+                uint32_t lineCount = 0;
+                uint32_t circleCount = 0;
+
+                uint32_t getTotalVertexCount() const
+                {
+                    return quadCount * 4 + lineCount * 2 + circleCount * 4;
+                }
+
+                uint32_t getTotalIndexCount() const
+                {
+                    return quadCount * 6 + circleCount * 6;
+                }
+            };
+
+            struct Renderer3DStatistics
+            {
+                uint32_t meshCount = 0;
+                uint32_t geometryDrawCalls = 0;
+                uint32_t shadowDrawCalls = 0;
+                uint32_t skyboxDrawCalls = 0;
+                uint32_t iblDrawCalls = 0;
+
+                uint32_t getTotalDrawCalls() const
+                {
+                    return geometryDrawCalls + shadowDrawCalls + skyboxDrawCalls + iblDrawCalls;
+                }
+            };
+
+            Renderer2DStatistics renderer2D;
+            Renderer3DStatistics renderer3D;
+
+            uint32_t getTotalDrawCalls() const
+            {
+                return renderer2D.drawCalls + renderer3D.getTotalDrawCalls();
+            }
 
             uint32_t getTotalVertexCount() const
             {
-                return quadCount * 4 + lineCount * 2 + circleCount * 4;
+                return renderer2D.getTotalVertexCount();
             }
 
             uint32_t getTotalIndexCount() const
             {
-                return quadCount * 6 + circleCount * 6;
+                return renderer2D.getTotalIndexCount();
             }
         };
 
@@ -78,12 +113,20 @@ namespace Fermion
 
         void beginScene(const SceneRendererCamera &camera);
 
+        void beginOverlay(const Camera &camera, const glm::mat4 &transform);
+
+        void beginOverlay(const EditorCamera &camera);
+
+        void beginOverlay(const SceneRendererCamera &camera);
+
         void setTargetFramebuffer(std::shared_ptr<Framebuffer> framebuffer)
         {
             m_targetFramebuffer = framebuffer;
         }
 
         void endScene();
+
+        void endOverlay();
 
         void drawSprite(const glm::mat4 &transform, SpriteRendererComponent &sprite, int objectID = -1);
 
@@ -130,7 +173,9 @@ namespace Fermion
             return m_sceneData;
         }
 
-        Statistics getStatistics() const;
+        void resetStatistics();
+
+        RenderStatistics getStatistics() const;
 
     private:
         void GeometryPass();
@@ -184,5 +229,7 @@ namespace Fermion
         RenderGraph m_RenderGraph;
         RenderCommandQueue m_CommandQueue;
         SceneInfo m_sceneData;
+
+        RenderStatistics::Renderer3DStatistics m_renderer3DStatistics;
     };
 } // namespace Fermion

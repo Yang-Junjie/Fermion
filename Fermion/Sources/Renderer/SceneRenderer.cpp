@@ -139,6 +139,11 @@ namespace Fermion
         m_cubeVA->setIndexBuffer(indexBuffer);
     }
 
+    void SceneRenderer::resetStatistics()
+    {
+        m_renderer3DStatistics = {};
+    }
+
     void SceneRenderer::beginScene(const Camera &camera, const glm::mat4 &transform)
     {
         beginScene({camera, glm::inverse(transform)});
@@ -157,9 +162,37 @@ namespace Fermion
         Renderer3D::updateViewState(camera.camera, camera.view, m_sceneData.sceneEnvironmentLight);
     }
 
+    void SceneRenderer::beginOverlay(const Camera &camera, const glm::mat4 &transform)
+    {
+        beginOverlay({camera, glm::inverse(transform)});
+    }
+
+    void SceneRenderer::beginOverlay(const EditorCamera &camera)
+    {
+        beginOverlay({camera, camera.getViewMatrix(), camera.getFarCilp()});
+    }
+
+    void SceneRenderer::beginOverlay(const SceneRendererCamera &camera)
+    {
+        m_sceneData.sceneCamera = camera;
+        Renderer2D::beginScene(camera.camera, camera.view);
+    }
+
     void SceneRenderer::endScene()
     {
         FlushDrawList();
+        Renderer2D::endScene();
+    }
+
+    void SceneRenderer::endOverlay()
+    {
+        for (auto &cmd : s_MeshDrawList)
+        {
+            if (cmd.drawOutline)
+                Renderer2D::drawAABB(cmd.aabb, cmd.transform, m_sceneData.meshOutlineColor, cmd.objectID);
+        }
+        s_MeshDrawList.clear();
+
         Renderer2D::endScene();
     }
 
@@ -281,14 +314,15 @@ namespace Fermion
         Renderer2D::setLineWidth(thickness);
     }
 
-    SceneRenderer::Statistics SceneRenderer::getStatistics() const
+    SceneRenderer::RenderStatistics SceneRenderer::getStatistics() const
     {
         Renderer2D::Satistics stats2D = Renderer2D::getStatistics();
-        Statistics result;
-        result.drawCalls = stats2D.drawCalls;
-        result.quadCount = stats2D.quadCount;
-        result.lineCount = stats2D.lineCount;
-        result.circleCount = stats2D.circleCount;
+        RenderStatistics result;
+        result.renderer2D.drawCalls = stats2D.drawCalls;
+        result.renderer2D.quadCount = stats2D.quadCount;
+        result.renderer2D.lineCount = stats2D.lineCount;
+        result.renderer2D.circleCount = stats2D.circleCount;
+        result.renderer3D = m_renderer3DStatistics;
         return result;
     }
 
@@ -386,6 +420,7 @@ namespace Fermion
                              cmd.material->bind(shader);
                              
                          RenderCommand::drawIndexed(cmd.vao, cmd.indexCount, cmd.indexOffset);
+                         m_renderer3DStatistics.geometryDrawCalls++;
                      } });
              }});
     }
@@ -413,6 +448,9 @@ namespace Fermion
                  cmd.view = m_sceneData.sceneCamera.view;
                  cmd.projection = m_sceneData.sceneCamera.camera.getProjection();
 
+                 if (cmd.pipeline && cmd.vao && cmd.cubemap)
+                     m_renderer3DStatistics.skyboxDrawCalls++;
+
                  Renderer3D::recordSkyboxPass(commandBuffer, cmd);
              }});
     }
@@ -420,6 +458,8 @@ namespace Fermion
     void SceneRenderer::FlushDrawList()
     {
         m_RenderGraph.Reset();
+
+        m_renderer3DStatistics.meshCount += static_cast<uint32_t>(s_MeshDrawList.size());
 
         if (m_sceneData.enableShadows)
             ShadowPass();
@@ -466,6 +506,7 @@ namespace Fermion
                      for (auto &cmd : s_MeshDrawList) {
                          shader->setMat4("u_Model", cmd.transform);
                          RenderCommand::drawIndexed(cmd.vao, cmd.indexCount, cmd.indexOffset);
+                         m_renderer3DStatistics.shadowDrawCalls++;
                      }
                      
                      if (m_targetFramebuffer) {
@@ -590,6 +631,7 @@ namespace Fermion
             RenderCommand::setViewport(0, 0, m_sceneData.irradianceMapSize, m_sceneData.irradianceMapSize);
             RenderCommand::clear();
             RenderCommand::drawIndexed(m_cubeVA, m_cubeVA->getIndexBuffer()->getCount());
+            m_renderer3DStatistics.iblDrawCalls++;
 
             // 将渲染结果复制到cubemap的对应面
             m_irradianceMap->copyFromFramebuffer(captureFB, i, 0);
@@ -655,6 +697,7 @@ namespace Fermion
                 RenderCommand::setViewport(0, 0, mipWidth, mipHeight);
                 RenderCommand::clear();
                 RenderCommand::drawIndexed(m_cubeVA, m_cubeVA->getIndexBuffer()->getCount());
+                m_renderer3DStatistics.iblDrawCalls++;
 
                 m_prefilterMap->copyFromFramebuffer(captureFB, i, mip);
             }
@@ -693,6 +736,7 @@ namespace Fermion
         RenderCommand::clear();
 
         RenderCommand::drawIndexed(m_cubeVA, 6);
+        m_renderer3DStatistics.iblDrawCalls++;
 
         // 复制到纹理
         m_brdfLUT->copyFromFramebuffer(captureFB, 0, 0);
