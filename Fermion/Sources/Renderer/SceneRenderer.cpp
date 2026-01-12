@@ -503,18 +503,20 @@ namespace Fermion
                      auto shader = m_ShadowPipeline->getShader();
                      shader->setMat4("u_LightSpaceMatrix", m_lightSpaceMatrix);
                      
-                     for (auto &cmd : s_MeshDrawList) {
-                         shader->setMat4("u_Model", cmd.transform);
-                         RenderCommand::drawIndexed(cmd.vao, cmd.indexCount, cmd.indexOffset);
-                         m_renderer3DStatistics.shadowDrawCalls++;
-                     }
-                     
-                     if (m_targetFramebuffer) {
-                         m_targetFramebuffer->bind();
-                     } else {
-                         m_shadowMapFB->unbind();  
-                     } });
-             }});
+                      for (auto &cmd : s_MeshDrawList) {
+                          shader->setMat4("u_Model", cmd.transform);
+                          RenderCommand::drawIndexed(cmd.vao, cmd.indexCount, cmd.indexOffset);
+                          m_renderer3DStatistics.shadowDrawCalls++;
+                      }
+                      
+                      if (m_targetFramebuffer) {
+                          m_targetFramebuffer->bind();
+                      } else {
+                          m_shadowMapFB->unbind();
+                          if (m_scene && m_scene->m_viewportWidth > 0 && m_scene->m_viewportHeight > 0)
+                              RenderCommand::setViewport(0, 0, m_scene->m_viewportWidth, m_scene->m_viewportHeight);
+                      } });
+              }});
     }
 
     glm::mat4 SceneRenderer::calculateLightSpaceMatrix(const DirectionalLight &light, float orthoSize)
@@ -644,6 +646,11 @@ namespace Fermion
         {
             m_targetFramebuffer->bind();
         }
+        else
+        {
+            if (m_scene && m_scene->m_viewportWidth > 0 && m_scene->m_viewportHeight > 0)
+                RenderCommand::setViewport(0, 0, m_scene->m_viewportWidth, m_scene->m_viewportHeight);
+        }
 
         Log::Info("Irradiance map generation completed");
     }
@@ -709,6 +716,11 @@ namespace Fermion
         {
             m_targetFramebuffer->bind();
         }
+        else
+        {
+            if (m_scene && m_scene->m_viewportWidth > 0 && m_scene->m_viewportHeight > 0)
+                RenderCommand::setViewport(0, 0, m_scene->m_viewportWidth, m_scene->m_viewportHeight);
+        }
     }
 
     void SceneRenderer::generateBRDFLUT()
@@ -746,6 +758,11 @@ namespace Fermion
         if (m_targetFramebuffer)
         {
             m_targetFramebuffer->bind();
+        }
+        else
+        {
+            if (m_scene && m_scene->m_viewportWidth > 0 && m_scene->m_viewportHeight > 0)
+                RenderCommand::setViewport(0, 0, m_scene->m_viewportWidth, m_scene->m_viewportHeight);
         }
     }
 } // namespace Fermion

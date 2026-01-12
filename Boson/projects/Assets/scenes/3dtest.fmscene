@@ -8,7 +8,7 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      MeshHandle: 15596880301161439155
+      MeshHandle: 9030552612814537471
       MemoryOnly: true
       MemoryMeshType: 5
       SubmeshMaterials:
@@ -21,7 +21,7 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      MeshHandle: 13931827440936653824
+      MeshHandle: 11085154423257320187
       MemoryOnly: true
       MemoryMeshType: 2
       SubmeshMaterials:
@@ -34,7 +34,7 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      MeshHandle: 5221842330313773990
+      MeshHandle: 6300793417069813013
       MemoryOnly: true
       MemoryMeshType: 2
       SubmeshMaterials:
@@ -70,8 +70,8 @@ Entities:
     TagComponent:
       Tag: camera
     TransformComponent:
-      Translation: [0, 0, 15.110502]
-      Rotation: [0, 0, 0]
+      Translation: [1.2491645, 7.1185465, 14.760207]
+      Rotation: [-0.47856936, -0, 0]
       Scale: [1, 1, 1]
     CameraComponent:
       Camera:
@@ -117,7 +117,7 @@ Entities:
       Rotation: [-1.0521061, -0.066733666, -0.50968736]
       Scale: [1, 1, 1]
     MeshComponent:
-      MeshHandle: 8131180364119814651
+      MeshHandle: 16174812348945339444
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:
@@ -156,7 +156,7 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [13.551621, 0.97, 18.211987]
     MeshComponent:
-      MeshHandle: 17334142258716200394
+      MeshHandle: 17533339603354138195
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:

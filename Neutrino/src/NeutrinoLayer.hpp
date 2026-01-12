@@ -31,4 +31,7 @@ private:
     std::shared_ptr<Fermion::Scene> m_runtimeScene;
     std::shared_ptr<Fermion::SceneRenderer> m_sceneRenderer;
     std::shared_ptr<Fermion::Project> m_project;
+
+    uint32_t m_lastViewportWidth = 0;
+    uint32_t m_lastViewportHeight = 0;
 };

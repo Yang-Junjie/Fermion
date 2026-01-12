@@ -3,7 +3,7 @@
 layout(location = 0) in vec3 a_Position;
 layout(location = 1) in vec3 a_Normal;
 layout(location = 2) in vec4 a_Color;
-layout(location = 3) in int  a_ObjectID;
+layout(location = 3) in int a_ObjectID;
 
 uniform mat4 u_ViewProjection;
 
@@ -11,8 +11,7 @@ out vec3 v_Normal;
 out vec4 v_Color;
 flat out int v_ObjectID;
 
-void main()
-{
+void main() {
     v_Normal = a_Normal;
     v_Color = a_Color;
     v_ObjectID = a_ObjectID;
@@ -26,8 +25,7 @@ flat in int v_ObjectID;
 
 out vec4 color;
 
-void main()
-{
+void main() {
     vec3 lightDir = normalize(vec3(0.5, 1.0, 0.3));
     float diff = max(dot(normalize(v_Normal), lightDir), 0.2);
     color = vec4(v_Color.rgb * diff, v_Color.a);

@@ -8,12 +8,14 @@ layout(location = 3) in vec2 a_TexCoords;
 
 uniform mat4 u_Model;
 uniform mat4 u_ViewProjection;
+uniform mat4 u_LightSpaceMatrix;
 uniform int u_ObjectID;
 
 out vec3 v_WorldPos;
 out vec3 v_Normal;
 out vec4 v_Color;
 out vec2 v_TexCoords;
+out vec4 v_FragPosLightSpace;
 flat out int v_ObjectID;
 
 void main() {
@@ -23,6 +25,7 @@ void main() {
     v_Normal = mat3(transpose(inverse(u_Model))) * a_Normal;
     v_Color = a_Color;
     v_TexCoords = a_TexCoords;
+    v_FragPosLightSpace = u_LightSpaceMatrix * worldPos;
     v_ObjectID = u_ObjectID;
 
     gl_Position = u_ViewProjection * worldPos;
@@ -38,6 +41,7 @@ in vec3 v_WorldPos;
 in vec3 v_Normal;
 in vec4 v_Color;
 in vec2 v_TexCoords;
+in vec4 v_FragPosLightSpace;
 flat in int v_ObjectID;
 
 #define MAX_POINT_LIGHTS 16
@@ -83,6 +87,51 @@ uniform vec4 u_Kd; // diffuse
 uniform vec4 u_Ka; // ambient
 uniform bool u_FlipUV;
 
+// Shadow mapping
+uniform bool u_EnableShadows;
+uniform sampler2D u_ShadowMap;
+uniform float u_ShadowBias;
+uniform float u_ShadowSoftness;
+
+float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir)
+{
+    // Perspective divide
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    
+    // Transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+    
+    // If outside shadow map bounds, assume no shadow
+    if(projCoords.z > 1.0 || projCoords.x < 0.0 || projCoords.x > 1.0 || projCoords.y < 0.0 || projCoords.y > 1.0)
+        return 0.0;
+    
+    // Get closest depth value from light's perspective
+    float closestDepth = texture(u_ShadowMap, projCoords.xy).r;
+    float currentDepth = projCoords.z;
+    
+    // Calculate bias based on surface angle
+    float bias = max(u_ShadowBias * (1.0 - dot(normal, lightDir)), u_ShadowBias * 0.1);
+    
+    // PCF (Percentage Closer Filtering) for soft shadows
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(u_ShadowMap, 0);
+    int pcfRange = int(u_ShadowSoftness);
+    int sampleCount = 0;
+    
+    for(int x = -pcfRange; x <= pcfRange; ++x)
+    {
+        for(int y = -pcfRange; y <= pcfRange; ++y)
+        {
+            float pcfDepth = texture(u_ShadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
+            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+            sampleCount++;
+        }
+    }
+    shadow /= float(sampleCount);
+    
+    return shadow;
+}
+
 void main()
 {
     vec3 normal = normalize(v_Normal);
@@ -100,10 +149,14 @@ void main()
     // Ambient
     vec3 result = u_Ka.rgb * baseColor;
 
-    // Directional light
+    // Directional light with shadow
     vec3 dirLightDir = normalize(-u_DirectionalLight.direction); // 方向光方向指向片元
     float NdotL = max(dot(normal, dirLightDir), 0.0);
-    result += u_DirectionalLight.color * u_DirectionalLight.intensity * NdotL * baseColor;
+    float shadow = 0.0;
+    if (u_EnableShadows) {
+        shadow = calculateShadow(v_FragPosLightSpace, normal, dirLightDir);
+    }
+    result += u_DirectionalLight.color * u_DirectionalLight.intensity * NdotL * (1.0 - shadow) * baseColor;
 
     // Point lights
     for(int i = 0; i < u_PointLightCount; i++)
