@@ -154,6 +154,16 @@ namespace Fermion
                             ImGui::EndDragDropSource();
                         }
                     }
+                    if (!isDirectory && path.extension() == ".fmat")
+                    {
+                        if (ImGui::BeginDragDropSource())
+                        {
+                            std::string fullPath = path.string();
+                            ImGui::SetDragDropPayload("FERMION_MATERIAL", fullPath.c_str(), fullPath.size() + 1);
+                            ImGui::Text("%s", filename.c_str());
+                            ImGui::EndDragDropSource();
+                        }
+                    }
 
                     if (!isDirectory && path.extension() == ".fmproj")
                     {

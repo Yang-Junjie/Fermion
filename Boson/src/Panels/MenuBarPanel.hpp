@@ -1,31 +1,18 @@
 #pragma once
 #include "fmpch.hpp"
 #include "Renderer/Texture/Texture.hpp"
-#include <functional>
 #include <imgui.h>
 
 namespace Fermion {
-    // TODO(Yang):迁移函数从BosonLayer to MenuBarPanel
-    struct MenuBarCallbacks {
-        std::function<void()> NewScene;
-        std::function<void()> OpenScene;
-        std::function<void()> SaveScene;
-        std::function<void()> SaveSceneAs;
-        std::function<void()> NewProject;
-        std::function<void()> OpenProject;
-        std::function<void()> SaveProject;
-        std::function<void()> ExitApplication;
-        std::function<void()> ShowAbout;
-    };
-
+    class BosonLayer;
     class MenuBarPanel {
     public:
         MenuBarPanel();
 
         ~MenuBarPanel() = default;
 
-        void SetCallbacks(const MenuBarCallbacks &callbacks) {
-            m_Callbacks = callbacks;
+        void SetBosonLayer(BosonLayer *bosonLayer) {
+            m_BosonLayer = bosonLayer;
         }
 
         void OnImGuiRender();
@@ -33,8 +20,6 @@ namespace Fermion {
         float GetMenuBarHeight() const {
             return m_MenuBarHeight;
         }
-
-        void InvokeCallback(const std::function<void()> &fn) const;
 
     private:
         void DrawMenuItem(const char *label, const char *popupName, float &leftX, float y, float itemWidth,
@@ -49,7 +34,7 @@ namespace Fermion {
 
         void HandleWindowDrag(const ImVec2 &barPos, const ImVec2 &barSize);
 
-        MenuBarCallbacks m_Callbacks;
+        BosonLayer *m_BosonLayer = nullptr;
         float m_MenuBarHeight = 35.0f;
 
         std::unique_ptr<Texture2D> m_WindowMinimizeIcon, m_WindowMaximizeIcon, m_WindowRestoreIcon, m_WindowCloseIcon;

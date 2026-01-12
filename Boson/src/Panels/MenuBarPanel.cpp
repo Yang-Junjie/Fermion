@@ -1,5 +1,6 @@
 #include "MenuBarPanel.hpp"
 #include "fmpch.hpp"
+#include "../BosonLayer.hpp"
 #include "Project/Project.hpp"
 #include "Project/ProjectSerializer.hpp"
 #include "Core/Application.hpp"
@@ -56,23 +57,25 @@ void MenuBarPanel::OnImGuiRender() {
     // }
 
     if (ImGui::BeginPopup("FilePopup")) {
-        if (ImGui::MenuItem("New Scene", "Ctrl+N"))
-            InvokeCallback(m_Callbacks.NewScene);
-        if (ImGui::MenuItem("Open Scene...", "Ctrl+Shift+O"))
-            InvokeCallback(m_Callbacks.OpenScene);
-        if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
-            InvokeCallback(m_Callbacks.SaveScene);
-        if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S"))
-            InvokeCallback(m_Callbacks.SaveSceneAs);
+        if (m_BosonLayer && ImGui::MenuItem("New Scene", "Ctrl+N"))
+            m_BosonLayer->newScene();
+        if (m_BosonLayer && ImGui::MenuItem("Open Scene...", "Ctrl+Shift+O"))
+            m_BosonLayer->openScene();
+        if (m_BosonLayer && ImGui::MenuItem("Save Scene", "Ctrl+S"))
+            m_BosonLayer->saveScene();
+        if (m_BosonLayer && ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S"))
+            m_BosonLayer->saveSceneAs();
         ImGui::Separator();
-        if (ImGui::MenuItem("new project"))
-            InvokeCallback(m_Callbacks.NewProject);
-        if (ImGui::MenuItem("open project"))
-            InvokeCallback(m_Callbacks.OpenProject);
-        if (ImGui::MenuItem("save project"))
-            InvokeCallback(m_Callbacks.SaveProject);
+        if (m_BosonLayer && ImGui::MenuItem("new project"))
+            m_BosonLayer->newProject();
+        if (m_BosonLayer && ImGui::MenuItem("open project"))
+            m_BosonLayer->openProject();
+        if (m_BosonLayer && ImGui::MenuItem("save project"))
+            m_BosonLayer->saveProject();
         if (ImGui::MenuItem("Exit")) {
-            InvokeCallback(m_Callbacks.ExitApplication);
+            if (m_BosonLayer)
+                m_BosonLayer->saveProject();
+            Application::get().close();
         }
         ImGui::EndPopup();
     }
@@ -135,18 +138,13 @@ void MenuBarPanel::OnImGuiRender() {
     }
 
     if (ImGui::BeginPopup("HelpPopup")) {
-        if (ImGui::MenuItem("about"))
-            InvokeCallback(m_Callbacks.ShowAbout);
+        if (m_BosonLayer && ImGui::MenuItem("about"))
+            m_BosonLayer->openAboutWindow();
         ImGui::EndPopup();
     }
 
     ImGui::End();
     ImGui::PopStyleVar();
-}
-
-void MenuBarPanel::InvokeCallback(const std::function<void()> &fn) const {
-    if (fn)
-        fn();
 }
 
 void MenuBarPanel::DrawMenuItem(const char *label,

@@ -41,6 +41,8 @@ namespace Fermion {
         static AssetHandle importAsset(const std::filesystem::path &path);
 
         static AssetHandle addMemoryOnlyAsset(std::shared_ptr<Asset> asset);
+        
+        static void registerLoadedAsset(AssetHandle handle, std::shared_ptr<Asset> asset);
 
         static std::shared_ptr<Asset> getAssetMetadata(AssetHandle handle);
 

@@ -16,7 +16,6 @@ private:
     void drawComponents(Entity entity);
     template <typename T>
     void displayAddComponentEntry(const std::string &entryName);
-
     std::unique_ptr<Texture2D> m_spriteComponentDefaultTexture;
     Entity m_selectedEntity;
 };

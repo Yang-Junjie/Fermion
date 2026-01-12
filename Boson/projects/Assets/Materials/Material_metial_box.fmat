@@ -1,0 +1,12 @@
+Material:
+  Type: 2
+  Name: metial_box
+  Albedo: [1, 1, 1]
+  Metallic: 0
+  Roughness: 0.5
+  AO: 1
+  AlbedoMap: 9406840976755338800
+  NormalMap: 1034811458785569055
+  MetallicMap: 3051717534810496561
+  RoughnessMap: 6129762224840849498
+  AOMap: 6901544722382842703

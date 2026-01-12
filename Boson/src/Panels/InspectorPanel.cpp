@@ -11,6 +11,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Renderer/Model/MeshFactory.hpp"
+#include "Renderer/Model/MaterialFactory.hpp"
 
 namespace Fermion
 {
@@ -176,14 +177,6 @@ namespace Fermion
             displayAddComponentEntry<PointLightComponent>("Point Light");
             displayAddComponentEntry<SpotLightComponent>("Spot Light");
 
-            if (!(entity.hasComponent<PhongMaterialComponent>() || entity.hasComponent<PBRMaterialComponent>() || entity.hasComponent<MaterialSlotsComponent>()))
-            {
-                ImGui::SeparatorText("Materials");
-                displayAddComponentEntry<PhongMaterialComponent>("Phong Material");
-                displayAddComponentEntry<PBRMaterialComponent>("PBR Material");
-                displayAddComponentEntry<MaterialSlotsComponent>("Material Slots");
-            }
-
             ImGui::SeparatorText("Other");
             displayAddComponentEntry<CameraComponent>("Camera");
             displayAddComponentEntry<ScriptContainerComponent>("Scripts");
@@ -317,11 +310,13 @@ namespace Fermion
             }
 
             ImGui::DragFloat("Tiling Factor", &component.tilingFactor, 0.1f, 0.0f, 100.0f); });
-        drawComponent<MeshComponent>("Mesh", entity, [](auto &component)
+        drawComponent<MeshComponent>("Mesh", entity, [this](auto &component)
                                      {
             ImGui::Text("Mesh Handle: %s", std::to_string(component.meshHandle).c_str());
+            
+            // Mesh selection
             {
-                ImGui::Button("Change or Add");
+                ImGui::Button("Change or Add Mesh");
                 if (ImGui::BeginDragDropTarget()) {
                     if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_MODEL")) {
                         auto path = std::string(static_cast<const char *>(payload->Data));
@@ -335,7 +330,8 @@ namespace Fermion
                     ImGui::EndDragDropTarget();
                 }
             }
-            if (ImGui::Button("Add Engine internal Mesh")) {
+            
+            if (ImGui::Button("Add Engine Internal Mesh")) {
                 ImGui::OpenPopup("mesh_popup");
             }
 
@@ -373,7 +369,70 @@ namespace Fermion
                 }
                 component.memoryOnly = true;
                 ImGui::EndPopup();
-            } });
+            }
+            
+            ImGui::Separator();
+            ImGui::Text("Multi-Material Configuration");
+            
+            // 获取Mesh和SubMesh数量
+            uint32_t subMeshCount = 0;
+            std::shared_ptr<Mesh> mesh = nullptr;
+            
+            if (static_cast<uint64_t>(component.meshHandle) != 0) {
+                auto editorAssets = Project::getEditorAssetManager();
+                mesh = editorAssets->getAsset<Mesh>(component.meshHandle);
+                if (mesh) {
+                    subMeshCount = static_cast<uint32_t>(mesh->getSubMeshes().size());
+                    // 确保vector大小与SubMesh数量匹配
+                    component.resizeSubmeshMaterials(subMeshCount);
+                }
+            }
+            
+            if (subMeshCount == 0) {
+                ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "No mesh attached or mesh has no submeshes");
+            } else {
+                ImGui::Text("SubMesh Count: %u", subMeshCount);
+                
+                // 为每个SubMesh显示材质槽位
+                for (uint32_t i = 0; i < subMeshCount; i++) {
+                    ImGui::PushID(i);
+                    
+                    if (ImGui::TreeNodeEx(("SubMesh " + std::to_string(i)).c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+                        AssetHandle currentMaterial = component.getSubmeshMaterial(i);
+                        
+                        ImGui::Text("Material Handle: %llu", static_cast<uint64_t>(currentMaterial));
+                        
+                        ImGui::Button("Drag Material Here");
+                        if (ImGui::BeginDragDropTarget()) {
+                            if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_MATERIAL")) {
+                                auto path = std::string(static_cast<const char *>(payload->Data));
+                                auto editorAssets = Project::getEditorAssetManager();
+                                AssetHandle handle = editorAssets->importAsset(std::filesystem::path(path));
+                                if (static_cast<uint64_t>(handle) != 0) {
+                                    component.setSubmeshMaterial(i, handle);
+                                }
+                            }
+                            ImGui::EndDragDropTarget();
+                        }
+                        
+                        ImGui::SameLine();
+                        if (ImGui::Button("Clear")) {
+                            component.clearSubmeshMaterial(i);
+                        }
+                        
+                        ImGui::TreePop();
+                    }
+                    
+                    ImGui::PopID();
+                }
+                
+                if (ImGui::Button("Clear All Materials")) {
+                    component.clearAllSubmeshMaterials();
+                }
+            }
+            
+
+        });
         drawComponent<DirectionalLightComponent>("Directional Light", entity, [](auto &component)
                                                  {
             ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
@@ -574,384 +633,6 @@ namespace Fermion
             ImGui::DragFloat("Friction##circle3d", &component.friction, 0.01f, 0.0f, 1.0f);
             ImGui::DragFloat("Restitution##circle3d", &component.restitution, 0.01f, 0.0f, 1.0f);
             ImGui::Checkbox("Trigger##circle3d", &component.isTrigger); });
-
-        drawComponent<PhongMaterialComponent>("Phong Material", entity, [entity](auto &component) mutable
-                                              {
-           
-            
-            ImGui::Text("Phong Lighting Model");
-            ImGui::Separator();
-            
-            ImGui::ColorEdit4("Diffuse Color", glm::value_ptr(component.diffuseColor));
-            ImGui::ColorEdit4("Ambient Color", glm::value_ptr(component.ambientColor));
-            
-            ImGui::Separator();
-            ImGui::Text("Texture Settings");
-            ImGui::Checkbox("Use Texture", &component.useTexture);
-            
-            if (component.useTexture) {
-                ImGui::Checkbox("Flip UV", &component.flipUV);
-                
-                ImGui::Text("Diffuse Texture");
-                ImGui::SameLine();
-                ImGui::Button("Drag texture here##phong");
-                
-                if (ImGui::BeginDragDropTarget()) {
-                    if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_TEXTURE")) {
-                        const char *path = static_cast<const char *>(payload->Data);
-                        if (path && path[0]) {
-                            auto editorAssets = Project::getEditorAssetManager();
-                            AssetHandle handle = editorAssets->importAsset(std::filesystem::path(path));
-                            if (static_cast<uint64_t>(handle) != 0) {
-                                component.diffuseTextureHandle = handle;
-                            }
-                        }
-                    }
-                    ImGui::EndDragDropTarget();
-                }
-                
-                if (static_cast<uint64_t>(component.diffuseTextureHandle) != 0) {
-                    ImGui::Text("Handle: %llu", static_cast<uint64_t>(component.diffuseTextureHandle));
-                }
-            } });
-
-        drawComponent<PBRMaterialComponent>("PBR Material", entity, [entity](auto &component) mutable
-                                            {
-            ImGui::Text("Physically Based Rendering");
-            ImGui::Separator();
-            
-            ImGui::ColorEdit3("Albedo", glm::value_ptr(component.albedo));
-            ImGui::SliderFloat("Metallic", &component.metallic, 0.0f, 1.0f);
-            ImGui::SliderFloat("Roughness", &component.roughness, 0.0f, 1.0f);
-            ImGui::SliderFloat("Ambient Occlusion", &component.ao, 0.0f, 1.0f);
-            
-            ImGui::Separator();
-            ImGui::Checkbox("Flip UV", &component.flipUV);
-            
-            ImGui::Separator();
-            ImGui::Text("Texture Maps");
-            
-            // Albedo Map
-            ImGui::Text("Albedo Map");
-            ImGui::SameLine();
-            ImGui::Button("Drag texture##albedo");
-            if (ImGui::BeginDragDropTarget()) {
-                if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_TEXTURE")) {
-                    const char *path = static_cast<const char *>(payload->Data);
-                    if (path && path[0]) {
-                        auto editorAssets = Project::getEditorAssetManager();
-                        AssetHandle handle = editorAssets->importAsset(std::filesystem::path(path));
-                        if (static_cast<uint64_t>(handle) != 0) {
-                            component.albedoMapHandle = handle;
-                        }
-                    }
-                }
-                ImGui::EndDragDropTarget();
-            }
-            if (static_cast<uint64_t>(component.albedoMapHandle) != 0) {
-                ImGui::SameLine();
-                ImGui::Text("(%llu)", static_cast<uint64_t>(component.albedoMapHandle));
-                
-                auto texture = Project::getEditorAssetManager()->getAsset<Texture2D>(component.albedoMapHandle);
-                if (texture && texture->isLoaded()) {
-                    ImTextureID textureID = (ImTextureID)(uintptr_t)texture->getRendererID();
-                    ImGui::Image(textureID, ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
-                }
-            }
-            
-            // Normal Map
-            ImGui::Text("Normal Map");
-            ImGui::SameLine();
-            ImGui::Button("Drag texture##normal");
-            if (ImGui::BeginDragDropTarget()) {
-                if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_TEXTURE")) {
-                    const char *path = static_cast<const char *>(payload->Data);
-                    if (path && path[0]) {
-                        auto editorAssets = Project::getEditorAssetManager();
-                        AssetHandle handle = editorAssets->importAsset(std::filesystem::path(path));
-                        if (static_cast<uint64_t>(handle) != 0) {
-                            component.normalMapHandle = handle;
-                        }
-                    }
-                }
-                ImGui::EndDragDropTarget();
-            }
-            if (static_cast<uint64_t>(component.normalMapHandle) != 0) {
-                ImGui::SameLine();
-                ImGui::Text("(%llu)", static_cast<uint64_t>(component.normalMapHandle));
-                
-                auto texture = Project::getEditorAssetManager()->getAsset<Texture2D>(component.normalMapHandle);
-                if (texture && texture->isLoaded()) {
-                    ImTextureID textureID = (ImTextureID)(uintptr_t)texture->getRendererID();
-                    ImGui::Image(textureID, ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
-                }
-            }
-            
-            // Metallic Map
-            ImGui::Text("Metallic Map");
-            ImGui::SameLine();
-            ImGui::Button("Drag texture##metallic");
-            if (ImGui::BeginDragDropTarget()) {
-                if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_TEXTURE")) {
-                    const char *path = static_cast<const char *>(payload->Data);
-                    if (path && path[0]) {
-                        auto editorAssets = Project::getEditorAssetManager();
-                        AssetHandle handle = editorAssets->importAsset(std::filesystem::path(path));
-                        if (static_cast<uint64_t>(handle) != 0) {
-                            component.metallicMapHandle = handle;
-                        }
-                    }
-                }
-                ImGui::EndDragDropTarget();
-            }
-            if (static_cast<uint64_t>(component.metallicMapHandle) != 0) {
-                ImGui::SameLine();
-                ImGui::Text("(%llu)", static_cast<uint64_t>(component.metallicMapHandle));
-                
-                auto texture = Project::getEditorAssetManager()->getAsset<Texture2D>(component.metallicMapHandle);
-                if (texture && texture->isLoaded()) {
-                    ImTextureID textureID = (ImTextureID)(uintptr_t)texture->getRendererID();
-                    ImGui::Image(textureID, ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
-                }
-            }
-            
-            // Roughness Map
-            ImGui::Text("Roughness Map");
-            ImGui::SameLine();
-            ImGui::Button("Drag texture##roughness");
-            if (ImGui::BeginDragDropTarget()) {
-                if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_TEXTURE")) {
-                    const char *path = static_cast<const char *>(payload->Data);
-                    if (path && path[0]) {
-                        auto editorAssets = Project::getEditorAssetManager();
-                        AssetHandle handle = editorAssets->importAsset(std::filesystem::path(path));
-                        if (static_cast<uint64_t>(handle) != 0) {
-                            component.roughnessMapHandle = handle;
-                        }
-                    }
-                }
-                ImGui::EndDragDropTarget();
-            }
-            if (static_cast<uint64_t>(component.roughnessMapHandle) != 0) {
-                ImGui::SameLine();
-                ImGui::Text("(%llu)", static_cast<uint64_t>(component.roughnessMapHandle));
-                
-                auto texture = Project::getEditorAssetManager()->getAsset<Texture2D>(component.roughnessMapHandle);
-                if (texture && texture->isLoaded()) {
-                    ImTextureID textureID = (ImTextureID)(uintptr_t)texture->getRendererID();
-                    ImGui::Image(textureID, ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
-                }
-            }
-            
-            // AO Map
-            ImGui::Text("AO Map");
-            ImGui::SameLine();
-            ImGui::Button("Drag texture##ao");
-            if (ImGui::BeginDragDropTarget()) {
-                if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_TEXTURE")) {
-                    const char *path = static_cast<const char *>(payload->Data);
-                    if (path && path[0]) {
-                        auto editorAssets = Project::getEditorAssetManager();
-                        AssetHandle handle = editorAssets->importAsset(std::filesystem::path(path));
-                        if (static_cast<uint64_t>(handle) != 0) {
-                            component.aoMapHandle = handle;
-                        }
-                    }
-                }
-                ImGui::EndDragDropTarget();
-            }
-                if (static_cast<uint64_t>(component.aoMapHandle) != 0) {
-                    ImGui::SameLine();
-                    ImGui::Text("(%llu)", static_cast<uint64_t>(component.aoMapHandle));
-                    
-                    auto texture = Project::getEditorAssetManager()->getAsset<Texture2D>(component.aoMapHandle);
-                    if (texture && texture->isLoaded()) {
-                        ImTextureID textureID = (ImTextureID)(uintptr_t)texture->getRendererID();
-                        ImGui::Image(textureID, ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
-                    }
-                }
-            
-            ImGui::Separator();
-            ImGui::TextWrapped("Tip: Drag texture files from Content Browser to assign maps"); });
-
-        drawComponent<MaterialSlotsComponent>("Material Slots", entity, [entity](auto &component) mutable
-                                              {
-            ImGui::Text("Multi-Material");
-            ImGui::Separator();
-
-            // 获取 Mesh 和 SubMesh 数量
-            uint32_t subMeshCount = 0;
-            std::shared_ptr<Mesh> mesh = nullptr;
-
-            if (entity.hasComponent<MeshComponent>()) {
-                auto &meshComponent = entity.getComponent<MeshComponent>();
-                if (static_cast<uint64_t>(meshComponent.meshHandle) != 0) {
-                    mesh = Project::getEditorAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
-                    if (mesh)
-                        subMeshCount = static_cast<uint32_t>(mesh->getSubMeshes().size());
-                }
-            }
-
-            if (subMeshCount == 0) {
-                ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "Warning: No mesh attached or mesh has no submeshes");
-                return;
-            }
-
-            ImGui::Text("SubMesh Count: %u", subMeshCount);
-            ImGui::Separator();
-
-            // 确保材质槽位数组大小匹配SubMesh数量
-            if (component.materials.size() < subMeshCount)
-                component.materials.resize(subMeshCount, nullptr);
-
-            auto editorAssets = Project::getEditorAssetManager();
-
-            // Drag & Drop + 缩略图函数
-            auto handleTextureDragDropWithPreview = [&](const char* label, AssetHandle& textureHandle, auto setTextureCallback) {
-                ImGui::Text("%s:", label);
-                ImGui::SameLine();
-                ImGui::Button(("Drag##" + std::string(label)).c_str());
-
-                // Drag & Drop 逻辑
-                if (ImGui::BeginDragDropTarget()) {
-                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("FERMION_TEXTURE")) {
-                        const char* path = static_cast<const char*>(payload->Data);
-                        if (path && path[0]) {
-                            AssetHandle handle = editorAssets->importAsset(std::filesystem::path(path));
-                            if (static_cast<uint64_t>(handle) != 0) {
-                                setTextureCallback(handle);
-                                textureHandle = handle;
-                            }
-                        }
-                    }
-                    ImGui::EndDragDropTarget();
-                }
-                // 显示 handle
-                ImGui::SameLine();
-                ImGui::Text("(%llu)", static_cast<uint64_t>(textureHandle));
-
-                // 显示缩略图
-                if (static_cast<uint64_t>(textureHandle) != 0) {
-                    auto texture = editorAssets->getAsset<Texture2D>(textureHandle);
-                    if (texture && texture->isLoaded()) {
-                        ImTextureID textureID = (ImTextureID)(uintptr_t)texture->getRendererID();
-                        ImGui::Image(textureID, ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
-                    }
-                }
-            };
-
-            // 绘制材质 UI
-            auto drawMaterialUI = [&](std::shared_ptr<Material>& material) {
-                if (!material) {
-                    if (ImGui::Button("Create New Material")) {
-                        material = std::make_shared<Material>();
-                        material->setMaterialType(MaterialType::Phong);
-                        material->setDiffuseColor(glm::vec4(0.8f));
-                        material->setAmbientColor(glm::vec4(0.1f));
-                    }
-                    return;
-                }
-
-                // 材质类型选择
-                const char* materialTypeStrings[] = { "Phong", "PBR" };
-                int currentType = (material->getType() == MaterialType::PBR) ? 1 : 0;
-                if (ImGui::Combo("Material Type", &currentType, materialTypeStrings, 2)) {
-                    MaterialType newType = (currentType == 1) ? MaterialType::PBR : MaterialType::Phong;
-                    material->setMaterialType(newType);
-
-                    // 默认参数
-                    if (newType == MaterialType::Phong) {
-                        material->setDiffuseColor(glm::vec4(0.8f));
-                        material->setAmbientColor(glm::vec4(0.1f));
-                    } else {
-                        material->setAlbedo(glm::vec3(0.8f));
-                        material->setMetallic(0.0f);
-                        material->setRoughness(0.5f);
-                        material->setAO(1.0f);
-                    }
-                }
-
-                ImGui::Separator();
-
-                if (material->getType() == MaterialType::Phong) {
-                    ImGui::Text("Phong Material Properties");
-
-                    glm::vec4 diffuse = material->getDiffuseColor();
-                    if (ImGui::ColorEdit4("Diffuse Color", glm::value_ptr(diffuse)))
-                        material->setDiffuseColor(diffuse);
-
-                    glm::vec4 ambient = material->getAmbientColor();
-                    if (ImGui::ColorEdit4("Ambient Color", glm::value_ptr(ambient)))
-                        material->setAmbientColor(ambient);
-
-                    // Diffuse Texture
-                    handleTextureDragDropWithPreview("Diffuse Texture", material->getDiffuseTexture(),
-                        [&](AssetHandle h) { material->setDiffuseTexture(h); });
-
-                } else { // PBR
-                    ImGui::Text("PBR Material Properties");
-
-                    glm::vec3 albedo = material->getAlbedo();
-                    if (ImGui::ColorEdit3("Albedo", glm::value_ptr(albedo)))
-                        material->setAlbedo(albedo);
-
-                    float metallic = material->getMetallic();
-                    if (ImGui::SliderFloat("Metallic", &metallic, 0.0f, 1.0f))
-                        material->setMetallic(metallic);
-
-                    float roughness = material->getRoughness();
-                    if (ImGui::SliderFloat("Roughness", &roughness, 0.0f, 1.0f))
-                        material->setRoughness(roughness);
-
-                    float ao = material->getAO();
-                    if (ImGui::SliderFloat("AO", &ao, 0.0f, 1.0f))
-                        material->setAO(ao);
-
-                    ImGui::Separator();
-                    ImGui::Text("Texture Maps:");
-
-                    const char* mapNames[] = { "Albedo", "Normal", "Metallic", "Roughness", "AO" };
-                    for (int m = 0; m < 5; m++) {
-                        AssetHandle* handlePtr = nullptr;
-                        switch(m) {
-                            case 0: handlePtr = &material->getAlbedoMap(); break;
-                            case 1: handlePtr = &material->getNormalMap(); break;
-                            case 2: handlePtr = &material->getMetallicMap(); break;
-                            case 3: handlePtr = &material->getRoughnessMap(); break;
-                            case 4: handlePtr = &material->getAOMap(); break;
-                        }
-                        if (handlePtr) {
-                            handleTextureDragDropWithPreview(mapNames[m], *handlePtr, [&](AssetHandle h){
-                                switch(m) {
-                                    case 0: material->setAlbedoMap(h); break;
-                                    case 1: material->setNormalMap(h); break;
-                                    case 2: material->setMetallicMap(h); break;
-                                    case 3: material->setRoughnessMap(h); break;
-                                    case 4: material->setAOMap(h); break;
-                                }
-                            });
-                        }
-                    }
-                }
-
-                ImGui::Separator();
-                if (ImGui::Button("Remove Material"))
-                    material = nullptr;
-            };
-
-            // 绘制每个 SubMesh 材质
-            for (uint32_t i = 0; i < subMeshCount; i++) {
-                ImGui::PushID(i);
-                if (ImGui::TreeNodeEx(("SubMesh " + std::to_string(i)).c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
-                    drawMaterialUI(component.materials[i]);
-                    ImGui::TreePop();
-                }
-                ImGui::Spacing();
-                ImGui::PopID();
-            }
-
-            ImGui::Separator();
-            ImGui::TextWrapped("Tip: Create and configure materials for each SubMesh. Drag textures from Content Browser."); });
     }
 
     template <typename T>

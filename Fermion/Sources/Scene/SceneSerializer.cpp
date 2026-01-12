@@ -154,9 +154,20 @@ namespace Fermion
             {
                 if (static_cast<uint64_t>(mesh.meshHandle) != 0)
                     out << YAML::Key << "MeshHandle" << YAML::Value << static_cast<uint64_t>(mesh.meshHandle);
+                
 
                 out << YAML::Key << "MemoryOnly" << YAML::Value << mesh.memoryOnly;
                 out << YAML::Key << "MemoryMeshType" << YAML::Value << static_cast<uint16_t>(mesh.memoryMeshType);
+                
+                if (!mesh.submeshMaterials.empty())
+                {
+                    out << YAML::Key << "SubmeshMaterials" << YAML::Value << YAML::BeginSeq;
+                    for (const auto &materialHandle : mesh.submeshMaterials)
+                    {
+                        out << static_cast<uint64_t>(materialHandle);
+                    }
+                    out << YAML::EndSeq;
+                }
             }
             out << YAML::EndMap;
         }
@@ -351,89 +362,7 @@ namespace Fermion
             out << YAML::EndSeq;
             out << YAML::EndMap;
         }
-        if (entity.hasComponent<PhongMaterialComponent>())
-        {
-            out << YAML::Key << "PhongMaterialComponent";
-            out << YAML::BeginMap;
-            auto &phong = entity.getComponent<PhongMaterialComponent>();
-            out << YAML::Key << "DiffuseColor" << YAML::Value << phong.diffuseColor;
-            out << YAML::Key << "AmbientColor" << YAML::Value << phong.ambientColor;
-            if (static_cast<uint64_t>(phong.diffuseTextureHandle) != 0)
-                out << YAML::Key << "DiffuseTextureHandle" << YAML::Value << static_cast<uint64_t>(phong.diffuseTextureHandle);
-            out << YAML::Key << "UseTexture" << YAML::Value << phong.useTexture;
-            out << YAML::Key << "FlipUV" << YAML::Value << phong.flipUV;
-            out << YAML::EndMap;
-        }
-        if (entity.hasComponent<PBRMaterialComponent>())
-        {
-            out << YAML::Key << "PBRMaterialComponent";
-            out << YAML::BeginMap;
-            auto &pbr = entity.getComponent<PBRMaterialComponent>();
-            out << YAML::Key << "Albedo" << YAML::Value << pbr.albedo;
-            out << YAML::Key << "Metallic" << YAML::Value << pbr.metallic;
-            out << YAML::Key << "Roughness" << YAML::Value << pbr.roughness;
-            out << YAML::Key << "AO" << YAML::Value << pbr.ao;
-            if (static_cast<uint64_t>(pbr.albedoMapHandle) != 0)
-                out << YAML::Key << "AlbedoMapHandle" << YAML::Value << static_cast<uint64_t>(pbr.albedoMapHandle);
-            if (static_cast<uint64_t>(pbr.normalMapHandle) != 0)
-                out << YAML::Key << "NormalMapHandle" << YAML::Value << static_cast<uint64_t>(pbr.normalMapHandle);
-            if (static_cast<uint64_t>(pbr.metallicMapHandle) != 0)
-                out << YAML::Key << "MetallicMapHandle" << YAML::Value << static_cast<uint64_t>(pbr.metallicMapHandle);
-            if (static_cast<uint64_t>(pbr.roughnessMapHandle) != 0)
-                out << YAML::Key << "RoughnessMapHandle" << YAML::Value << static_cast<uint64_t>(pbr.roughnessMapHandle);
-            if (static_cast<uint64_t>(pbr.aoMapHandle) != 0)
-                out << YAML::Key << "AOMapHandle" << YAML::Value << static_cast<uint64_t>(pbr.aoMapHandle);
-            out << YAML::Key << "FlipUV" << YAML::Value << pbr.flipUV;
-            out << YAML::EndMap;
-        }
-        if (entity.hasComponent<MaterialSlotsComponent>())
-        {
-            out << YAML::Key << "MaterialSlotsComponent";
-            out << YAML::BeginMap;
-            auto &materialSlots = entity.getComponent<MaterialSlotsComponent>();
-            
-            out << YAML::Key << "Materials" << YAML::Value << YAML::BeginSeq;
-            for (const auto &material : materialSlots.materials)
-            {
-                if (material)
-                {
-                    out << YAML::BeginMap;
-                    out << YAML::Key << "Type" << YAML::Value << static_cast<int>(material->getType());
-                    
-                    // Phong
-                    out << YAML::Key << "DiffuseColor" << YAML::Value << material->getDiffuseColor();
-                    out << YAML::Key << "AmbientColor" << YAML::Value << material->getAmbientColor();
-                    if (static_cast<uint64_t>(material->getDiffuseTexture()) != 0)
-                        out << YAML::Key << "DiffuseTextureHandle" << YAML::Value << static_cast<uint64_t>(material->getDiffuseTexture());
-                    
-                    // PBR
-                    out << YAML::Key << "Albedo" << YAML::Value << material->getAlbedo();
-                    out << YAML::Key << "Metallic" << YAML::Value << material->getMetallic();
-                    out << YAML::Key << "Roughness" << YAML::Value << material->getRoughness();
-                    out << YAML::Key << "AO" << YAML::Value << material->getAO();
-                    
-                    if (static_cast<uint64_t>(material->getAlbedoMap()) != 0)
-                        out << YAML::Key << "AlbedoMapHandle" << YAML::Value << static_cast<uint64_t>(material->getAlbedoMap());
-                    if (static_cast<uint64_t>(material->getNormalMap()) != 0)
-                        out << YAML::Key << "NormalMapHandle" << YAML::Value << static_cast<uint64_t>(material->getNormalMap());
-                    if (static_cast<uint64_t>(material->getMetallicMap()) != 0)
-                        out << YAML::Key << "MetallicMapHandle" << YAML::Value << static_cast<uint64_t>(material->getMetallicMap());
-                    if (static_cast<uint64_t>(material->getRoughnessMap()) != 0)
-                        out << YAML::Key << "RoughnessMapHandle" << YAML::Value << static_cast<uint64_t>(material->getRoughnessMap());
-                    if (static_cast<uint64_t>(material->getAOMap()) != 0)
-                        out << YAML::Key << "AOMapHandle" << YAML::Value << static_cast<uint64_t>(material->getAOMap());
-                    
-                    out << YAML::EndMap;
-                }
-                else
-                {
-                    // null
-                    out << YAML::Null;
-                }
-            }
-            out << YAML::EndSeq;
-            out << YAML::EndMap;
-        }
+        
 
         // Close entity map after writing all components
         out << YAML::EndMap;
@@ -564,6 +493,18 @@ namespace Fermion
                             {
                                 src.meshHandle = AssetHandle(handleValue);
                             }
+                        }
+                    }
+                    
+                    // 加载submeshMaterials数组
+                    auto submeshMaterialsNode = meshComponent["SubmeshMaterials"];
+                    if (submeshMaterialsNode && submeshMaterialsNode.IsSequence())
+                    {
+                        src.submeshMaterials.clear();
+                        for (size_t i = 0; i < submeshMaterialsNode.size(); ++i)
+                        {
+                            uint64_t handleValue = submeshMaterialsNode[i].as<uint64_t>();
+                            src.submeshMaterials.push_back(AssetHandle(handleValue));
                         }
                     }
                 }
@@ -802,157 +743,6 @@ namespace Fermion
                     {
                         for (auto classNode : classNamesNode)
                             sc.scriptClassNames.push_back(classNode.as<std::string>());
-                    }
-                }
-
-                auto phongMaterialComponent = entity["PhongMaterialComponent"];
-                if (phongMaterialComponent && phongMaterialComponent.IsMap())
-                {
-                    auto &phong = deserializedEntity.addComponent<PhongMaterialComponent>();
-                    if (auto n = phongMaterialComponent["DiffuseColor"]; n)
-                        phong.diffuseColor = n.as<glm::vec4>();
-                    if (auto n = phongMaterialComponent["AmbientColor"]; n)
-                        phong.ambientColor = n.as<glm::vec4>();
-                    if (auto n = phongMaterialComponent["DiffuseTextureHandle"]; n)
-                    {
-                        uint64_t handleValue = n.as<uint64_t>();
-                        if (handleValue != 0)
-                        {
-                            phong.diffuseTextureHandle = AssetHandle(handleValue);
-                        }
-                    }
-                    if (auto n = phongMaterialComponent["UseTexture"]; n)
-                        phong.useTexture = n.as<bool>();
-                    if (auto n = phongMaterialComponent["FlipUV"]; n)
-                        phong.flipUV = n.as<bool>();
-                }
-
-                auto pbrMaterialComponent = entity["PBRMaterialComponent"];
-                if (pbrMaterialComponent && pbrMaterialComponent.IsMap())
-                {
-                    auto &pbr = deserializedEntity.addComponent<PBRMaterialComponent>();
-                    if (auto n = pbrMaterialComponent["Albedo"]; n)
-                        pbr.albedo = n.as<glm::vec3>();
-                    if (auto n = pbrMaterialComponent["Metallic"]; n)
-                        pbr.metallic = n.as<float>();
-                    if (auto n = pbrMaterialComponent["Roughness"]; n)
-                        pbr.roughness = n.as<float>();
-                    if (auto n = pbrMaterialComponent["AO"]; n)
-                        pbr.ao = n.as<float>();
-                    if (auto n = pbrMaterialComponent["AlbedoMapHandle"]; n)
-                    {
-                        uint64_t handleValue = n.as<uint64_t>();
-                        if (handleValue != 0)
-                            pbr.albedoMapHandle = AssetHandle(handleValue);
-                    }
-                    if (auto n = pbrMaterialComponent["NormalMapHandle"]; n)
-                    {
-                        uint64_t handleValue = n.as<uint64_t>();
-                        if (handleValue != 0)
-                            pbr.normalMapHandle = AssetHandle(handleValue);
-                    }
-                    if (auto n = pbrMaterialComponent["MetallicMapHandle"]; n)
-                    {
-                        uint64_t handleValue = n.as<uint64_t>();
-                        if (handleValue != 0)
-                            pbr.metallicMapHandle = AssetHandle(handleValue);
-                    }
-                    if (auto n = pbrMaterialComponent["RoughnessMapHandle"]; n)
-                    {
-                        uint64_t handleValue = n.as<uint64_t>();
-                        if (handleValue != 0)
-                            pbr.roughnessMapHandle = AssetHandle(handleValue);
-                    }
-                    if (auto n = pbrMaterialComponent["AOMapHandle"]; n)
-                    {
-                        uint64_t handleValue = n.as<uint64_t>();
-                        if (handleValue != 0)
-                            pbr.aoMapHandle = AssetHandle(handleValue);
-                    }
-                    if (auto n = pbrMaterialComponent["FlipUV"]; n)
-                        pbr.flipUV = n.as<bool>();
-                }
-
-                auto materialSlotsComponent = entity["MaterialSlotsComponent"];
-                if (materialSlotsComponent && materialSlotsComponent.IsMap())
-                {
-                    auto &materialSlots = deserializedEntity.addComponent<MaterialSlotsComponent>();
-                    auto materialsNode = materialSlotsComponent["Materials"];
-                    if (materialsNode && materialsNode.IsSequence())
-                    {
-                        for (size_t i = 0; i < materialsNode.size(); ++i)
-                        {
-                            auto materialNode = materialsNode[i];
-                            if (materialNode.IsNull())
-                            {
-                                // null
-                                materialSlots.materials.push_back(nullptr);
-                            }
-                            else if (materialNode.IsMap())
-                            {
-                                auto material = std::make_shared<Material>();
-                                
-                                if (auto n = materialNode["Type"]; n)
-                                {
-                                    material->setMaterialType(static_cast<MaterialType>(n.as<int>()));
-                                }
-                                
-                                // Phong
-                                if (auto n = materialNode["DiffuseColor"]; n)
-                                    material->setDiffuseColor(n.as<glm::vec4>());
-                                if (auto n = materialNode["AmbientColor"]; n)
-                                    material->setAmbientColor(n.as<glm::vec4>());
-                                if (auto n = materialNode["DiffuseTextureHandle"]; n)
-                                {
-                                    uint64_t handleValue = n.as<uint64_t>();
-                                    if (handleValue != 0)
-                                        material->setDiffuseTexture(AssetHandle(handleValue));
-                                }
-                                
-                                // PBR
-                                if (auto n = materialNode["Albedo"]; n)
-                                    material->setAlbedo(n.as<glm::vec3>());
-                                if (auto n = materialNode["Metallic"]; n)
-                                    material->setMetallic(n.as<float>());
-                                if (auto n = materialNode["Roughness"]; n)
-                                    material->setRoughness(n.as<float>());
-                                if (auto n = materialNode["AO"]; n)
-                                    material->setAO(n.as<float>());
-                                
-                                if (auto n = materialNode["AlbedoMapHandle"]; n)
-                                {
-                                    uint64_t handleValue = n.as<uint64_t>();
-                                    if (handleValue != 0)
-                                        material->setAlbedoMap(AssetHandle(handleValue));
-                                }
-                                if (auto n = materialNode["NormalMapHandle"]; n)
-                                {
-                                    uint64_t handleValue = n.as<uint64_t>();
-                                    if (handleValue != 0)
-                                        material->setNormalMap(AssetHandle(handleValue));
-                                }
-                                if (auto n = materialNode["MetallicMapHandle"]; n)
-                                {
-                                    uint64_t handleValue = n.as<uint64_t>();
-                                    if (handleValue != 0)
-                                        material->setMetallicMap(AssetHandle(handleValue));
-                                }
-                                if (auto n = materialNode["RoughnessMapHandle"]; n)
-                                {
-                                    uint64_t handleValue = n.as<uint64_t>();
-                                    if (handleValue != 0)
-                                        material->setRoughnessMap(AssetHandle(handleValue));
-                                }
-                                if (auto n = materialNode["AOMapHandle"]; n)
-                                {
-                                    uint64_t handleValue = n.as<uint64_t>();
-                                    if (handleValue != 0)
-                                        material->setAOMap(AssetHandle(handleValue));
-                                }
-                                
-                                materialSlots.materials.push_back(material);
-                            }
-                        }
                     }
                 }
             }

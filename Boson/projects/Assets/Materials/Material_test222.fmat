@@ -1,0 +1,7 @@
+Material:
+  Type: 2
+  Name: test222
+  Albedo: [0.5657213, 1, 0.27004218]
+  Metallic: 0.83
+  Roughness: 0.5
+  AO: 1

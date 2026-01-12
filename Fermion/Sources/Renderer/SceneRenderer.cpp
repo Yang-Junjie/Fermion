@@ -146,7 +146,7 @@ namespace Fermion
 
     void SceneRenderer::beginScene(const EditorCamera &camera)
     {
-        beginScene({camera, camera.getViewMatrix(),camera.getFarCilp()});
+        beginScene({camera, camera.getViewMatrix(), camera.getFarCilp()});
     }
 
     void SceneRenderer::beginScene(const SceneRendererCamera &camera)
@@ -217,18 +217,39 @@ namespace Fermion
     {
         if (static_cast<uint64_t>(meshComponent.meshHandle) != 0)
         {
-            auto mesh = Project::getRuntimeAssetManager()->getAsset<Mesh>(meshComponent.meshHandle);
+            auto assetManager = Project::getRuntimeAssetManager();
+            auto mesh = assetManager->getAsset<Mesh>(meshComponent.meshHandle);
             if (mesh)
             {
-                auto material = std::make_shared<Material>();
-                material->setDiffuseColor(glm::vec4(0.8f, 0.8f, 0.8f, 1.0f));
-                material->setAmbientColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
-                
-                for (auto &submesh : mesh->getSubMeshes())
+                auto vao = mesh->getVertexArray();
+                const auto& submeshes = mesh->getSubMeshes();
+
+                for (size_t i = 0; i < submeshes.size(); i++)
                 {
+                    const auto& submesh = submeshes[i];
+                    std::shared_ptr<Material> material;
+                    
+                    AssetHandle submeshMaterialHandle = meshComponent.getSubmeshMaterial(static_cast<uint32_t>(i));
+                    if (static_cast<uint64_t>(submeshMaterialHandle) != 0)
+                    {
+                        material = assetManager->getAsset<Material>(submeshMaterialHandle);
+                    }
+
+                    if (!material)
+                    {
+                        material = std::make_shared<Material>();
+                        material->setMaterialType(MaterialType::PBR);
+                        material->setAlbedo(glm::vec3(1.0f, 1.0f, 1.0f));
+                        material->setMetallic(0.0f);
+                        material->setRoughness(1.0f);
+                        material->setAO(1.0f);
+                    }
+                    
+                    // 创建绘制命令
+                    MaterialType matType = material->getType();
                     MeshDrawCommand cmd;
-                    cmd.pipeline = m_MeshPipeline;
-                    cmd.vao = mesh->getVertexArray();
+                    cmd.pipeline = (matType == MaterialType::PBR) ? m_PBRMeshPipeline : m_MeshPipeline;
+                    cmd.vao = vao;
                     cmd.material = material;
                     cmd.transform = transform;
                     cmd.indexCount = submesh.IndexCount;
@@ -236,140 +257,10 @@ namespace Fermion
                     cmd.objectID = objectId;
                     cmd.drawOutline = drawOutline;
                     cmd.aabb = mesh->getBoundingBox();
+                    
                     s_MeshDrawList.emplace_back(std::move(cmd));
                 }
             }
-        }
-    }
-
-    void SceneRenderer::submitMesh(MeshComponent &meshComponent,
-                                   MaterialSlotsComponent &materialSlots,
-                                   const glm::mat4 &transform,
-                                   int objectId,
-                                   bool drawOutline)
-    {
-        if (static_cast<uint64_t>(meshComponent.meshHandle) == 0)
-            return;
-
-        auto assetManager = Project::getRuntimeAssetManager();
-        auto mesh = assetManager->getAsset<Mesh>(meshComponent.meshHandle);
-        if (!mesh)
-            return;
-
-        auto vao = mesh->getVertexArray();
-
-        for (auto &submesh : mesh->getSubMeshes())
-        {
-            std::shared_ptr<Material> material = materialSlots.getMaterial(submesh.MaterialSlotIndex);
-            
-            if (!material)
-            {
-                material = std::make_shared<Material>();
-                material->setMaterialType(MaterialType::Phong);
-                material->setDiffuseColor(glm::vec4(0.8f, 0.8f, 0.8f, 1.0f));
-                material->setAmbientColor(glm::vec4(0.1f, 0.1f, 0.1f, 1.0f));
-            }
-
-            MaterialType matType = material->getType();
-            MeshDrawCommand cmd;
-            cmd.pipeline = (matType == MaterialType::PBR) ? m_PBRMeshPipeline : m_MeshPipeline;
-            cmd.vao = vao;
-            cmd.material = material;
-            cmd.transform = transform;
-            cmd.indexCount = submesh.IndexCount;
-            cmd.indexOffset = submesh.IndexOffset;
-            cmd.objectID = objectId;
-            cmd.drawOutline = drawOutline;
-            cmd.aabb = mesh->getBoundingBox();
-
-            s_MeshDrawList.emplace_back(std::move(cmd));
-        }
-    }
-
-    void SceneRenderer::submitMesh(MeshComponent &meshComponent,
-                                   PBRMaterialComponent &pbrMaterial,
-                                   const glm::mat4 &transform,
-                                   int objectId,
-                                   bool drawOutline)
-    {
-        if (static_cast<uint64_t>(meshComponent.meshHandle) == 0)
-            return;
-
-        auto assetManager = Project::getRuntimeAssetManager();
-        auto mesh = assetManager->getAsset<Mesh>(meshComponent.meshHandle);
-        if (!mesh)
-            return;
-
-        auto vao = mesh->getVertexArray();
-
-        for (auto &submesh : mesh->getSubMeshes())
-        {
-            auto material = std::make_shared<Material>();
-            material->setMaterialType(MaterialType::PBR);
-            material->setAlbedo(pbrMaterial.albedo);
-            material->setMetallic(pbrMaterial.metallic);
-            material->setRoughness(pbrMaterial.roughness);
-            material->setAO(pbrMaterial.ao);
-
-            material->setAlbedoMap(pbrMaterial.albedoMapHandle);
-            material->setNormalMap(pbrMaterial.normalMapHandle);
-            material->setMetallicMap(pbrMaterial.metallicMapHandle);
-            material->setRoughnessMap(pbrMaterial.roughnessMapHandle);
-            material->setAOMap(pbrMaterial.aoMapHandle);
-
-            MeshDrawCommand cmd;
-            cmd.pipeline = m_PBRMeshPipeline;
-            cmd.vao = vao;
-            cmd.material = material;
-            cmd.transform = transform;
-            cmd.indexCount = submesh.IndexCount;
-            cmd.indexOffset = submesh.IndexOffset;
-            cmd.objectID = objectId;
-            cmd.drawOutline = drawOutline;
-            cmd.aabb = mesh->getBoundingBox();
-
-            s_MeshDrawList.emplace_back(std::move(cmd));
-        }
-    }
-
-    void SceneRenderer::submitMesh(MeshComponent &meshComponent, PhongMaterialComponent &phongMaterial,
-                                   glm::mat4 transform, int objectId, bool drawOutline)
-    {
-        if (static_cast<uint64_t>(meshComponent.meshHandle) == 0)
-            return;
-
-        auto assetManager = Project::getRuntimeAssetManager();
-        auto mesh = assetManager->getAsset<Mesh>(meshComponent.meshHandle);
-        if (!mesh)
-            return;
-
-        for (auto &submesh : mesh->getSubMeshes())
-        {
-            MeshDrawCommand cmd;
-            // 使用Phong管线
-            cmd.pipeline = m_MeshPipeline;
-            cmd.vao = mesh->getVertexArray();
-
-            // 创建Phong材质并加载纹理
-            auto material = std::make_shared<Material>();
-            material->setMaterialType(MaterialType::Phong);
-            material->setDiffuseColor(phongMaterial.diffuseColor);
-            material->setAmbientColor(phongMaterial.ambientColor);
-
-            // 设置漫反射纹理
-            if (phongMaterial.useTexture)
-            {
-                material->setDiffuseTexture(phongMaterial.diffuseTextureHandle);
-            }
-
-            cmd.material = material;
-            cmd.transform = transform;
-            cmd.indexCount = submesh.IndexCount;
-            cmd.indexOffset = submesh.IndexOffset;
-            cmd.objectID = objectId;
-            cmd.drawOutline = drawOutline;
-            cmd.aabb = mesh->getBoundingBox();
-            s_MeshDrawList.emplace_back(std::move(cmd));
         }
     }
     void SceneRenderer::drawInfiniteLine(const glm::vec3 &point, const glm::vec3 &direction, const glm::vec4 &color)

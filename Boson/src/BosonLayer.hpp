@@ -6,6 +6,7 @@
 #include "Panels/ContentBrowserPanel.hpp"
 #include "Panels/AssetManagerPanel.hpp"
 #include "Panels/MenuBarPanel.hpp"
+#include "Panels/MaterialEditorPanel.hpp"
 
 #include "Renderer/SceneRenderer.hpp"
 
@@ -14,8 +15,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-namespace Fermion {
-    class BosonLayer : public Layer {
+namespace Fermion
+{
+    class BosonLayer : public Layer
+    {
+        friend class MenuBarPanel;
     public:
         BosonLayer(const std::string &name = "BosonLayer", std::filesystem::path initialProjectPath = {});
 
@@ -69,6 +73,8 @@ namespace Fermion {
 
         void onHelpPanel();
 
+        void openAboutWindow();
+
         void onSettingsPanel();
 
         void onViewportPanel();
@@ -78,33 +84,38 @@ namespace Fermion {
         void updateMousePicking();
 
     private:
-        struct ViewportBounds {
+        struct ViewportBounds
+        {
             glm::vec2 min; // top-left in screen space
             glm::vec2 max; // bottom-right in screen space
 
             [[nodiscard]]
-            glm::vec2 size() const {
+            glm::vec2 size() const
+            {
                 return max - min;
             }
 
             [[nodiscard]]
-            bool isValid() const {
+            bool isValid() const
+            {
                 const glm::vec2 s = size();
                 return s.x > 0.0f && s.y > 0.0f;
             }
 
             [[nodiscard]]
-            bool contains(const glm::vec2 &p) const {
+            bool contains(const glm::vec2 &p) const
+            {
                 return p.x >= min.x && p.y >= min.y &&
                        p.x < max.x && p.y < max.y;
             }
         };
 
-
         SceneHierarchyPanel m_sceneHierarchyPanel;
+        MaterialEditorPanel m_materialEditorPanel;
         ContentBrowserPanel m_contentBrowserPanel;
         AssetManagerPanel m_assetManagerPanel;
         MenuBarPanel m_menuBarPanel;
+
         bool m_isAboutWindowOpen = false;
 
         std::shared_ptr<Framebuffer> m_framebuffer;
@@ -114,7 +125,8 @@ namespace Fermion {
         bool m_viewportFocused = false;
         bool m_viewportHovered = false;
 
-        enum class SceneState {
+        enum class SceneState
+        {
             Edit = 0,
             Play = 1,
             Simulate = 2

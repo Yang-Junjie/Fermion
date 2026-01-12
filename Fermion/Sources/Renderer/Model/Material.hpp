@@ -7,13 +7,20 @@
 namespace Fermion
 {
 
-    enum class MaterialType
+    enum class MaterialType : uint8_t
     {
-        Phong, // 传统Phong光照模型
-        PBR    // PBR材质
+        Phong = 1,
+        PBR = 2
     };
-
-    class Material
+    struct MapAssets
+    {
+        AssetHandle AlbedoMapHandle = AssetHandle(0);
+        AssetHandle NormalMapHandle = AssetHandle(0);
+        AssetHandle MetallicMapHandle = AssetHandle(0);
+        AssetHandle RoughnessMapHandle = AssetHandle(0);
+        AssetHandle AOMapHandle = AssetHandle(0);
+    };
+    class Material : public Asset
     {
     public:
         Material();
@@ -25,6 +32,7 @@ namespace Fermion
 
         // PBR setters
         void setMaterialType(MaterialType type);
+        void setName(const std::string &name);
         void setAlbedo(const glm::vec3 &albedo);
         void setMetallic(float metallic);
         void setRoughness(float roughness);
@@ -47,6 +55,7 @@ namespace Fermion
         AssetHandle getDiffuseTexture() const;
         AssetHandle &getDiffuseTexture();
         MaterialType getType() const;
+        const std::string &getName() const;
         const glm::vec3 &getAlbedo() const;
         float getMetallic() const;
         float getRoughness() const;
@@ -63,6 +72,7 @@ namespace Fermion
         AssetHandle &getMetallicMap();
         AssetHandle &getRoughnessMap();
         AssetHandle &getAOMap();
+        AssetType getAssetsType() const override;
 
     private:
         void bindPhong(const std::shared_ptr<Shader> &shader, int slot) const;
@@ -70,6 +80,7 @@ namespace Fermion
 
     private:
         MaterialType Type;
+        std::string Name;
 
         // Phong 材质属性
         glm::vec4 DiffuseColor; // Kd 漫反射
@@ -82,14 +93,7 @@ namespace Fermion
         float Roughness;
         float AO;
 
-        struct MapAssets
-        {
-            AssetHandle AlbedoMapHandle = AssetHandle(0);
-            AssetHandle NormalMapHandle = AssetHandle(0);
-            AssetHandle MetallicMapHandle = AssetHandle(0);
-            AssetHandle RoughnessMapHandle = AssetHandle(0);
-            AssetHandle AOMapHandle = AssetHandle(0);
-        } m_Maps;
+        MapAssets m_Maps;
     };
 
 } // namespace Fermion

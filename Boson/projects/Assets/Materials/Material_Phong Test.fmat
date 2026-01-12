@@ -1,0 +1,6 @@
+Material:
+  Type: 1
+  Name: Phong Test
+  DiffuseColor: [1, 1, 1, 1]
+  AmbientColor: [0, 0, 0, 1]
+  DiffuseTexture: 0

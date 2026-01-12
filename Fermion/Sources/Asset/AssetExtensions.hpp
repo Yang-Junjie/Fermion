@@ -23,6 +23,9 @@ namespace Fermion {
 
         // Mesh
         {".obj", AssetType::Mesh},
+        
+        // Material
+        {".fmat", AssetType::Material},
     };
 
     inline static AssetType GetAssetTypeFromExtension(const std::string &extension) {

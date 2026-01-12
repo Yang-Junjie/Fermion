@@ -266,41 +266,7 @@ namespace Fermion
                 }
             }
             {
-                // 优先渲染带MaterialSlotsComponent的对象（支持多材质）
-                auto materialSlotsView = m_registry.view<TransformComponent, MeshComponent, MaterialSlotsComponent>();
-                for (auto entity : materialSlotsView)
-                {
-                    auto &transform = materialSlotsView.get<TransformComponent>(entity);
-                    auto &mesh = materialSlotsView.get<MeshComponent>(entity);
-                    auto &materialSlots = materialSlotsView.get<MaterialSlotsComponent>(entity);
-                    renderer->submitMesh(mesh, materialSlots, transform.getTransform(), (int)entity);
-                }
-
-                // 渲染带PBR材质的对象（向后兼容）
-                auto pbrView = m_registry.view<TransformComponent, MeshComponent, PBRMaterialComponent>(
-                    entt::exclude<MaterialSlotsComponent>);
-                for (auto entity : pbrView)
-                {
-                    auto &transform = pbrView.get<TransformComponent>(entity);
-                    auto &mesh = pbrView.get<MeshComponent>(entity);
-                    auto &pbrMat = pbrView.get<PBRMaterialComponent>(entity);
-                    renderer->submitMesh(mesh, pbrMat, transform.getTransform(), (int)entity);
-                }
-
-                // 渲染带Phong材质的对象（向后兼容）
-                auto phongView = m_registry.view<TransformComponent, MeshComponent, PhongMaterialComponent>(
-                    entt::exclude<MaterialSlotsComponent>);
-                for (auto entity : phongView)
-                {
-                    auto &transform = phongView.get<TransformComponent>(entity);
-                    auto &mesh = phongView.get<MeshComponent>(entity);
-                    auto &phongMat = phongView.get<PhongMaterialComponent>(entity);
-                    renderer->submitMesh(mesh, phongMat, transform.getTransform(), (int)entity);
-                }
-
-                // 渲染没有材质组件的对象（使用mesh默认材质）
-                auto defaultView = m_registry.view<TransformComponent, MeshComponent>(
-                    entt::exclude<PBRMaterialComponent, PhongMaterialComponent, MaterialSlotsComponent>);
+                auto defaultView = m_registry.view<TransformComponent, MeshComponent>();
                 for (auto entity : defaultView)
                 {
                     auto &transform = defaultView.get<TransformComponent>(entity);
@@ -625,41 +591,7 @@ namespace Fermion
                     m_environmentLight.directionalLight.intensity = 0.0f;
 
                     {
-                        // 优先渲染带MaterialSlotsComponent的对象（支持多材质）
-                        auto materialSlotsView = m_registry.view<TransformComponent, MeshComponent, MaterialSlotsComponent>();
-                        for (auto entity : materialSlotsView)
-                        {
-                            auto &transform = materialSlotsView.get<TransformComponent>(entity);
-                            auto &mesh = materialSlotsView.get<MeshComponent>(entity);
-                            auto &materialSlots = materialSlotsView.get<MaterialSlotsComponent>(entity);
-                            renderer->submitMesh(mesh, materialSlots, transform.getTransform(), (int)entity);
-                        }
-
-                        // 渲染带PBR材质的对象（向后兼容）
-                        auto pbrView = m_registry.view<TransformComponent, MeshComponent, PBRMaterialComponent>(
-                            entt::exclude<MaterialSlotsComponent>);
-                        for (auto entity : pbrView)
-                        {
-                            auto &transform = pbrView.get<TransformComponent>(entity);
-                            auto &mesh = pbrView.get<MeshComponent>(entity);
-                            auto &pbrMat = pbrView.get<PBRMaterialComponent>(entity);
-                            renderer->submitMesh(mesh, pbrMat, transform.getTransform(), (int)entity);
-                        }
-
-                        // 渲染带Phong材质的对象（向后兼容）
-                        auto phongView = m_registry.view<TransformComponent, MeshComponent, PhongMaterialComponent>(
-                            entt::exclude<MaterialSlotsComponent>);
-                        for (auto entity : phongView)
-                        {
-                            auto &transform = phongView.get<TransformComponent>(entity);
-                            auto &mesh = phongView.get<MeshComponent>(entity);
-                            auto &phongMat = phongView.get<PhongMaterialComponent>(entity);
-                            renderer->submitMesh(mesh, phongMat, transform.getTransform(), (int)entity);
-                        }
-
-                        // 渲染没有材质组件的对象（使用mesh默认材质）
-                        auto defaultView = m_registry.view<TransformComponent, MeshComponent>(
-                            entt::exclude<PBRMaterialComponent, PhongMaterialComponent, MaterialSlotsComponent>);
+                        auto defaultView = m_registry.view<TransformComponent, MeshComponent>();
                         for (auto entity : defaultView)
                         {
                             auto &transform = defaultView.get<TransformComponent>(entity);

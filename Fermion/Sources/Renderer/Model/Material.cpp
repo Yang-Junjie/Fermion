@@ -33,6 +33,11 @@ namespace Fermion
         Type = type;
     }
 
+    void Material::setName(const std::string &name)
+    {
+        Name = name;
+    }
+
     void Material::setAlbedo(const glm::vec3 &albedo)
     {
         Albedo = albedo;
@@ -106,6 +111,7 @@ namespace Fermion
         DiffuseTextureHandle = other.DiffuseTextureHandle;
 
         Type = other.Type;
+        Name = other.Name;
         Albedo = other.Albedo;
         Metallic = other.Metallic;
         Roughness = other.Roughness;
@@ -126,6 +132,7 @@ namespace Fermion
     AssetHandle &Material::getDiffuseTexture() { return DiffuseTextureHandle; }
 
     MaterialType Material::getType() const { return Type; }
+    const std::string &Material::getName() const { return Name; }
     const glm::vec3 &Material::getAlbedo() const { return Albedo; }
     float Material::getMetallic() const { return Metallic; }
     float Material::getRoughness() const { return Roughness; }
@@ -143,7 +150,11 @@ namespace Fermion
     AssetHandle &Material::getRoughnessMap() { return m_Maps.RoughnessMapHandle; }
     AssetHandle &Material::getAOMap() { return m_Maps.AOMapHandle; }
 
-    // Private binding helpers
+    AssetType Material::getAssetsType() const
+    {
+        return AssetType::Material;
+    }
+
     void Material::bindPhong(const std::shared_ptr<Shader> &shader, int slot) const
     {
         auto assetManager = Project::getRuntimeAssetManager();

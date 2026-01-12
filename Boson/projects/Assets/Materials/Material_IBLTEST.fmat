@@ -1,0 +1,7 @@
+Material:
+  Type: 2
+  Name: IBLTEST
+  Albedo: [1, 1, 1]
+  Metallic: 1
+  Roughness: 0
+  AO: 1

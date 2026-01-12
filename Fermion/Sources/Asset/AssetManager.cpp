@@ -6,10 +6,12 @@
 #include "Asset/Importer/SceneImporter.hpp"
 #include "Asset/Importer/ShaderImporter.hpp"
 #include "Asset/Importer/MeshImporter.hpp"
+#include "Asset/Importer/MaterialImporter.hpp"
 #include "Asset/Loader/TextureLoader.hpp"
 #include "Asset/Loader/FontLoader.hpp"
 #include "Asset/Loader/MeshLoader.hpp"
 #include "Asset/Loader/SceneLoader.hpp"
+#include "Asset/Loader/MaterialLoader.hpp"
 #include "Asset/AssetExtensions.hpp"
 
 namespace Fermion
@@ -25,6 +27,7 @@ void AssetManager::ensureDefaultLoaders() {
     s_assetLoaders.emplace(AssetType::Font, std::make_unique<FontLoader>());
     s_assetLoaders.emplace(AssetType::Scene, std::make_unique<SceneLoader>());
     s_assetLoaders.emplace(AssetType::Mesh, std::make_unique<MeshLoader>());
+    s_assetLoaders.emplace(AssetType::Material, std::make_unique<MaterialLoader>());
 }
 
 static AssetType GetAssetTypeFromPath(const std::filesystem::path &path) {
@@ -113,6 +116,8 @@ static std::unique_ptr<AssetImporter> CreateImporter(AssetType type) {
         return std::make_unique<ShaderImporter>();
     case AssetType::Mesh:
         return std::make_unique<MeshImporter>();
+    case AssetType::Material:
+        return std::make_unique<MaterialImporter>();
     default:
         return nullptr;
     }
@@ -172,6 +177,10 @@ AssetHandle AssetManager::addMemoryOnlyAsset(std::shared_ptr<Asset> asset) {
     asset->handle = AssetHandle();
     s_loadedAssets[asset->handle] = asset;
     return asset->handle;
+}
+
+void AssetManager::registerLoadedAsset(AssetHandle handle, std::shared_ptr<Asset> asset) {
+    s_loadedAssets[handle] = asset;
 }
 
 std::shared_ptr<Asset> AssetManager::getAssetMetadata(AssetHandle handle) {

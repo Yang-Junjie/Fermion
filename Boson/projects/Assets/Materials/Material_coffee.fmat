@@ -1,0 +1,12 @@
+Material:
+  Type: 2
+  Name: coffee
+  Albedo: [1, 1, 1]
+  Metallic: 0
+  Roughness: 0.5
+  AO: 1
+  AlbedoMap: 14965907563741501783
+  NormalMap: 14908307116319306999
+  MetallicMap: 14033000373010488179
+  RoughnessMap: 7124407509709945697
+  AOMap: 0

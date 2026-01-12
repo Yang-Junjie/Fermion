@@ -1,5 +1,101 @@
 Scene: Name
 Entities:
+  - Entity: 15257039527707661464
+    TagComponent:
+      Tag: capsule
+    TransformComponent:
+      Translation: [3.6039007, 0.8756945, 5.9604645e-08]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      MeshHandle: 16419283379451210021
+      MemoryOnly: true
+      MemoryMeshType: 4
+      SubmeshMaterials:
+        - 0
+  - Entity: 16081347473010776866
+    TagComponent:
+      Tag: cylinder
+    TransformComponent:
+      Translation: [2.3240802, 0.80614066, 1.4901161e-08]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      MeshHandle: 9587702589147996927
+      MemoryOnly: true
+      MemoryMeshType: 3
+      SubmeshMaterials:
+        - 0
+  - Entity: 16449860847702860093
+    TagComponent:
+      Tag: sphere
+    TransformComponent:
+      Translation: [1.226969, 0.62576985, 0.014943749]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      MeshHandle: 6978670684218375583
+      MemoryOnly: true
+      MemoryMeshType: 2
+      SubmeshMaterials:
+        - 0
+  - Entity: 13596458327916403171
+    TagComponent:
+      Tag: cone
+    TransformComponent:
+      Translation: [0, 0.6707794, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      MeshHandle: 1747295950819796711
+      MemoryOnly: true
+      MemoryMeshType: 5
+      SubmeshMaterials:
+        - 0
+  - Entity: 1214625920770253982
+    TagComponent:
+      Tag: car
+    TransformComponent:
+      Translation: [-1.2395644, 0.15020162, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.0033512, 0.0033512, 0.0033512]
+    MeshComponent:
+      MeshHandle: 16584299943829371167
+      MemoryOnly: false
+      MemoryMeshType: 0
+      SubmeshMaterials:
+        - 13708443762182060531
+        - 13756135536400747486
+        - 18076589215161355240
+        - 18076589215161355240
+        - 18076589215161355240
+        - 18076589215161355240
+  - Entity: 12703848604684242753
+    TagComponent:
+      Tag: cube
+    TransformComponent:
+      Translation: [-2.558185, 0.6965798, 2.9802322e-08]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      MeshHandle: 1528511482962362126
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 0
+  - Entity: 14364034156530371027
+    TagComponent:
+      Tag: floor
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, -0, 0]
+      Scale: [11.824283, 0.32187447, 13.289282]
+    MeshComponent:
+      MeshHandle: 3109643844344733959
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 0
   - Entity: 13192142759119736963
     TagComponent:
       Tag: dl
@@ -11,117 +107,3 @@ Entities:
       Color: [1, 1, 1]
       Intensity: 1
       MainLight: true
-  - Entity: 14364034156530371027
-    TagComponent:
-      Tag: floor
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, -0, 0]
-      Scale: [11.824283, 0.32187447, 13.289282]
-    MeshComponent:
-      MeshHandle: 2478190675456973400
-      MemoryOnly: true
-      MemoryMeshType: 1
-    PhongMaterialComponent:
-      DiffuseColor: [1, 1, 1, 1]
-      AmbientColor: [0.1, 0.1, 0.1, 1]
-      UseTexture: false
-      FlipUV: false
-  - Entity: 12703848604684242753
-    TagComponent:
-      Tag: cube
-    TransformComponent:
-      Translation: [-2.558185, 0.6965798, 2.9802322e-08]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      MeshHandle: 14505584159263194396
-      MemoryOnly: true
-      MemoryMeshType: 1
-    PhongMaterialComponent:
-      DiffuseColor: [1, 1, 1, 1]
-      AmbientColor: [0.1, 0.1, 0.1, 1]
-      UseTexture: false
-      FlipUV: false
-  - Entity: 1214625920770253982
-    TagComponent:
-      Tag: car
-    TransformComponent:
-      Translation: [-1.2395644, 0.15020163, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.0033512, 0.0033512, 0.0033512]
-    MeshComponent:
-      MeshHandle: 16584299943829371167
-      MemoryOnly: false
-      MemoryMeshType: 0
-    MaterialSlotsComponent:
-      Materials:
-        - Type: 1
-          DiffuseColor: [0.8, 0.8, 0.8, 0.8]
-          AmbientColor: [0.1, 0.1, 0.1, 0.1]
-          Albedo: [0.8, 0.8, 0.8]
-          Metallic: 0.045
-          Roughness: 0.5
-          AO: 1
-        - Type: 1
-          DiffuseColor: [0.8, 0.8, 0.8, 0.8]
-          AmbientColor: [0.1, 0.1, 0.1, 0.1]
-          Albedo: [0.8, 0.8, 0.8]
-          Metallic: 0
-          Roughness: 0.5
-          AO: 1
-          AlbedoMapHandle: 3914983344752951145
-        - Type: 1
-          DiffuseColor: [0.8, 0.8, 0.8, 0.8]
-          AmbientColor: [0.1, 0.1, 0.1, 0.1]
-          Albedo: [0.8, 0.8, 0.8]
-          Metallic: 1
-          Roughness: 0
-          AO: 1
-        - ~
-        - ~
-        - ~
-  - Entity: 13596458327916403171
-    TagComponent:
-      Tag: cone
-    TransformComponent:
-      Translation: [0, 0.6707794, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      MeshHandle: 15786696646554570269
-      MemoryOnly: true
-      MemoryMeshType: 5
-  - Entity: 16449860847702860093
-    TagComponent:
-      Tag: sphere
-    TransformComponent:
-      Translation: [1.226969, 0.62576985, 4.656613e-10]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      MeshHandle: 3138038406291823131
-      MemoryOnly: true
-      MemoryMeshType: 2
-  - Entity: 16081347473010776866
-    TagComponent:
-      Tag: cylinder
-    TransformComponent:
-      Translation: [2.3240802, 0.80614066, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      MeshHandle: 9341240406635189850
-      MemoryOnly: true
-      MemoryMeshType: 3
-  - Entity: 15257039527707661464
-    TagComponent:
-      Tag: capsule
-    TransformComponent:
-      Translation: [3.6039007, 0.8756945, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      MeshHandle: 7938506664481400441
-      MemoryOnly: true
-      MemoryMeshType: 4

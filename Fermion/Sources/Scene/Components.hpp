@@ -102,42 +102,49 @@ namespace Fermion
         bool memoryOnly = false;
         MemoryMeshType memoryMeshType = MemoryMeshType::None;
 
+        std::vector<AssetHandle> submeshMaterials;
+
         MeshComponent() = default;
 
         MeshComponent(const MeshComponent &) = default;
-    };
 
-    // 材质槽位组件 - 存储Mesh使用的所有材质
-    struct MaterialSlotsComponent
-    {
-        // 材质槽位数组，每个SubMesh通过MaterialSlotIndex索引到对应材质
-        std::vector<std::shared_ptr<Material>> materials;
-        
-        MaterialSlotsComponent() = default;
-        MaterialSlotsComponent(const MaterialSlotsComponent &) = default;
-        
-        // 设置槽位材质
-        void setMaterial(uint32_t slotIndex, std::shared_ptr<Material> material)
+        void setSubmeshMaterial(uint32_t submeshIndex, AssetHandle materialHandle)
         {
-            if (slotIndex >= materials.size())
+            if (submeshIndex >= submeshMaterials.size())
             {
-                materials.resize(slotIndex + 1, nullptr);
+                submeshMaterials.resize(submeshIndex + 1, AssetHandle(0));
             }
-            materials[slotIndex] = material;
+            submeshMaterials[submeshIndex] = materialHandle;
         }
-        
-        // 获取槽位材质
-        std::shared_ptr<Material> getMaterial(uint32_t slotIndex) const
+
+        AssetHandle getSubmeshMaterial(uint32_t submeshIndex) const
         {
-            if (slotIndex < materials.size())
-                return materials[slotIndex];
-            return nullptr;
+            if (submeshIndex < submeshMaterials.size())
+                return submeshMaterials[submeshIndex];
+            return AssetHandle(0);
         }
-        
-        // 获取槽位数量
-        size_t getSlotCount() const
+
+        void clearSubmeshMaterial(uint32_t submeshIndex)
         {
-            return materials.size();
+            if (submeshIndex < submeshMaterials.size())
+            {
+                submeshMaterials[submeshIndex] = AssetHandle(0);
+            }
+        }
+
+        void clearAllSubmeshMaterials()
+        {
+            submeshMaterials.clear();
+        }
+
+        size_t getSubmeshMaterialCount() const
+        {
+            return submeshMaterials.size();
+        }
+
+        void resizeSubmeshMaterials(size_t count)
+        {
+            submeshMaterials.resize(count, AssetHandle(0));
         }
     };
 
@@ -385,44 +392,6 @@ namespace Fermion
         SpotLightComponent(const SpotLightComponent &) = default;
     };
 
-    struct PhongMaterialComponent
-    {
-        // Phong材质参数
-        glm::vec4 diffuseColor{1.0f, 1.0f, 1.0f, 1.0f}; // 漫反射颜色
-        glm::vec4 ambientColor{0.1f, 0.1f, 0.1f, 1.0f}; // 环境光颜色
-
-        // 纹理资源句柄
-        AssetHandle diffuseTextureHandle = AssetHandle(0);
-
-        bool useTexture = false;
-        bool flipUV = false;
-
-        PhongMaterialComponent() = default;
-
-        PhongMaterialComponent(const PhongMaterialComponent &) = default;
-    };
-
-    struct PBRMaterialComponent
-    {
-        // PBR材质参数
-        glm::vec3 albedo{1.0f, 1.0f, 1.0f};
-        float metallic = 0.0f;
-        float roughness = 0.5f;
-        float ao = 1.0f;
-
-        // 纹理资源句柄
-        AssetHandle albedoMapHandle = AssetHandle(0);
-        AssetHandle normalMapHandle = AssetHandle(0);
-        AssetHandle metallicMapHandle = AssetHandle(0);
-        AssetHandle roughnessMapHandle = AssetHandle(0);
-        AssetHandle aoMapHandle = AssetHandle(0);
-
-        bool flipUV = false;
-
-        PBRMaterialComponent() = default;
-
-        PBRMaterialComponent(const PBRMaterialComponent &) = default;
-    };
 
     template <typename... Component>
     struct ComponentGroup
@@ -443,12 +412,6 @@ namespace Fermion
                        /* Lighting */
                        PointLightComponent,
                        SpotLightComponent,
-                       DirectionalLightComponent,
-                       /************/
-
-                       /* Materials */
-                       PhongMaterialComponent,
-                       PBRMaterialComponent,
-                       MaterialSlotsComponent
+                       DirectionalLightComponent
                        /************/>;
 } // namespace Fermion

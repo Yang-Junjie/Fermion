@@ -98,29 +98,7 @@ namespace Fermion
         ScriptManager::get()->setSceneRenderer(m_viewportRenderer);
 
         // Initialize menu bar
-        MenuBarCallbacks callbacks;
-        callbacks.NewScene = [this]()
-        { newScene(); };
-        callbacks.OpenScene = [this]()
-        { openScene(); };
-        callbacks.SaveScene = [this]()
-        { saveScene(); };
-        callbacks.SaveSceneAs = [this]()
-        { saveSceneAs(); };
-        callbacks.NewProject = [this]()
-        { newProject(); };
-        callbacks.OpenProject = [this]()
-        { openProject(); };
-        callbacks.SaveProject = [this]()
-        { saveProject(); };
-        callbacks.ExitApplication = [this]()
-        {
-            saveProject();
-            Application::get().close();
-        };
-        callbacks.ShowAbout = [this]()
-        { m_isAboutWindowOpen = true; };
-        m_menuBarPanel.SetCallbacks(callbacks);
+        m_menuBarPanel.SetBosonLayer(this);
 
         m_isInitialized = true;
         if (!m_pendingProjectPath.empty())
@@ -257,6 +235,7 @@ namespace Fermion
             m_contentBrowserPanel.onImGuiRender();
             m_assetManagerPanel.onImGuiRender();
             m_menuBarPanel.OnImGuiRender();
+            m_materialEditorPanel.onImGuiRender();
             ConsolePanel::get().onImGuiRender();
             // ImGui::ShowDemoWindow();
 
@@ -496,6 +475,11 @@ namespace Fermion
         }
     }
 
+    void BosonLayer::openAboutWindow()
+    {
+        m_isAboutWindowOpen = true;
+    }
+
     void BosonLayer::onSettingsPanel()
     {
 
@@ -601,22 +585,13 @@ namespace Fermion
         m_viewportFocused = ImGui::IsWindowFocused();
         m_viewportHovered = ImGui::IsWindowHovered();
 
-        if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
-        {
-            ImGui::SetWindowFocus();
-        }
         if (m_viewportHovered)
         {
             ImGui::SetWindowFocus();
         }
         ImGuiIO &io = ImGui::GetIO();
 
-        if (m_viewportFocused && m_viewportHovered)
-            io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableKeyboard;
-        else
-            io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-
-        Application::get().getImGuiLayer()->blockEvents(!m_viewportFocused || !m_viewportHovered);
+        Application::get().getImGuiLayer()->blockEvents(!m_viewportFocused||!m_viewportHovered);
 
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 
@@ -890,7 +865,6 @@ namespace Fermion
                 }
             }
         }
-        // Renderer2D::endScene();
         m_viewportRenderer->endScene();
     }
 

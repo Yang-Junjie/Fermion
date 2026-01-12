@@ -9,8 +9,10 @@
 #include "Events/MouseEvent.hpp"
 #include <GLFW/glfw3.h>
 
-namespace Fermion {
-    class ImGuiLayer : public Layer {
+namespace Fermion
+{
+    class ImGuiLayer : public Layer
+    {
     public:
         explicit ImGuiLayer(void *nativeWindow);
 
@@ -28,10 +30,11 @@ namespace Fermion {
 
         void end();
 
-        void blockEvents(const bool block) {
+        void blockEvents(const bool block)
+        {
             m_blockEvents = block;
         }
-
+        void setImGuiWidgetStyle();
         void setDarkThemeColors();
 
     private:
