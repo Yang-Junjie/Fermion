@@ -4,11 +4,22 @@
 #include "Project/Project.hpp"
 namespace Fermion
 {
+    void MaterialEditorPanel::setPanelOpenState(bool state)
+    {
+        m_isOpenned = state;
+    }
 
     void MaterialEditorPanel::onImGuiRender()
     {
+        if (!m_isOpenned)
+            return;
 
-        ImGui::Begin("Material Editor");
+        if (!ImGui::Begin("Material Editor", &m_isOpenned))
+        {
+            ImGui::End();
+            return;
+        }
+
         ImGui::Checkbox("Use PBR Material", &m_isCreatePBRMaterial);
         InputTextStdString("Name", m_MaterialInfo.Name);
         ImGui::BeginDisabled(!m_isCreatePBRMaterial);

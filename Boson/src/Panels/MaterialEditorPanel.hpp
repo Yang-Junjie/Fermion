@@ -12,6 +12,8 @@ namespace Fermion
         MaterialEditorPanel() = default;
         ~MaterialEditorPanel() = default;
 
+        void setPanelOpenState(bool state);
+
         void onImGuiRender();
 
     private:
@@ -50,5 +52,6 @@ namespace Fermion
         MaterialInfo m_MaterialInfo;
         bool m_isCreatePBRMaterial = true;
         bool m_useTexture = false;
+        bool m_isOpenned = true;
     };
 } // namespace Fermion

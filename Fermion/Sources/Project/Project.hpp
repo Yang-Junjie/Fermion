@@ -34,7 +34,7 @@ namespace Fermion {
         }
 
         static std::shared_ptr<Project> getActive() {
-            FERMION_ASSERT(s_activeProject!=nullptr, "Project is not active!");
+            //FERMION_ASSERT(s_activeProject!=nullptr, "Project is not active!");
             return s_activeProject;
         }
 

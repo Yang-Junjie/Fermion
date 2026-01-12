@@ -74,6 +74,7 @@ namespace Fermion
         void onHelpPanel();
 
         void openAboutWindow();
+        void openMaterialEditorPanel();
 
         void onSettingsPanel();
 
@@ -117,6 +118,7 @@ namespace Fermion
         MenuBarPanel m_menuBarPanel;
 
         bool m_isAboutWindowOpen = false;
+        bool m_isMaterialEditorOpen = false;
 
         std::shared_ptr<Framebuffer> m_framebuffer;
         glm::vec2 m_viewportSize{0.0f, 0.0f};
@@ -148,6 +150,7 @@ namespace Fermion
         bool m_primaryCamera = true;
         bool m_showPhysicsColliders = false;
         bool m_showRenderEntities = true;
+
 
         bool m_isInitialized = false;
         std::filesystem::path m_pendingProjectPath;

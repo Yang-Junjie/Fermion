@@ -480,6 +480,11 @@ namespace Fermion
         m_isAboutWindowOpen = true;
     }
 
+    void BosonLayer::openMaterialEditorPanel()
+    {
+        m_materialEditorPanel.setPanelOpenState(true);
+    }
+
     void BosonLayer::onSettingsPanel()
     {
 
