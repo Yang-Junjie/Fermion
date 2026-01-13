@@ -1,153 +1,23 @@
 Scene: Name
 Entities:
-  - Entity: 5434223076201642167
+  - Entity: 15432270581980068507
     TagComponent:
       Tag: Empty Entity
     TransformComponent:
-      Translation: [-3.3169935, 0, 0]
+      Translation: [-0.11895745, -0.102904536, -0.0075072767]
       Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
+      Scale: [0.003600004, 0.003600004, 0.003600004]
     MeshComponent:
-      MeshHandle: 9030552612814537471
-      MemoryOnly: true
-      MemoryMeshType: 5
-      SubmeshMaterials:
-        - 8152238778885966910
-  - Entity: 15275614337768985203
-    TagComponent:
-      Tag: sphere2
-    TransformComponent:
-      Translation: [4.072734, 0.18382907, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      MeshHandle: 11085154423257320187
-      MemoryOnly: true
-      MemoryMeshType: 2
-      SubmeshMaterials:
-        - 15643599899532478345
-  - Entity: 7973942402762895159
-    TagComponent:
-      Tag: sphere
-    TransformComponent:
-      Translation: [-0.7146495, 2.0921743, -6.1035156e-05]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      MeshHandle: 6300793417069813013
-      MemoryOnly: true
-      MemoryMeshType: 2
-      SubmeshMaterials:
-        - 18076589215161355240
-    Rigidbody3DComponent:
-      BodyType: 1
-      Mass: 1
-      LinearDamping: 0.01
-      AngularDamping: 0.05
-      UseGravity: true
-    CircleCollider3DComponent:
-      Offset: [0, 0, 0]
-      Radius: 0.5
-      Density: 1
-      Friction: 1
-      Restitution: 0.23
-      IsTrigger: false
-  - Entity: 18083371750882497292
-    TagComponent:
-      Tag: point light 2
-    TransformComponent:
-      Translation: [-4.7412004, 1.7948608, 5.8732452]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    PointLightComponent:
-      Color: [1, 0, 0]
-      Intensity: 3.5
-      Range: 10
-    ScriptContainerComponent:
-      ScriptClassNames:
-        - Sandbox.XAxisMove
-  - Entity: 18415657991614262539
-    TagComponent:
-      Tag: camera
-    TransformComponent:
-      Translation: [1.2491645, 7.1185465, 14.760207]
-      Rotation: [-0.47856936, -0, 0]
-      Scale: [1, 1, 1]
-    CameraComponent:
-      Camera:
-        ProjectionType: 1
-        PerspectiveFOV: 0.7853982
-        PerspectiveNear: 0.01
-        PerspectiveFar: 100
-        OrthographicSize: 10
-        OrthographicNear: -100
-        OrthographicFar: 100
-      Primary: true
-      FixedAspectRatio: false
-  - Entity: 1669450970559933596
-    TagComponent:
-      Tag: dir light
-    TransformComponent:
-      Translation: [3.1233368, 5.75163, 16.821674]
-      Rotation: [-0.27963534, 0.26371697, -0.12964292]
-      Scale: [1, 1, 1]
-    DirectionalLightComponent:
-      Color: [1, 1, 1]
-      Intensity: 16.5
-      MainLight: true
-  - Entity: 5449681077286385480
-    TagComponent:
-      Tag: point light 1
-    TransformComponent:
-      Translation: [3.1869366, 2.0007553, -0.68982375]
-      Rotation: [0, -0, 0]
-      Scale: [1, 1, 1]
-    PointLightComponent:
-      Color: [0.03826713, 0.31169114, 0.5830116]
-      Intensity: 72.7
-      Range: 4.9
-    ScriptContainerComponent:
-      ScriptClassNames:
-        - Sandbox.XAxisMove
-  - Entity: 3900046245730622025
-    TagComponent:
-      Tag: cube
-    TransformComponent:
-      Translation: [1.9555454, 0.9692451, 0]
-      Rotation: [-1.0521061, -0.066733666, -0.50968736]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      MeshHandle: 16174812348945339444
-      MemoryOnly: true
-      MemoryMeshType: 1
-      SubmeshMaterials:
-        - 14158160218098178391
-    Rigidbody3DComponent:
-      BodyType: 1
-      Mass: 1
-      LinearDamping: 0.01
-      AngularDamping: 0.05
-      UseGravity: true
-    BoxCollider3DComponent:
-      Offset: [0, 0, 0]
-      Size: [0.5, 0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0.08
-      IsTrigger: false
-  - Entity: 828511274271775610
-    TagComponent:
-      Tag: coffee
-    TransformComponent:
-      Translation: [0.32088238, -0.5139667, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      MeshHandle: 6464111564837725694
+      MeshHandle: 7109258090867978369
       MemoryOnly: false
       MemoryMeshType: 0
       SubmeshMaterials:
-        - 8471764506272477587
+        - 5309438192992070533
+        - 14733997505908823603
+        - 9061242734693282796
+        - 0
+        - 0
+        - 0
   - Entity: 15185291457579198605
     TagComponent:
       Tag: floor
@@ -156,7 +26,7 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [13.551621, 0.97, 18.211987]
     MeshComponent:
-      MeshHandle: 17533339603354138195
+      MeshHandle: 5991131718654526473
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:
@@ -187,3 +57,138 @@ Entities:
       Range: 15.8
       Angle: 30
       Softness: 0.2
+  - Entity: 3900046245730622025
+    TagComponent:
+      Tag: cube
+    TransformComponent:
+      Translation: [1.9555454, 0.9692451, 0]
+      Rotation: [-1.0521061, -0.066733666, -0.50968736]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      MeshHandle: 10560681952187453677
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 14158160218098178391
+    Rigidbody3DComponent:
+      BodyType: 1
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0.08
+      IsTrigger: false
+  - Entity: 5449681077286385480
+    TagComponent:
+      Tag: point light 1
+    TransformComponent:
+      Translation: [3.1869366, 2.0007553, -0.68982375]
+      Rotation: [0, -0, 0]
+      Scale: [1, 1, 1]
+    PointLightComponent:
+      Color: [0.03826713, 0.31169114, 0.5830116]
+      Intensity: 72.7
+      Range: 4.9
+    ScriptContainerComponent:
+      ScriptClassNames:
+        - Sandbox.XAxisMove
+  - Entity: 1669450970559933596
+    TagComponent:
+      Tag: dir light
+    TransformComponent:
+      Translation: [3.1233368, 5.75163, 16.821674]
+      Rotation: [-0.27963534, 0.26371697, -0.12964292]
+      Scale: [1, 1, 1]
+    DirectionalLightComponent:
+      Color: [1, 1, 1]
+      Intensity: 16.5
+      MainLight: true
+  - Entity: 18415657991614262539
+    TagComponent:
+      Tag: camera
+    TransformComponent:
+      Translation: [1.2491645, 7.1185465, 14.760207]
+      Rotation: [-0.47856936, -0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Camera:
+        ProjectionType: 1
+        PerspectiveFOV: 0.7853982
+        PerspectiveNear: 0.01
+        PerspectiveFar: 100
+        OrthographicSize: 10
+        OrthographicNear: -100
+        OrthographicFar: 100
+      Primary: true
+      FixedAspectRatio: false
+  - Entity: 18083371750882497292
+    TagComponent:
+      Tag: point light 2
+    TransformComponent:
+      Translation: [-4.7412004, 1.7948608, 5.8732452]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    PointLightComponent:
+      Color: [1, 0, 0]
+      Intensity: 3.5
+      Range: 10
+    ScriptContainerComponent:
+      ScriptClassNames:
+        - Sandbox.XAxisMove
+  - Entity: 7973942402762895159
+    TagComponent:
+      Tag: sphere
+    TransformComponent:
+      Translation: [-0.7146495, 2.0921743, -6.1035156e-05]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      MeshHandle: 13972096665236946490
+      MemoryOnly: true
+      MemoryMeshType: 2
+      SubmeshMaterials:
+        - 18076589215161355240
+    Rigidbody3DComponent:
+      BodyType: 1
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+    CircleCollider3DComponent:
+      Offset: [0, 0, 0]
+      Radius: 0.5
+      Density: 1
+      Friction: 1
+      Restitution: 0.23
+      IsTrigger: false
+  - Entity: 15275614337768985203
+    TagComponent:
+      Tag: sphere2
+    TransformComponent:
+      Translation: [4.072734, 0.18382907, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      MeshHandle: 2661695043355888723
+      MemoryOnly: true
+      MemoryMeshType: 2
+      SubmeshMaterials:
+        - 15643599899532478345
+  - Entity: 5434223076201642167
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [-3.3169935, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      MeshHandle: 4671988528026683519
+      MemoryOnly: true
+      MemoryMeshType: 5
+      SubmeshMaterials:
+        - 8152238778885966910

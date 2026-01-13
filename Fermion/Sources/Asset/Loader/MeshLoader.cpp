@@ -1,9 +1,13 @@
 #include "Asset/Loader/MeshLoader.hpp"
+#include "Renderer/Model/MeshSerializer.hpp"
 
-namespace Fermion {
-std::shared_ptr<Asset> MeshLoader::load(const AssetMetadata &metadata) {
-    // Log::Error(metadata.FilePath.string());
-    auto mesh = std::make_shared<Mesh>(metadata.FilePath.string());
-    return mesh;
-}
+namespace Fermion
+{
+    std::shared_ptr<Asset> MeshLoader::load(const AssetMetadata &metadata)
+    {
+        // TODO:Mesh Deserialization
+        auto mesh = MeshSerializer::deserialize(metadata.FilePath, metadata.Handle);
+        FERMION_ASSERT(mesh != nullptr, "Failed to load mesh!");
+        return mesh;
+    }
 } // namespace Fermion

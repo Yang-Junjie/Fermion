@@ -21,9 +21,16 @@ namespace Fermion {
         {".vert", AssetType::Shader},
         {".frag", AssetType::Shader},
 
-        // Mesh
-        {".obj", AssetType::Mesh},
+        // model source
+        {".obj", AssetType::ModelSource},
+        {".glb", AssetType::ModelSource},
+        {".gltf", AssetType::ModelSource},
+
         
+        //mesh
+        {".fmesh",AssetType::Mesh},
+        // model
+        {".fmodel", AssetType::Model},
         // Material
         {".fmat", AssetType::Material},
     };

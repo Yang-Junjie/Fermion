@@ -1,0 +1,12 @@
+Material:
+  Type: 2
+  Name: Material_23
+  Albedo: [0.588, 0.588, 0.588]
+  Metallic: 1
+  Roughness: 1
+  AO: 1
+  AlbedoMap: 3911538966948104991
+  NormalMap: 9644128057063496799
+  MetallicMap: 16149590592514332734
+  RoughnessMap: 16149590592514332734
+  AOMap: 0

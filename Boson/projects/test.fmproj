@@ -6,4 +6,4 @@ Directories:
   AssetDirectory: Assets
   ScriptDirectory: Assets/scripts
 Runtime:
-  StartScene: Assets/scenes/3dtest.fmscene
+  StartScene: Assets/scenes/sponza.fmscene

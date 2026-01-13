@@ -1,15 +1,4 @@
-﻿/*
-    Layer.hpp
-    本文件定义了抽象层的基类，层是引擎中可被添加的模块，每个游戏逻辑模块都是一个层。
-    如：渲染层，逻辑层，UI层等等。
-    抽象层类定义了层中必须实现的方法)。
-    onAttach()方法在层被添加到引擎中时调用
-    onDetach()方法在层被解除时调用
-    onUpdate()方法会在每一帧调用
-    onEvent()方法会在每一帧的每一帧调用
-    onImGuiRender()方法会在每一帧的ImGui渲染时调用。
-*/
-#pragma once
+﻿#pragma once
 #include "Events/Event.hpp"
 #include "Core/Timestep.hpp"
 namespace Fermion {
@@ -31,6 +20,5 @@ public:
 
 protected:
     std::string m_name;
-    // Layer比Renderer的生命周期更长，所以Layer中可以持有Renderer的指针
 };
 } // namespace Fermion

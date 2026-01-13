@@ -20,6 +20,10 @@ public:
         return std::to_string(m_UUID);
     }
 
+    bool isValid() const {
+        return m_UUID != 0;
+    }
+
 private:
     uint64_t m_UUID;
 };

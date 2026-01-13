@@ -84,7 +84,7 @@ namespace Fermion
                 for (auto &entry : std::filesystem::directory_iterator(m_currentDirectory))
                 {
                     const auto &path = entry.path();
-                    if (entry.is_regular_file() && path.extension() == ".meta")
+                    if (entry.is_regular_file() &&( path.extension() == ".meta"))
                         continue;
 
                     ImGui::TableNextColumn();
@@ -188,7 +188,7 @@ namespace Fermion
                         }
                     }
 
-                    if (!isDirectory && path.extension() == ".obj")
+                    if (!isDirectory && path.extension() == ".fmodel")
                     {
                         if (ImGui::BeginDragDropSource())
                         {

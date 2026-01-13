@@ -69,6 +69,8 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Renderer/Model/Material.cpp
     ${FERMION_DIR}/Renderer/Model/MaterialSerializer.cpp
     ${FERMION_DIR}/Renderer/Model/MaterialFactory.cpp
+    ${FERMION_DIR}/Renderer/Model/MeshSerializer.cpp
+    ${FERMION_DIR}/Renderer/Model/ModelSerializer.cpp
 
     ${FERMION_DIR}/Project/ProJect.cpp
     ${FERMION_DIR}/Project/ProjectSerializer.cpp
@@ -85,6 +87,7 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Asset/Loader/SceneLoader.cpp
     ${FERMION_DIR}/Asset/Loader/MeshLoader.cpp
     ${FERMION_DIR}/Asset/Loader/MaterialLoader.cpp
+    ${FERMION_DIR}/Asset/Loader/ModelLoader.cpp
     ${FERMION_DIR}/Asset/Importer/TextureImporter.cpp
     ${FERMION_DIR}/Asset/Importer/FontImporter.cpp
     ${FERMION_DIR}/Asset/Importer/SceneImporter.cpp
@@ -92,6 +95,8 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Asset/Importer/AssetImporter.cpp
     ${FERMION_DIR}/Asset/Importer/MeshImporter.cpp
     ${FERMION_DIR}/Asset/Importer/MaterialImporter.cpp
+    ${FERMION_DIR}/Asset/Importer/ModelImporter.cpp
+    ${FERMION_DIR}/Asset/Importer/ModelSourceImporter.cpp
 
     # ${FERMION_DIR}/Script/ScriptEngine.cpp
     ${FERMION_DIR}/Script/ScriptGlue.cpp
@@ -149,7 +154,7 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
 endif()
 
 add_custom_command(
-    TARGET engine POST_BUILD 
+    TARGET engine POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy # 使用 CMake 内置命令 copy
     ${EXTERNAL_DIR}/mono/binary/mscorlib.dll
     ${BIN_DIR}/mscorlib.dll

@@ -1,5 +1,6 @@
 ﻿#include "InspectorPanel.hpp"
 #include "Renderer/Model/Mesh.hpp"
+#include "Renderer/Model/ModelAsset.hpp"
 #include "Scene/Scene.hpp"
 #include "Scene/Components.hpp"
 #include "Script/ScriptManager.hpp"
@@ -10,11 +11,175 @@
 #include <entt/entt.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <filesystem>
+#include <optional>
+#include <string_view>
+
 #include "Renderer/Model/MeshFactory.hpp"
 #include "Renderer/Model/MaterialFactory.hpp"
 
 namespace Fermion
 {
+    template <typename AssetManagerT>
+    static void applyModelAssetToMeshComponent(MeshComponent &component, AssetManagerT &editorAssets,
+                                               const std::filesystem::path &path)
+    {
+        AssetHandle modelHandle = editorAssets->importAsset(path);
+        FERMION_ASSERT(modelHandle.isValid(), "Failed to import model asset");
+
+        auto modelAsset = editorAssets->getAsset<ModelAsset>(modelHandle);
+        FERMION_ASSERT(modelAsset!=nullptr, "Failed to get model asset");
+
+        component.meshHandle = modelAsset->mesh;
+        component.memoryOnly = false;
+
+
+        auto mesh = editorAssets->getAsset<Mesh>(modelAsset->mesh);
+        FERMION_ASSERT(mesh!=nullptr, "Failed to get mesh asset");
+
+        const auto &subMeshes = mesh->getSubMeshes();
+        component.resizeSubmeshMaterials(static_cast<uint32_t>(subMeshes.size()));
+
+        for (size_t submeshIdx = 0; submeshIdx < subMeshes.size(); ++submeshIdx)
+        {
+            uint32_t materialSlot = subMeshes[submeshIdx].MaterialSlotIndex;
+            if (materialSlot < modelAsset->materials.size())
+            {
+                component.setSubmeshMaterial(static_cast<uint32_t>(submeshIdx), modelAsset->materials[materialSlot]);
+            }
+        }
+    }
+
+    static std::optional<std::string_view> payloadToStringView(const ImGuiPayload *payload)
+    {
+        if (!payload || !payload->Data || payload->DataSize <= 0)
+            return std::nullopt;
+
+        const char *data = static_cast<const char *>(payload->Data);
+        std::string_view view(data, static_cast<size_t>(payload->DataSize));
+        size_t nullPos = view.find('\0');
+        if (nullPos != std::string_view::npos)
+            view = view.substr(0, nullPos);
+
+        if (view.empty())
+            return std::nullopt;
+        return view;
+    }
+
+    template <typename AssetManagerT>
+    static void drawMeshModelDropTarget(MeshComponent &component, AssetManagerT &editorAssets)
+    {
+        ImGui::Button("Change or Add Mesh");
+
+        if (!ImGui::BeginDragDropTarget())
+            return;
+
+        if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_MODEL"))
+        {
+            if (auto view = payloadToStringView(payload))
+                applyModelAssetToMeshComponent(component, editorAssets, std::filesystem::path(*view));
+        }
+        ImGui::EndDragDropTarget();
+    }
+
+    static void drawEngineInternalMeshPopup(MeshComponent &component)
+    {
+        if (ImGui::Button("Add Engine Internal Mesh"))
+            ImGui::OpenPopup("mesh_popup");
+
+        ImVec2 popupPos = ImGui::GetItemRectMin();
+        ImGui::SetNextWindowPos(popupPos, ImGuiCond_Appearing, ImVec2(0.0f, 0.0f));
+
+        if (!ImGui::BeginPopup("mesh_popup"))
+            return;
+
+        ImGui::Text("Available Meshes:");
+        ImGui::Separator();
+
+        const auto selectMesh = [&](const char *label, const auto &createHandle, MemoryMeshType type)
+        {
+            if (!ImGui::Selectable(label))
+                return;
+            component.meshHandle = createHandle();
+            component.memoryMeshType = type;
+            ImGui::CloseCurrentPopup();
+        };
+
+        selectMesh("Cube", [] { return MeshFactory::CreateBox(glm::vec3(1)); }, MemoryMeshType::Cube);
+        selectMesh("Sphere", [] { return MeshFactory::CreateSphere(0.5f); }, MemoryMeshType::Sphere);
+        selectMesh("Cylinder", [] { return MeshFactory::CreateCylinder(0.5f, 1.0f, 32); }, MemoryMeshType::Cylinder);
+        selectMesh("Capsule", [] { return MeshFactory::CreateCapsule(0.5f, 1.5f, 32, 8); }, MemoryMeshType::Capsule);
+        selectMesh("Cone", [] { return MeshFactory::CreateCone(0.5f, 1.0f, 32); }, MemoryMeshType::Cone);
+
+        component.memoryOnly = true;
+        ImGui::EndPopup();
+    }
+
+    template <typename AssetManagerT>
+    static void drawSubmeshMaterialsEditor(MeshComponent &component, AssetManagerT &editorAssets)
+    {
+        ImGui::Separator();
+        ImGui::Text("Multi-Material Configuration");
+
+        uint32_t subMeshCount = 0;
+        std::shared_ptr<Mesh> mesh = nullptr;
+
+        if (static_cast<uint64_t>(component.meshHandle) != 0)
+        {
+            mesh = editorAssets->getAsset<Mesh>(component.meshHandle);
+            if (mesh)
+            {
+                subMeshCount = static_cast<uint32_t>(mesh->getSubMeshes().size());
+                component.resizeSubmeshMaterials(subMeshCount);
+            }
+        }
+
+        if (subMeshCount == 0)
+        {
+            ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "No mesh attached or mesh has no submeshes");
+            return;
+        }
+
+        ImGui::Text("SubMesh Count: %u", subMeshCount);
+
+        for (uint32_t i = 0; i < subMeshCount; i++)
+        {
+            ImGui::PushID(i);
+
+            if (ImGui::TreeNodeEx(("SubMesh " + std::to_string(i)).c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                AssetHandle currentMaterial = component.getSubmeshMaterial(i);
+                ImGui::Text("Material Handle: %llu", static_cast<uint64_t>(currentMaterial));
+
+                ImGui::Button("Drag Material Here");
+                if (ImGui::BeginDragDropTarget())
+                {
+                    if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_MATERIAL"))
+                    {
+                        if (auto view = payloadToStringView(payload))
+                        {
+                            AssetHandle handle = editorAssets->importAsset(std::filesystem::path(*view));
+                            if (static_cast<uint64_t>(handle) != 0)
+                                component.setSubmeshMaterial(i, handle);
+                        }
+                    }
+                    ImGui::EndDragDropTarget();
+                }
+
+                ImGui::SameLine();
+                if (ImGui::Button("Clear"))
+                    component.clearSubmeshMaterial(i);
+
+                ImGui::TreePop();
+            }
+
+            ImGui::PopID();
+        }
+
+        if (ImGui::Button("Clear All Materials"))
+            component.clearAllSubmeshMaterials();
+    }
+
     InspectorPanel::InspectorPanel()
     {
         m_spriteComponentDefaultTexture = Texture2D::create(1, 1);
@@ -310,126 +475,14 @@ namespace Fermion
             }
 
             ImGui::DragFloat("Tiling Factor", &component.tilingFactor, 0.1f, 0.0f, 100.0f); });
-        drawComponent<MeshComponent>("Mesh", entity, [this](auto &component)
+        drawComponent<MeshComponent>("Mesh", entity, [](auto &component)
                                      {
-            ImGui::Text("Mesh Handle: %s", std::to_string(component.meshHandle).c_str());
-            
-            // Mesh selection
-            {
-                ImGui::Button("Change or Add Mesh");
-                if (ImGui::BeginDragDropTarget()) {
-                    if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_MODEL")) {
-                        auto path = std::string(static_cast<const char *>(payload->Data));
-                        auto editorAssets = Project::getEditorAssetManager();
-                        AssetHandle handle = editorAssets->importAsset(std::filesystem::path(path));
-                        if (static_cast<uint64_t>(handle) != 0) {
-                            component.meshHandle = handle;
-                            component.memoryOnly = false;
-                        }
-                    }
-                    ImGui::EndDragDropTarget();
-                }
-            }
-            
-            if (ImGui::Button("Add Engine Internal Mesh")) {
-                ImGui::OpenPopup("mesh_popup");
-            }
+            ImGui::Text("Mesh Handle: %llu", static_cast<uint64_t>(component.meshHandle));
 
-            ImVec2 popup_pos = ImGui::GetItemRectMin();
-            ImGui::SetNextWindowPos(popup_pos, ImGuiCond_Appearing, ImVec2(0.0f, 0.0f));
-
-            if (ImGui::BeginPopup("mesh_popup")) {
-                ImGui::Text("Available Meshes:");
-                ImGui::Separator();
-
-                if (ImGui::Selectable("Cube")) {
-                    component.meshHandle = MeshFactory::CreateBox(glm::vec3(1));
-                    component.memoryMeshType = MemoryMeshType::Cube;
-                    ImGui::CloseCurrentPopup();
-                }
-                if (ImGui::Selectable("Sphere")) {
-                    component.meshHandle = MeshFactory::CreateSphere(0.5f);
-                    component.memoryMeshType = MemoryMeshType::Sphere;
-                    ImGui::CloseCurrentPopup();
-                }
-                if (ImGui::Selectable("Cylinder")) {
-                    component.meshHandle = MeshFactory::CreateCylinder(0.5f, 1.0f, 32);
-                    component.memoryMeshType = MemoryMeshType::Cylinder;
-                    ImGui::CloseCurrentPopup();
-                }
-                if (ImGui::Selectable("Capsule")) {
-                    component.meshHandle = MeshFactory::CreateCapsule(0.5f, 1.5f, 32, 8);
-                    component.memoryMeshType = MemoryMeshType::Capsule;
-                    ImGui::CloseCurrentPopup();
-                }
-                if (ImGui::Selectable("Cone")) {
-                    component.meshHandle = MeshFactory::CreateCone(0.5f, 1.0f, 32);
-                    component.memoryMeshType = MemoryMeshType::Cone;
-                    ImGui::CloseCurrentPopup();
-                }
-                component.memoryOnly = true;
-                ImGui::EndPopup();
-            }
-            
-            ImGui::Separator();
-            ImGui::Text("Multi-Material Configuration");
-            
-            // 获取Mesh和SubMesh数量
-            uint32_t subMeshCount = 0;
-            std::shared_ptr<Mesh> mesh = nullptr;
-            
-            if (static_cast<uint64_t>(component.meshHandle) != 0) {
-                auto editorAssets = Project::getEditorAssetManager();
-                mesh = editorAssets->getAsset<Mesh>(component.meshHandle);
-                if (mesh) {
-                    subMeshCount = static_cast<uint32_t>(mesh->getSubMeshes().size());
-                    // 确保vector大小与SubMesh数量匹配
-                    component.resizeSubmeshMaterials(subMeshCount);
-                }
-            }
-            
-            if (subMeshCount == 0) {
-                ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "No mesh attached or mesh has no submeshes");
-            } else {
-                ImGui::Text("SubMesh Count: %u", subMeshCount);
-                
-                // 为每个SubMesh显示材质槽位
-                for (uint32_t i = 0; i < subMeshCount; i++) {
-                    ImGui::PushID(i);
-                    
-                    if (ImGui::TreeNodeEx(("SubMesh " + std::to_string(i)).c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
-                        AssetHandle currentMaterial = component.getSubmeshMaterial(i);
-                        
-                        ImGui::Text("Material Handle: %llu", static_cast<uint64_t>(currentMaterial));
-                        
-                        ImGui::Button("Drag Material Here");
-                        if (ImGui::BeginDragDropTarget()) {
-                            if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_MATERIAL")) {
-                                auto path = std::string(static_cast<const char *>(payload->Data));
-                                auto editorAssets = Project::getEditorAssetManager();
-                                AssetHandle handle = editorAssets->importAsset(std::filesystem::path(path));
-                                if (static_cast<uint64_t>(handle) != 0) {
-                                    component.setSubmeshMaterial(i, handle);
-                                }
-                            }
-                            ImGui::EndDragDropTarget();
-                        }
-                        
-                        ImGui::SameLine();
-                        if (ImGui::Button("Clear")) {
-                            component.clearSubmeshMaterial(i);
-                        }
-                        
-                        ImGui::TreePop();
-                    }
-                    
-                    ImGui::PopID();
-                }
-                
-                if (ImGui::Button("Clear All Materials")) {
-                    component.clearAllSubmeshMaterials();
-                }
-            }
+            auto editorAssets = Project::getEditorAssetManager();
+            drawMeshModelDropTarget(component, editorAssets);
+            drawEngineInternalMeshPopup(component);
+            drawSubmeshMaterialsEditor(component, editorAssets);
             
 
         });
