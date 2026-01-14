@@ -599,6 +599,13 @@ namespace Fermion
             ImGui::Text("m_viewportFocused: %s", m_viewportFocused ? "yes" : "no");
 
             ImGui::Separator();
+            ImGui::Checkbox("show depth buffer", &m_viewportRenderer->getSceneInfo().enableDepthView);
+            if (m_viewportRenderer->getSceneInfo().enableDepthView)
+            {
+                ImGui::Indent();
+                ImGui::SliderFloat("Depth Power", &m_viewportRenderer->getSceneInfo().depthViewPower, 0.1f, 10.0f, "%.2f");
+                ImGui::Unindent();
+            }
             ImGui::Checkbox("showPhysicsColliders", &m_showPhysicsColliders);
             ImGui::Checkbox("showRenderEntities", &m_showRenderEntities);
 

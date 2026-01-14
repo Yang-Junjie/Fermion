@@ -1,0 +1,12 @@
+Material:
+  Type: 2
+  Name: rust
+  Albedo: [1, 1, 1]
+  Metallic: 0
+  Roughness: 0.5
+  AO: 1
+  AlbedoMap: 3293820169949047125
+  NormalMap: 1733240785875327028
+  MetallicMap: 7915735794626815442
+  RoughnessMap: 8656573916610624478
+  AOMap: 4582436619249725708

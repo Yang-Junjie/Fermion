@@ -101,7 +101,6 @@ static GLenum fermionFBTextureFormatToGL(FramebufferTextureFormat format) {
     return 0;
 }
 
-// Returns the base format for glClearTexImage / glReadPixels
 static GLenum fermionFBBaseFormatToGL(FramebufferTextureFormat format) {
     switch (format) {
     case FramebufferTextureFormat::RGBA8:
@@ -225,7 +224,6 @@ int OpenGLFramebuffer::readPixel(uint32_t attachmentIndex, int x, int y) {
     FERMION_ASSERT(attachmentIndex < m_colorAttachments.size(), "Attachment index out of range!");
     glReadBuffer(GL_COLOR_ATTACHMENT0 + attachmentIndex);
     int pixelData;
-    // Assumes reading from an integer attachment (e.g., RED_INTEGER picking buffer)
     glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixelData);
     return pixelData;
 }

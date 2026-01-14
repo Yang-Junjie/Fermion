@@ -92,6 +92,16 @@ namespace Fermion
             m_EquirectToCubePipeline = Pipeline::create(equirectToCubeSpec);
         }
 
+        // DepthView Pipeline
+        {
+            PipelineSpecification depthViewSpec;
+            depthViewSpec.shader = Renderer::getShaderLibrary()->get("DepthView");
+            depthViewSpec.depthTest = false;
+            depthViewSpec.depthWrite = false;
+            depthViewSpec.cull = CullMode::None;
+            m_DepthViewPipeline = Pipeline::create(depthViewSpec);
+        }
+
         // Shadow Map Framebuffer
         {
             FramebufferSpecification shadowFBSpec;
@@ -130,29 +140,29 @@ namespace Fermion
         m_cubeVA = VertexArray::create();
         m_cubeVA->addVertexBuffer(vertexBuffer);
         m_cubeVA->setIndexBuffer(indexBuffer);
-        
+
         // Fullscreen quad for BRDF LUT generation
         float quadVertices[] = {
             // positions        // texture coords
-            -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+            -1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
             -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-             1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-             1.0f,  1.0f, 0.0f, 1.0f, 1.0f
-        };
-        
-        uint32_t quadIndices[] = { 0, 1, 2, 2, 3, 0 };
-        
+            1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+            1.0f, 1.0f, 0.0f, 1.0f, 1.0f};
+
+        uint32_t quadIndices[] = {0, 1, 2, 2, 3, 0};
+
         auto quadVB = VertexBuffer::create(quadVertices, sizeof(quadVertices));
-        quadVB->setLayout({
-            {ShaderDataType::Float3, "a_Position"},
-            {ShaderDataType::Float2, "a_TexCoords"}
-        });
-        
+        quadVB->setLayout({{ShaderDataType::Float3, "a_Position"},
+                           {ShaderDataType::Float2, "a_TexCoords"}});
+
         auto quadIB = IndexBuffer::create(quadIndices, sizeof(quadIndices) / sizeof(uint32_t));
-        
+
         m_quadVA = VertexArray::create();
         m_quadVA->addVertexBuffer(quadVB);
         m_quadVA->setIndexBuffer(quadIB);
+
+        // DepthView quad VAO (reuse the same quad geometry)
+        m_depthViewQuadVA = m_quadVA;
 
         loadHDREnvironment(m_sceneData.hdrPath);
     }
@@ -169,7 +179,7 @@ namespace Fermion
 
     void SceneRenderer::beginScene(const EditorCamera &camera)
     {
-        beginScene({camera, camera.getViewMatrix(), camera.getFarCilp()});
+        beginScene({camera, camera.getViewMatrix(), camera.getFarCilp(), camera.getNearCilp()});
     }
 
     void SceneRenderer::beginScene(const SceneRendererCamera &camera)
@@ -187,7 +197,7 @@ namespace Fermion
 
     void SceneRenderer::beginOverlay(const EditorCamera &camera)
     {
-        beginOverlay({camera, camera.getViewMatrix(), camera.getFarCilp()});
+        beginOverlay({camera, camera.getViewMatrix(), camera.getFarCilp(), camera.getNearCilp()});
     }
 
     void SceneRenderer::beginOverlay(const SceneRendererCamera &camera)
@@ -273,13 +283,13 @@ namespace Fermion
             if (mesh)
             {
                 auto vao = mesh->getVertexArray();
-                const auto& submeshes = mesh->getSubMeshes();
+                const auto &submeshes = mesh->getSubMeshes();
 
                 for (size_t i = 0; i < submeshes.size(); i++)
                 {
-                    const auto& submesh = submeshes[i];
+                    const auto &submesh = submeshes[i];
                     std::shared_ptr<Material> material;
-                    
+
                     AssetHandle submeshMaterialHandle = meshComponent.getSubmeshMaterial(static_cast<uint32_t>(i));
                     if (static_cast<uint64_t>(submeshMaterialHandle) != 0)
                     {
@@ -295,7 +305,7 @@ namespace Fermion
                         material->setRoughness(1.0f);
                         material->setAO(1.0f);
                     }
-                    
+
                     // 创建绘制命令
                     MaterialType matType = material->getType();
                     MeshDrawCommand cmd;
@@ -308,7 +318,7 @@ namespace Fermion
                     cmd.objectID = objectId;
                     cmd.drawOutline = drawOutline;
                     cmd.aabb = mesh->getBoundingBox();
-                    
+
                     s_MeshDrawList.emplace_back(std::move(cmd));
                 }
             }
@@ -475,27 +485,6 @@ namespace Fermion
                  Renderer3D::recordSkyboxPass(commandBuffer, cmd);
              }});
     }
-
-    void SceneRenderer::FlushDrawList()
-    {
-        m_RenderGraph.Reset();
-
-        m_renderer3DStatistics.meshCount += static_cast<uint32_t>(s_MeshDrawList.size());
-
-        if (m_sceneData.enableShadows)
-            ShadowPass();
-
-        if (m_sceneData.showSkybox)
-            SkyboxPass();
-        OutlinePass();
-
-        GeometryPass();
-
-        RendererBackend backend(RenderCommand::GetRendererAPI());
-        m_RenderGraph.Execute(m_CommandQueue, backend);
-        s_MeshDrawList.clear();
-    }
-
     void SceneRenderer::ShadowPass()
     {
         if (m_shadowMapFB->getSpecification().width != m_sceneData.shadowMapSize)
@@ -537,7 +526,57 @@ namespace Fermion
                           if (m_scene && m_scene->m_viewportWidth > 0 && m_scene->m_viewportHeight > 0)
                               RenderCommand::setViewport(0, 0, m_scene->m_viewportWidth, m_scene->m_viewportHeight);
                       } });
-              }});
+             }});
+   }
+
+   void SceneRenderer::DepthViewPass()
+   {
+       if (!m_targetFramebuffer)
+           return;
+
+       m_RenderGraph.AddPass(
+           {.Name = "DepthViewPass",
+            .Execute = [this](CommandBuffer &commandBuffer)
+            {
+                commandBuffer.Record([this](RendererAPI &api)
+                                     {
+                    m_DepthViewPipeline->bind();
+                    auto shader = m_DepthViewPipeline->getShader();
+
+                    shader->setInt("u_Depth", 0);
+                    m_targetFramebuffer->bindDepthAttachment(0);
+
+                    shader->setFloat("u_Near", m_sceneData.sceneCamera.nearClip);
+                    shader->setFloat("u_Far", m_sceneData.sceneCamera.farClip);
+                    shader->setInt("u_IsPerspective", 1);
+
+                    shader->setFloat("u_Power", m_sceneData.depthViewPower);
+                    
+                    RenderCommand::drawIndexed(m_depthViewQuadVA, m_depthViewQuadVA->getIndexBuffer()->getCount()); });
+            }});
+   }
+
+   void SceneRenderer::FlushDrawList()
+    {
+        m_RenderGraph.Reset();
+
+        m_renderer3DStatistics.meshCount += static_cast<uint32_t>(s_MeshDrawList.size());
+
+        if (m_sceneData.enableShadows)
+            ShadowPass();
+
+        if (m_sceneData.showSkybox)
+            SkyboxPass();
+        OutlinePass();
+
+        GeometryPass();
+
+        if (m_sceneData.enableDepthView)
+            DepthViewPass();
+
+        RendererBackend backend(RenderCommand::GetRendererAPI());
+        m_RenderGraph.Execute(m_CommandQueue, backend);
+        s_MeshDrawList.clear();
     }
 
     glm::mat4 SceneRenderer::calculateLightSpaceMatrix(const DirectionalLight &light, float orthoSize)
@@ -564,24 +603,24 @@ namespace Fermion
         return lightProjection * lightView;
     }
 
-    void SceneRenderer::loadHDREnvironment(const std::string& hdrPath)
+    void SceneRenderer::loadHDREnvironment(const std::string &hdrPath)
     {
         Log::Info(std::format("Loading HDR environment: {}", hdrPath));
-        
+
         m_hdrEnvironment = Texture2D::create(hdrPath);
         if (!m_hdrEnvironment || !m_hdrEnvironment->isLoaded())
         {
             Log::Error(std::format("Failed to load HDR environment from: {}", hdrPath));
             return;
         }
-        
+
         Log::Info(std::format("HDR loaded: {}x{}", m_hdrEnvironment->getWidth(), m_hdrEnvironment->getHeight()));
-        
+
         convertEquirectangularToCubemap();
-        
+
         m_environmentLoaded = true;
         m_iblInitialized = false;
-        
+
         Log::Info("HDR environment loaded successfully");
     }
 
@@ -592,9 +631,9 @@ namespace Fermion
             Log::Error("No HDR environment loaded for conversion");
             return;
         }
-        
+
         Log::Info("Converting equirectangular HDR to cubemap...");
-        
+
         // 创建目标cubemap
         uint32_t cubemapSize = 4096;
         TextureCubeSpecification cubemapSpec;
@@ -604,7 +643,7 @@ namespace Fermion
         cubemapSpec.generateMips = true;
         cubemapSpec.maxMipLevels = 5;
         m_environmentCubemap = TextureCube::create(cubemapSpec);
-        
+
         // 创建帧缓冲用于渲染
         FramebufferSpecification fbSpec;
         fbSpec.width = cubemapSize;
@@ -612,7 +651,7 @@ namespace Fermion
         fbSpec.attachments = {FramebufferTextureFormat::RGB16F};
         fbSpec.swapChainTarget = false;
         auto captureFB = Framebuffer::create(fbSpec);
-        
+
         // 设置投影和视图矩阵
         glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
         glm::mat4 captureViews[] = {
@@ -621,15 +660,14 @@ namespace Fermion
             glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
             glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)),
             glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
-            glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f))
-        };
-        
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f))};
+
         m_EquirectToCubePipeline->bind();
         auto shader = m_EquirectToCubePipeline->getShader();
         shader->setInt("u_EquirectangularMap", 0);
         shader->setMat4("u_Projection", captureProjection);
         m_hdrEnvironment->bind(0);
-        
+
         // 渲染6个面
         for (uint32_t i = 0; i < 6; ++i)
         {
@@ -638,14 +676,14 @@ namespace Fermion
             RenderCommand::setViewport(0, 0, cubemapSize, cubemapSize);
             RenderCommand::clear();
             RenderCommand::drawIndexed(m_cubeVA, m_cubeVA->getIndexBuffer()->getCount());
-            
+
             m_environmentCubemap->copyFromFramebuffer(captureFB, i, 0);
         }
-        
+
         captureFB->unbind();
-        
+
         m_environmentCubemap->generateMipmaps();
-        
+
         // 恢复原始viewport
         if (m_targetFramebuffer)
         {
@@ -656,7 +694,7 @@ namespace Fermion
             if (m_scene && m_scene->m_viewportWidth > 0 && m_scene->m_viewportHeight > 0)
                 RenderCommand::setViewport(0, 0, m_scene->m_viewportWidth, m_scene->m_viewportHeight);
         }
-        
+
         Log::Info("Equirectangular to cubemap conversion completed");
     }
 
@@ -881,5 +919,11 @@ namespace Fermion
             if (m_scene && m_scene->m_viewportWidth > 0 && m_scene->m_viewportHeight > 0)
                 RenderCommand::setViewport(0, 0, m_scene->m_viewportWidth, m_scene->m_viewportHeight);
         }
+    }
+
+    uint32_t SceneRenderer::getDepthViewRendererID() const
+    {
+        // 不再需要此方法，因为直接渲染到 viewport
+        return 0;
     }
 } // namespace Fermion

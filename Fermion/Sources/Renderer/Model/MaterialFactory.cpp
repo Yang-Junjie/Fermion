@@ -33,7 +33,7 @@ namespace Fermion
             std::filesystem::create_directories(materialsDir);
         }
 
-        std::string materialName = "Material_" + name;
+        std::string materialName = name;
         std::filesystem::path materialPath = materialsDir / (materialName + ".fmat");
 
         if (!MaterialSerializer::serialize(materialPath, *material))
@@ -71,7 +71,7 @@ namespace Fermion
             std::filesystem::create_directories(materialsDir);
         }
 
-        std::string materialName = "Material_" + name;
+        std::string materialName = name;
         std::filesystem::path materialPath = materialsDir / (materialName + ".fmat");
 
         if (!MaterialSerializer::serialize(materialPath, *material))
@@ -120,7 +120,7 @@ namespace Fermion
             std::filesystem::create_directories(materialsDir);
         }
 
-        std::string materialName = "Material_" + name;
+        std::string materialName = name;
         std::filesystem::path materialPath = materialsDir / (materialName + ".fmat");
 
         MaterialSerializeOptions options;

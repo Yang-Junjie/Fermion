@@ -1,7 +1,0 @@
-Material:
-  Type: 2
-  Name: test
-  Albedo: [1, 1, 1]
-  Metallic: 0.853
-  Roughness: 0.5
-  AO: 1

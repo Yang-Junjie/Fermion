@@ -1,0 +1,12 @@
+Material:
+  Type: 2
+  Name: plastic
+  Albedo: [1, 1, 1]
+  Metallic: 0
+  Roughness: 0.5
+  AO: 1
+  AlbedoMap: 12152711237629379829
+  NormalMap: 14518378714228373056
+  MetallicMap: 16483437794238242117
+  RoughnessMap: 2958171651574977232
+  AOMap: 11286381755252078484

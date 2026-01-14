@@ -25,6 +25,7 @@ namespace Fermion
             Camera camera;
             glm::mat4 view;
             float farClip = 0.0f;
+            float nearClip = 0.1f;
         };
 
         struct SceneInfo
@@ -33,6 +34,8 @@ namespace Fermion
             EnvironmentLight sceneEnvironmentLight;
             bool showSkybox = true;
             bool enableShadows = true;
+            bool enableDepthView = false;
+            float depthViewPower = 3.0f;  
             glm::vec4 meshOutlineColor = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
 
 
@@ -174,6 +177,8 @@ namespace Fermion
             return m_sceneData;
         }
 
+        uint32_t getDepthViewRendererID() const;
+
         void resetStatistics();
 
         RenderStatistics getStatistics() const;
@@ -188,6 +193,8 @@ namespace Fermion
         void SkyboxPass();
 
         void ShadowPass();
+
+        void DepthViewPass();
 
         void FlushDrawList();
 
@@ -210,12 +217,16 @@ namespace Fermion
         std::unique_ptr<Texture2D> m_hdrEnvironment = nullptr;
         std::unique_ptr<TextureCube> m_environmentCubemap = nullptr;
         std::shared_ptr<VertexArray> m_cubeVA = nullptr;
+        
         std::shared_ptr<VertexArray> m_quadVA = nullptr;  
+
+        std::shared_ptr<VertexArray> m_depthViewQuadVA = nullptr;
 
         std::shared_ptr<Pipeline> m_MeshPipeline;
         std::shared_ptr<Pipeline> m_PBRMeshPipeline;
         std::shared_ptr<Pipeline> m_SkyboxPipeline;
         std::shared_ptr<Pipeline> m_ShadowPipeline;
+        std::shared_ptr<Pipeline> m_DepthViewPipeline;
 
         // IBL resources
         std::shared_ptr<Pipeline> m_IBLIrradiancePipeline;

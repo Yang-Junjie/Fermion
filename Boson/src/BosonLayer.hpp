@@ -20,6 +20,7 @@ namespace Fermion
     class BosonLayer : public Layer
     {
         friend class MenuBarPanel;
+
     public:
         BosonLayer(const std::string &name = "BosonLayer", std::filesystem::path initialProjectPath = {});
 
@@ -121,6 +122,8 @@ namespace Fermion
         bool m_isMaterialEditorOpen = false;
 
         std::shared_ptr<Framebuffer> m_framebuffer;
+
+
         glm::vec2 m_viewportSize{0.0f, 0.0f};
 
         ViewportBounds m_viewport = {.min{0.0f, 0.0f}, .max{0.0f, 0.0f}};
@@ -150,7 +153,6 @@ namespace Fermion
         bool m_primaryCamera = true;
         bool m_showPhysicsColliders = false;
         bool m_showRenderEntities = true;
-
 
         bool m_isInitialized = false;
         std::filesystem::path m_pendingProjectPath;
