@@ -23,5 +23,13 @@ out vec4 FragColor;
 uniform samplerCube u_Cubemap;
 
 void main() {
-    FragColor = texture(u_Cubemap, v_TexCoords);
+    vec3 color = texture(u_Cubemap, v_TexCoords).rgb;
+    
+    // HDR色调映射 (Reinhard)
+    color = color / (color + vec3(1.0));
+    
+    // Gamma校正
+    color = pow(color, vec3(1.0/2.2));
+    
+    FragColor = vec4(color, 1.0);
 }

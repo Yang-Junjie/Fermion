@@ -508,8 +508,8 @@ namespace Fermion
 
             ImGui::SeparatorText("Renderer Statistics");
             const SceneRenderer::RenderStatistics stats = m_viewportRenderer
-                                                        ? m_viewportRenderer->getStatistics()
-                                                        : SceneRenderer::RenderStatistics{};
+                                                              ? m_viewportRenderer->getStatistics()
+                                                              : SceneRenderer::RenderStatistics{};
 
             ImGui::Text("Draw Calls (Total): %u", stats.getTotalDrawCalls());
             ImGui::SeparatorText("Renderer2D");
@@ -536,6 +536,22 @@ namespace Fermion
         {
             ImGui::Begin("Environment Settings");
             auto &sceneInfo = m_viewportRenderer->getSceneInfo();
+            ImGui::Button("Drag HDR to load");
+            const char *hdrPath = nullptr;
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_HDR"))
+                {
+                    hdrPath = static_cast<const char *>(payload->Data);
+                    if (hdrPath && hdrPath[0])
+                    {
+                        m_viewportRenderer->loadHDREnvironment(hdrPath);
+                    }
+                }
+                ImGui::EndDragDropTarget();
+            }
+            ImGui::SameLine();
+            ImGui::Text("HDR: %s", hdrPath ? hdrPath : m_viewportRenderer->getSceneInfo().hdrPath.c_str());
             ImGui::Checkbox("showSkybox", &m_viewportRenderer->getSceneInfo().showSkybox);
             ImGui::Checkbox("enable shadows", &m_viewportRenderer->getSceneInfo().enableShadows);
             ImGui::Checkbox("use IBL", &m_viewportRenderer->getSceneInfo().useIBL);
@@ -609,7 +625,7 @@ namespace Fermion
         }
         ImGuiIO &io = ImGui::GetIO();
 
-        Application::get().getImGuiLayer()->blockEvents(!m_viewportFocused||!m_viewportHovered);
+        Application::get().getImGuiLayer()->blockEvents(!m_viewportFocused || !m_viewportHovered);
 
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 
@@ -704,7 +720,7 @@ namespace Fermion
                 }
             }
         }
-       
+
         if (m_editorCamera.isFPSMode())
         {
             float centerY = m_viewport.size().y / 2.0f;

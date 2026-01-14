@@ -13,20 +13,6 @@ namespace Fermion
     {
         m_debugRenderer = std::make_shared<DebugRenderer>();
 
-        // Skybox create
-        {
-            TextureCubeSpecification spec;
-            spec.flip = false;
-            spec.path = "../Boson/projects/Assets/textures/skybox2";
-            spec.names[TextureCubeFace::Front] = "posz.jpg";
-            spec.names[TextureCubeFace::Back] = "negz.jpg";
-            spec.names[TextureCubeFace::Left] = "negx.jpg";
-            spec.names[TextureCubeFace::Right] = "posx.jpg";
-            spec.names[TextureCubeFace::Up] = "posy.jpg";
-            spec.names[TextureCubeFace::Down] = "negy.jpg";
-
-            m_skybox = TextureCube::create(spec);
-        }
         // Phong Mesh Pipeline
         {
             PipelineSpecification meshSpec;
@@ -97,6 +83,13 @@ namespace Fermion
             iblBRDFSpec.depthWrite = false;
             iblBRDFSpec.cull = CullMode::None;
             m_IBLBRDFPipeline = Pipeline::create(iblBRDFSpec);
+
+            PipelineSpecification equirectToCubeSpec;
+            equirectToCubeSpec.shader = Renderer::getShaderLibrary()->get("EquirectToCube");
+            equirectToCubeSpec.depthTest = false;
+            equirectToCubeSpec.depthWrite = false;
+            equirectToCubeSpec.cull = CullMode::None;
+            m_EquirectToCubePipeline = Pipeline::create(equirectToCubeSpec);
         }
 
         // Shadow Map Framebuffer
@@ -137,6 +130,31 @@ namespace Fermion
         m_cubeVA = VertexArray::create();
         m_cubeVA->addVertexBuffer(vertexBuffer);
         m_cubeVA->setIndexBuffer(indexBuffer);
+        
+        // Fullscreen quad for BRDF LUT generation
+        float quadVertices[] = {
+            // positions        // texture coords
+            -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+            -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+             1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+             1.0f,  1.0f, 0.0f, 1.0f, 1.0f
+        };
+        
+        uint32_t quadIndices[] = { 0, 1, 2, 2, 3, 0 };
+        
+        auto quadVB = VertexBuffer::create(quadVertices, sizeof(quadVertices));
+        quadVB->setLayout({
+            {ShaderDataType::Float3, "a_Position"},
+            {ShaderDataType::Float2, "a_TexCoords"}
+        });
+        
+        auto quadIB = IndexBuffer::create(quadIndices, sizeof(quadIndices) / sizeof(uint32_t));
+        
+        m_quadVA = VertexArray::create();
+        m_quadVA->addVertexBuffer(quadVB);
+        m_quadVA->setIndexBuffer(quadIB);
+
+        loadHDREnvironment(m_sceneData.hdrPath);
     }
 
     void SceneRenderer::resetStatistics()
@@ -441,10 +459,13 @@ namespace Fermion
             {.Name = "SkyboxPass",
              .Execute = [this](CommandBuffer &commandBuffer)
              {
+                 if (!m_environmentCubemap)
+                     return;
+
                  SkyboxDrawCommand cmd;
                  cmd.pipeline = m_SkyboxPipeline;
                  cmd.vao = m_cubeVA;
-                 cmd.cubemap = m_skybox.get();
+                 cmd.cubemap = m_environmentCubemap.get();
                  cmd.view = m_sceneData.sceneCamera.view;
                  cmd.projection = m_sceneData.sceneCamera.camera.getProjection();
 
@@ -543,12 +564,108 @@ namespace Fermion
         return lightProjection * lightView;
     }
 
+    void SceneRenderer::loadHDREnvironment(const std::string& hdrPath)
+    {
+        Log::Info(std::format("Loading HDR environment: {}", hdrPath));
+        
+        m_hdrEnvironment = Texture2D::create(hdrPath);
+        if (!m_hdrEnvironment || !m_hdrEnvironment->isLoaded())
+        {
+            Log::Error(std::format("Failed to load HDR environment from: {}", hdrPath));
+            return;
+        }
+        
+        Log::Info(std::format("HDR loaded: {}x{}", m_hdrEnvironment->getWidth(), m_hdrEnvironment->getHeight()));
+        
+        convertEquirectangularToCubemap();
+        
+        m_environmentLoaded = true;
+        m_iblInitialized = false;
+        
+        Log::Info("HDR environment loaded successfully");
+    }
+
+    void SceneRenderer::convertEquirectangularToCubemap()
+    {
+        if (!m_hdrEnvironment)
+        {
+            Log::Error("No HDR environment loaded for conversion");
+            return;
+        }
+        
+        Log::Info("Converting equirectangular HDR to cubemap...");
+        
+        // 创建目标cubemap
+        uint32_t cubemapSize = 4096;
+        TextureCubeSpecification cubemapSpec;
+        cubemapSpec.width = cubemapSize;
+        cubemapSpec.height = cubemapSize;
+        cubemapSpec.format = ImageFormat::RGB16F;
+        cubemapSpec.generateMips = true;
+        cubemapSpec.maxMipLevels = 5;
+        m_environmentCubemap = TextureCube::create(cubemapSpec);
+        
+        // 创建帧缓冲用于渲染
+        FramebufferSpecification fbSpec;
+        fbSpec.width = cubemapSize;
+        fbSpec.height = cubemapSize;
+        fbSpec.attachments = {FramebufferTextureFormat::RGB16F};
+        fbSpec.swapChainTarget = false;
+        auto captureFB = Framebuffer::create(fbSpec);
+        
+        // 设置投影和视图矩阵
+        glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+        glm::mat4 captureViews[] = {
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+            glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f))
+        };
+        
+        m_EquirectToCubePipeline->bind();
+        auto shader = m_EquirectToCubePipeline->getShader();
+        shader->setInt("u_EquirectangularMap", 0);
+        shader->setMat4("u_Projection", captureProjection);
+        m_hdrEnvironment->bind(0);
+        
+        // 渲染6个面
+        for (uint32_t i = 0; i < 6; ++i)
+        {
+            shader->setMat4("u_View", captureViews[i]);
+            captureFB->bind();
+            RenderCommand::setViewport(0, 0, cubemapSize, cubemapSize);
+            RenderCommand::clear();
+            RenderCommand::drawIndexed(m_cubeVA, m_cubeVA->getIndexBuffer()->getCount());
+            
+            m_environmentCubemap->copyFromFramebuffer(captureFB, i, 0);
+        }
+        
+        captureFB->unbind();
+        
+        m_environmentCubemap->generateMipmaps();
+        
+        // 恢复原始viewport
+        if (m_targetFramebuffer)
+        {
+            m_targetFramebuffer->bind();
+        }
+        else
+        {
+            if (m_scene && m_scene->m_viewportWidth > 0 && m_scene->m_viewportHeight > 0)
+                RenderCommand::setViewport(0, 0, m_scene->m_viewportWidth, m_scene->m_viewportHeight);
+        }
+        
+        Log::Info("Equirectangular to cubemap conversion completed");
+    }
+
     void SceneRenderer::initializeIBL()
     {
-        if (m_iblInitialized || !m_skybox)
+        if (m_iblInitialized || !m_environmentCubemap)
             return;
 
-        Log::Info("Initializing IBL...");
+        Log::Info("Initializing IBL from HDR environment...");
 
         generateIrradianceMap();
         generatePrefilterMap();
@@ -595,7 +712,7 @@ namespace Fermion
         auto shader = m_IBLIrradiancePipeline->getShader();
         shader->setInt("u_EnvironmentMap", 0);
         shader->setMat4("u_Projection", captureProjection);
-        m_skybox->bind(0);
+        m_environmentCubemap->bind(0);
 
         const char *faceNames[] = {"+X (Right)", "-X (Left)", "+Y (Up)", "-Y (Down)", "+Z (Front)", "-Z (Back)"};
 
@@ -679,7 +796,7 @@ namespace Fermion
         auto shader = m_IBLPrefilterPipeline->getShader();
         shader->setInt("u_EnvironmentMap", 0);
         shader->setMat4("u_Projection", captureProjection);
-        m_skybox->bind(0);
+        m_environmentCubemap->bind(0);
 
         // 为每个mip级别生成预过滤贴图
         for (uint32_t mip = 0; mip < m_sceneData.prefilterMaxMipLevels; ++mip)
@@ -747,7 +864,7 @@ namespace Fermion
         m_IBLBRDFPipeline->bind();
         RenderCommand::clear();
 
-        RenderCommand::drawIndexed(m_cubeVA, 6);
+        RenderCommand::drawIndexed(m_quadVA, m_quadVA->getIndexBuffer()->getCount());
         m_renderer3DStatistics.iblDrawCalls++;
 
         // 复制到纹理

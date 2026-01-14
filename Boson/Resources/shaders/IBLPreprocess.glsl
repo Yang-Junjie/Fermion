@@ -40,7 +40,7 @@ void main() {
     up = normalize(cross(N, right));
     
     // 在半球上采样
-    float sampleDelta = 0.025;
+    float sampleDelta = 0.015;
     float nrSamples = 0.0;
     
     for(float phi = 0.0; phi < 2.0 * PI; phi += sampleDelta) {

@@ -83,5 +83,6 @@ namespace Fermion
         static std::unique_ptr<TextureCube> create(const TextureCubeSpecification &spec);
         
         virtual void copyFromFramebuffer(std::shared_ptr<class Framebuffer> fb, uint32_t face, uint32_t mipLevel) = 0;
+        virtual void generateMipmaps() = 0;
     };
 }

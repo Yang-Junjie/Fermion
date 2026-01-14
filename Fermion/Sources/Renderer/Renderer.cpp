@@ -24,6 +24,7 @@ namespace Fermion
         s_shaderLibrary->load(s_config.ShaderPath + "IBLPreprocess.glsl");
         s_shaderLibrary->load(s_config.ShaderPath + "IBLPrefilter.glsl");
         s_shaderLibrary->load(s_config.ShaderPath + "BRDFLUT.glsl");
+        s_shaderLibrary->load(s_config.ShaderPath + "EquirectToCube.glsl");
 
         s_shaderLibrary->load(s_config.ShaderPath + "Quad.glsl");
         s_shaderLibrary->load(s_config.ShaderPath + "QuadInstance.glsl");

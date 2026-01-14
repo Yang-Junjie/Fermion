@@ -50,6 +50,7 @@ namespace Fermion
             uint32_t brdfLUTSize = 512;
             uint32_t prefilterMaxMipLevels = 5;
 
+            std::string hdrPath = "../Boson/projects/Assets/hdr/cedar_bridge_2_2k.hdr";
         };
 
         struct RenderStatistics
@@ -177,6 +178,8 @@ namespace Fermion
 
         RenderStatistics getStatistics() const;
 
+        void loadHDREnvironment(const std::string& hdrPath);
+
     private:
         void GeometryPass();
 
@@ -190,6 +193,7 @@ namespace Fermion
 
         glm::mat4 calculateLightSpaceMatrix(const DirectionalLight &light, float orthoSize = 20.0f);
 
+        void convertEquirectangularToCubemap();
         void initializeIBL();
         void generateIrradianceMap();
         void generatePrefilterMap();
@@ -202,8 +206,11 @@ namespace Fermion
 
         std::vector<MeshDrawCommand> s_MeshDrawList;
 
-        std::unique_ptr<TextureCube> m_skybox = nullptr;
+        // HDR环境贴图相关
+        std::unique_ptr<Texture2D> m_hdrEnvironment = nullptr;
+        std::unique_ptr<TextureCube> m_environmentCubemap = nullptr;
         std::shared_ptr<VertexArray> m_cubeVA = nullptr;
+        std::shared_ptr<VertexArray> m_quadVA = nullptr;  
 
         std::shared_ptr<Pipeline> m_MeshPipeline;
         std::shared_ptr<Pipeline> m_PBRMeshPipeline;
@@ -221,6 +228,7 @@ namespace Fermion
         std::unique_ptr<Texture2D> m_brdfLUT = nullptr;
 
         bool m_iblInitialized = false;
+        bool m_environmentLoaded = false;
 
         std::shared_ptr<Framebuffer> m_shadowMapFB;
         std::shared_ptr<Framebuffer> m_targetFramebuffer;

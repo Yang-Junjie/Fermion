@@ -1,16 +1,5 @@
 Scene: Name
 Entities:
-  - Entity: 6216633945295408129
-    TagComponent:
-      Tag: dl
-    TransformComponent:
-      Translation: [0, 2.6456666, 0]
-      Rotation: [-1.7147374, -0.05369417, 0.042056393]
-      Scale: [1, 1, 1]
-    DirectionalLightComponent:
-      Color: [1, 1, 1]
-      Intensity: 31.3
-      MainLight: true
   - Entity: 6090687769252204207
     TagComponent:
       Tag: sponza
@@ -126,3 +115,14 @@ Entities:
         - 14425841830045079514
         - 16078632681029536733
         - 14425841830045079514
+  - Entity: 6216633945295408129
+    TagComponent:
+      Tag: dl
+    TransformComponent:
+      Translation: [-3.7252903e-09, 2.6456666, -7.450581e-09]
+      Rotation: [-1.452548, -0.096948095, 0.1861382]
+      Scale: [1, 1, 1]
+    DirectionalLightComponent:
+      Color: [1, 1, 1]
+      Intensity: 31.3
+      MainLight: true

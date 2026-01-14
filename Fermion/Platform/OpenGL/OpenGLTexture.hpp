@@ -6,7 +6,6 @@
 
 namespace Fermion {
 
-// 前向声明
 class Framebuffer;
 
 class OpenGLTexture2D : public Texture2D {
@@ -93,6 +92,7 @@ public:
     
     // IBL support
     void copyFromFramebuffer(std::shared_ptr<Framebuffer> fb, uint32_t face, uint32_t mipLevel);
+    void generateMipmaps() override;
 
 private:
     void createRuntimeTexture(const TextureCubeSpecification &spec);

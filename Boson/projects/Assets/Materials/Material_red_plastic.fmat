@@ -1,0 +1,7 @@
+Material:
+  Type: 2
+  Name: red_plastic
+  Albedo: [1, 0, 0]
+  Metallic: 0
+  Roughness: 0.798
+  AO: 1

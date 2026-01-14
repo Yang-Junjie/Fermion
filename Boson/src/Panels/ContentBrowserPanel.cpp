@@ -84,7 +84,7 @@ namespace Fermion
                 for (auto &entry : std::filesystem::directory_iterator(m_currentDirectory))
                 {
                     const auto &path = entry.path();
-                    if (entry.is_regular_file() &&( path.extension() == ".meta"))
+                    if (entry.is_regular_file() && (path.extension() == ".meta"))
                         continue;
 
                     ImGui::TableNextColumn();
@@ -183,6 +183,16 @@ namespace Fermion
                         {
                             std::string fullPath = path.string();
                             ImGui::SetDragDropPayload("FERMION_TEXTURE", fullPath.c_str(), fullPath.size() + 1);
+                            ImGui::Text("%s", filename.c_str());
+                            ImGui::EndDragDropSource();
+                        }
+                    }
+                    if (!isDirectory && path.extension() == ".hdr")
+                    {
+                        if (ImGui::BeginDragDropSource())
+                        {
+                            std::string fullPath = path.string();
+                            ImGui::SetDragDropPayload("FERMION_HDR", fullPath.c_str(), fullPath.size() + 1);
                             ImGui::Text("%s", filename.c_str());
                             ImGui::EndDragDropSource();
                         }
