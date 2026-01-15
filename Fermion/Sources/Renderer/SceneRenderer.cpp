@@ -354,10 +354,12 @@ namespace Fermion
         return result;
     }
 
-    void SceneRenderer::GeometryPass()
+    void SceneRenderer::GeometryPass(ResourceHandle shadowMap, ResourceHandle sceneDepth)
     {
         m_RenderGraph.AddPass(
             {.Name = "GeometryPass",
+             .Inputs = {shadowMap},
+             .Outputs = {sceneDepth},
              .Execute = [this](CommandBuffer &commandBuffer)
              {
                  commandBuffer.Record([this](RendererAPI &api)
@@ -485,7 +487,7 @@ namespace Fermion
                  Renderer3D::recordSkyboxPass(commandBuffer, cmd);
              }});
     }
-    void SceneRenderer::ShadowPass()
+    void SceneRenderer::ShadowPass(ResourceHandle shadowMap)
     {
         if (m_shadowMapFB->getSpecification().width != m_sceneData.shadowMapSize)
         {
@@ -502,6 +504,7 @@ namespace Fermion
 
         m_RenderGraph.AddPass(
             {.Name = "ShadowPass",
+             .Outputs = {shadowMap},
              .Execute = [this](CommandBuffer &commandBuffer)
              {
                  commandBuffer.Record([this](RendererAPI &api)
@@ -529,13 +532,14 @@ namespace Fermion
              }});
    }
 
-   void SceneRenderer::DepthViewPass()
+   void SceneRenderer::DepthViewPass(ResourceHandle sceneDepth)
    {
        if (!m_targetFramebuffer)
            return;
 
        m_RenderGraph.AddPass(
            {.Name = "DepthViewPass",
+            .Inputs = {sceneDepth},
             .Execute = [this](CommandBuffer &commandBuffer)
             {
                 commandBuffer.Record([this](RendererAPI &api)
@@ -562,17 +566,23 @@ namespace Fermion
 
         m_renderer3DStatistics.meshCount += static_cast<uint32_t>(s_MeshDrawList.size());
 
+        ResourceHandle shadowMap = ResourceHandle{0};
         if (m_sceneData.enableShadows)
-            ShadowPass();
+            shadowMap = RenderGraph::CreateResource();
+
+        ResourceHandle sceneDepth = RenderGraph::CreateResource();
+
+        if (m_sceneData.enableShadows)
+            ShadowPass(shadowMap);
 
         if (m_sceneData.showSkybox)
             SkyboxPass();
         OutlinePass();
 
-        GeometryPass();
+        GeometryPass(shadowMap, sceneDepth);
 
         if (m_sceneData.enableDepthView)
-            DepthViewPass();
+            DepthViewPass(sceneDepth);
 
         RendererBackend backend(RenderCommand::GetRendererAPI());
         m_RenderGraph.Execute(m_CommandQueue, backend);
@@ -756,33 +766,6 @@ namespace Fermion
 
         for (uint32_t i = 0; i < 6; ++i)
         {
-            // Log::Info(std::format("  Rendering irradiance face {} ({})", i, faceNames[i]));
-
-            // 打印视图矩阵
-            glm::vec3 lookDir;
-            switch (i)
-            {
-            case 0:
-                lookDir = glm::vec3(1.0f, 0.0f, 0.0f);
-                break; // +X
-            case 1:
-                lookDir = glm::vec3(-1.0f, 0.0f, 0.0f);
-                break; // -X
-            case 2:
-                lookDir = glm::vec3(0.0f, 1.0f, 0.0f);
-                break; // +Y
-            case 3:
-                lookDir = glm::vec3(0.0f, -1.0f, 0.0f);
-                break; // -Y
-            case 4:
-                lookDir = glm::vec3(0.0f, 0.0f, 1.0f);
-                break; // +Z
-            case 5:
-                lookDir = glm::vec3(0.0f, 0.0f, -1.0f);
-                break; // -Z
-            }
-            Log::Info(std::format("    Look direction: ({:.2f}, {:.2f}, {:.2f})", lookDir.x, lookDir.y, lookDir.z));
-
             shader->setMat4("u_View", captureViews[i]);
             captureFB->bind();
             RenderCommand::setViewport(0, 0, m_sceneData.irradianceMapSize, m_sceneData.irradianceMapSize);

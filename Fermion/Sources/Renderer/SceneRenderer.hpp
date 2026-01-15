@@ -7,7 +7,6 @@
 #include "Camera/EditorCamera.hpp"
 #include "DebugRenderer.hpp"
 #include "Framebuffer.hpp"
-#include "RenderPass.hpp"
 #include "RenderGraph.hpp"
 #include "RenderDrawCommand.hpp"
 #include <vector>
@@ -186,15 +185,15 @@ namespace Fermion
         void loadHDREnvironment(const std::string& hdrPath);
 
     private:
-        void GeometryPass();
+        void GeometryPass(ResourceHandle shadowMap, ResourceHandle sceneDepth);
 
         void OutlinePass();
 
         void SkyboxPass();
 
-        void ShadowPass();
+        void ShadowPass(ResourceHandle shadowMap);
 
-        void DepthViewPass();
+        void DepthViewPass(ResourceHandle sceneDepth);
 
         void FlushDrawList();
 
