@@ -4,6 +4,7 @@
 ../Boson/projects/Assets/scripts/TestScript.cs ^
 ../Boson/projects/Assets/scripts/PressureTest.cs ^
 ../Boson/projects/Assets/scripts/ObjController.cs ^
-../Boson/projects/Assets/scripts/XAxisMove.cs
+../Boson/projects/Assets/scripts/XAxisMove.cs ^
+../Boson/projects/Assets/scripts/Rigidbody3DController.cs
 
 

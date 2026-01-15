@@ -393,6 +393,51 @@ namespace Fermion {
             return;
 
         FM_PROFILE_FUNCTION();
+        const float deltaTime = ts.getSeconds();
+        {
+            // Sync kinematic bodies from Transform before stepping physics.
+            JPH::BodyInterface &bodyInterface = m_physicsSystem->GetBodyInterface();
+            auto view = scene->m_registry.view<TransformComponent, Rigidbody3DComponent>();
+            for (auto entityID: view) {
+                auto &rb = view.get<Rigidbody3DComponent>(entityID);
+                if (rb.type != Rigidbody3DComponent::BodyType::Kinematic)
+                    continue;
+                if (!rb.runtimeBody)
+                    continue;
+
+                uint64_t storedValue = reinterpret_cast<uint64_t>(rb.runtimeBody);
+                if (storedValue == 0)
+                    continue;
+                JPH::BodyID bodyID(static_cast<uint32_t>(storedValue));
+                if (!bodyInterface.IsAdded(bodyID))
+                    continue;
+
+                auto &transform = view.get<TransformComponent>(entityID);
+                glm::quat rotationQuat = glm::quat(transform.getRotationEuler());
+
+                Entity entity{entityID, scene};
+                glm::vec3 offset{0.0f};
+                if (entity.hasComponent<BoxCollider3DComponent>()) {
+                    offset = entity.getComponent<BoxCollider3DComponent>().offset;
+                }
+                else if (entity.hasComponent<CapsuleCollider3DComponent>()) {
+                    offset = entity.getComponent<CapsuleCollider3DComponent>().offset;
+                }
+                else if (entity.hasComponent<CircleCollider3DComponent>()) {
+                    offset = entity.getComponent<CircleCollider3DComponent>().offset;
+                }
+                glm::vec3 worldOffset = rotationQuat * offset;
+                glm::vec3 bodyPosition = transform.translation + worldOffset;
+
+                if (deltaTime > 0.0f) {
+                    bodyInterface.MoveKinematic(bodyID, ToJoltVec3(bodyPosition), ToJoltQuat(rotationQuat), deltaTime);
+                }
+                else {
+                    bodyInterface.SetPositionAndRotation(bodyID, ToJoltVec3(bodyPosition), ToJoltQuat(rotationQuat),
+                                                         JPH::EActivation::DontActivate);
+                }
+            }
+        }
         m_physicsSystem->Update(ts.getSeconds(), 1, m_tempAllocator.get(), m_jobSystem.get());
 
         const JPH::BodyLockInterfaceLocking &lockInterface = m_physicsSystem->GetBodyLockInterface();

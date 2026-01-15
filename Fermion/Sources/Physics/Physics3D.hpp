@@ -24,6 +24,7 @@ namespace Fermion {
         void step(Scene *scene, Timestep ts);
 
         bool isActive() const;
+        JPH::PhysicsSystem *getPhysicsSystem() const { return m_physicsSystem.get(); }
 
     private:
         void ensureInitialized();

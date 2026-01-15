@@ -71,6 +71,57 @@ namespace Fermion
 
 
 	}
+	public class Rigidbody3DComponent : Component
+	{
+		public enum BodyType { Static = 0, Dynamic = 1, Kinematic = 2 }
+
+		public Vector3 LinearVelocity
+		{
+			get
+			{
+				InternalCalls.Rigidbody3DComponent_GetLinearVelocity(Entity.ID, out Vector3 velocity);
+				return velocity;
+			}
+			set
+			{
+				InternalCalls.Rigidbody3DComponent_SetLinearVelocity(Entity.ID, ref value);
+			}
+		}
+
+		public Vector3 AngularVelocity
+		{
+			get
+			{
+				InternalCalls.Rigidbody3DComponent_GetAngularVelocity(Entity.ID, out Vector3 velocity);
+				return velocity;
+			}
+			set
+			{
+				InternalCalls.Rigidbody3DComponent_SetAngularVelocity(Entity.ID, ref value);
+			}
+		}
+
+		public BodyType Type
+		{
+			get => InternalCalls.Rigidbody3DComponent_GetType(Entity.ID);
+			set => InternalCalls.Rigidbody3DComponent_SetType(Entity.ID, value);
+		}
+
+		public void ApplyLinearImpulse(Vector3 impulse, bool wake)
+		{
+			InternalCalls.Rigidbody3DComponent_ApplyLinearImpulseToCenter(Entity.ID, ref impulse, wake);
+		}
+
+		public void ApplyAngularImpulse(Vector3 impulse, bool wake)
+		{
+			InternalCalls.Rigidbody3DComponent_ApplyAngularImpulse(Entity.ID, ref impulse, wake);
+		}
+
+		public void AddForce(Vector3 force, bool wake)
+		{
+			InternalCalls.Rigidbody3DComponent_AddForce(Entity.ID, ref force, wake);
+		}
+	}
 	public class BoxSensor2DComponent : Component
 	{
 		public Vector2 Size

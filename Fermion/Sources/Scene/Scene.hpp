@@ -117,6 +117,10 @@ namespace Fermion {
             return B2_IS_NON_NULL(m_physicsWorld);
         }
 
+        Physics3DWorld *getPhysicsWorld3D() const {
+            return m_physicsWorld3D.get();
+        }
+
     private:
         void onPhysics2DStart();
         void onPhysics2DStop();

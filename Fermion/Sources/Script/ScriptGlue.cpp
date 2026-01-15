@@ -14,11 +14,17 @@
 #include "Scene/Entity.hpp"
 #include "Scene/Components.hpp"
 #include "Physics/Physics2D.hpp"
+#include "Physics/Physics3D.hpp"
 #include "imgui/ConsolePanel.hpp"
 
 #include "mono/metadata/object.h"
 #include "mono/metadata/reflection.h"
 #include <box2d/box2d.h>
+#include <Jolt/Jolt.h>
+#include <Jolt/Physics/Body/BodyID.h>
+#include <Jolt/Physics/Body/BodyInterface.h>
+#include <Jolt/Physics/Body/MotionType.h>
+#include <Jolt/Physics/PhysicsSystem.h>
 
 namespace Fermion {
     namespace Utils {
@@ -29,6 +35,67 @@ namespace Fermion {
             return str;
         }
     } // namespace Utils
+    namespace {
+        constexpr JPH::ObjectLayer kNonMovingLayer = 0;
+        constexpr JPH::ObjectLayer kMovingLayer = 1;
+
+        JPH::EMotionType toJoltMotionType(Rigidbody3DComponent::BodyType type) {
+            switch (type) {
+                case Rigidbody3DComponent::BodyType::Static: return JPH::EMotionType::Static;
+                case Rigidbody3DComponent::BodyType::Kinematic: return JPH::EMotionType::Kinematic;
+                case Rigidbody3DComponent::BodyType::Dynamic:
+                default: return JPH::EMotionType::Dynamic;
+            }
+        }
+
+        Rigidbody3DComponent::BodyType fromJoltMotionType(JPH::EMotionType type) {
+            switch (type) {
+                case JPH::EMotionType::Static: return Rigidbody3DComponent::BodyType::Static;
+                case JPH::EMotionType::Kinematic: return Rigidbody3DComponent::BodyType::Kinematic;
+                case JPH::EMotionType::Dynamic:
+                default: return Rigidbody3DComponent::BodyType::Dynamic;
+            }
+        }
+
+        JPH::Vec3 toJoltVec3(const glm::vec3 &value) {
+            return {value.x, value.y, value.z};
+        }
+
+        glm::vec3 toGlmVec3(JPH::Vec3Arg value) {
+            return {value.GetX(), value.GetY(), value.GetZ()};
+        }
+
+        bool tryGetBodyInterfaceAndID(Scene *scene, Rigidbody3DComponent &rb, JPH::BodyInterface **outInterface,
+                                      JPH::BodyID &outBodyID) {
+            if (!scene)
+                return false;
+
+            Physics3DWorld *world = scene->getPhysicsWorld3D();
+            if (!world || !world->isActive())
+                return false;
+
+            JPH::PhysicsSystem *physicsSystem = world->getPhysicsSystem();
+            if (!physicsSystem)
+                return false;
+
+            if (!rb.runtimeBody)
+                return false;
+
+            uint64_t storedValue = reinterpret_cast<uint64_t>(rb.runtimeBody);
+            if (storedValue == 0)
+                return false;
+
+            JPH::BodyID bodyID(static_cast<uint32_t>(storedValue));
+            JPH::BodyInterface &bodyInterface = physicsSystem->GetBodyInterface();
+            if (!bodyInterface.IsAdded(bodyID))
+                return false;
+
+            if (outInterface)
+                *outInterface = &bodyInterface;
+            outBodyID = bodyID;
+            return true;
+        }
+    } // namespace
 #define FM_ADD_INTERNAL_CALL(Name) mono_add_internal_call("Fermion.InternalCalls::" #Name, (void *)Name)
     static std::unordered_map<MonoType *, std::function<bool(Entity)> > s_entityHasComponentFuncs;
     static std::unordered_map<MonoType *, std::function<void(Entity)> > s_entitycomponentFactories;
@@ -261,6 +328,195 @@ namespace Fermion {
     }
 #pragma endregion
 
+#pragma region Rigidbody3DComponent
+    extern "C" Rigidbody3DComponent::BodyType Rigidbody3DComponent_GetType(UUID entityID) {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        auto &rb3d = entity.getComponent<Rigidbody3DComponent>();
+        JPH::BodyInterface *bodyInterface = nullptr;
+        JPH::BodyID bodyID;
+        if (!tryGetBodyInterfaceAndID(scene, rb3d, &bodyInterface, bodyID))
+            return rb3d.type;
+
+        return fromJoltMotionType(bodyInterface->GetMotionType(bodyID));
+    }
+
+    extern "C" void Rigidbody3DComponent_SetType(UUID entityID, Rigidbody3DComponent::BodyType bodyType) {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        auto &rb3d = entity.getComponent<Rigidbody3DComponent>();
+        rb3d.type = bodyType;
+
+        JPH::BodyInterface *bodyInterface = nullptr;
+        JPH::BodyID bodyID;
+        if (!tryGetBodyInterfaceAndID(scene, rb3d, &bodyInterface, bodyID))
+            return;
+
+        JPH::EMotionType motionType = toJoltMotionType(bodyType);
+        JPH::EActivation activation = motionType == JPH::EMotionType::Static ? JPH::EActivation::DontActivate
+                                                                              : JPH::EActivation::Activate;
+        bodyInterface->SetMotionType(bodyID, motionType, activation);
+        bodyInterface->SetObjectLayer(bodyID,
+                                      motionType == JPH::EMotionType::Static ? kNonMovingLayer : kMovingLayer);
+    }
+
+    extern "C" void Rigidbody3DComponent_GetLinearVelocity(UUID entityID, glm::vec3 *out) {
+        if (!out)
+            return;
+
+        *out = glm::vec3{0.0f};
+
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        auto &rb3d = entity.getComponent<Rigidbody3DComponent>();
+        JPH::BodyInterface *bodyInterface = nullptr;
+        JPH::BodyID bodyID;
+        if (!tryGetBodyInterfaceAndID(scene, rb3d, &bodyInterface, bodyID))
+            return;
+
+        *out = toGlmVec3(bodyInterface->GetLinearVelocity(bodyID));
+    }
+
+    extern "C" void Rigidbody3DComponent_SetLinearVelocity(UUID entityID, glm::vec3 *velocity) {
+        if (!velocity)
+            return;
+
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        auto &rb3d = entity.getComponent<Rigidbody3DComponent>();
+        if (rb3d.type == Rigidbody3DComponent::BodyType::Static)
+            return;
+
+        JPH::BodyInterface *bodyInterface = nullptr;
+        JPH::BodyID bodyID;
+        if (!tryGetBodyInterfaceAndID(scene, rb3d, &bodyInterface, bodyID))
+            return;
+
+        bodyInterface->SetLinearVelocity(bodyID, toJoltVec3(*velocity));
+    }
+
+    extern "C" void Rigidbody3DComponent_GetAngularVelocity(UUID entityID, glm::vec3 *out) {
+        if (!out)
+            return;
+
+        *out = glm::vec3{0.0f};
+
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        auto &rb3d = entity.getComponent<Rigidbody3DComponent>();
+        JPH::BodyInterface *bodyInterface = nullptr;
+        JPH::BodyID bodyID;
+        if (!tryGetBodyInterfaceAndID(scene, rb3d, &bodyInterface, bodyID))
+            return;
+
+        *out = toGlmVec3(bodyInterface->GetAngularVelocity(bodyID));
+    }
+
+    extern "C" void Rigidbody3DComponent_SetAngularVelocity(UUID entityID, glm::vec3 *velocity) {
+        if (!velocity)
+            return;
+
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        auto &rb3d = entity.getComponent<Rigidbody3DComponent>();
+        if (rb3d.type == Rigidbody3DComponent::BodyType::Static)
+            return;
+
+        JPH::BodyInterface *bodyInterface = nullptr;
+        JPH::BodyID bodyID;
+        if (!tryGetBodyInterfaceAndID(scene, rb3d, &bodyInterface, bodyID))
+            return;
+
+        bodyInterface->SetAngularVelocity(bodyID, toJoltVec3(*velocity));
+    }
+
+    extern "C" void Rigidbody3DComponent_ApplyLinearImpulseToCenter(UUID entityID, glm::vec3 *impulse, bool wake) {
+        if (!impulse)
+            return;
+
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        auto &rb3d = entity.getComponent<Rigidbody3DComponent>();
+        if (rb3d.type == Rigidbody3DComponent::BodyType::Static)
+            return;
+
+        JPH::BodyInterface *bodyInterface = nullptr;
+        JPH::BodyID bodyID;
+        if (!tryGetBodyInterfaceAndID(scene, rb3d, &bodyInterface, bodyID))
+            return;
+
+        bodyInterface->AddImpulse(bodyID, toJoltVec3(*impulse));
+        if (wake)
+            bodyInterface->ActivateBody(bodyID);
+    }
+
+    extern "C" void Rigidbody3DComponent_ApplyAngularImpulse(UUID entityID, glm::vec3 *impulse, bool wake) {
+        if (!impulse)
+            return;
+
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        auto &rb3d = entity.getComponent<Rigidbody3DComponent>();
+        if (rb3d.type == Rigidbody3DComponent::BodyType::Static)
+            return;
+
+        JPH::BodyInterface *bodyInterface = nullptr;
+        JPH::BodyID bodyID;
+        if (!tryGetBodyInterfaceAndID(scene, rb3d, &bodyInterface, bodyID))
+            return;
+
+        bodyInterface->AddAngularImpulse(bodyID, toJoltVec3(*impulse));
+        if (wake)
+            bodyInterface->ActivateBody(bodyID);
+    }
+
+    extern "C" void Rigidbody3DComponent_AddForce(UUID entityID, glm::vec3 *force, bool wake) {
+        if (!force)
+            return;
+
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        auto &rb3d = entity.getComponent<Rigidbody3DComponent>();
+        if (rb3d.type == Rigidbody3DComponent::BodyType::Static)
+            return;
+
+        JPH::BodyInterface *bodyInterface = nullptr;
+        JPH::BodyID bodyID;
+        if (!tryGetBodyInterfaceAndID(scene, rb3d, &bodyInterface, bodyID))
+            return;
+
+        bodyInterface->AddForce(bodyID, toJoltVec3(*force),
+                                wake ? JPH::EActivation::Activate : JPH::EActivation::DontActivate);
+    }
+#pragma endregion
+
 #pragma region Input
     extern "C" bool Input_IsKeyDown(KeyCode keycode) {
         return Input::isKeyPressed(keycode);
@@ -428,6 +684,16 @@ namespace Fermion {
         FM_ADD_INTERNAL_CALL(Rigidbody2DComponent_SetType);
         FM_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyLinearImpulseToCenter);
         FM_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetLinearVelocity);
+        
+        FM_ADD_INTERNAL_CALL(Rigidbody3DComponent_GetType);
+        FM_ADD_INTERNAL_CALL(Rigidbody3DComponent_SetType);
+        FM_ADD_INTERNAL_CALL(Rigidbody3DComponent_ApplyLinearImpulseToCenter);
+        FM_ADD_INTERNAL_CALL(Rigidbody3DComponent_ApplyAngularImpulse);
+        FM_ADD_INTERNAL_CALL(Rigidbody3DComponent_AddForce);
+        FM_ADD_INTERNAL_CALL(Rigidbody3DComponent_GetLinearVelocity);
+        FM_ADD_INTERNAL_CALL(Rigidbody3DComponent_SetLinearVelocity);
+        FM_ADD_INTERNAL_CALL(Rigidbody3DComponent_GetAngularVelocity);
+        FM_ADD_INTERNAL_CALL(Rigidbody3DComponent_SetAngularVelocity);
 
         FM_ADD_INTERNAL_CALL(BoxSensor2D_SensorBegin);
         FM_ADD_INTERNAL_CALL(BoxSensor2D_SensorEnd);

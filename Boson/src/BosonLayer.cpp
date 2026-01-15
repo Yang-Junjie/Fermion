@@ -323,7 +323,8 @@ namespace Fermion
         case KeyCode::R:
             if (control)
                 onDuplicateEntity();
-            m_gizmoType = ImGuizmo::OPERATION::SCALE;
+            else
+                m_gizmoType = ImGuizmo::OPERATION::SCALE;
             break;
         default:;
         }
@@ -550,8 +551,9 @@ namespace Fermion
                 }
                 ImGui::EndDragDropTarget();
             }
-            ImGui::TextWrapped("HDR: %s", hdrPath 
-                ? hdrPath : std::filesystem::path(m_viewportRenderer->getSceneInfo().hdrPath).filename().string().c_str());
+            ImGui::TextWrapped("HDR: %s", hdrPath
+                                              ? hdrPath
+                                              : std::filesystem::path(m_viewportRenderer->getSceneInfo().hdrPath).filename().string().c_str());
             ImGui::Checkbox("showSkybox", &m_viewportRenderer->getSceneInfo().showSkybox);
             ImGui::Checkbox("enable shadows", &m_viewportRenderer->getSceneInfo().enableShadows);
             ImGui::Checkbox("use IBL", &m_viewportRenderer->getSceneInfo().useIBL);

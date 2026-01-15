@@ -50,6 +50,25 @@ namespace Fermion
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal extern static void Rigidbody2DComponent_GetLinearVelocity(ulong entityID, out Vector2 linearVelocity);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal extern static Rigidbody3DComponent.BodyType Rigidbody3DComponent_GetType(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal extern static void Rigidbody3DComponent_SetType(ulong entityID, Rigidbody3DComponent.BodyType type);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal extern static void Rigidbody3DComponent_ApplyLinearImpulseToCenter(ulong entityID, ref Vector3 impulse, bool wake);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal extern static void Rigidbody3DComponent_ApplyAngularImpulse(ulong entityID, ref Vector3 impulse, bool wake);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal extern static void Rigidbody3DComponent_AddForce(ulong entityID, ref Vector3 force, bool wake);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal extern static void Rigidbody3DComponent_GetLinearVelocity(ulong entityID, out Vector3 linearVelocity);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal extern static void Rigidbody3DComponent_SetLinearVelocity(ulong entityID, ref Vector3 linearVelocity);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal extern static void Rigidbody3DComponent_GetAngularVelocity(ulong entityID, out Vector3 angularVelocity);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal extern static void Rigidbody3DComponent_SetAngularVelocity(ulong entityID, ref Vector3 angularVelocity);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal extern static bool BoxSensor2D_SensorBegin(ulong entityID);
 
