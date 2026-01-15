@@ -312,6 +312,7 @@ namespace Fermion
         float linearDamping = 0.01f;
         float angularDamping = 0.05f;
         bool useGravity = true;
+        bool fixedRotation = false;
 
         void *runtimeBody = nullptr;
 
@@ -352,6 +353,24 @@ namespace Fermion
         CircleCollider3DComponent() = default;
 
         CircleCollider3DComponent(const CircleCollider3DComponent &) = default;
+    };
+
+    struct CapsuleCollider3DComponent
+    {
+        glm::vec3 offset = {0.0f, 0.0f, 0.0f};
+        float radius = 0.5f;
+        float height = 1.5f;
+
+        float density = 1.0f;
+        float friction = 0.5f;
+        float restitution = 0.0f;
+        bool isTrigger = false;
+
+        void *runtimeShape = nullptr;
+
+        CapsuleCollider3DComponent() = default;
+
+        CapsuleCollider3DComponent(const CapsuleCollider3DComponent &) = default;
     };
 
     struct DirectionalLightComponent
@@ -406,7 +425,7 @@ namespace Fermion
                        ScriptContainerComponent,
                        NativeScriptComponent,
                        Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, BoxSensor2DComponent,
-                       Rigidbody3DComponent, BoxCollider3DComponent, CircleCollider3DComponent,
+                       Rigidbody3DComponent, BoxCollider3DComponent, CircleCollider3DComponent, CapsuleCollider3DComponent,
                        TextComponent,
 
                        /* Lighting */

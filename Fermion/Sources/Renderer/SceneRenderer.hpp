@@ -44,6 +44,7 @@ namespace Fermion
             uint32_t shadowMapSize = 2048;
             float shadowBias = 0.01f;
             float shadowSoftness = 1.0f;
+            float normalMapStrength = 1.0f;
 
             // IBL settings
             bool useIBL = true;

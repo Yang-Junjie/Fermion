@@ -338,6 +338,7 @@ namespace Fermion
             displayAddComponentEntry<Rigidbody3DComponent>("Rigidbody3D");
             displayAddComponentEntry<BoxCollider3DComponent>("Box Collider3D");
             displayAddComponentEntry<CircleCollider3DComponent>("Circle Collider3D");
+            displayAddComponentEntry<CapsuleCollider3DComponent>("Capsule Collider3D");
             displayAddComponentEntry<DirectionalLightComponent>("Directional Light");
             displayAddComponentEntry<PointLightComponent>("Point Light");
             displayAddComponentEntry<SpotLightComponent>("Spot Light");
@@ -669,7 +670,8 @@ namespace Fermion
             ImGui::DragFloat("Mass", &component.mass, 0.01f, 0.0f, 1000.0f);
             ImGui::DragFloat("Linear Damping", &component.linearDamping, 0.01f, 0.0f, 10.0f);
             ImGui::DragFloat("Angular Damping", &component.angularDamping, 0.01f, 0.0f, 10.0f);
-            ImGui::Checkbox("Use Gravity", &component.useGravity); });
+            ImGui::Checkbox("Use Gravity", &component.useGravity);
+            ImGui::Checkbox("Fixed Rotation##3d", &component.fixedRotation); });
         drawComponent<BoxCollider3DComponent>("Box Collider 3D", entity, [](auto &component)
                                               {
             ImGui::DragFloat3("Offset##3d", glm::value_ptr(component.offset), 0.01f);
@@ -686,6 +688,15 @@ namespace Fermion
             ImGui::DragFloat("Friction##circle3d", &component.friction, 0.01f, 0.0f, 1.0f);
             ImGui::DragFloat("Restitution##circle3d", &component.restitution, 0.01f, 0.0f, 1.0f);
             ImGui::Checkbox("Trigger##circle3d", &component.isTrigger); });
+        drawComponent<CapsuleCollider3DComponent>("Capsule Collider 3D", entity, [](auto &component)
+                                                  {
+            ImGui::DragFloat3("Offset##capsule3d", glm::value_ptr(component.offset), 0.01f);
+            ImGui::DragFloat("Radius##capsule3d", &component.radius, 0.01f, 0.01f, 100.0f);
+            ImGui::DragFloat("Height##capsule3d", &component.height, 0.01f, 0.01f, 100.0f);
+            ImGui::DragFloat("Density##capsule3d", &component.density, 0.01f, 0.0f, 10.0f);
+            ImGui::DragFloat("Friction##capsule3d", &component.friction, 0.01f, 0.0f, 1.0f);
+            ImGui::DragFloat("Restitution##capsule3d", &component.restitution, 0.01f, 0.0f, 1.0f);
+            ImGui::Checkbox("Trigger##capsule3d", &component.isTrigger); });
     }
 
     template <typename T>

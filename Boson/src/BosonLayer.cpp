@@ -222,7 +222,7 @@ namespace Fermion
                 ImGuiIO &io = ImGui::GetIO();
                 ImGuiStyle &style = ImGui::GetStyle();
                 float minWinSizeX = style.WindowMinSize.x;
-                style.WindowMinSize.x = 370.0f;
+                style.WindowMinSize.x = 300.0f;
                 if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
                 {
                     ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
@@ -550,12 +550,13 @@ namespace Fermion
                 }
                 ImGui::EndDragDropTarget();
             }
-            ImGui::SameLine();
-            ImGui::Text("HDR: %s", hdrPath ? hdrPath : m_viewportRenderer->getSceneInfo().hdrPath.c_str());
+            ImGui::TextWrapped("HDR: %s", hdrPath 
+                ? hdrPath : std::filesystem::path(m_viewportRenderer->getSceneInfo().hdrPath).filename().string().c_str());
             ImGui::Checkbox("showSkybox", &m_viewportRenderer->getSceneInfo().showSkybox);
             ImGui::Checkbox("enable shadows", &m_viewportRenderer->getSceneInfo().enableShadows);
             ImGui::Checkbox("use IBL", &m_viewportRenderer->getSceneInfo().useIBL);
             ImGui::DragFloat("Ambient Intensity", &m_viewportRenderer->getSceneInfo().ambientIntensity, 0.01f, 0.0f, 1.0f);
+            ImGui::DragFloat("Normal Map Strength", &m_viewportRenderer->getSceneInfo().normalMapStrength, 0.1f, 0.0f, 5.0f);
 
             ImGui::Separator();
             ImGui::DragFloat("Shadow Bias", &m_viewportRenderer->getSceneInfo().shadowBias, 0.0001f, 0.0f, 0.1f);

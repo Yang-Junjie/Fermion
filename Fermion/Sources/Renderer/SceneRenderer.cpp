@@ -445,6 +445,9 @@ namespace Fermion
                              shader->setFloat(base + ".innerConeAngle", l.innerConeAngle);
                              shader->setFloat(base + ".outerConeAngle", l.outerConeAngle);
                          }
+
+                         // Normal map strength
+                         shader->setFloat("u_NormalStrength", m_sceneData.normalMapStrength);
                          
                          if (cmd.material)
                              cmd.material->bind(shader);
@@ -530,20 +533,20 @@ namespace Fermion
                               RenderCommand::setViewport(0, 0, m_scene->m_viewportWidth, m_scene->m_viewportHeight);
                       } });
              }});
-   }
+    }
 
-   void SceneRenderer::DepthViewPass(ResourceHandle sceneDepth)
-   {
-       if (!m_targetFramebuffer)
-           return;
+    void SceneRenderer::DepthViewPass(ResourceHandle sceneDepth)
+    {
+        if (!m_targetFramebuffer)
+            return;
 
-       m_RenderGraph.AddPass(
-           {.Name = "DepthViewPass",
-            .Inputs = {sceneDepth},
-            .Execute = [this](CommandBuffer &commandBuffer)
-            {
-                commandBuffer.Record([this](RendererAPI &api)
-                                     {
+        m_RenderGraph.AddPass(
+            {.Name = "DepthViewPass",
+             .Inputs = {sceneDepth},
+             .Execute = [this](CommandBuffer &commandBuffer)
+             {
+                 commandBuffer.Record([this](RendererAPI &api)
+                                      {
                     m_DepthViewPipeline->bind();
                     auto shader = m_DepthViewPipeline->getShader();
 
@@ -557,10 +560,10 @@ namespace Fermion
                     shader->setFloat("u_Power", m_sceneData.depthViewPower);
                     
                     RenderCommand::drawIndexed(m_depthViewQuadVA, m_depthViewQuadVA->getIndexBuffer()->getCount()); });
-            }});
-   }
+             }});
+    }
 
-   void SceneRenderer::FlushDrawList()
+    void SceneRenderer::FlushDrawList()
     {
         m_RenderGraph.Reset();
 

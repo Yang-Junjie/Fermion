@@ -26,6 +26,7 @@
 #include <Jolt/Physics/Body/Body.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
+#include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
 #include <Jolt/Physics/Collision/Shape/Shape.h>
 #include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h>
 #include <Jolt/Physics/Collision/ObjectLayer.h>
@@ -208,6 +209,34 @@ namespace {
         }
         return result.Get();
     }
+
+    JPH::ShapeRefC CreateCapsuleShape(const Fermion::TransformComponent &transform,
+                                      const Fermion::CapsuleCollider3DComponent *collider) {
+        float radius = collider ? collider->radius : 0.5f;
+        float height = collider ? collider->height : 1.5f;
+
+        float radiusScale = glm::max(transform.scale.x, transform.scale.z);
+        float heightScale = transform.scale.y;
+
+        float scaledRadius = radius * radiusScale;
+        float scaledHeight = height * heightScale;
+
+        constexpr float cMinRadius = 0.001f;
+        constexpr float cMinHalfHeight = 0.001f;
+        scaledRadius = glm::max(scaledRadius, cMinRadius);
+
+        float halfHeight = scaledHeight * 0.5f;
+        float halfCylinderHeight = halfHeight - scaledRadius;
+        halfCylinderHeight = glm::max(halfCylinderHeight, cMinHalfHeight);
+
+        JPH::CapsuleShapeSettings capsuleSettings(halfCylinderHeight, scaledRadius);
+        JPH::ShapeSettings::ShapeResult result = capsuleSettings.Create();
+        if (result.HasError()) {
+            Fermion::Log::Error(std::format("Failed to create CapsuleShape: {}", result.GetError()));
+            return nullptr;
+        }
+        return result.Get();
+    }
 } // namespace
 
 namespace Fermion {
@@ -255,7 +284,7 @@ namespace Fermion {
             auto &rb = view.get<Rigidbody3DComponent>(entityID);
             auto &transform = view.get<TransformComponent>(entityID);
             
-            // Determine which collider type to use (prioritize BoxCollider, then CircleCollider)
+            // Determine which collider type to use (prioritize BoxCollider, then CapsuleCollider, then CircleCollider)
             JPH::ShapeRefC shape;
             glm::vec3 offset{0.0f};
             float friction = 0.5f;
@@ -265,6 +294,14 @@ namespace Fermion {
             if (entity.hasComponent<BoxCollider3DComponent>()) {
                 const auto &collider = entity.getComponent<BoxCollider3DComponent>();
                 shape = CreateBoxShape(transform, &collider);
+                offset = collider.offset;
+                friction = collider.friction;
+                restitution = collider.restitution;
+                isTrigger = collider.isTrigger;
+            }
+            else if (entity.hasComponent<CapsuleCollider3DComponent>()) {
+                const auto &collider = entity.getComponent<CapsuleCollider3DComponent>();
+                shape = CreateCapsuleShape(transform, &collider);
                 offset = collider.offset;
                 friction = collider.friction;
                 restitution = collider.restitution;
@@ -303,6 +340,10 @@ namespace Fermion {
             bodySettings.mIsSensor = isTrigger;
             bodySettings.mGravityFactor = rb.useGravity ? 1.0f : 0.0f;
             bodySettings.mUserData = static_cast<uint64_t>(entity.getUUID());
+            bodySettings.mAllowedDOFs = rb.fixedRotation
+                                            ? (JPH::EAllowedDOFs::TranslationX | JPH::EAllowedDOFs::TranslationY |
+                                               JPH::EAllowedDOFs::TranslationZ)
+                                            : JPH::EAllowedDOFs::All;
 
             if (rb.mass > 0.0f) {
                 bodySettings.mOverrideMassProperties = JPH::EOverrideMassProperties::MassAndInertiaProvided;
@@ -378,6 +419,9 @@ namespace Fermion {
             glm::vec3 offset{0.0f};
             if (entity.hasComponent<BoxCollider3DComponent>()) {
                 offset = entity.getComponent<BoxCollider3DComponent>().offset;
+            }
+            else if (entity.hasComponent<CapsuleCollider3DComponent>()) {
+                offset = entity.getComponent<CapsuleCollider3DComponent>().offset;
             }
             else if (entity.hasComponent<CircleCollider3DComponent>()) {
                 offset = entity.getComponent<CircleCollider3DComponent>().offset;

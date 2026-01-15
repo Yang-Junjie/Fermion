@@ -56,11 +56,8 @@ namespace Fermion {
         static std::shared_ptr<Scene> copy(std::shared_ptr<Scene> other);
 
         void onRuntimeStart();
-
         void onRuntimeStop();
-
         void onSimulationStart();
-
         void onSimulationStop();
 
         void onUpdateEditor(std::shared_ptr<SceneRenderer> renderer, Timestep ts, EditorCamera &camera,
@@ -74,15 +71,11 @@ namespace Fermion {
         void onViewportResize(uint32_t width, uint32_t height);
 
         Entity createEntity(std::string name = std::string());
-
         Entity createEntityWithUUID(UUID uuid, std::string name = std::string());
 
         void destroyEntity(Entity entity);
-
         Entity duplicateEntity(Entity entity);
-
         Entity findEntityByName(std::string_view name);
-
         Entity getEntityByUUID(UUID uuid);
 
         uint32_t getViewportWidth() const {
@@ -126,9 +119,7 @@ namespace Fermion {
 
     private:
         void onPhysics2DStart();
-
         void onPhysics2DStop();
-
         void onScriptStart(Timestep ts);
 
         void onRenderEditor(std::shared_ptr<SceneRenderer> renderer, EditorCamera &camera,

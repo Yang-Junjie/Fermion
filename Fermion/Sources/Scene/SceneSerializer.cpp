@@ -184,6 +184,7 @@ namespace Fermion
             out << YAML::Key << "LinearDamping" << YAML::Value << rb.linearDamping;
             out << YAML::Key << "AngularDamping" << YAML::Value << rb.angularDamping;
             out << YAML::Key << "UseGravity" << YAML::Value << rb.useGravity;
+            out << YAML::Key << "FixedRotation" << YAML::Value << rb.fixedRotation;
             out << YAML::EndMap;
         }
         if (entity.hasComponent<BoxCollider3DComponent>())
@@ -206,6 +207,20 @@ namespace Fermion
             auto &cc = entity.getComponent<CircleCollider3DComponent>();
             out << YAML::Key << "Offset" << YAML::Value << cc.offset;
             out << YAML::Key << "Radius" << YAML::Value << cc.radius;
+            out << YAML::Key << "Density" << YAML::Value << cc.density;
+            out << YAML::Key << "Friction" << YAML::Value << cc.friction;
+            out << YAML::Key << "Restitution" << YAML::Value << cc.restitution;
+            out << YAML::Key << "IsTrigger" << YAML::Value << cc.isTrigger;
+            out << YAML::EndMap;
+        }
+        if (entity.hasComponent<CapsuleCollider3DComponent>())
+        {
+            out << YAML::Key << "CapsuleCollider3DComponent";
+            out << YAML::BeginMap;
+            auto &cc = entity.getComponent<CapsuleCollider3DComponent>();
+            out << YAML::Key << "Offset" << YAML::Value << cc.offset;
+            out << YAML::Key << "Radius" << YAML::Value << cc.radius;
+            out << YAML::Key << "Height" << YAML::Value << cc.height;
             out << YAML::Key << "Density" << YAML::Value << cc.density;
             out << YAML::Key << "Friction" << YAML::Value << cc.friction;
             out << YAML::Key << "Restitution" << YAML::Value << cc.restitution;
@@ -549,6 +564,8 @@ namespace Fermion
                         rb.angularDamping = n.as<float>();
                     if (auto n = rigidbody3DComponent["UseGravity"]; n)
                         rb.useGravity = n.as<bool>();
+                    if (auto n = rigidbody3DComponent["FixedRotation"]; n)
+                        rb.fixedRotation = n.as<bool>();
                 }
                 auto boxCollider3DComponent = entity["BoxCollider3DComponent"];
                 if (boxCollider3DComponent && boxCollider3DComponent.IsMap())
@@ -582,6 +599,25 @@ namespace Fermion
                     if (auto n = circleCollider3DComponent["Restitution"]; n)
                         cc.restitution = n.as<float>();
                     if (auto n = circleCollider3DComponent["IsTrigger"]; n)
+                        cc.isTrigger = n.as<bool>();
+                }
+                auto capsuleCollider3DComponent = entity["CapsuleCollider3DComponent"];
+                if (capsuleCollider3DComponent && capsuleCollider3DComponent.IsMap())
+                {
+                    auto &cc = deserializedEntity.addComponent<CapsuleCollider3DComponent>();
+                    if (auto n = capsuleCollider3DComponent["Offset"]; n)
+                        cc.offset = n.as<glm::vec3>();
+                    if (auto n = capsuleCollider3DComponent["Radius"]; n)
+                        cc.radius = n.as<float>();
+                    if (auto n = capsuleCollider3DComponent["Height"]; n)
+                        cc.height = n.as<float>();
+                    if (auto n = capsuleCollider3DComponent["Density"]; n)
+                        cc.density = n.as<float>();
+                    if (auto n = capsuleCollider3DComponent["Friction"]; n)
+                        cc.friction = n.as<float>();
+                    if (auto n = capsuleCollider3DComponent["Restitution"]; n)
+                        cc.restitution = n.as<float>();
+                    if (auto n = capsuleCollider3DComponent["IsTrigger"]; n)
                         cc.isTrigger = n.as<bool>();
                 }
                 auto boxSensor2DComponent = entity["BoxSensor2DComponent"];

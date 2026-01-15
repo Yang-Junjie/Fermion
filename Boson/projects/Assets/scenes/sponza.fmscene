@@ -1,5 +1,29 @@
 Scene: Name
 Entities:
+  - Entity: 3955266105070907491
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [0, 0.8070328, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      MeshHandle: 16780106986622441551
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 0
+  - Entity: 6216633945295408129
+    TagComponent:
+      Tag: dl
+    TransformComponent:
+      Translation: [-1.4054636, 9.664156, 0.8463193]
+      Rotation: [-1.452548, -0.096948095, 0.1861382]
+      Scale: [1, 1, 1]
+    DirectionalLightComponent:
+      Color: [0.9746835, 0.9611484, 0.7608289]
+      Intensity: 31.3
+      MainLight: true
   - Entity: 6090687769252204207
     TagComponent:
       Tag: sponza
@@ -115,14 +139,3 @@ Entities:
         - 14425841830045079514
         - 16078632681029536733
         - 14425841830045079514
-  - Entity: 6216633945295408129
-    TagComponent:
-      Tag: dl
-    TransformComponent:
-      Translation: [-3.7252903e-09, 2.6456666, -7.450581e-09]
-      Rotation: [-1.452548, -0.096948095, 0.1861382]
-      Scale: [1, 1, 1]
-    DirectionalLightComponent:
-      Color: [1, 1, 1]
-      Intensity: 31.3
-      MainLight: true

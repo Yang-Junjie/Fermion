@@ -118,6 +118,7 @@ uniform sampler2D u_AlbedoMap;
 
 uniform bool u_UseNormalMap;
 uniform sampler2D u_NormalMap;
+uniform float u_NormalStrength;
 
 uniform bool u_UseMetallicMap;
 uniform sampler2D u_MetallicMap;
@@ -299,6 +300,26 @@ void main() {
     vec3 N = getNormalFromMap(normalVariance);
     vec3 V = normalize(u_CameraPosition - v_WorldPos);
     float NoV = max(dot(N, V), 0.0);
+
+    // ==========================================================
+    // Normal Map Weighting (Roughness-based Normal Filtering)
+    // ==========================================================
+
+    vec3 N_geom = normalize(v_Normal);
+
+    float roughnessWeight = smoothstep(0.15, 0.75, 1.0 - roughness);
+    float grazingAttenuation = smoothstep(0.0, 0.4, NoV);
+
+    float normalWeight = roughnessWeight * grazingAttenuation;
+    normalWeight *= u_NormalStrength;
+
+    float distance = length(u_CameraPosition - v_WorldPos);
+    float distanceBoost = clamp(1.5 - distance * 0.15, 0.7, 1.5);
+    normalWeight *= distanceBoost;
+
+    N = normalize(mix(N_geom, N, normalWeight));
+    NoV = max(dot(N, V), 0.0);
+
    // ================= Specular Anti-Aliasing =================
 
 // 法线变化导致的 roughness 提升（Karis 2013）
