@@ -411,26 +411,26 @@ namespace Fermion
         SpotLightComponent(const SpotLightComponent &) = default;
     };
 
-
     template <typename... Component>
     struct ComponentGroup
     {
     };
 
     using AllComponents =
-        ComponentGroup<TransformComponent, SpriteRendererComponent, MeshComponent,
-                       CircleRendererComponent,
-                       CameraComponent,
-                       ScriptComponent,
-                       ScriptContainerComponent,
-                       NativeScriptComponent,
-                       Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, BoxSensor2DComponent,
-                       Rigidbody3DComponent, BoxCollider3DComponent, CircleCollider3DComponent, CapsuleCollider3DComponent,
-                       TextComponent,
+        ComponentGroup<
+            TransformComponent, SpriteRendererComponent, MeshComponent,
+            CircleRendererComponent,
+            CameraComponent,
+            ScriptComponent,
+            ScriptContainerComponent,
+            NativeScriptComponent,
+            Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, BoxSensor2DComponent,
+            Rigidbody3DComponent, BoxCollider3DComponent, CircleCollider3DComponent, CapsuleCollider3DComponent,
+            TextComponent,
 
-                       /* Lighting */
-                       PointLightComponent,
-                       SpotLightComponent,
-                       DirectionalLightComponent
-                       /************/>;
+            /* Lighting */
+            PointLightComponent,
+            SpotLightComponent,
+            DirectionalLightComponent
+            /************/>;
 } // namespace Fermion

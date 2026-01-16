@@ -16,8 +16,10 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include <glm/glm.hpp>
 #include <utility>
 
@@ -337,9 +339,10 @@ namespace Fermion
         if (e.getMouseButton() == MouseCode::Left)
         {
             if (m_viewportHovered && !ImGuizmo::IsOver())
-                m_sceneHierarchyPanel.setSelectedEntity(m_hoveredEntity && m_hoveredEntity.isValid()
-                                                            ? m_hoveredEntity
-                                                            : Entity());
+                m_sceneHierarchyPanel.setSelectedEntity(
+                    m_hoveredEntity && m_hoveredEntity.isValid()
+                        ? m_hoveredEntity
+                        : Entity());
         }
         return false;
     }
@@ -821,13 +824,13 @@ namespace Fermion
             m_hoveredEntity = hovered;
     }
 
-    void BosonLayer::onOverlayRender() const
+    bool BosonLayer::beginOverlayPass() const
     {
         if (m_sceneState == SceneState::Play)
         {
             Entity camera = m_activeScene->getPrimaryCameraEntity();
             if (!camera)
-                return;
+                return false;
 
             m_viewportRenderer->beginOverlay(camera.getComponent<CameraComponent>().camera,
                                              camera.getComponent<TransformComponent>().getTransform());
@@ -837,78 +840,254 @@ namespace Fermion
             m_viewportRenderer->beginOverlay(m_editorCamera);
         }
 
+        return true;
+    }
+
+    void BosonLayer::renderPhysicsColliders() const
+    {
+        renderPhysics2DColliders();
+        renderPhysics3DColliders();
+    }
+
+    void BosonLayer::renderPhysics2DColliders() const
+    {
+        // Box Colliders
+        {
+            auto view = m_activeScene->getAllEntitiesWith<TransformComponent, BoxCollider2DComponent>();
+            for (auto entity : view)
+            {
+                auto [tc, bc2d] = view.get<TransformComponent, BoxCollider2DComponent>(entity);
+
+                glm::vec3 translation = tc.translation + glm::vec3(bc2d.offset, 0.001f);
+                glm::vec3 scale = tc.scale * glm::vec3(bc2d.size * 2.0f, 1.0f);
+
+                glm::mat4 transform = glm::translate(glm::mat4(1.0f), tc.translation) *
+                                      glm::rotate(glm::mat4(1.0f), tc.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) *
+                                      glm::translate(glm::mat4(1.0f), glm::vec3(bc2d.offset, 0.001f)) * glm::scale(glm::mat4(1.0f), scale);
+
+                m_viewportRenderer->drawRect(transform, glm::vec4(0, 1, 0, 1));
+            }
+        }
+
+        // Circle Colliders
+        {
+            auto view = m_activeScene->getAllEntitiesWith<TransformComponent, CircleCollider2DComponent>();
+            for (auto entity : view)
+            {
+                auto [tc, cc2d] = view.get<TransformComponent, CircleCollider2DComponent>(entity);
+
+                // 单位 quad 半径 0.5 * scale.x = cc2d.radius * tc.scale.x
+                glm::vec3 scale = tc.scale * glm::vec3(cc2d.radius * 2.0f, cc2d.radius * 2.0f, 1.0f);
+
+                // 先平移到实体，再旋转，再平移 offset，再缩放
+                glm::mat4 transform =
+                    glm::translate(glm::mat4(1.0f), tc.translation) * glm::rotate(glm::mat4(1.0f), tc.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(cc2d.offset, 0.001f)) * glm::scale(glm::mat4(1.0f), scale);
+
+                m_viewportRenderer->drawCircle(transform, glm::vec4(0, 1, 0, 1), 0.1f);
+            }
+        }
+        // Box Sensor
+        {
+            auto view = m_activeScene->getAllEntitiesWith<TransformComponent, BoxSensor2DComponent>();
+            for (auto entity : view)
+            {
+                Entity sensor = {entity, m_activeScene.get()};
+                auto [tc, bs2d] = view.get<TransformComponent, BoxSensor2DComponent>(entity);
+                glm::vec3 translation = tc.translation + glm::vec3(bs2d.offset, 0.001f);
+                glm::vec3 scale = tc.scale * glm::vec3(bs2d.size * 2.0f, 1.0f);
+
+                glm::mat4 transform = glm::translate(glm::mat4(1.0f), tc.translation) *
+                                      glm::rotate(glm::mat4(1.0f), tc.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) *
+                                      glm::translate(glm::mat4(1.0f), glm::vec3(bs2d.offset, 0.001f)) * glm::scale(glm::mat4(1.0f), scale);
+
+                m_viewportRenderer->drawRect(transform, glm::vec4(0, 1, 1, 1));
+            }
+        }
+    }
+
+    void BosonLayer::renderPhysics3DColliders() const
+    {
+        constexpr float kTwoPi = 6.28318530718f;
+        constexpr int kCircleSegments = 24;
+        constexpr float kMinRadius = 0.001f;
+        constexpr float kMinHalfHeight = 0.001f;
+        const glm::vec4 collider3DColor{0.0f, 1.0f, 0.0f, 1.0f};
+
+        auto drawArc = [&](const glm::vec3 &center, const glm::vec3 &axisA, const glm::vec3 &axisB, float radius,
+                           float startAngle, float endAngle, int segments, const glm::vec4 &color)
+        {
+            if (radius <= 0.0f || segments < 1)
+                return;
+
+            glm::vec3 u = glm::normalize(axisA);
+            glm::vec3 v = glm::normalize(axisB);
+            float step = (endAngle - startAngle) / static_cast<float>(segments);
+            glm::vec3 prev = center + (u * std::cos(startAngle) + v * std::sin(startAngle)) * radius;
+
+            for (int i = 1; i <= segments; ++i)
+            {
+                float angle = startAngle + step * static_cast<float>(i);
+                glm::vec3 point = center + (u * std::cos(angle) + v * std::sin(angle)) * radius;
+                m_viewportRenderer->drawLine(prev, point, color);
+                prev = point;
+            }
+        };
+
+        auto drawCircle = [&](const glm::vec3 &center, const glm::vec3 &axisA, const glm::vec3 &axisB, float radius,
+                              const glm::vec4 &color)
+        {
+            drawArc(center, axisA, axisB, radius, 0.0f, kTwoPi, kCircleSegments, color);
+        };
+
+        auto drawBox = [&](const glm::mat4 &transform, const glm::vec4 &color)
+        {
+            const glm::vec3 localCorners[8] = {
+                {-0.5f, -0.5f, -0.5f},
+                {0.5f, -0.5f, -0.5f},
+                {0.5f, 0.5f, -0.5f},
+                {-0.5f, 0.5f, -0.5f},
+                {-0.5f, -0.5f, 0.5f},
+                {0.5f, -0.5f, 0.5f},
+                {0.5f, 0.5f, 0.5f},
+                {-0.5f, 0.5f, 0.5f}};
+
+            glm::vec3 corners[8];
+            for (int i = 0; i < 8; ++i)
+            {
+                corners[i] = transform * glm::vec4(localCorners[i], 1.0f);
+            }
+
+            const int edges[12][2] = {
+                {0, 1}, {1, 2}, {2, 3}, {3, 0},
+                {4, 5}, {5, 6}, {6, 7}, {7, 4},
+                {0, 4}, {1, 5}, {2, 6}, {3, 7}};
+
+            for (const auto &edge : edges)
+            {
+                m_viewportRenderer->drawLine(corners[edge[0]], corners[edge[1]], color);
+            }
+        };
+
+        // 3D Box Colliders
+        {
+            auto view = m_activeScene->getAllEntitiesWith<TransformComponent, BoxCollider3DComponent>();
+            for (auto entity : view)
+            {
+                auto [tc, bc3d] = view.get<TransformComponent, BoxCollider3DComponent>(entity);
+
+                glm::mat4 rotation = glm::toMat4(glm::quat(tc.rotation));
+                glm::vec3 scale = tc.scale * (bc3d.size * 2.0f);
+                glm::mat4 transform = glm::translate(glm::mat4(1.0f), tc.translation) *
+                                      rotation *
+                                      glm::translate(glm::mat4(1.0f), bc3d.offset) *
+                                      glm::scale(glm::mat4(1.0f), scale);
+
+                drawBox(transform, collider3DColor);
+            }
+        }
+
+        // 3D Sphere Colliders
+        {
+            auto view = m_activeScene->getAllEntitiesWith<TransformComponent, CircleCollider3DComponent>();
+            for (auto entity : view)
+            {
+                auto [tc, cc3d] = view.get<TransformComponent, CircleCollider3DComponent>(entity);
+
+                glm::quat rotation = glm::quat(tc.rotation);
+                glm::vec3 center = tc.translation + rotation * cc3d.offset;
+                float maxScale = std::max(tc.scale.x, std::max(tc.scale.y, tc.scale.z));
+                float radius = cc3d.radius * maxScale;
+                if (radius <= 0.0f)
+                    continue;
+
+                glm::vec3 right = rotation * glm::vec3(1.0f, 0.0f, 0.0f);
+                glm::vec3 up = rotation * glm::vec3(0.0f, 1.0f, 0.0f);
+                glm::vec3 forward = rotation * glm::vec3(0.0f, 0.0f, 1.0f);
+
+                drawCircle(center, right, up, radius, collider3DColor);
+                drawCircle(center, right, forward, radius, collider3DColor);
+                drawCircle(center, up, forward, radius, collider3DColor);
+            }
+        }
+
+        // 3D Capsule Colliders
+        {
+            auto view = m_activeScene->getAllEntitiesWith<TransformComponent, CapsuleCollider3DComponent>();
+            for (auto entity : view)
+            {
+                auto [tc, cap3d] = view.get<TransformComponent, CapsuleCollider3DComponent>(entity);
+
+                glm::quat rotation = glm::quat(tc.rotation);
+                glm::vec3 center = tc.translation + rotation * cap3d.offset;
+
+                float radiusScale = std::max(tc.scale.x, tc.scale.z);
+                float scaledRadius = cap3d.radius * radiusScale;
+                float scaledHeight = cap3d.height * tc.scale.y;
+
+                if (scaledRadius < kMinRadius)
+                    scaledRadius = kMinRadius;
+
+                float halfHeight = scaledHeight * 0.5f;
+                float halfCylinderHeight = halfHeight - scaledRadius;
+                if (halfCylinderHeight < kMinHalfHeight)
+                    halfCylinderHeight = kMinHalfHeight;
+
+                glm::vec3 right = rotation * glm::vec3(1.0f, 0.0f, 0.0f);
+                glm::vec3 up = rotation * glm::vec3(0.0f, 1.0f, 0.0f);
+                glm::vec3 forward = rotation * glm::vec3(0.0f, 0.0f, 1.0f);
+
+                glm::vec3 topCenter = center + up * halfCylinderHeight;
+                glm::vec3 bottomCenter = center - up * halfCylinderHeight;
+
+                drawCircle(topCenter, right, forward, scaledRadius, collider3DColor);
+                drawCircle(bottomCenter, right, forward, scaledRadius, collider3DColor);
+
+                m_viewportRenderer->drawLine(topCenter + right * scaledRadius, bottomCenter + right * scaledRadius,
+                                             collider3DColor);
+                m_viewportRenderer->drawLine(topCenter - right * scaledRadius, bottomCenter - right * scaledRadius,
+                                             collider3DColor);
+                m_viewportRenderer->drawLine(topCenter + forward * scaledRadius, bottomCenter + forward * scaledRadius,
+                                             collider3DColor);
+                m_viewportRenderer->drawLine(topCenter - forward * scaledRadius, bottomCenter - forward * scaledRadius,
+                                             collider3DColor);
+
+                const int arcSegments = kCircleSegments / 2;
+                drawArc(topCenter, right, up, scaledRadius, 0.0f, kTwoPi * 0.5f, arcSegments, collider3DColor);
+                drawArc(bottomCenter, right, up, scaledRadius, kTwoPi * 0.5f, kTwoPi, arcSegments, collider3DColor);
+                drawArc(topCenter, forward, up, scaledRadius, 0.0f, kTwoPi * 0.5f, arcSegments, collider3DColor);
+                drawArc(bottomCenter, forward, up, scaledRadius, kTwoPi * 0.5f, kTwoPi, arcSegments, collider3DColor);
+            }
+        }
+    }
+
+    void BosonLayer::renderSelectedEntityOutline() const
+    {
+        if (Entity selectedEntity = m_sceneHierarchyPanel.getSelectedEntity(); selectedEntity)
+        {
+            const TransformComponent &transform = selectedEntity.getComponent<TransformComponent>();
+            if (selectedEntity.hasComponent<MeshComponent>())
+            {
+                m_viewportRenderer->submitMesh(selectedEntity.getComponent<MeshComponent>(),
+                                               transform.getTransform(), -1, true);
+            }
+            else
+            {
+                m_viewportRenderer->drawRect(transform.getTransform(), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+            }
+        }
+    }
+
+    void BosonLayer::onOverlayRender() const
+    {
+        if (!beginOverlayPass())
+            return;
+
         if (m_showPhysicsColliders)
         {
-            // Box Colliders
-            {
-                auto view = m_activeScene->getAllEntitiesWith<TransformComponent, BoxCollider2DComponent>();
-                for (auto entity : view)
-                {
-                    auto [tc, bc2d] = view.get<TransformComponent, BoxCollider2DComponent>(entity);
-
-                    glm::vec3 translation = tc.translation + glm::vec3(bc2d.offset, 0.001f);
-                    glm::vec3 scale = tc.scale * glm::vec3(bc2d.size * 2.0f, 1.0f);
-
-                    glm::mat4 transform = glm::translate(glm::mat4(1.0f), tc.translation) *
-                                          glm::rotate(glm::mat4(1.0f), tc.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) *
-                                          glm::translate(glm::mat4(1.0f), glm::vec3(bc2d.offset, 0.001f)) * glm::scale(glm::mat4(1.0f), scale);
-
-                    m_viewportRenderer->drawRect(transform, glm::vec4(0, 1, 0, 1));
-                }
-            }
-
-            // Circle Colliders
-            {
-                auto view = m_activeScene->getAllEntitiesWith<TransformComponent, CircleCollider2DComponent>();
-                for (auto entity : view)
-                {
-                    auto [tc, cc2d] = view.get<TransformComponent, CircleCollider2DComponent>(entity);
-
-                    // 单位 quad 半径 0.5 * scale.x = cc2d.radius * tc.scale.x
-                    glm::vec3 scale = tc.scale * glm::vec3(cc2d.radius * 2.0f, cc2d.radius * 2.0f, 1.0f);
-
-                    // 先平移到实体，再旋转，再平移 offset，再缩放
-                    glm::mat4 transform =
-                        glm::translate(glm::mat4(1.0f), tc.translation) * glm::rotate(glm::mat4(1.0f), tc.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(cc2d.offset, 0.001f)) * glm::scale(glm::mat4(1.0f), scale);
-
-                    m_viewportRenderer->drawCircle(transform, glm::vec4(0, 1, 0, 1), 0.1f);
-                }
-            }
-            // Box Sensor
-            {
-                auto view = m_activeScene->getAllEntitiesWith<TransformComponent, BoxSensor2DComponent>();
-                for (auto entity : view)
-                {
-                    Entity sensor = {entity, m_activeScene.get()};
-                    auto [tc, bs2d] = view.get<TransformComponent, BoxSensor2DComponent>(entity);
-                    glm::vec3 translation = tc.translation + glm::vec3(bs2d.offset, 0.001f);
-                    glm::vec3 scale = tc.scale * glm::vec3(bs2d.size * 2.0f, 1.0f);
-
-                    glm::mat4 transform = glm::translate(glm::mat4(1.0f), tc.translation) *
-                                          glm::rotate(glm::mat4(1.0f), tc.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) *
-                                          glm::translate(glm::mat4(1.0f), glm::vec3(bs2d.offset, 0.001f)) * glm::scale(glm::mat4(1.0f), scale);
-
-                    m_viewportRenderer->drawRect(transform, glm::vec4(0, 1, 1, 1));
-                }
-            }
+            renderPhysicsColliders();
         }
 
-        // Draw selected entity outline
-        {
-            if (Entity selectedEntity = m_sceneHierarchyPanel.getSelectedEntity(); selectedEntity)
-            {
-                const TransformComponent &transform = selectedEntity.getComponent<TransformComponent>();
-                if (selectedEntity.hasComponent<MeshComponent>())
-                {
-                    m_viewportRenderer->submitMesh(selectedEntity.getComponent<MeshComponent>(),
-                                                   transform.getTransform(), -1, true);
-                }
-                else
-                {
-                    m_viewportRenderer->drawRect(transform.getTransform(), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-                }
-            }
-        }
+        renderSelectedEntityOutline();
         m_viewportRenderer->endOverlay();
     }
 

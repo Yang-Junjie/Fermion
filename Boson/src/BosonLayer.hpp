@@ -45,26 +45,24 @@ namespace Fermion
 
         void onOverlayRender() const;
 
+        bool beginOverlayPass() const;
+        void renderPhysicsColliders() const;
+        void renderPhysics2DColliders() const;
+        void renderPhysics3DColliders() const;
+        void renderSelectedEntityOutline() const;
+
         void newProject();
-
         void openProject();
-
         void saveProject();
 
         void newScene();
-
         void saveSceneAs();
-
         void saveScene();
-
         void openScene();
-
         void openScene(const std::filesystem::path &path);
 
         void onScenePlay();
-
         void onSceneSimulate();
-
         void onSceneStop();
 
         void onDuplicateEntity();
@@ -78,7 +76,6 @@ namespace Fermion
         void openMaterialEditorPanel();
 
         void onSettingsPanel();
-
         void onViewportPanel();
 
         void verticalProgressBar(float value, float minValue, float maxValue, ImVec2 size);
