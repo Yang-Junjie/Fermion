@@ -1,59 +1,5 @@
 Scene: Name
 Entities:
-  - Entity: 15306825668339658938
-    TagComponent:
-      Tag: wall 2
-    TransformComponent:
-      Translation: [5.2036095, 0.9882413, -2.9040833]
-      Rotation: [-3.094508e-08, -0.27261057, 1.5707968]
-      Scale: [0.37353736, 2.8487284, 13.702467]
-    MeshComponent:
-      MeshHandle: 16907420392960728608
-      MemoryOnly: true
-      MemoryMeshType: 1
-      SubmeshMaterials:
-        - 5408214026406282778
-    Rigidbody3DComponent:
-      BodyType: 0
-      Mass: 1
-      LinearDamping: 0.01
-      AngularDamping: 0.05
-      UseGravity: true
-      FixedRotation: false
-    BoxCollider3DComponent:
-      Offset: [0, 0, 0]
-      Size: [0.5, 0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0.8
-      IsTrigger: false
-  - Entity: 10139158754110202851
-    TagComponent:
-      Tag: wall 2
-    TransformComponent:
-      Translation: [-0.0005995622, 0.3645451, 9.006407]
-      Rotation: [0, 1.5707964, 0]
-      Scale: [0.37353736, 2.8487284, 13.702467]
-    MeshComponent:
-      MeshHandle: 16907420392960728608
-      MemoryOnly: true
-      MemoryMeshType: 1
-      SubmeshMaterials:
-        - 5408214026406282778
-    Rigidbody3DComponent:
-      BodyType: 0
-      Mass: 1
-      LinearDamping: 0.01
-      AngularDamping: 0.05
-      UseGravity: true
-      FixedRotation: false
-    BoxCollider3DComponent:
-      Offset: [0, 0, 0]
-      Size: [0.5, 0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0.8
-      IsTrigger: false
   - Entity: 10255987073146478764
     TagComponent:
       Tag: wall 3
@@ -61,8 +7,10 @@ Entities:
       Translation: [7.0213246, 3.2288215, -0.65494287]
       Rotation: [0, 0, 0]
       Scale: [0.37353748, 8.34236, 19.425108]
+    RelationshipComponent:
+      Parent: 0
     MeshComponent:
-      MeshHandle: 11487544327883424972
+      MeshHandle: 9757011337459135581
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:
@@ -88,8 +36,10 @@ Entities:
       Translation: [-0.10949874, 3.2288215, -9.215813]
       Rotation: [0, 1.5707964, 0]
       Scale: [0.3735374, 8.34236, 13.702468]
+    RelationshipComponent:
+      Parent: 0
     MeshComponent:
-      MeshHandle: 12542298751482074039
+      MeshHandle: 12690241117361975324
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:
@@ -115,8 +65,10 @@ Entities:
       Translation: [-6.8839774, 3.2288215, -0.65494287]
       Rotation: [0, 0, 0]
       Scale: [0.37353748, 8.34236, 19.425108]
+    RelationshipComponent:
+      Parent: 0
     MeshComponent:
-      MeshHandle: 13244509462041692868
+      MeshHandle: 4781775466722495465
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:
@@ -139,11 +91,13 @@ Entities:
     TagComponent:
       Tag: "sphere3 "
     TransformComponent:
-      Translation: [-2.0375633, -2.9802322e-08, 0]
+      Translation: [-2.0375633, -3.7252903e-08, -3.2467482]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
     MeshComponent:
-      MeshHandle: 13626724707680630677
+      MeshHandle: 11942793873585241745
       MemoryOnly: true
       MemoryMeshType: 2
       SubmeshMaterials:
@@ -169,8 +123,10 @@ Entities:
       Translation: [0, 0.34971267, 1.4901161e-08]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
     MeshComponent:
-      MeshHandle: 3028693995272206489
+      MeshHandle: 8189829301372633501
       MemoryOnly: true
       MemoryMeshType: 2
       SubmeshMaterials:
@@ -196,8 +152,10 @@ Entities:
       Translation: [2.8194337, 0.18382904, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
     MeshComponent:
-      MeshHandle: 15820547820878671379
+      MeshHandle: 5167341531803886550
       MemoryOnly: true
       MemoryMeshType: 2
       SubmeshMaterials:
@@ -226,8 +184,10 @@ Entities:
       Translation: [0, -1.0018437, 0]
       Rotation: [0, 0, 0]
       Scale: [13.551621, 0.97, 18.211987]
+    RelationshipComponent:
+      Parent: 0
     MeshComponent:
-      MeshHandle: 12935798228328963182
+      MeshHandle: 9181784565985351766
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:
@@ -250,9 +210,11 @@ Entities:
     TagComponent:
       Tag: spot light
     TransformComponent:
-      Translation: [1.660531, 1.3044844, -7.821496]
-      Rotation: [0.7737189, -0.024697999, -0.011934972]
+      Translation: [-0.06414588, 1.1051359, 0.32510567]
+      Rotation: [2.4639835, -0.50594014, -0.6750179]
       Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 7766008736096880684
     SpotLightComponent:
       Color: [0.980695, 0, 0.97690904]
       Intensity: 100
@@ -266,8 +228,10 @@ Entities:
       Translation: [1.9555454, 0.9692451, -9.313226e-10]
       Rotation: [-1.0521061, -0.066733666, -0.50968736]
       Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
     MeshComponent:
-      MeshHandle: 6332566706916854747
+      MeshHandle: 776437426485880850
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:
@@ -293,6 +257,8 @@ Entities:
       Translation: [3.1869366, 2.0007553, -0.68982375]
       Rotation: [0, -0, 0]
       Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
     PointLightComponent:
       Color: [0.03826713, 0.31169114, 0.5830116]
       Intensity: 72.7
@@ -307,28 +273,47 @@ Entities:
       Translation: [3.1233368, 5.75163, 16.821674]
       Rotation: [-0.27963534, 0.26371697, -0.12964292]
       Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
     DirectionalLightComponent:
       Color: [1, 1, 1]
       Intensity: 16.5
       MainLight: true
-  - Entity: 18415657991614262539
+  - Entity: 7766008736096880684
     TagComponent:
-      Tag: camera
+      Tag: player
     TransformComponent:
-      Translation: [0.044423252, 0.87281716, 12.325645]
-      Rotation: [-0.043352365, -0, 0]
+      Translation: [0, 2.2590547, 3.840527]
+      Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    CameraComponent:
-      Camera:
-        ProjectionType: 1
-        PerspectiveFOV: 0.7853982
-        PerspectiveNear: 0.01
-        PerspectiveFar: 100
-        OrthographicSize: 10
-        OrthographicNear: -100
-        OrthographicFar: 100
-      Primary: true
-      FixedAspectRatio: false
+    RelationshipComponent:
+      Parent: 0
+      Children:
+        - 7383789325647833737
+    MeshComponent:
+      MeshHandle: 12611280383247943165
+      MemoryOnly: true
+      MemoryMeshType: 4
+      SubmeshMaterials:
+        - 0
+    Rigidbody3DComponent:
+      BodyType: 1
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: true
+    CapsuleCollider3DComponent:
+      Offset: [0, 0, 0]
+      Radius: 0.5
+      Height: 1.5
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+    ScriptContainerComponent:
+      ScriptClassNames:
+        - Sandbox.Rigidbody3DController
   - Entity: 18083371750882497292
     TagComponent:
       Tag: point light 2
@@ -336,6 +321,8 @@ Entities:
       Translation: [-4.7412004, 1.7948608, 5.8732452]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
     PointLightComponent:
       Color: [1, 0, 0]
       Intensity: 3.5
@@ -350,8 +337,10 @@ Entities:
       Translation: [-1.0929974, 2.0921743, -6.1020255e-05]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
     MeshComponent:
-      MeshHandle: 14025940910208322206
+      MeshHandle: 17622133627659207822
       MemoryOnly: true
       MemoryMeshType: 2
       SubmeshMaterials:
@@ -372,16 +361,18 @@ Entities:
       IsTrigger: false
     ScriptContainerComponent:
       ScriptClassNames:
-        - Sandbox.Rigidbody3DController
+        []
   - Entity: 16359830582008765442
     TagComponent:
       Tag: plastic
     TransformComponent:
-      Translation: [-3.5680768, -1.4901161e-08, 0]
+      Translation: [-3.5680768, -1.4901161e-08, 4.0046835]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
     MeshComponent:
-      MeshHandle: 12249008135424519438
+      MeshHandle: 16745815648755531482
       MemoryOnly: true
       MemoryMeshType: 2
       SubmeshMaterials:
@@ -400,33 +391,61 @@ Entities:
       Friction: 0.5
       Restitution: 0.46
       IsTrigger: false
-  - Entity: 7766008736096880684
+  - Entity: 10139158754110202851
     TagComponent:
-      Tag: player
+      Tag: wall 2
     TransformComponent:
-      Translation: [0, 2.2590547, 3.840527]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
+      Translation: [-0.0005995622, 0.3645451, 9.006407]
+      Rotation: [0, 1.5707964, 0]
+      Scale: [0.37353736, 2.8487284, 13.702467]
+    RelationshipComponent:
+      Parent: 0
     MeshComponent:
-      MeshHandle: 12731074190664328195
+      MeshHandle: 9057359923594760681
       MemoryOnly: true
-      MemoryMeshType: 4
+      MemoryMeshType: 1
       SubmeshMaterials:
-        - 0
+        - 5408214026406282778
     Rigidbody3DComponent:
-      BodyType: 1
+      BodyType: 0
       Mass: 1
       LinearDamping: 0.01
       AngularDamping: 0.05
       UseGravity: true
-      FixedRotation: true
+      FixedRotation: false
     BoxCollider3DComponent:
       Offset: [0, 0, 0]
       Size: [0.5, 0.5, 0.5]
       Density: 1
       Friction: 0.5
-      Restitution: 0
+      Restitution: 0.8
       IsTrigger: false
-    ScriptContainerComponent:
-      ScriptClassNames:
-        - Sandbox.Rigidbody3DController
+  - Entity: 15306825668339658938
+    TagComponent:
+      Tag: wall 2
+    TransformComponent:
+      Translation: [5.2036095, 0.9882413, -2.9040833]
+      Rotation: [-3.094508e-08, -0.27261057, 1.5707968]
+      Scale: [0.37353736, 2.8487284, 13.702467]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 15300042989515670565
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 5408214026406282778
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0.8
+      IsTrigger: false

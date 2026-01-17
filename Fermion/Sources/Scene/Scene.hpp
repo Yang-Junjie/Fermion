@@ -10,19 +10,22 @@
 #include "Components.hpp"
 #include <box2d/box2d.h>
 
-namespace Fermion {
+namespace Fermion
+{
     class Entity;
     class SceneRenderer;
     class Physics3DWorld;
 
-    struct PointLight {
+    struct PointLight
+    {
         glm::vec3 position = {0.0f, 0.0f, 0.0f};
         glm::vec3 color{1.0f, 1.0f, 1.0f};
         float intensity = 1.0f;
         float range = 10.0f;
     };
 
-    struct SpotLight {
+    struct SpotLight
+    {
         glm::vec3 position = {0.0f, 0.0f, 0.0f};
         glm::vec3 direction{0.0f, -1.0f, 0.0f};
 
@@ -35,19 +38,22 @@ namespace Fermion {
         float outerConeAngle = glm::radians(25.0f);
     };
 
-    struct DirectionalLight {
+    struct DirectionalLight
+    {
         glm::vec3 direction{0.0f, -1.0f, 0.0f};
         glm::vec3 color{1.0f, 1.0f, 1.0f};
         float intensity = 1.0f;
     };
 
-    struct EnvironmentLight {
+    struct EnvironmentLight
+    {
         DirectionalLight directionalLight;
         std::vector<PointLight> pointLights;
         std::vector<SpotLight> spotLights;
     };
 
-    class Scene {
+    class Scene
+    {
     public:
         Scene();
 
@@ -71,53 +77,50 @@ namespace Fermion {
         void onViewportResize(uint32_t width, uint32_t height);
 
         Entity createEntity(std::string name = std::string());
+        Entity createChildEntity(Entity parent, std::string name = std::string());
         Entity createEntityWithUUID(UUID uuid, std::string name = std::string());
 
         void destroyEntity(Entity entity);
         Entity duplicateEntity(Entity entity);
         Entity findEntityByName(std::string_view name);
         Entity getEntityByUUID(UUID uuid);
-
-        uint32_t getViewportWidth() const {
-            return m_viewportWidth;
-        }
-
-        uint32_t getViewportHeight() const {
-            return m_viewportHeight;
-        }
-
         Entity getPrimaryCameraEntity();
+        Entity tryGetEntityByUUID(UUID uuid);
 
-        bool isRunning() const {
-            return m_isRunning;
-        }
+        glm::mat4 getWorldSpaceTransformMatrix(Entity entity);
+        TransformComponent getWorldSpaceTransform(Entity entity);
+        void convertToWorldSpace(Entity entity);
+        void convertToLocalSpace(Entity entity);
 
-        bool isPaused() const {
-            return m_isPaused;
-        }
+        uint32_t getViewportWidth() const { return m_viewportWidth; }
+        uint32_t getViewportHeight() const { return m_viewportHeight; }
 
-        void setPaused(bool paused) {
-            m_isPaused = paused;
-        }
+        bool isRunning() const { return m_isRunning; }
+        bool isPaused() const { return m_isPaused; }
+        void setPaused(bool paused) { m_isPaused = paused; }
 
         void step(int frames = 1);
 
-        template<typename... Components>
-        auto getAllEntitiesWith() {
+        template <typename... Components>
+        auto getAllEntitiesWith()
+        {
             return m_registry.view<Components...>();
         }
 
         void initPhysicsSensor(Entity entity);
 
-        b2WorldId getPhysicsWorld() const {
+        b2WorldId getPhysicsWorld() const
+        {
             return m_physicsWorld;
         }
 
-        bool isPhysicsWorldValid() const {
+        bool isPhysicsWorldValid() const
+        {
             return B2_IS_NON_NULL(m_physicsWorld);
         }
 
-        Physics3DWorld *getPhysicsWorld3D() const {
+        Physics3DWorld *getPhysicsWorld3D() const
+        {
             return m_physicsWorld3D.get();
         }
 
@@ -141,7 +144,7 @@ namespace Fermion {
         b2WorldId m_physicsWorld = b2_nullWorldId;
 
         bool m_hasDirectionalLight = false;
-        std::shared_ptr<Texture2D> m_lightTexture = nullptr,m_cameraTexture = nullptr;
+        std::shared_ptr<Texture2D> m_lightTexture = nullptr, m_cameraTexture = nullptr;
         std::unordered_map<UUID, entt::entity> m_entityMap;
         std::unordered_map<UUID, b2BodyId> m_physicsBodyMap;
 

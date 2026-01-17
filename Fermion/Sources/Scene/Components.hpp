@@ -8,6 +8,7 @@
 #include "Renderer/Camera/SceneCamera.hpp"
 #include "Renderer/Font/Font.hpp"
 #include "Asset/Asset.hpp"
+#include "Math/Math.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -28,7 +29,16 @@ namespace Fermion
         {
         }
     };
+    struct RelationshipComponent
+    {
+        UUID parentHandle = 0;
+        std::vector<UUID> children;
 
+        RelationshipComponent() = default;
+        RelationshipComponent(const RelationshipComponent &other) = default;
+        RelationshipComponent(UUID parent)
+            : parentHandle(parent) {}
+    };
     struct TagComponent
     {
         std::string tag;
@@ -56,6 +66,11 @@ namespace Fermion
         }
 
         TransformComponent(const TransformComponent &transform) = default;
+
+        void setTransform(const glm::mat4 &transform)
+        {
+            Math::decomposeTransform(transform, translation, rotation, scale);
+        }
 
         glm::vec3 getRotationEuler() const
         {
@@ -418,7 +433,7 @@ namespace Fermion
 
     using AllComponents =
         ComponentGroup<
-            TransformComponent, SpriteRendererComponent, MeshComponent,
+            TransformComponent, SpriteRendererComponent, MeshComponent, RelationshipComponent,
             CircleRendererComponent,
             CameraComponent,
             ScriptComponent,

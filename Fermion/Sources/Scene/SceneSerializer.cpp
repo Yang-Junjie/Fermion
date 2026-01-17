@@ -39,6 +39,21 @@ namespace Fermion
             out << YAML::Key << "Scale" << YAML::Value << tc.scale;
             out << YAML::EndMap;
         }
+        if (entity.hasComponent<RelationshipComponent>())
+        {
+            out << YAML::Key << "RelationshipComponent";
+            out << YAML::BeginMap;
+            auto &rc = entity.getComponent<RelationshipComponent>();
+            out << YAML::Key << "Parent" << YAML::Value << static_cast<uint64_t>(rc.parentHandle);
+            if (!rc.children.empty())
+            {
+                out << YAML::Key << "Children" << YAML::Value << YAML::BeginSeq;
+                for (const UUID &child : rc.children)
+                    out << static_cast<uint64_t>(child);
+                out << YAML::EndSeq;
+            }
+            out << YAML::EndMap;
+        }
         if (entity.hasComponent<SpriteRendererComponent>())
         {
             out << YAML::Key << "SpriteRendererComponent";
@@ -360,6 +375,20 @@ namespace Fermion
                         tc.setRotationEuler(n.as<glm::vec3>());
                     if (auto n = transformComponent["Scale"]; n)
                         tc.scale = n.as<glm::vec3>();
+                }
+
+                auto relationshipComponent = entity["RelationshipComponent"];
+                if (relationshipComponent && relationshipComponent.IsMap())
+                {
+                    auto &rc = deserializedEntity.getComponent<RelationshipComponent>();
+                    if (auto n = relationshipComponent["Parent"]; n)
+                        rc.parentHandle = UUID(n.as<uint64_t>());
+                    if (auto n = relationshipComponent["Children"]; n && n.IsSequence())
+                    {
+                        rc.children.clear();
+                        for (auto childNode : n)
+                            rc.children.emplace_back(UUID(childNode.as<uint64_t>()));
+                    }
                 }
 
                 auto spriteRendererComponent = entity["SpriteRendererComponent"];

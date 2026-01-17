@@ -282,7 +282,7 @@ namespace Fermion {
         for (auto entityID: view) {
             Entity entity{entityID, scene};
             auto &rb = view.get<Rigidbody3DComponent>(entityID);
-            auto &transform = view.get<TransformComponent>(entityID);
+            TransformComponent worldTransform = scene->getWorldSpaceTransform(entity);
             
             // Determine which collider type to use (prioritize BoxCollider, then CapsuleCollider, then CircleCollider)
             JPH::ShapeRefC shape;
@@ -293,7 +293,7 @@ namespace Fermion {
             
             if (entity.hasComponent<BoxCollider3DComponent>()) {
                 const auto &collider = entity.getComponent<BoxCollider3DComponent>();
-                shape = CreateBoxShape(transform, &collider);
+                shape = CreateBoxShape(worldTransform, &collider);
                 offset = collider.offset;
                 friction = collider.friction;
                 restitution = collider.restitution;
@@ -301,7 +301,7 @@ namespace Fermion {
             }
             else if (entity.hasComponent<CapsuleCollider3DComponent>()) {
                 const auto &collider = entity.getComponent<CapsuleCollider3DComponent>();
-                shape = CreateCapsuleShape(transform, &collider);
+                shape = CreateCapsuleShape(worldTransform, &collider);
                 offset = collider.offset;
                 friction = collider.friction;
                 restitution = collider.restitution;
@@ -309,7 +309,7 @@ namespace Fermion {
             }
             else if (entity.hasComponent<CircleCollider3DComponent>()) {
                 const auto &collider = entity.getComponent<CircleCollider3DComponent>();
-                shape = CreateSphereShape(transform, &collider);
+                shape = CreateSphereShape(worldTransform, &collider);
                 offset = collider.offset;
                 friction = collider.friction;
                 restitution = collider.restitution;
@@ -323,9 +323,9 @@ namespace Fermion {
             if (!shape)
                 continue;
 
-            glm::quat rotationQuat = glm::quat(transform.getRotationEuler());
+            glm::quat rotationQuat = glm::quat(worldTransform.getRotationEuler());
             glm::vec3 worldOffset = rotationQuat * offset;
-            glm::vec3 bodyPosition = transform.translation + worldOffset;
+            glm::vec3 bodyPosition = worldTransform.translation + worldOffset;
 
             bool isStatic = rb.type == Rigidbody3DComponent::BodyType::Static;
             JPH::BodyCreationSettings bodySettings(shape, ToJoltVec3(bodyPosition), ToJoltQuat(rotationQuat),
@@ -412,10 +412,9 @@ namespace Fermion {
                 if (!bodyInterface.IsAdded(bodyID))
                     continue;
 
-                auto &transform = view.get<TransformComponent>(entityID);
-                glm::quat rotationQuat = glm::quat(transform.getRotationEuler());
-
                 Entity entity{entityID, scene};
+                TransformComponent worldTransform = scene->getWorldSpaceTransform(entity);
+                glm::quat rotationQuat = glm::quat(worldTransform.getRotationEuler());
                 glm::vec3 offset{0.0f};
                 if (entity.hasComponent<BoxCollider3DComponent>()) {
                     offset = entity.getComponent<BoxCollider3DComponent>().offset;
@@ -427,7 +426,7 @@ namespace Fermion {
                     offset = entity.getComponent<CircleCollider3DComponent>().offset;
                 }
                 glm::vec3 worldOffset = rotationQuat * offset;
-                glm::vec3 bodyPosition = transform.translation + worldOffset;
+                glm::vec3 bodyPosition = worldTransform.translation + worldOffset;
 
                 if (deltaTime > 0.0f) {
                     bodyInterface.MoveKinematic(bodyID, ToJoltVec3(bodyPosition), ToJoltQuat(rotationQuat), deltaTime);
@@ -473,9 +472,13 @@ namespace Fermion {
             }
             glm::vec3 worldOffset = rotation * offset;
 
+            TransformComponent worldTransform = scene->getWorldSpaceTransform(entity);
+            worldTransform.translation = position - worldOffset;
+            worldTransform.setRotationEuler(glm::eulerAngles(rotation));
+
             auto &transform = view.get<TransformComponent>(entityID);
-            transform.translation = position - worldOffset;
-            transform.setRotationEuler(glm::eulerAngles(rotation));
+            transform.setTransform(worldTransform.getTransform());
+            scene->convertToLocalSpace(entity);
         }
     }
 } // namespace Fermion

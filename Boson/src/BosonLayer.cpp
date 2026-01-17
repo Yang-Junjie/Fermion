@@ -700,7 +700,7 @@ namespace Fermion
             const glm::mat4 &cameraView = m_editorCamera.getViewMatrix();
             // Entity
             auto &transformComponent = selectedEntity.getComponent<TransformComponent>();
-            glm::mat4 transform = transformComponent.getTransform();
+            glm::mat4 worldTransform = m_activeScene->getWorldSpaceTransformMatrix(selectedEntity);
 
             bool snap = Input::isKeyPressed(KeyCode::LeftAlt);
             float snapValue = 0.5f;
@@ -709,13 +709,21 @@ namespace Fermion
 
             float snapValues[3] = {snapValue, snapValue, snapValue};
             ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
-                                 (ImGuizmo::OPERATION)m_gizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform), nullptr,
+                                 (ImGuizmo::OPERATION)m_gizmoType, ImGuizmo::LOCAL, glm::value_ptr(worldTransform), nullptr,
                                  snap ? snapValues : nullptr);
 
             if (ImGuizmo::IsUsing())
             {
+                glm::mat4 localTransform = worldTransform;
+                Entity parent = m_activeScene->tryGetEntityByUUID(selectedEntity.getParentUUID());
+                if (parent)
+                {
+                    glm::mat4 parentTransform = m_activeScene->getWorldSpaceTransformMatrix(parent);
+                    localTransform = glm::inverse(parentTransform) * worldTransform;
+                }
+
                 glm::vec3 translation, rotation, scale;
-                Math::decomposeTransform(transform, translation, rotation, scale);
+                Math::decomposeTransform(localTransform, translation, rotation, scale);
 
                 switch ((ImGuizmo::OPERATION)m_gizmoType)
                 {
@@ -851,19 +859,29 @@ namespace Fermion
 
     void BosonLayer::renderPhysics2DColliders() const
     {
+        auto getParentTransform = [&](Entity entity)
+        {
+            Entity parent = m_activeScene->tryGetEntityByUUID(entity.getParentUUID());
+            if (parent)
+                return m_activeScene->getWorldSpaceTransformMatrix(parent);
+            return glm::mat4(1.0f);
+        };
+
         // Box Colliders
         {
             auto view = m_activeScene->getAllEntitiesWith<TransformComponent, BoxCollider2DComponent>();
             for (auto entity : view)
             {
+                Entity colliderEntity{entity, m_activeScene.get()};
                 auto [tc, bc2d] = view.get<TransformComponent, BoxCollider2DComponent>(entity);
 
                 glm::vec3 translation = tc.translation + glm::vec3(bc2d.offset, 0.001f);
                 glm::vec3 scale = tc.scale * glm::vec3(bc2d.size * 2.0f, 1.0f);
 
-                glm::mat4 transform = glm::translate(glm::mat4(1.0f), tc.translation) *
-                                      glm::rotate(glm::mat4(1.0f), tc.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) *
-                                      glm::translate(glm::mat4(1.0f), glm::vec3(bc2d.offset, 0.001f)) * glm::scale(glm::mat4(1.0f), scale);
+                glm::mat4 localTransform = glm::translate(glm::mat4(1.0f), tc.translation) *
+                                           glm::rotate(glm::mat4(1.0f), tc.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) *
+                                           glm::translate(glm::mat4(1.0f), glm::vec3(bc2d.offset, 0.001f)) * glm::scale(glm::mat4(1.0f), scale);
+                glm::mat4 transform = getParentTransform(colliderEntity) * localTransform;
 
                 m_viewportRenderer->drawRect(transform, glm::vec4(0, 1, 0, 1));
             }
@@ -874,14 +892,16 @@ namespace Fermion
             auto view = m_activeScene->getAllEntitiesWith<TransformComponent, CircleCollider2DComponent>();
             for (auto entity : view)
             {
+                Entity colliderEntity{entity, m_activeScene.get()};
                 auto [tc, cc2d] = view.get<TransformComponent, CircleCollider2DComponent>(entity);
 
                 // 单位 quad 半径 0.5 * scale.x = cc2d.radius * tc.scale.x
                 glm::vec3 scale = tc.scale * glm::vec3(cc2d.radius * 2.0f, cc2d.radius * 2.0f, 1.0f);
 
                 // 先平移到实体，再旋转，再平移 offset，再缩放
-                glm::mat4 transform =
+                glm::mat4 localTransform =
                     glm::translate(glm::mat4(1.0f), tc.translation) * glm::rotate(glm::mat4(1.0f), tc.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(cc2d.offset, 0.001f)) * glm::scale(glm::mat4(1.0f), scale);
+                glm::mat4 transform = getParentTransform(colliderEntity) * localTransform;
 
                 m_viewportRenderer->drawCircle(transform, glm::vec4(0, 1, 0, 1), 0.1f);
             }
@@ -896,9 +916,10 @@ namespace Fermion
                 glm::vec3 translation = tc.translation + glm::vec3(bs2d.offset, 0.001f);
                 glm::vec3 scale = tc.scale * glm::vec3(bs2d.size * 2.0f, 1.0f);
 
-                glm::mat4 transform = glm::translate(glm::mat4(1.0f), tc.translation) *
-                                      glm::rotate(glm::mat4(1.0f), tc.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) *
-                                      glm::translate(glm::mat4(1.0f), glm::vec3(bs2d.offset, 0.001f)) * glm::scale(glm::mat4(1.0f), scale);
+                glm::mat4 localTransform = glm::translate(glm::mat4(1.0f), tc.translation) *
+                                           glm::rotate(glm::mat4(1.0f), tc.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) *
+                                           glm::translate(glm::mat4(1.0f), glm::vec3(bs2d.offset, 0.001f)) * glm::scale(glm::mat4(1.0f), scale);
+                glm::mat4 transform = getParentTransform(sensor) * localTransform;
 
                 m_viewportRenderer->drawRect(transform, glm::vec4(0, 1, 1, 1));
             }
@@ -912,6 +933,33 @@ namespace Fermion
         constexpr float kMinRadius = 0.001f;
         constexpr float kMinHalfHeight = 0.001f;
         const glm::vec4 collider3DColor{0.0f, 1.0f, 0.0f, 1.0f};
+
+        auto getParentTransform = [&](Entity entity)
+        {
+            Entity parent = m_activeScene->tryGetEntityByUUID(entity.getParentUUID());
+            if (parent)
+                return m_activeScene->getWorldSpaceTransformMatrix(parent);
+            return glm::mat4(1.0f);
+        };
+
+        auto getParentRotationScale = [&](Entity entity, glm::mat3 &rotation, glm::vec3 &scale)
+        {
+            glm::mat4 parentTransform = getParentTransform(entity);
+            glm::mat3 basis = glm::mat3(parentTransform);
+
+            scale = {
+                glm::length(basis[0]),
+                glm::length(basis[1]),
+                glm::length(basis[2])};
+
+            rotation = glm::mat3(1.0f);
+            if (scale.x > 0.0f)
+                rotation[0] = basis[0] / scale.x;
+            if (scale.y > 0.0f)
+                rotation[1] = basis[1] / scale.y;
+            if (scale.z > 0.0f)
+                rotation[2] = basis[2] / scale.z;
+        };
 
         auto drawArc = [&](const glm::vec3 &center, const glm::vec3 &axisA, const glm::vec3 &axisB, float radius,
                            float startAngle, float endAngle, int segments, const glm::vec4 &color)
@@ -973,14 +1021,16 @@ namespace Fermion
             auto view = m_activeScene->getAllEntitiesWith<TransformComponent, BoxCollider3DComponent>();
             for (auto entity : view)
             {
+                Entity colliderEntity{entity, m_activeScene.get()};
                 auto [tc, bc3d] = view.get<TransformComponent, BoxCollider3DComponent>(entity);
 
                 glm::mat4 rotation = glm::toMat4(glm::quat(tc.rotation));
                 glm::vec3 scale = tc.scale * (bc3d.size * 2.0f);
-                glm::mat4 transform = glm::translate(glm::mat4(1.0f), tc.translation) *
-                                      rotation *
-                                      glm::translate(glm::mat4(1.0f), bc3d.offset) *
-                                      glm::scale(glm::mat4(1.0f), scale);
+                glm::mat4 localTransform = glm::translate(glm::mat4(1.0f), tc.translation) *
+                                           rotation *
+                                           glm::translate(glm::mat4(1.0f), bc3d.offset) *
+                                           glm::scale(glm::mat4(1.0f), scale);
+                glm::mat4 transform = getParentTransform(colliderEntity) * localTransform;
 
                 drawBox(transform, collider3DColor);
             }
@@ -991,18 +1041,27 @@ namespace Fermion
             auto view = m_activeScene->getAllEntitiesWith<TransformComponent, CircleCollider3DComponent>();
             for (auto entity : view)
             {
+                Entity colliderEntity{entity, m_activeScene.get()};
                 auto [tc, cc3d] = view.get<TransformComponent, CircleCollider3DComponent>(entity);
 
-                glm::quat rotation = glm::quat(tc.rotation);
-                glm::vec3 center = tc.translation + rotation * cc3d.offset;
-                float maxScale = std::max(tc.scale.x, std::max(tc.scale.y, tc.scale.z));
+                glm::mat3 parentRotation;
+                glm::vec3 parentScale;
+                getParentRotationScale(colliderEntity, parentRotation, parentScale);
+
+                glm::mat3 localRotation = glm::toMat3(glm::quat(tc.rotation));
+                glm::mat3 worldRotation = parentRotation * localRotation;
+                glm::vec3 worldScale = parentScale * tc.scale;
+
+                glm::vec3 localCenter = tc.translation + (localRotation * cc3d.offset);
+                glm::vec3 center = getParentTransform(colliderEntity) * glm::vec4(localCenter, 1.0f);
+                float maxScale = std::max(worldScale.x, std::max(worldScale.y, worldScale.z));
                 float radius = cc3d.radius * maxScale;
                 if (radius <= 0.0f)
                     continue;
 
-                glm::vec3 right = rotation * glm::vec3(1.0f, 0.0f, 0.0f);
-                glm::vec3 up = rotation * glm::vec3(0.0f, 1.0f, 0.0f);
-                glm::vec3 forward = rotation * glm::vec3(0.0f, 0.0f, 1.0f);
+                glm::vec3 right = worldRotation * glm::vec3(1.0f, 0.0f, 0.0f);
+                glm::vec3 up = worldRotation * glm::vec3(0.0f, 1.0f, 0.0f);
+                glm::vec3 forward = worldRotation * glm::vec3(0.0f, 0.0f, 1.0f);
 
                 drawCircle(center, right, up, radius, collider3DColor);
                 drawCircle(center, right, forward, radius, collider3DColor);
@@ -1015,14 +1074,23 @@ namespace Fermion
             auto view = m_activeScene->getAllEntitiesWith<TransformComponent, CapsuleCollider3DComponent>();
             for (auto entity : view)
             {
+                Entity colliderEntity{entity, m_activeScene.get()};
                 auto [tc, cap3d] = view.get<TransformComponent, CapsuleCollider3DComponent>(entity);
 
-                glm::quat rotation = glm::quat(tc.rotation);
-                glm::vec3 center = tc.translation + rotation * cap3d.offset;
+                glm::mat3 parentRotation;
+                glm::vec3 parentScale;
+                getParentRotationScale(colliderEntity, parentRotation, parentScale);
 
-                float radiusScale = std::max(tc.scale.x, tc.scale.z);
+                glm::mat3 localRotation = glm::toMat3(glm::quat(tc.rotation));
+                glm::mat3 worldRotation = parentRotation * localRotation;
+                glm::vec3 worldScale = parentScale * tc.scale;
+
+                glm::vec3 localCenter = tc.translation + (localRotation * cap3d.offset);
+                glm::vec3 center = getParentTransform(colliderEntity) * glm::vec4(localCenter, 1.0f);
+
+                float radiusScale = std::max(worldScale.x, worldScale.z);
                 float scaledRadius = cap3d.radius * radiusScale;
-                float scaledHeight = cap3d.height * tc.scale.y;
+                float scaledHeight = cap3d.height * worldScale.y;
 
                 if (scaledRadius < kMinRadius)
                     scaledRadius = kMinRadius;
@@ -1032,9 +1100,9 @@ namespace Fermion
                 if (halfCylinderHeight < kMinHalfHeight)
                     halfCylinderHeight = kMinHalfHeight;
 
-                glm::vec3 right = rotation * glm::vec3(1.0f, 0.0f, 0.0f);
-                glm::vec3 up = rotation * glm::vec3(0.0f, 1.0f, 0.0f);
-                glm::vec3 forward = rotation * glm::vec3(0.0f, 0.0f, 1.0f);
+                glm::vec3 right = worldRotation * glm::vec3(1.0f, 0.0f, 0.0f);
+                glm::vec3 up = worldRotation * glm::vec3(0.0f, 1.0f, 0.0f);
+                glm::vec3 forward = worldRotation * glm::vec3(0.0f, 0.0f, 1.0f);
 
                 glm::vec3 topCenter = center + up * halfCylinderHeight;
                 glm::vec3 bottomCenter = center - up * halfCylinderHeight;
@@ -1064,15 +1132,15 @@ namespace Fermion
     {
         if (Entity selectedEntity = m_sceneHierarchyPanel.getSelectedEntity(); selectedEntity)
         {
-            const TransformComponent &transform = selectedEntity.getComponent<TransformComponent>();
+            glm::mat4 worldTransform = m_activeScene->getWorldSpaceTransformMatrix(selectedEntity);
             if (selectedEntity.hasComponent<MeshComponent>())
             {
                 m_viewportRenderer->submitMesh(selectedEntity.getComponent<MeshComponent>(),
-                                               transform.getTransform(), -1, true);
+                                               worldTransform, -1, true);
             }
             else
             {
-                m_viewportRenderer->drawRect(transform.getTransform(), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+                m_viewportRenderer->drawRect(worldTransform, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
             }
         }
     }

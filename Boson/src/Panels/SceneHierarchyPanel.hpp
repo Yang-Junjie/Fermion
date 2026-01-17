@@ -24,6 +24,7 @@ namespace Fermion {
 
     private:
         void drawEntityNode(Entity entity);
+        bool isDescendant(Entity entity, Entity potentialAncestor) const;
 
         // void drawComponents(Entity entity);
         // template <typename T>

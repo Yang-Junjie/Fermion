@@ -10,6 +10,7 @@
 #include "Script/ScriptManager.hpp"
 #include <glm/glm.hpp>
 #include "Core/Log.hpp"
+#include "Scene.hpp"
 
 namespace Fermion
 {
@@ -140,11 +141,11 @@ namespace Fermion
 
     void Scene::initPhysicsSensor(Entity entity)
     {
-        auto &transform = entity.getComponent<TransformComponent>();
+        TransformComponent worldTransform = getWorldSpaceTransform(entity);
         auto &boxSensor2d = entity.getComponent<BoxSensor2DComponent>();
 
-        float halfWidth = boxSensor2d.size.x * transform.scale.x;
-        float halfHeight = boxSensor2d.size.y * transform.scale.y;
+        float halfWidth = boxSensor2d.size.x * worldTransform.scale.x;
+        float halfHeight = boxSensor2d.size.y * worldTransform.scale.y;
 
         b2ShapeDef shapeDef = b2DefaultShapeDef();
         shapeDef.isSensor = true;
@@ -170,13 +171,13 @@ namespace Fermion
         for (auto e : view)
         {
             Entity entity{e, this};
-            auto &transform = entity.getComponent<TransformComponent>();
+            TransformComponent worldTransform = getWorldSpaceTransform(entity);
             auto &rb2d = entity.getComponent<Rigidbody2DComponent>();
 
             b2BodyDef bodyDef = b2DefaultBodyDef();
             bodyDef.type = Utils::Rigidbody2DTypeToBox2DBody(rb2d.type);
-            bodyDef.position = {transform.translation.x, transform.translation.y};
-            bodyDef.rotation = b2MakeRot(transform.rotation.z);
+            bodyDef.position = {worldTransform.translation.x, worldTransform.translation.y};
+            bodyDef.rotation = b2MakeRot(worldTransform.rotation.z);
 
             b2BodyId bodyId = b2CreateBody(m_physicsWorld, &bodyDef);
             m_physicsBodyMap[entity.getUUID()] = bodyId;
@@ -193,8 +194,8 @@ namespace Fermion
             {
                 auto &bc2d = entity.getComponent<BoxCollider2DComponent>();
 
-                float halfWidth = bc2d.size.x * transform.scale.x;
-                float halfHeight = bc2d.size.y * transform.scale.y;
+                float halfWidth = bc2d.size.x * worldTransform.scale.x;
+                float halfHeight = bc2d.size.y * worldTransform.scale.y;
 
                 b2ShapeDef shapeDef = b2DefaultShapeDef();
                 // TODO : material component
@@ -225,10 +226,10 @@ namespace Fermion
                 b2Circle circle;
                 // offset 也按缩放来算，和可视 Transform 一致
                 circle.center = b2Vec2{
-                    cc2d.offset.x * transform.scale.x,
-                    cc2d.offset.y * transform.scale.y};
+                    cc2d.offset.x * worldTransform.scale.x,
+                    cc2d.offset.y * worldTransform.scale.y};
 
-                circle.radius = cc2d.radius * transform.scale.x;
+                circle.radius = cc2d.radius * worldTransform.scale.x;
 
                 b2ShapeId shapeId = b2CreateCircleShape(bodyId, &shapeDef, &circle);
                 cc2d.runtimeFixture = (void *)(uintptr_t)b2StoreShapeId(shapeId);
@@ -260,8 +261,9 @@ namespace Fermion
                 auto cameraView = m_registry.view<TransformComponent, CameraComponent>();
                 for (auto entity : cameraView)
                 {
-                    auto &transform = cameraView.get<TransformComponent>(entity);
-                    renderer->drawQuadBillboard(transform.translation, glm::vec2{1.0f, 1.0f}, m_cameraTexture, 1.0f,
+                    Entity sceneEntity{entity, this};
+                    TransformComponent worldTransform = getWorldSpaceTransform(sceneEntity);
+                    renderer->drawQuadBillboard(worldTransform.translation, glm::vec2{1.0f, 1.0f}, m_cameraTexture, 1.0f,
                                                 glm::vec4(1.0f), (int)entity);
                 }
             }
@@ -269,9 +271,10 @@ namespace Fermion
                 auto defaultView = m_registry.view<TransformComponent, MeshComponent>();
                 for (auto entity : defaultView)
                 {
-                    auto &transform = defaultView.get<TransformComponent>(entity);
                     auto &mesh = defaultView.get<MeshComponent>(entity);
-                    renderer->submitMesh(mesh, transform.getTransform(), (int)entity);
+                    Entity sceneEntity{entity, this};
+                    glm::mat4 worldTransform = getWorldSpaceTransformMatrix(sceneEntity);
+                    renderer->submitMesh(mesh, worldTransform, (int)entity);
                 }
             }
 
@@ -284,17 +287,18 @@ namespace Fermion
                 auto directionalLights = m_registry.group<DirectionalLightComponent>(entt::get<TransformComponent>);
                 for (auto entity : directionalLights)
                 {
-                    auto &transform = directionalLights.get<TransformComponent>(entity);
                     auto &directionalLight = directionalLights.get<DirectionalLightComponent>(entity);
+                    Entity sceneEntity{entity, this};
+                    TransformComponent worldTransform = getWorldSpaceTransform(sceneEntity);
                     if (directionalLight.mainLight)
                     {
                         m_environmentLight.directionalLight =
                             {
-                                .direction = -transform.getForward(),
+                                .direction = -worldTransform.getForward(),
                                 .color = directionalLight.color,
                                 .intensity = directionalLight.intensity};
                     }
-                    renderer->drawQuadBillboard(transform.translation, glm::vec2{1.0f, 1.0f}, m_lightTexture, 1.0f,
+                    renderer->drawQuadBillboard(worldTransform.translation, glm::vec2{1.0f, 1.0f}, m_lightTexture, 1.0f,
                                                 glm::vec4{directionalLight.color, 1.0f}, (int)entity);
                 }
             }
@@ -305,14 +309,15 @@ namespace Fermion
                 m_environmentLight.pointLights.reserve(pointLights.size());
                 for (auto entity : pointLights)
                 {
-                    auto &transform = pointLights.get<TransformComponent>(entity);
                     auto &pointLight = pointLights.get<PointLightComponent>(entity);
+                    Entity sceneEntity{entity, this};
+                    TransformComponent worldTransform = getWorldSpaceTransform(sceneEntity);
                     m_environmentLight.pointLights.push_back(
-                        {.position = transform.translation,
+                        {.position = worldTransform.translation,
                          .color = pointLight.color,
                          .intensity = pointLight.intensity,
                          .range = pointLight.range});
-                    renderer->drawQuadBillboard(transform.translation, glm::vec2{1.0f, 1.0f}, m_lightTexture, 1.0f,
+                    renderer->drawQuadBillboard(worldTransform.translation, glm::vec2{1.0f, 1.0f}, m_lightTexture, 1.0f,
                                                 glm::vec4{pointLight.color, 1.0f}, (int)entity);
                 }
             }
@@ -323,8 +328,9 @@ namespace Fermion
                 m_environmentLight.spotLights.reserve(spotLights.size());
                 for (auto entity : spotLights)
                 {
-                    auto &transform = spotLights.get<TransformComponent>(entity);
                     auto &spotLight = spotLights.get<SpotLightComponent>(entity);
+                    Entity sceneEntity{entity, this};
+                    TransformComponent worldTransform = getWorldSpaceTransform(sceneEntity);
 
                     float outerRad = glm::radians(spotLight.angle);
                     float innerRad = outerRad * (1.0f - spotLight.softness);
@@ -332,14 +338,14 @@ namespace Fermion
                     innerRad = glm::clamp(innerRad, 0.0f, outerRad - 0.001f);
 
                     m_environmentLight.spotLights.push_back(
-                        {.position = transform.translation,
-                         .direction = transform.getForward(),
+                        {.position = worldTransform.translation,
+                         .direction = worldTransform.getForward(),
                          .color = spotLight.color,
                          .intensity = spotLight.intensity,
                          .range = spotLight.range,
                          .innerConeAngle = glm::cos(innerRad),
                          .outerConeAngle = glm::cos(outerRad)});
-                    renderer->drawQuadBillboard(transform.translation, glm::vec2{1.0f, 1.0f}, m_lightTexture, 1.0f,
+                    renderer->drawQuadBillboard(worldTransform.translation, glm::vec2{1.0f, 1.0f}, m_lightTexture, 1.0f,
                                                 glm::vec4{spotLight.color, 1.0f}, (int)entity);
                 }
             }
@@ -348,18 +354,20 @@ namespace Fermion
                 auto group = m_registry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
                 for (auto entity : group)
                 {
-                    auto &transform = group.get<TransformComponent>(entity);
                     auto &sprite = group.get<SpriteRendererComponent>(entity);
-                    renderer->drawSprite(transform.getTransform(), sprite, (int)entity);
+                    Entity sceneEntity{entity, this};
+                    glm::mat4 worldTransform = getWorldSpaceTransformMatrix(sceneEntity);
+                    renderer->drawSprite(worldTransform, sprite, (int)entity);
                 }
             }
             {
                 auto group = m_registry.group<>(entt::get<TransformComponent, CircleRendererComponent>);
                 for (auto entity : group)
                 {
-                    auto &transform = group.get<TransformComponent>(entity);
                     auto &circle = group.get<CircleRendererComponent>(entity);
-                    renderer->drawCircle(transform.getTransform(), circle.color, circle.thickness, circle.fade,
+                    Entity sceneEntity{entity, this};
+                    glm::mat4 worldTransform = getWorldSpaceTransformMatrix(sceneEntity);
+                    renderer->drawCircle(worldTransform, circle.color, circle.thickness, circle.fade,
                                          (int)entity);
                 }
             }
@@ -367,9 +375,10 @@ namespace Fermion
                 auto group = m_registry.group<>(entt::get<TransformComponent, TextComponent>);
                 for (auto entity : group)
                 {
-                    auto &transform = group.get<TransformComponent>(entity);
                     auto &text = group.get<TextComponent>(entity);
-                    renderer->drawString(text.textString, transform.getTransform(), text, (int)entity);
+                    Entity sceneEntity{entity, this};
+                    glm::mat4 worldTransform = getWorldSpaceTransformMatrix(sceneEntity);
+                    renderer->drawString(text.textString, worldTransform, text, (int)entity);
                 }
             }
         }
@@ -410,6 +419,30 @@ namespace Fermion
             {
                 if (B2_IS_NON_NULL(m_physicsWorld))
                 {
+                    {
+                        auto view = m_registry.view<Rigidbody2DComponent>();
+                        for (auto e : view)
+                        {
+                            Entity entity{e, this};
+                            auto &rb2d = entity.getComponent<Rigidbody2DComponent>();
+                            if (rb2d.type != Rigidbody2DComponent::BodyType::Kinematic)
+                                continue;
+
+                            if (!rb2d.runtimeBody)
+                                continue;
+
+                            uint64_t storedId = (uint64_t)(uintptr_t)rb2d.runtimeBody;
+                            b2BodyId bodyId = b2LoadBodyId(storedId);
+                            if (!b2Body_IsValid(bodyId))
+                                continue;
+
+                            TransformComponent worldTransform = getWorldSpaceTransform(entity);
+                            b2Body_SetTransform(bodyId,
+                                                {worldTransform.translation.x, worldTransform.translation.y},
+                                                b2MakeRot(worldTransform.rotation.z));
+                        }
+                    }
+
                     b2World_Step(m_physicsWorld, ts.getSeconds(), 4);
                     b2SensorEvents sensorEvents = b2World_GetSensorEvents(m_physicsWorld);
                     {
@@ -455,7 +488,6 @@ namespace Fermion
                     for (auto e : view)
                     {
                         Entity entity{e, this};
-                        auto &transform = entity.getComponent<TransformComponent>();
                         auto &rb2d = entity.getComponent<Rigidbody2DComponent>();
 
                         if (!rb2d.runtimeBody)
@@ -468,11 +500,14 @@ namespace Fermion
 
                         b2Transform xf = b2Body_GetTransform(bodyId);
 
-                        transform.translation.x = xf.p.x;
-                        transform.translation.y = xf.p.y;
-
                         float angle = atan2f(xf.q.s, xf.q.c);
-                        transform.rotation.z = angle;
+                        TransformComponent worldTransform = getWorldSpaceTransform(entity);
+                        worldTransform.translation.x = xf.p.x;
+                        worldTransform.translation.y = xf.p.y;
+                        worldTransform.rotation.z = angle;
+                        auto &transform = entity.getComponent<TransformComponent>();
+                        transform.setTransform(worldTransform.getTransform());
+                        convertToLocalSpace(entity);
                     }
                 }
             }
@@ -493,6 +528,30 @@ namespace Fermion
         {
             if (B2_IS_NON_NULL(m_physicsWorld))
             {
+                {
+                    auto view = m_registry.view<Rigidbody2DComponent>();
+                    for (auto e : view)
+                    {
+                        Entity entity{e, this};
+                        auto &rb2d = entity.getComponent<Rigidbody2DComponent>();
+                        if (rb2d.type != Rigidbody2DComponent::BodyType::Kinematic)
+                            continue;
+
+                        if (!rb2d.runtimeBody)
+                            continue;
+
+                        uint64_t storedId = (uint64_t)(uintptr_t)rb2d.runtimeBody;
+                        b2BodyId bodyId = b2LoadBodyId(storedId);
+                        if (!b2Body_IsValid(bodyId))
+                            continue;
+
+                        TransformComponent worldTransform = getWorldSpaceTransform(entity);
+                        b2Body_SetTransform(bodyId,
+                                            {worldTransform.translation.x, worldTransform.translation.y},
+                                            b2MakeRot(worldTransform.rotation.z));
+                    }
+                }
+
                 b2World_Step(m_physicsWorld, ts.getSeconds(), 4);
                 b2SensorEvents sensorEvents = b2World_GetSensorEvents(m_physicsWorld);
                 {
@@ -538,7 +597,6 @@ namespace Fermion
                 for (auto e : view)
                 {
                     Entity entity{e, this};
-                    auto &transform = entity.getComponent<TransformComponent>();
                     auto &rb2d = entity.getComponent<Rigidbody2DComponent>();
 
                     if (!rb2d.runtimeBody)
@@ -551,11 +609,14 @@ namespace Fermion
 
                     b2Transform xf = b2Body_GetTransform(bodyId);
 
-                    transform.translation.x = xf.p.x;
-                    transform.translation.y = xf.p.y;
-
                     float angle = atan2f(xf.q.s, xf.q.c);
-                    transform.rotation.z = angle;
+                    TransformComponent worldTransform = getWorldSpaceTransform(entity);
+                    worldTransform.translation.x = xf.p.x;
+                    worldTransform.translation.y = xf.p.y;
+                    worldTransform.rotation.z = angle;
+                    auto &transform = entity.getComponent<TransformComponent>();
+                    transform.setTransform(worldTransform.getTransform());
+                    convertToLocalSpace(entity);
                 }
             }
         }
@@ -571,11 +632,10 @@ namespace Fermion
                 for (auto entity : view)
                 {
                     auto &camera = view.get<CameraComponent>(entity);
-                    auto &transform = view.get<TransformComponent>(entity);
                     if (camera.primary)
                     {
                         mainCamera = &camera.camera;
-                        cameraTransform = transform.getTransform();
+                        cameraTransform = getWorldSpaceTransformMatrix(Entity{entity, this});
                         break;
                     }
                 }
@@ -594,9 +654,10 @@ namespace Fermion
                         auto defaultView = m_registry.view<TransformComponent, MeshComponent>();
                         for (auto entity : defaultView)
                         {
-                            auto &transform = defaultView.get<TransformComponent>(entity);
                             auto &mesh = defaultView.get<MeshComponent>(entity);
-                            renderer->submitMesh(mesh, transform.getTransform(), (int)entity);
+                            Entity sceneEntity{entity, this};
+                            glm::mat4 worldTransform = getWorldSpaceTransformMatrix(sceneEntity);
+                            renderer->submitMesh(mesh, worldTransform, (int)entity);
                         }
                     }
                     // Directional Lights
@@ -605,13 +666,14 @@ namespace Fermion
                             entt::get<TransformComponent>);
                         for (auto entity : directionalLights)
                         {
-                            auto &transform = directionalLights.get<TransformComponent>(entity);
                             auto &directionalLight = directionalLights.get<DirectionalLightComponent>(entity);
+                            Entity sceneEntity{entity, this};
+                            TransformComponent worldTransform = getWorldSpaceTransform(sceneEntity);
                             if (directionalLight.mainLight)
                             {
                                 m_environmentLight.directionalLight =
                                     {
-                                        .direction = -transform.getForward(),
+                                        .direction = -worldTransform.getForward(),
                                         .color = directionalLight.color,
                                         .intensity = directionalLight.intensity};
                             }
@@ -624,10 +686,11 @@ namespace Fermion
                         m_environmentLight.pointLights.reserve(pointLights.size());
                         for (auto entity : pointLights)
                         {
-                            auto &transform = pointLights.get<TransformComponent>(entity);
                             auto &pointLight = pointLights.get<PointLightComponent>(entity);
+                            Entity sceneEntity{entity, this};
+                            TransformComponent worldTransform = getWorldSpaceTransform(sceneEntity);
                             m_environmentLight.pointLights.push_back(
-                                {.position = transform.translation,
+                                {.position = worldTransform.translation,
                                  .color = pointLight.color,
                                  .intensity = pointLight.intensity,
                                  .range = pointLight.range});
@@ -640,8 +703,9 @@ namespace Fermion
                         m_environmentLight.spotLights.reserve(spotLights.size());
                         for (auto entity : spotLights)
                         {
-                            auto &transform = spotLights.get<TransformComponent>(entity);
                             auto &spotLight = spotLights.get<SpotLightComponent>(entity);
+                            Entity sceneEntity{entity, this};
+                            TransformComponent worldTransform = getWorldSpaceTransform(sceneEntity);
 
                             float outerRad = glm::radians(spotLight.angle);
                             float innerRad = outerRad * (1.0f - spotLight.softness);
@@ -649,8 +713,8 @@ namespace Fermion
                             innerRad = glm::clamp(innerRad, 0.0f, outerRad - 0.001f);
 
                             m_environmentLight.spotLights.push_back(
-                                {.position = transform.translation,
-                                 .direction = transform.getForward(),
+                                {.position = worldTransform.translation,
+                                 .direction = worldTransform.getForward(),
                                  .color = spotLight.color,
                                  .intensity = spotLight.intensity,
                                  .range = spotLight.range,
@@ -665,19 +729,21 @@ namespace Fermion
                 auto group = m_registry.group<>(entt::get<TransformComponent, SpriteRendererComponent>);
                 for (auto entity : group)
                 {
-                    auto &transform = group.get<TransformComponent>(entity);
                     auto &sprite = group.get<SpriteRendererComponent>(entity);
 
-                    renderer->drawSprite(transform.getTransform(), sprite, (int)entity);
+                    Entity sceneEntity{entity, this};
+                    glm::mat4 worldTransform = getWorldSpaceTransformMatrix(sceneEntity);
+                    renderer->drawSprite(worldTransform, sprite, (int)entity);
                 }
             }
             {
                 auto group = m_registry.group<>(entt::get<TransformComponent, CircleRendererComponent>);
                 for (auto entity : group)
                 {
-                    auto &transform = group.get<TransformComponent>(entity);
                     auto &circle = group.get<CircleRendererComponent>(entity);
-                    renderer->drawCircle(transform.getTransform(), circle.color, circle.thickness, circle.fade,
+                    Entity sceneEntity{entity, this};
+                    glm::mat4 worldTransform = getWorldSpaceTransformMatrix(sceneEntity);
+                    renderer->drawCircle(worldTransform, circle.color, circle.thickness, circle.fade,
                                          (int)entity);
                 }
             }
@@ -739,19 +805,46 @@ namespace Fermion
         return createEntityWithUUID(UUID(), name);
     }
 
+    Entity Scene::createChildEntity(Entity parent, std::string name)
+    {
+        Entity entity = createEntity(name);
+        if (parent)
+            entity.setParent(parent);
+        return entity;
+    }
     Entity Scene::createEntityWithUUID(UUID uuid, std::string name)
     {
         Entity entity{m_registry.create(), this};
-        entity.addComponent<IDComponent>(uuid);
-        entity.addComponent<TransformComponent>();
-        entity.addComponent<TagComponent>(name.empty() ? std::string("unknown") : name);
+        auto &idComponent = entity.addComponent<IDComponent>();
+        idComponent.ID = uuid;
 
+        entity.addComponent<TransformComponent>();
+        if (!name.empty())
+            entity.addComponent<TagComponent>(name);
+
+        entity.addComponent<RelationshipComponent>();
         m_entityMap[uuid] = entity;
+
         return entity;
     }
 
     void Scene::destroyEntity(Entity entity)
     {
+        if (!entity)
+            return;
+
+        Entity parent = tryGetEntityByUUID(entity.getParentUUID());
+        if (parent)
+            parent.removeChild(entity);
+
+        std::vector<UUID> children = entity.getChildren();
+        for (UUID childId : children)
+        {
+            Entity child = tryGetEntityByUUID(childId);
+            if (child)
+                destroyEntity(child);
+        }
+
         m_entityMap.erase(entity.getUUID());
         m_registry.destroy(entity);
     }
@@ -761,6 +854,10 @@ namespace Fermion
         std::string name = entity.getName();
         Entity newEntity = createEntity(name);
         copyComponentIfExists(AllComponents{}, newEntity, entity);
+        newEntity.getComponent<RelationshipComponent>() = {};
+        Entity parent = tryGetEntityByUUID(entity.getParentUUID());
+        if (parent)
+            newEntity.setParent(parent);
         return newEntity;
     }
 
@@ -796,6 +893,56 @@ namespace Fermion
             }
         }
         return {};
+    }
+
+    Entity Scene::tryGetEntityByUUID(UUID uuid)
+    {
+        if (const auto iter = m_entityMap.find(uuid); iter != m_entityMap.end())
+            return {iter->second, this};
+        return Entity{};
+    }
+
+    glm::mat4 Scene::getWorldSpaceTransformMatrix(Entity entity)
+    {
+        glm::mat4 transform(1.0f);
+        Entity parent = tryGetEntityByUUID(entity.getParentUUID());
+        if (parent)
+            transform = getWorldSpaceTransformMatrix(parent);
+
+        return transform * entity.Transform().getTransform();
+    }
+
+    TransformComponent Scene::getWorldSpaceTransform(Entity entity)
+    {
+        glm::mat4 transform = getWorldSpaceTransformMatrix(entity);
+        TransformComponent transformComponent;
+        transformComponent.setTransform(transform);
+        return transformComponent;
+    }
+
+    void Scene::convertToWorldSpace(Entity entity)
+    {
+        Entity parent = tryGetEntityByUUID(entity.getParentUUID());
+
+        if (!parent)
+            return;
+
+        glm::mat4 transform = getWorldSpaceTransformMatrix(entity);
+        auto &entityTransform = entity.Transform();
+        entityTransform.setTransform(transform);
+    }
+
+    void Scene::convertToLocalSpace(Entity entity)
+    {
+        Entity parent = tryGetEntityByUUID(entity.getParentUUID());
+
+        if (!parent)
+            return;
+
+        auto &transform = entity.Transform();
+        glm::mat4 parentTransform = getWorldSpaceTransformMatrix(parent);
+        glm::mat4 localTransform = glm::inverse(parentTransform) * transform.getTransform();
+        transform.setTransform(localTransform);
     }
 
     void Scene::step(int frames)
