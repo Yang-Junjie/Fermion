@@ -7,7 +7,6 @@
 #include "Core/Log.hpp"
 #include "Core/Layer.hpp"
 #include "Core/LayerStack.hpp"
-#include "Core/Time.hpp"
 #include "Core/Timestep.hpp"
 #include "Core/Window.hpp"
 

@@ -13,6 +13,7 @@
 namespace Fermion
 {
     class Entity;
+    class EntityManager;
     class SceneRenderer;
     class Physics3DWorld;
 
@@ -66,31 +67,23 @@ namespace Fermion
         void onSimulationStart();
         void onSimulationStop();
 
-        void onUpdateEditor(std::shared_ptr<SceneRenderer> renderer, Timestep ts, EditorCamera &camera,
+        void onUpdateEditor(std::shared_ptr<SceneRenderer> renderer,
+                            Timestep ts, EditorCamera &camera,
                             bool showRenderEntities = true);
 
-        void onUpdateSimulation(std::shared_ptr<SceneRenderer> renderer, Timestep ts, EditorCamera &camera,
+        void onUpdateSimulation(std::shared_ptr<SceneRenderer> renderer,
+                                Timestep ts, EditorCamera &camera,
                                 bool showRenderEntities = true);
 
-        void onUpdateRuntime(std::shared_ptr<SceneRenderer> renderer, Timestep ts, bool showRenderEntities = true);
+        void onUpdateRuntime(std::shared_ptr<SceneRenderer> renderer,
+                             Timestep ts,
+                             bool showRenderEntities = true);
 
         void onViewportResize(uint32_t width, uint32_t height);
 
         Entity createEntity(std::string name = std::string());
         Entity createChildEntity(Entity parent, std::string name = std::string());
         Entity createEntityWithUUID(UUID uuid, std::string name = std::string());
-
-        void destroyEntity(Entity entity);
-        Entity duplicateEntity(Entity entity);
-        Entity findEntityByName(std::string_view name);
-        Entity getEntityByUUID(UUID uuid);
-        Entity getPrimaryCameraEntity();
-        Entity tryGetEntityByUUID(UUID uuid);
-
-        glm::mat4 getWorldSpaceTransformMatrix(Entity entity);
-        TransformComponent getWorldSpaceTransform(Entity entity);
-        void convertToWorldSpace(Entity entity);
-        void convertToLocalSpace(Entity entity);
 
         uint32_t getViewportWidth() const { return m_viewportWidth; }
         uint32_t getViewportHeight() const { return m_viewportHeight; }
@@ -101,10 +94,16 @@ namespace Fermion
 
         void step(int frames = 1);
 
+        EntityManager &getEntityManager();
+        const EntityManager &getEntityManager() const;
+
+        entt::registry &getRegistry();
+        const entt::registry &getRegistry() const;
+
         template <typename... Components>
         auto getAllEntitiesWith()
         {
-            return m_registry.view<Components...>();
+            return getRegistry().view<Components...>();
         }
 
         void initPhysicsSensor(Entity entity);
@@ -133,7 +132,8 @@ namespace Fermion
                             bool showRenderEntities = true);
 
     private:
-        entt::registry m_registry;
+        std::unique_ptr<EntityManager> m_entityManager;
+
         uint32_t m_viewportWidth = 0, m_viewportHeight = 0;
 
         bool m_isRunning = false;
@@ -145,7 +145,7 @@ namespace Fermion
 
         bool m_hasDirectionalLight = false;
         std::shared_ptr<Texture2D> m_lightTexture = nullptr, m_cameraTexture = nullptr;
-        std::unordered_map<UUID, entt::entity> m_entityMap;
+
         std::unordered_map<UUID, b2BodyId> m_physicsBodyMap;
 
         std::unique_ptr<Physics3DWorld> m_physicsWorld3D;

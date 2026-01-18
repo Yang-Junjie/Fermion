@@ -356,13 +356,13 @@ namespace Fermion
 
     void SceneRenderer::GeometryPass(ResourceHandle shadowMap, ResourceHandle sceneDepth)
     {
-        m_RenderGraph.AddPass(
+        m_RenderGraph.addPass(
             {.Name = "GeometryPass",
              .Inputs = {shadowMap},
              .Outputs = {sceneDepth},
              .Execute = [this](CommandBuffer &commandBuffer)
              {
-                 commandBuffer.Record([this](RendererAPI &api)
+                 commandBuffer.record([this](RendererAPI &api)
                                       {
                  std::shared_ptr<Pipeline> currentPipeline = nullptr;
                  
@@ -460,7 +460,7 @@ namespace Fermion
 
     void SceneRenderer::OutlinePass()
     {
-        m_RenderGraph.AddPass(
+        m_RenderGraph.addPass(
             {.Name = "OutlinePass",
              .Execute = [this](CommandBuffer &commandBuffer)
              {
@@ -470,7 +470,7 @@ namespace Fermion
 
     void SceneRenderer::SkyboxPass()
     {
-        m_RenderGraph.AddPass(
+        m_RenderGraph.addPass(
             {.Name = "SkyboxPass",
              .Execute = [this](CommandBuffer &commandBuffer)
              {
@@ -505,12 +505,12 @@ namespace Fermion
 
         m_lightSpaceMatrix = calculateLightSpaceMatrix(m_sceneData.sceneEnvironmentLight.directionalLight);
 
-        m_RenderGraph.AddPass(
+        m_RenderGraph.addPass(
             {.Name = "ShadowPass",
              .Outputs = {shadowMap},
              .Execute = [this](CommandBuffer &commandBuffer)
              {
-                 commandBuffer.Record([this](RendererAPI &api)
+                 commandBuffer.record([this](RendererAPI &api)
                                       {
                      m_shadowMapFB->bind();
                      RenderCommand::clear();
@@ -540,12 +540,12 @@ namespace Fermion
         if (!m_targetFramebuffer)
             return;
 
-        m_RenderGraph.AddPass(
+        m_RenderGraph.addPass(
             {.Name = "DepthViewPass",
              .Inputs = {sceneDepth},
              .Execute = [this](CommandBuffer &commandBuffer)
              {
-                 commandBuffer.Record([this](RendererAPI &api)
+                 commandBuffer.record([this](RendererAPI &api)
                                       {
                     m_DepthViewPipeline->bind();
                     auto shader = m_DepthViewPipeline->getShader();
@@ -565,15 +565,15 @@ namespace Fermion
 
     void SceneRenderer::FlushDrawList()
     {
-        m_RenderGraph.Reset();
+        m_RenderGraph.reset();
 
         m_renderer3DStatistics.meshCount += static_cast<uint32_t>(s_MeshDrawList.size());
 
         ResourceHandle shadowMap = ResourceHandle{0};
         if (m_sceneData.enableShadows)
-            shadowMap = RenderGraph::CreateResource();
+            shadowMap = RenderGraph::createResource();
 
-        ResourceHandle sceneDepth = RenderGraph::CreateResource();
+        ResourceHandle sceneDepth = RenderGraph::createResource();
 
         if (m_sceneData.enableShadows)
             ShadowPass(shadowMap);
@@ -588,7 +588,7 @@ namespace Fermion
             DepthViewPass(sceneDepth);
 
         RendererBackend backend(RenderCommand::GetRendererAPI());
-        m_RenderGraph.Execute(m_CommandQueue, backend);
+        m_RenderGraph.execute(m_CommandQueue, backend);
         s_MeshDrawList.clear();
     }
 

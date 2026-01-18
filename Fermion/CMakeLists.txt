@@ -5,8 +5,8 @@ set(EXTERNAL_DIR ${CMAKE_SOURCE_DIR}/Fermion/external)
 
 if(PLATFORM STREQUAL "Desktop")
     set(PLATFORM_DEPENDENCIES_SOURCE
-        ${PLATFORM_DIR}/Window/GLFWWindow.cpp
-        ${PLATFORM_DIR}/Window/GLFWWindowInput.cpp
+        ${PLATFORM_DIR}/Windows/Window/GLFWWindow.cpp
+        ${PLATFORM_DIR}/Windows/Window/GLFWWindowInput.cpp
     )
     set(PLATFORM_DEPENDENCIES_INCLUDE_DIRS
         ${EXTERNAL_DIR}/GLFW/include
@@ -16,7 +16,7 @@ if(PLATFORM STREQUAL "Desktop")
     )
     if(WIN32)
         set(PLATFORM_EXCLUSIVE_SOURCES
-            ${PLATFORM_DIR}/Window/WindowsPlatformUtils.cpp
+            ${PLATFORM_DIR}/Windows/Window/WindowsPlatformUtils.cpp
         )
     endif()
 elseif(Platform STREQUAL "Android")
@@ -77,6 +77,7 @@ set(CORE_SOURCES
 
     ${FERMION_DIR}/Scene/Scene.cpp
     ${FERMION_DIR}/Scene/Entity.cpp
+    ${FERMION_DIR}/Scene/EntityManager.cpp
     ${FERMION_DIR}/Scene/SceneSerializer.cpp
     ${FERMION_DIR}/Physics/Physics3D.cpp
 
@@ -106,14 +107,14 @@ set(CORE_SOURCES
 )
 
 set(PLATFORM_SOURCES
-    ${PLATFORM_DIR}/OpenGL/OpenGLRendererAPI.cpp
-    ${PLATFORM_DIR}/OpenGL/OpenGLContext.cpp
-    ${PLATFORM_DIR}/OpenGL/OpenGLBuffer.cpp
-    ${PLATFORM_DIR}/OpenGL/OpenGLVertexArray.cpp
-    ${PLATFORM_DIR}/OpenGL/OpenGLTexture.cpp
-    ${PLATFORM_DIR}/OpenGL/OpenGLShader.cpp
-    ${PLATFORM_DIR}/OpenGL/OpenGLPipeline.cpp
-    ${PLATFORM_DIR}/OpenGL/OpenGLFrameBuffer.cpp
+    ${PLATFORM_DIR}/Windows/OpenGL/OpenGLRendererAPI.cpp
+    ${PLATFORM_DIR}/Windows/OpenGL/OpenGLContext.cpp
+    ${PLATFORM_DIR}/Windows/OpenGL/OpenGLBuffer.cpp
+    ${PLATFORM_DIR}/Windows/OpenGL/OpenGLVertexArray.cpp
+    ${PLATFORM_DIR}/Windows/OpenGL/OpenGLTexture.cpp
+    ${PLATFORM_DIR}/Windows/OpenGL/OpenGLShader.cpp
+    ${PLATFORM_DIR}/Windows/OpenGL/OpenGLPipeline.cpp
+    ${PLATFORM_DIR}/Windows/OpenGL/OpenGLFrameBuffer.cpp
 
     ${PLATFORM_DEPENDENCIES_SOURCE}
     ${PLATFORM_EXCLUSIVE_SOURCES}
@@ -163,8 +164,8 @@ add_custom_command(
 target_include_directories(engine PUBLIC
     ${FERMION_DIR}
 
-    ${PLATFORM_DIR}/OpenGL
-    ${PLATFORM_DIR}/Window
+    ${PLATFORM_DIR}/Windows/OpenGL
+    ${PLATFORM_DIR}/Windows/Window
 
 
     ${EXTERNAL_DIR}/spdlog/include

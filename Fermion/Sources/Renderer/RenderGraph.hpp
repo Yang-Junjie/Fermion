@@ -26,7 +26,7 @@ namespace Fermion
     public:
         using PassHandle = size_t;
 
-        static ResourceHandle CreateResource()
+        static ResourceHandle createResource()
         {
             ResourceHandle handle;
             while (!handle.isValid())
@@ -34,7 +34,7 @@ namespace Fermion
             return handle;
         }
 
-        PassHandle AddPass(const RenderGraphPass &pass)
+        PassHandle addPass(const RenderGraphPass &pass)
         {
             PassNode node;
             node.Pass = pass;
@@ -44,7 +44,7 @@ namespace Fermion
             return m_Passes.size() - 1;
         }
 
-        bool Compile()
+        bool compile()
         {
             m_ExecutionOrder.clear();
             m_Compiled = false;
@@ -167,23 +167,23 @@ namespace Fermion
             return success;
         }
 
-        void Execute(RenderCommandQueue &queue, RendererBackend &backend)
+        void execute(RenderCommandQueue &queue, RendererBackend &backend)
         {
             if (m_Dirty || !m_Compiled)
-                Compile();
+                compile();
 
             for (const PassHandle pass : m_ExecutionOrder)
             {
                 auto &passNode = m_Passes[pass];
-                passNode.CommandBuffer->Clear();
+                passNode.CommandBuffer->clear();
                 if (passNode.Pass.Execute)
                     passNode.Pass.Execute(*passNode.CommandBuffer);
-                queue.Submit(passNode.CommandBuffer);
+                queue.submit(passNode.CommandBuffer);
             }
-            queue.Flush(backend);
+            queue.flush(backend);
         }
 
-        void Reset()
+        void reset()
         {
             m_Passes.clear();
             m_ExecutionOrder.clear();
@@ -192,7 +192,7 @@ namespace Fermion
             m_LastCompileSuccess = true;
         }
 
-        bool LastCompileSucceeded() const
+        bool lastCompileSucceeded() const
         {
             return m_LastCompileSuccess;
         }

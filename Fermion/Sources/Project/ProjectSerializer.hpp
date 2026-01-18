@@ -2,8 +2,10 @@
 
 #include "Project.hpp"
 
-namespace Fermion {
-    class ProjectSerializer {
+namespace Fermion
+{
+    class ProjectSerializer
+    {
     public:
         ProjectSerializer(std::shared_ptr<Project> project);
 

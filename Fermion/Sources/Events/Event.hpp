@@ -5,8 +5,10 @@
 #pragma once
 #include "fmpch.hpp"
 
-namespace Fermion {
-    enum class EventType : int {
+namespace Fermion
+{
+    enum class EventType : int
+    {
         None,
 
         // window events
@@ -33,7 +35,8 @@ namespace Fermion {
         MouseScrolled
     };
 
-    enum class EventCategory : int {
+    enum class EventCategory : int
+    {
         None = 0,
         EventCategoryApplication = 1 << 0,
         EventCategoryInput = 1 << 1,
@@ -42,11 +45,13 @@ namespace Fermion {
         EventCategoryMouseButton = 1 << 4
     };
 
-    class IEvent {
+    class IEvent
+    {
     public:
         bool handled = false;
 
-        virtual ~IEvent() {
+        virtual ~IEvent()
+        {
         }
 
         virtual EventType getEventType() const = 0;
@@ -55,23 +60,29 @@ namespace Fermion {
 
         virtual int getCategoryFlags() const = 0;
 
-        virtual std::string toString() const {
+        virtual std::string toString() const
+        {
             return getName();
         }
 
-        bool isInCategory(EventCategory category) const {
+        bool isInCategory(EventCategory category) const
+        {
             return getCategoryFlags() & static_cast<int>(category);
         }
     };
 
-    class EventDispatcher {
+    class EventDispatcher
+    {
     public:
-        EventDispatcher(IEvent &event) : m_event(event) {
+        EventDispatcher(IEvent &event) : m_event(event)
+        {
         }
 
-        template<typename T, typename F>
-        bool dispatch(const F &func) {
-            if (m_event.getEventType() == T::getStaticType()) {
+        template <typename T, typename F>
+        bool dispatch(const F &func)
+        {
+            if (m_event.getEventType() == T::getStaticType())
+            {
                 m_event.handled |= func(static_cast<T &>(m_event));
                 return true;
             }
@@ -82,7 +93,8 @@ namespace Fermion {
         IEvent &m_event;
     };
 
-    inline std::ostream &operator<<(std::ostream &os, const IEvent &e) {
+    inline std::ostream &operator<<(std::ostream &os, const IEvent &e)
+    {
         return os << e.toString();
     }
 } // namespace Fermion

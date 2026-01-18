@@ -3,23 +3,28 @@
 #include <cstring>
 #include <cstdlib>
 
-namespace Fermion {
-    ConsolePanel::ConsolePanel() {
+namespace Fermion
+{
+    ConsolePanel::ConsolePanel()
+    {
         memset(m_inputBuf, 0, sizeof(m_inputBuf));
         addLog("Console initialized.");
     }
 
-    ConsolePanel::~ConsolePanel() {
+    ConsolePanel::~ConsolePanel()
+    {
         clear();
     }
 
-    void ConsolePanel::clear() {
+    void ConsolePanel::clear()
+    {
         for (int i = 0; i < m_items.Size; i++)
             free(m_items[i]);
         m_items.clear();
     }
 
-    void ConsolePanel::addLog(const char *fmt, ...) {
+    void ConsolePanel::addLog(const char *fmt, ...)
+    {
         char buf[2048];
         va_list args;
         va_start(args, fmt);
@@ -31,7 +36,8 @@ namespace Fermion {
         m_scrollToBottom = true;
     }
 
-    void ConsolePanel::onImGuiRender() {
+    void ConsolePanel::onImGuiRender()
+    {
         ImGui::Begin("Console");
 
         // 输出区域
@@ -53,8 +59,10 @@ namespace Fermion {
 
         // 输入栏
         if (ImGui::InputText("Input", m_inputBuf, IM_ARRAYSIZE(m_inputBuf),
-                             ImGuiInputTextFlags_EnterReturnsTrue)) {
-            if (m_inputBuf[0] != '\0') {
+                             ImGuiInputTextFlags_EnterReturnsTrue))
+        {
+            if (m_inputBuf[0] != '\0')
+            {
                 addLog("> %s", m_inputBuf);
 
                 // 命令解析

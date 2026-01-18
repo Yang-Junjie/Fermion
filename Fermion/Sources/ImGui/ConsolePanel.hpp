@@ -3,8 +3,10 @@
 #include <vector>
 #include <string>
 
-namespace Fermion {
-    class ConsolePanel {
+namespace Fermion
+{
+    class ConsolePanel
+    {
     public:
         ConsolePanel();
 
@@ -16,7 +18,8 @@ namespace Fermion {
 
         void onImGuiRender();
 
-        static ConsolePanel &get() {
+        static ConsolePanel &get()
+        {
             static ConsolePanel instance;
             return instance;
         }

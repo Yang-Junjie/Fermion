@@ -1,4 +1,4 @@
-﻿#include "fmpch.hpp"
+#include "fmpch.hpp"
 #include "ScriptGlue.hpp"
 #include "ScriptEngine.hpp"
 #include "ScriptManager.hpp"
@@ -9,6 +9,7 @@
 #include "Core/Input.hpp"
 
 #include "Scene/Scene.hpp"
+#include "Scene/EntityManager.hpp"
 #include "Renderer/SceneRenderer.hpp"
 #include "Renderer/DebugRenderer.hpp"
 #include "Scene/Entity.hpp"
@@ -132,7 +133,7 @@ namespace Fermion {
     extern "C" bool Entity_HasComponent(UUID entityID, MonoReflectionType *componentType) {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null");
-        Entity entity = scene->getEntityByUUID(entityID);
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
         FERMION_ASSERT(entity, "Entity is null");
 
         MonoType *managedType = mono_reflection_type_get_type(componentType);
@@ -144,7 +145,7 @@ namespace Fermion {
     extern "C" void Entity_AddComponent(uint64_t entityID, MonoReflectionType *componentType) {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null");
-        Entity entity = scene->getEntityByUUID(entityID);
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
         FERMION_ASSERT(entity, "Entity is null");
 
         MonoType *type = mono_reflection_type_get_type(componentType);
@@ -159,7 +160,7 @@ namespace Fermion {
 
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
-        Entity entity = scene->findEntityByName(nameCStr);
+        Entity entity = scene->getEntityManager().findEntityByName(nameCStr);
         mono_free(nameCStr);
 
         if (!entity)
@@ -173,7 +174,7 @@ namespace Fermion {
     extern "C" void TransformComponent_GetTranslation(UUID entityID, glm::vec3 *outTranslation) {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
-        Entity entity = scene->getEntityByUUID(entityID);
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
         FERMION_ASSERT(entity, "Entity is null!");
 
         *outTranslation = entity.getComponent<TransformComponent>().translation;
@@ -182,7 +183,7 @@ namespace Fermion {
     extern "C" void TransformComponent_SetTranslation(UUID entityID, glm::vec3 *translation) {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
-        Entity entity = scene->getEntityByUUID(entityID);
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
         FERMION_ASSERT(entity, "Entity is null!");
 
         entity.getComponent<TransformComponent>().translation = *translation;
@@ -193,7 +194,7 @@ namespace Fermion {
     extern "C" void SpriteRendererComponent_SetColor(UUID entityID, glm::vec4 *color) {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
-        Entity entity = scene->getEntityByUUID(entityID);
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
         FERMION_ASSERT(entity, "Entity is null!");
 
         entity.getComponent<SpriteRendererComponent>().color = *color;
@@ -202,7 +203,7 @@ namespace Fermion {
     extern "C" void SpriteRendererComponent_SetTexture(UUID entityID, uint64_t textureID) {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
-        Entity entity = scene->getEntityByUUID(entityID);
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
         FERMION_ASSERT(entity, "Entity is null!");
 
         entity.getComponent<SpriteRendererComponent>().textureHandle = textureID;
@@ -213,7 +214,7 @@ namespace Fermion {
     extern "C" Rigidbody2DComponent::BodyType Rigidbody2DComponent_GetType(UUID entityID) {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
-        Entity entity = scene->getEntityByUUID(entityID);
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
         FERMION_ASSERT(entity, "Entity is null!");
 
         auto &rb2d = entity.getComponent<Rigidbody2DComponent>();
@@ -226,7 +227,7 @@ namespace Fermion {
     extern "C" void Rigidbody2DComponent_SetType(UUID entityID, Rigidbody2DComponent::BodyType bodyType) {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
-        Entity entity = scene->getEntityByUUID(entityID);
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
         FERMION_ASSERT(entity, "Entity is null!");
 
         auto &rb2d = entity.getComponent<Rigidbody2DComponent>();
@@ -238,7 +239,7 @@ namespace Fermion {
     extern "C" void Rigidbody2DComponent_ApplyLinearImpulseToCenter(UUID entityID, glm::vec2 *impulse, bool wake) {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
-        Entity entity = scene->getEntityByUUID(entityID);
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
         FERMION_ASSERT(entity, "Entity is null!");
 
         auto &rb2d = entity.getComponent<Rigidbody2DComponent>();
@@ -251,7 +252,7 @@ namespace Fermion {
     extern "C" void Rigidbody2DComponent_GetLinearVelocity(UUID entityID, glm::vec2 *out) {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
-        Entity entity = scene->getEntityByUUID(entityID);
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
         FERMION_ASSERT(entity, "Entity is null!");
 
         auto &rb2d = entity.getComponent<Rigidbody2DComponent>();
@@ -266,7 +267,7 @@ namespace Fermion {
     extern "C" bool BoxSensor2D_SensorBegin(UUID entityID) {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
-        Entity entity = scene->getEntityByUUID(entityID);
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
         FERMION_ASSERT(entity, "Entity is null!");
 
         auto &bs2c = entity.getComponent<BoxSensor2DComponent>();
@@ -277,7 +278,7 @@ namespace Fermion {
     extern "C" bool BoxSensor2D_SensorEnd(UUID entityID) {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
-        Entity entity = scene->getEntityByUUID(entityID);
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
         FERMION_ASSERT(entity, "Entity is null!");
 
         auto &bs2c = entity.getComponent<BoxSensor2DComponent>();
@@ -288,7 +289,7 @@ namespace Fermion {
     extern "C" void BoxSensor2D_SetSize(UUID entityID, glm::vec2 *out) {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
-        Entity entity = scene->getEntityByUUID(entityID);
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
         FERMION_ASSERT(entity, "Entity is null!");
 
         auto &bs2c = entity.getComponent<BoxSensor2DComponent>();
@@ -299,7 +300,7 @@ namespace Fermion {
     extern "C" void BoxSensor2D_GetSize(UUID entityID, glm::vec2 *out) {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
-        Entity entity = scene->getEntityByUUID(entityID);
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
         FERMION_ASSERT(entity, "Entity is null!");
 
         auto &bs2c = entity.getComponent<BoxSensor2DComponent>();
@@ -309,7 +310,7 @@ namespace Fermion {
     extern "C" void BoxSensor2D_SetOffset(UUID entityID, glm::vec2 *out) {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
-        Entity entity = scene->getEntityByUUID(entityID);
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
         FERMION_ASSERT(entity, "Entity is null!");
 
         auto &bs2c = entity.getComponent<BoxSensor2DComponent>();
@@ -320,7 +321,7 @@ namespace Fermion {
     extern "C" void BoxSensor2D_GetOffset(UUID entityID, glm::vec2 *out) {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
-        Entity entity = scene->getEntityByUUID(entityID);
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
         FERMION_ASSERT(entity, "Entity is null!");
 
         auto &bs2c = entity.getComponent<BoxSensor2DComponent>();
@@ -332,7 +333,7 @@ namespace Fermion {
     extern "C" Rigidbody3DComponent::BodyType Rigidbody3DComponent_GetType(UUID entityID) {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
-        Entity entity = scene->getEntityByUUID(entityID);
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
         FERMION_ASSERT(entity, "Entity is null!");
 
         auto &rb3d = entity.getComponent<Rigidbody3DComponent>();
@@ -347,7 +348,7 @@ namespace Fermion {
     extern "C" void Rigidbody3DComponent_SetType(UUID entityID, Rigidbody3DComponent::BodyType bodyType) {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
-        Entity entity = scene->getEntityByUUID(entityID);
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
         FERMION_ASSERT(entity, "Entity is null!");
 
         auto &rb3d = entity.getComponent<Rigidbody3DComponent>();
@@ -374,7 +375,7 @@ namespace Fermion {
 
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
-        Entity entity = scene->getEntityByUUID(entityID);
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
         FERMION_ASSERT(entity, "Entity is null!");
 
         auto &rb3d = entity.getComponent<Rigidbody3DComponent>();
@@ -392,7 +393,7 @@ namespace Fermion {
 
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
-        Entity entity = scene->getEntityByUUID(entityID);
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
         FERMION_ASSERT(entity, "Entity is null!");
 
         auto &rb3d = entity.getComponent<Rigidbody3DComponent>();
@@ -415,7 +416,7 @@ namespace Fermion {
 
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
-        Entity entity = scene->getEntityByUUID(entityID);
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
         FERMION_ASSERT(entity, "Entity is null!");
 
         auto &rb3d = entity.getComponent<Rigidbody3DComponent>();
@@ -433,7 +434,7 @@ namespace Fermion {
 
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
-        Entity entity = scene->getEntityByUUID(entityID);
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
         FERMION_ASSERT(entity, "Entity is null!");
 
         auto &rb3d = entity.getComponent<Rigidbody3DComponent>();
@@ -454,7 +455,7 @@ namespace Fermion {
 
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
-        Entity entity = scene->getEntityByUUID(entityID);
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
         FERMION_ASSERT(entity, "Entity is null!");
 
         auto &rb3d = entity.getComponent<Rigidbody3DComponent>();
@@ -477,7 +478,7 @@ namespace Fermion {
 
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
-        Entity entity = scene->getEntityByUUID(entityID);
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
         FERMION_ASSERT(entity, "Entity is null!");
 
         auto &rb3d = entity.getComponent<Rigidbody3DComponent>();
@@ -500,7 +501,7 @@ namespace Fermion {
 
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
-        Entity entity = scene->getEntityByUUID(entityID);
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
         FERMION_ASSERT(entity, "Entity is null!");
 
         auto &rb3d = entity.getComponent<Rigidbody3DComponent>();
@@ -546,7 +547,7 @@ namespace Fermion {
     extern "C" void TextComponent_SetText(UUID entityID, MonoString *string) {
         Scene *scene = ScriptManager::getSceneContext();
         FERMION_ASSERT(scene, "Scene is null!");
-        Entity entity = scene->getEntityByUUID(entityID);
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
         FERMION_ASSERT(entity, "Entity is null!");
         entity.getComponent<TextComponent>().textString = Utils::monoStringToString(string);
     }

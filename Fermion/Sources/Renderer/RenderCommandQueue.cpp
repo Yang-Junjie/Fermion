@@ -1,33 +1,33 @@
 #include "Renderer/RenderCommandQueue.hpp"
 
 namespace Fermion {
-void RenderCommandQueue::Submit(const std::shared_ptr<CommandBuffer> &buffer) {
-    if (!buffer || buffer->Empty())
+void RenderCommandQueue::submit(const std::shared_ptr<CommandBuffer> &buffer) {
+    if (!buffer || buffer->empty())
         return;
     m_PendingBuffers.emplace_back(buffer);
 }
 
-void RenderCommandQueue::Submit(CommandBuffer &&buffer) {
-    if (buffer.Empty())
+void RenderCommandQueue::submit(CommandBuffer &&buffer) {
+    if (buffer.empty())
         return;
 
     auto ownedBuffer = std::make_shared<CommandBuffer>(std::move(buffer));
     m_PendingBuffers.emplace_back(std::move(ownedBuffer));
 }
 
-void RenderCommandQueue::Flush(RendererBackend &backend) {
+void RenderCommandQueue::flush(RendererBackend &backend) {
     for (auto &buffer : m_PendingBuffers) {
         if (!buffer)
             continue;
 
-        buffer->Execute(backend);
-        buffer->Clear();
+        buffer->execute(backend);
+        buffer->clear();
     }
 
     m_PendingBuffers.clear();
 }
 
-void RenderCommandQueue::Clear() {
+void RenderCommandQueue::clear() {
     m_PendingBuffers.clear();
 }
 

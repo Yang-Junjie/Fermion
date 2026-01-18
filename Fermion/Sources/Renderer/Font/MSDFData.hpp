@@ -5,11 +5,13 @@
 #undef INFINITE
 #include <msdf-atlas-gen.h>
 
-namespace Fermion {
+namespace Fermion
+{
 
-struct MSDFData {
-    std::vector<msdf_atlas::GlyphGeometry> glyphs;
-    msdf_atlas::FontGeometry fontGeometry;
-};
+    struct MSDFData
+    {
+        std::vector<msdf_atlas::GlyphGeometry> glyphs;
+        msdf_atlas::FontGeometry fontGeometry;
+    };
 
 } // namespace Fermion

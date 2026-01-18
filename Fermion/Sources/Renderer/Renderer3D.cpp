@@ -97,7 +97,7 @@ namespace Fermion
     void Renderer3D::recordGeometryPass(CommandBuffer &commandBuffer,
                                         const std::vector<MeshDrawCommand> &drawCommands)
     {
-        commandBuffer.Record([&drawCommands](RendererAPI &api)
+        commandBuffer.record([&drawCommands](RendererAPI &api)
                              {
                                  std::shared_ptr<Pipeline> currentPipeline = nullptr;
 
@@ -155,7 +155,7 @@ namespace Fermion
     }
     void Renderer3D::recordSkyboxPass(CommandBuffer &commandBuffer, const SkyboxDrawCommand &drawCommand)
     {
-        commandBuffer.Record([drawCommand](RendererAPI &)
+        commandBuffer.record([drawCommand](RendererAPI &)
                              {
                 if (!drawCommand.pipeline || !drawCommand.vao || !drawCommand.cubemap) {
                     return;

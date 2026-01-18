@@ -3,8 +3,10 @@
 #include "Scene.hpp"
 #include <filesystem>
 
-namespace Fermion {
-    class SceneSerializer {
+namespace Fermion
+{
+    class SceneSerializer
+    {
     public:
         SceneSerializer(const std::shared_ptr<Scene> &scene);
 

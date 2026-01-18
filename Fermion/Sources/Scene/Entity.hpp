@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Scene/Scene.hpp"
 #include <entt/entt.hpp>
 #include "fmpch.hpp"
@@ -22,7 +22,7 @@ namespace Fermion
 
         [[nodiscard]] bool isValid() const
         {
-            return m_scene != nullptr && m_entityHandle != entt::null && m_scene->m_registry.valid(m_entityHandle);
+            return m_scene != nullptr && m_entityHandle != entt::null && m_scene->getRegistry().valid(m_entityHandle);
         }
 
         explicit operator bool() const
@@ -55,9 +55,9 @@ namespace Fermion
         {
             FERMION_ASSERT(m_scene != nullptr, "Scene is null (no owning scene)");
             FERMION_ASSERT(m_entityHandle != entt::null, "Entity handle is null");
-            FERMION_ASSERT(m_scene->m_registry.valid(m_entityHandle),
+            FERMION_ASSERT(m_scene->getRegistry().valid(m_entityHandle),
                            "Entity handle is invalid (entity was probably destroyed)");
-            return m_scene->m_registry.all_of<T>(m_entityHandle);
+            return m_scene->getRegistry().all_of<T>(m_entityHandle);
         }
 
         template <typename T, typename... Args>
@@ -65,11 +65,11 @@ namespace Fermion
         {
             FERMION_ASSERT(m_scene != nullptr, "Entity is null (no owning scene)");
             FERMION_ASSERT(m_entityHandle != entt::null, "Entity handle is null");
-            FERMION_ASSERT(m_scene->m_registry.valid(m_entityHandle),
+            FERMION_ASSERT(m_scene->getRegistry().valid(m_entityHandle),
                            "Entity handle is invalid (entity was probably destroyed)");
             FERMION_ASSERT(!hasComponent<T>(), "Entity already has this component");
 
-            T &component = m_scene->m_registry.emplace<T>(m_entityHandle, std::forward<Args>(args)...);
+            T &component = m_scene->getRegistry().emplace<T>(m_entityHandle, std::forward<Args>(args)...);
 
             if constexpr (std::is_same_v<T, CameraComponent>)
             {
@@ -89,20 +89,20 @@ namespace Fermion
         {
             FERMION_ASSERT(m_scene != nullptr, "Entity is null (no owning scene)");
             FERMION_ASSERT(m_entityHandle != entt::null, "Entity handle is null");
-            FERMION_ASSERT(m_scene->m_registry.valid(m_entityHandle),
+            FERMION_ASSERT(m_scene->getRegistry().valid(m_entityHandle),
                            "Entity handle is invalid (entity was probably destroyed)");
             FERMION_ASSERT(hasComponent<T>(), "Entity does not have this component");
-            return m_scene->m_registry.get<T>(m_entityHandle);
+            return m_scene->getRegistry().get<T>(m_entityHandle);
         }
         template <typename T>
         const T &getComponent() const
         {
             FERMION_ASSERT(m_scene != nullptr, "Entity is null (no owning scene)");
             FERMION_ASSERT(m_entityHandle != entt::null, "Entity handle is null");
-            FERMION_ASSERT(m_scene->m_registry.valid(m_entityHandle),
+            FERMION_ASSERT(m_scene->getRegistry().valid(m_entityHandle),
                            "Entity handle is invalid (entity was probably destroyed)");
             FERMION_ASSERT(hasComponent<T>(), "Entity does not have this component");
-            return m_scene->m_registry.get<T>(m_entityHandle);
+            return m_scene->getRegistry().get<T>(m_entityHandle);
         }
 
         template <typename T>
@@ -110,10 +110,10 @@ namespace Fermion
         {
             FERMION_ASSERT(m_scene != nullptr, "Entity is null (no owning scene)");
             FERMION_ASSERT(m_entityHandle != entt::null, "Entity handle is null");
-            FERMION_ASSERT(m_scene->m_registry.valid(m_entityHandle),
+            FERMION_ASSERT(m_scene->getRegistry().valid(m_entityHandle),
                            "Entity handle is invalid (entity was probably destroyed)");
             FERMION_ASSERT(hasComponent<T>(), "Entity does not have this component");
-            m_scene->m_registry.remove<T>(m_entityHandle);
+            m_scene->getRegistry().remove<T>(m_entityHandle);
         }
 
         template <typename T, typename... Args>
@@ -121,9 +121,9 @@ namespace Fermion
         {
             FERMION_ASSERT(m_scene != nullptr, "Entity is null (no owning scene)");
             FERMION_ASSERT(m_entityHandle != entt::null, "Entity handle is null");
-            FERMION_ASSERT(m_scene->m_registry.valid(m_entityHandle),
+            FERMION_ASSERT(m_scene->getRegistry().valid(m_entityHandle),
                            "Entity handle is invalid (entity was probably destroyed)");
-            T &component = m_scene->m_registry.emplace_or_replace<T>(m_entityHandle, std::forward<Args>(args)...);
+            T &component = m_scene->getRegistry().emplace_or_replace<T>(m_entityHandle, std::forward<Args>(args)...);
             if constexpr (std::is_same_v<T, CameraComponent>)
             {
                 const uint32_t vw = m_scene->getViewportWidth();
@@ -146,10 +146,7 @@ namespace Fermion
             return getComponent<TagComponent>().tag;
         }
 
-        Entity getParent()
-        {
-            return m_scene->getEntityByUUID(getParentUUID());
-        }
+        Entity getParent();
         void setParent(Entity parent)
         {
             Entity currentParent = getParent();

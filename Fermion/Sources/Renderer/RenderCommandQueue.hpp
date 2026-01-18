@@ -4,16 +4,16 @@
 namespace Fermion {
 class RenderCommandQueue {
 public:
-    void Submit(const std::shared_ptr<CommandBuffer> &buffer);
-    void Submit(CommandBuffer &&buffer);
+    void submit(const std::shared_ptr<CommandBuffer> &buffer);
+    void submit(CommandBuffer &&buffer);
 
-    void Flush(RendererBackend &backend);
-    void Clear();
+    void flush(RendererBackend &backend);
+    void clear();
 
-    bool Empty() const {
+    bool empty() const {
         return m_PendingBuffers.empty();
     }
-    size_t GetPendingBufferCount() const {
+    size_t getPendingBufferCount() const {
         return m_PendingBuffers.size();
     }
 

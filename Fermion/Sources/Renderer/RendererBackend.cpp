@@ -5,9 +5,9 @@ namespace Fermion {
 RendererBackend::RendererBackend(RendererAPI &api) : m_API(api) {
 }
 
-void RendererBackend::Submit(const RenderCommandData &command) {
-    if (command.Execute)
-        command.Execute(m_API);
+void RendererBackend::submit(const RenderCommandData &command) {
+    if (command.execute)
+        command.execute(m_API);
 }
 
 } // namespace Fermion

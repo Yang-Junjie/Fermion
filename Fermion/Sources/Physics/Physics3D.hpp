@@ -5,16 +5,19 @@
 #include "Core/Timestep.hpp"
 #include "Core/UUID.hpp"
 
-namespace JPH {
+namespace JPH
+{
     class PhysicsSystem;
     class TempAllocator;
     class JobSystem;
 }
 
-namespace Fermion {
+namespace Fermion
+{
     class Scene;
 
-    class Physics3DWorld {
+    class Physics3DWorld
+    {
     public:
         Physics3DWorld();
         ~Physics3DWorld();

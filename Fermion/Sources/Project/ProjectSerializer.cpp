@@ -5,22 +5,27 @@
 #include <yaml-cpp/yaml.h>
 #include <system_error>
 
-namespace Fermion {
-    namespace {
-        std::string make_relative(const std::filesystem::path &path, const std::filesystem::path &baseDir) {
+namespace Fermion
+{
+    namespace
+    {
+        std::string make_relative(const std::filesystem::path &path, const std::filesystem::path &baseDir)
+        {
             if (path.empty())
                 return {};
 
             std::error_code ec;
             auto rel = std::filesystem::relative(path, baseDir, ec);
-            if (ec) {
+            if (ec)
+            {
                 return path.generic_string();
             }
 
             return rel.generic_string();
         }
 
-        std::filesystem::path make_absolute(const std::string &stored, const std::filesystem::path &baseDir) {
+        std::filesystem::path make_absolute(const std::string &stored, const std::filesystem::path &baseDir)
+        {
             if (stored.empty())
                 return {};
 
@@ -32,10 +37,12 @@ namespace Fermion {
         }
     } // namespace
 
-    ProjectSerializer::ProjectSerializer(std::shared_ptr<Project> project) : m_project(project) {
+    ProjectSerializer::ProjectSerializer(std::shared_ptr<Project> project) : m_project(project)
+    {
     }
 
-    bool ProjectSerializer::serialize(const std::filesystem::path &filepath) {
+    bool ProjectSerializer::serialize(const std::filesystem::path &filepath)
+    {
         const auto &config = m_project->getConfig();
         const auto projectDir = filepath.parent_path();
 
@@ -54,9 +61,9 @@ namespace Fermion {
         {
             out << YAML::BeginMap;
             out << YAML::Key << "AssetDirectory"
-                    << YAML::Value << make_relative(config.assetDirectory, projectDir);
+                << YAML::Value << make_relative(config.assetDirectory, projectDir);
             out << YAML::Key << "ScriptDirectory"
-                    << YAML::Value << make_relative(config.scriptDirectory, projectDir);
+                << YAML::Value << make_relative(config.scriptDirectory, projectDir);
             out << YAML::EndMap;
         }
 
@@ -64,7 +71,7 @@ namespace Fermion {
         {
             out << YAML::BeginMap;
             out << YAML::Key << "StartScene"
-                    << YAML::Value << make_relative(config.startScene, projectDir);
+                << YAML::Value << make_relative(config.startScene, projectDir);
             out << YAML::EndMap;
         }
 
@@ -76,14 +83,17 @@ namespace Fermion {
         return true;
     }
 
-    bool ProjectSerializer::deserialize(const std::filesystem::path &filepath) {
-        if (!std::filesystem::exists(filepath)) {
+    bool ProjectSerializer::deserialize(const std::filesystem::path &filepath)
+    {
+        if (!std::filesystem::exists(filepath))
+        {
             Log::Error("Project file does not exist: " + filepath.string());
             return false;
         }
 
         YAML::Node data = YAML::LoadFile(filepath.string());
-        if (!data) {
+        if (!data)
+        {
             Log::Error("Failed to load project YAML: " + filepath.string());
             return false;
         }
@@ -91,7 +101,8 @@ namespace Fermion {
         const auto projectDir = filepath.parent_path();
         ProjectConfig &config = m_project->getConfig();
 
-        if (data["Project"]) {
+        if (data["Project"])
+        {
             YAML::Node projectNode = data["Project"];
             if (projectNode["Name"])
                 config.name = projectNode["Name"].as<std::string>();
@@ -106,7 +117,8 @@ namespace Fermion {
                 config.startScene = make_absolute(projectNode["StartScene"].as<std::string>(), projectDir);
         }
 
-        if (data["Directories"]) {
+        if (data["Directories"])
+        {
             YAML::Node dirNode = data["Directories"];
             if (dirNode["AssetDirectory"])
                 config.assetDirectory = make_absolute(dirNode["AssetDirectory"].as<std::string>(), projectDir);
@@ -117,7 +129,8 @@ namespace Fermion {
         if (config.scriptDirectory.empty() && !config.assetDirectory.empty())
             config.scriptDirectory = (config.assetDirectory / "scripts").lexically_normal();
 
-        if (data["Runtime"]) {
+        if (data["Runtime"])
+        {
             YAML::Node runtimeNode = data["Runtime"];
             if (runtimeNode["StartScene"])
                 config.startScene = make_absolute(runtimeNode["StartScene"].as<std::string>(), projectDir);
@@ -126,7 +139,8 @@ namespace Fermion {
         return true;
     }
 
-    bool ProjectSerializer::sertializeRuntime(const std::filesystem::path &filepath) {
+    bool ProjectSerializer::sertializeRuntime(const std::filesystem::path &filepath)
+    {
         const auto &config = m_project->getConfig();
 
         YAML::Emitter out;
@@ -140,7 +154,8 @@ namespace Fermion {
         out << YAML::EndMap;
 
         std::ofstream fout(filepath);
-        if (!fout.is_open()) {
+        if (!fout.is_open())
+        {
             Log::Error("Failed to open runtime project file for writing: " + filepath.string());
             return false;
         }
@@ -149,19 +164,23 @@ namespace Fermion {
         return true;
     }
 
-    std::string ProjectSerializer::deserializeRuntime(const std::filesystem::path &filepath) {
-        if (!std::filesystem::exists(filepath)) {
+    std::string ProjectSerializer::deserializeRuntime(const std::filesystem::path &filepath)
+    {
+        if (!std::filesystem::exists(filepath))
+        {
             Log::Error("Project file does not exist: " + filepath.string());
             return {};
         }
 
         YAML::Node data = YAML::LoadFile(filepath.string());
-        if (!data) {
+        if (!data)
+        {
             Log::Error("Failed to load project YAML: " + filepath.string());
             return {};
         }
 
-        if (data["Project"]) {
+        if (data["Project"])
+        {
             YAML::Node projectNode = data["Project"];
             if (projectNode["Name"])
                 return projectNode["Name"].as<std::string>();

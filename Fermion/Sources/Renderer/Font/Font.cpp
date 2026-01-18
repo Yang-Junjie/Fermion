@@ -29,20 +29,20 @@ namespace Fermion
         generator.generate(glyphs.data(), (int)glyphs.size());
 
         msdfgen::BitmapConstRef<T, N> bitmap = (msdfgen::BitmapConstRef<T, N>)generator.atlasStorage();
-        
+
         if (!std::filesystem::exists(outputPath))
         {
             // 翻转图像数据以匹配 OpenGL 纹理加载时的翻转
             int rowSize = bitmap.width * N;
             std::vector<T> flippedPixels(bitmap.width * bitmap.height * N);
-            
+
             for (int y = 0; y < bitmap.height; ++y)
             {
-                const T* srcRow = bitmap.pixels + y * bitmap.width * N;
-                T* dstRow = flippedPixels.data() + (bitmap.height - 1 - y) * bitmap.width * N;
+                const T *srcRow = bitmap.pixels + y * bitmap.width * N;
+                T *dstRow = flippedPixels.data() + (bitmap.height - 1 - y) * bitmap.width * N;
                 std::memcpy(dstRow, srcRow, rowSize * sizeof(T));
             }
-            
+
             stbi_write_png(
                 outputPath.string().c_str(),
                 bitmap.width,

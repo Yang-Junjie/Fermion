@@ -422,7 +422,7 @@ namespace Fermion
     {
         FM_PROFILE_FUNCTION();
 
-        s_Data.renderGraph.Reset();
+        s_Data.renderGraph.reset();
 
         if (s_Data.QuadIndexCount > 0)
             QuadPass();
@@ -440,7 +440,7 @@ namespace Fermion
             TextPass();
 
         RendererBackend backend(RenderCommand::GetRendererAPI());
-        s_Data.renderGraph.Execute(s_Data.commandQueue, backend);
+        s_Data.renderGraph.execute(s_Data.commandQueue, backend);
     }
 
     void Renderer2D::flushAndReset()
@@ -913,7 +913,7 @@ namespace Fermion
     }
     void Renderer2D::recordOutlinePass(CommandBuffer &commandBuffer, const std::vector<MeshDrawCommand> &drawCommands, const glm::vec4 &outlineColor)
     {
-        commandBuffer.Record([&drawCommands, &outlineColor](RendererAPI &api)
+        commandBuffer.record([&drawCommands, &outlineColor](RendererAPI &api)
                              {
                 for (auto &cmd : drawCommands)
                 {
@@ -936,10 +936,10 @@ namespace Fermion
 
     void Renderer2D::QuadPass()
     {
-        s_Data.renderGraph.AddPass({
+        s_Data.renderGraph.addPass({
             .Name = "QuadPass",
             .Execute = [](CommandBuffer& cmd) {
-                cmd.Record([](RendererAPI& api) {
+                cmd.record([](RendererAPI& api) {
 
                     uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.QuadVertexBufferPtr - (uint8_t*)s_Data.QuadVertexBufferBase);
                     s_Data.QuadVertexBuffer->setData(s_Data.QuadVertexBufferBase, dataSize);
@@ -960,10 +960,10 @@ namespace Fermion
 
     void Renderer2D::QuadInstancePass()
     {
-        s_Data.renderGraph.AddPass({
+        s_Data.renderGraph.addPass({
             .Name = "QuadInstancePass",
             .Execute = [](CommandBuffer& cmd) {
-                cmd.Record([](RendererAPI& api) {
+                cmd.record([](RendererAPI& api) {
 
                     uint32_t dataSize = s_Data.QuadInstanceCount * sizeof(QuadInstanceData);
                     s_Data.QuadInstanceVertexBuffer->setData(s_Data.QuadInstanceVertexBufferBase, dataSize);
@@ -983,10 +983,10 @@ namespace Fermion
 
     void Renderer2D::CirclePass()
     {
-        s_Data.renderGraph.AddPass({
+        s_Data.renderGraph.addPass({
             .Name = "CirclePass",
             .Execute = [](CommandBuffer& cmd) {
-                cmd.Record([](RendererAPI& api) {
+                cmd.record([](RendererAPI& api) {
 
                     uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.CircleVertexBufferPtr - (uint8_t*)s_Data.CircleVertexBufferBase);
                     s_Data.CircleVertexBuffer->setData(s_Data.CircleVertexBufferBase, dataSize);
@@ -1003,10 +1003,10 @@ namespace Fermion
 
     void Renderer2D::LinePass()
     {
-        s_Data.renderGraph.AddPass({
+        s_Data.renderGraph.addPass({
             .Name = "LinePass",
             .Execute = [](CommandBuffer& cmd) {
-                cmd.Record([](RendererAPI& api) {
+                cmd.record([](RendererAPI& api) {
 
                     uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.LineVertexBufferPtr - (uint8_t*)s_Data.LineVertexBufferBase);
                     s_Data.LineVertexBuffer->setData(s_Data.LineVertexBufferBase, dataSize);
@@ -1024,10 +1024,10 @@ namespace Fermion
 
     void Renderer2D::TextPass()
     {
-        s_Data.renderGraph.AddPass({
+        s_Data.renderGraph.addPass({
             .Name = "TextPass",
             .Execute = [](CommandBuffer& cmd) {
-                cmd.Record([](RendererAPI& api) {
+                cmd.record([](RendererAPI& api) {
 
                     uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.TextVertexBufferPtr - (uint8_t*)s_Data.TextVertexBufferBase);
                     s_Data.TextVertexBuffer->setData(s_Data.TextVertexBufferBase, dataSize);

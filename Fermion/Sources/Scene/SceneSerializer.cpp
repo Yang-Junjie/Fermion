@@ -72,11 +72,10 @@ namespace Fermion
             {
                 if (static_cast<uint64_t>(mesh.meshHandle) != 0)
                     out << YAML::Key << "MeshHandle" << YAML::Value << static_cast<uint64_t>(mesh.meshHandle);
-                
 
                 out << YAML::Key << "MemoryOnly" << YAML::Value << mesh.memoryOnly;
                 out << YAML::Key << "MemoryMeshType" << YAML::Value << static_cast<uint16_t>(mesh.memoryMeshType);
-                
+
                 if (!mesh.submeshMaterials.empty())
                 {
                     out << YAML::Key << "SubmeshMaterials" << YAML::Value << YAML::BeginSeq;
@@ -295,7 +294,6 @@ namespace Fermion
             out << YAML::EndSeq;
             out << YAML::EndMap;
         }
-        
 
         // Close entity map after writing all components
         out << YAML::EndMap;
@@ -308,7 +306,7 @@ namespace Fermion
         out << YAML::Key << "Scene" << YAML::Value << "Name";
         out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 
-        auto view = m_scene->m_registry.view<TransformComponent>();
+        auto view = m_scene->getRegistry().view<TransformComponent>();
         for (auto entityID : view)
         {
             Entity entity = {entityID, m_scene.get()};
@@ -442,7 +440,7 @@ namespace Fermion
                             }
                         }
                     }
-                    
+
                     // 加载submeshMaterials数组
                     auto submeshMaterialsNode = meshComponent["SubmeshMaterials"];
                     if (submeshMaterialsNode && submeshMaterialsNode.IsSequence())

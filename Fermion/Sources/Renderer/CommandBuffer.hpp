@@ -9,15 +9,15 @@ namespace Fermion {
  */
 class CommandBuffer {
 public:
-    void Record(const RenderCommandData &command);
-    void Record(const std::function<void(RendererAPI &)> &command);
-    void Execute(RendererBackend &backend) const;
-    void Clear();
+    void record(const RenderCommandData &command);
+    void record(const std::function<void(RendererAPI &)> &command);
+    void execute(RendererBackend &backend) const;
+    void clear();
 
-    bool Empty() const {
+    bool empty() const {
         return m_Commands.empty();
     }
-    size_t GetCommandCount() const {
+    size_t getCommandCount() const {
         return m_Commands.size();
     }
 

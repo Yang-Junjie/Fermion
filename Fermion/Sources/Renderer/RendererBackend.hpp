@@ -5,7 +5,7 @@
 
 namespace Fermion {
 struct RenderCommandData {
-    std::function<void(RendererAPI &)> Execute;
+    std::function<void(RendererAPI &)> execute;
 };
 
 /**
@@ -16,11 +16,11 @@ class RendererBackend {
 public:
     explicit RendererBackend(RendererAPI &api);
 
-    RendererAPI &GetAPI() const {
+    RendererAPI &getAPI() const {
         return m_API;
     }
 
-    void Submit(const RenderCommandData &command);
+    void submit(const RenderCommandData &command);
 
 private:
     RendererAPI &m_API;

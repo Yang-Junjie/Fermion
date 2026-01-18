@@ -4,14 +4,17 @@
 #include "Core/MouseCodes.hpp"
 #include <glm/glm.hpp>
 
-namespace Fermion {
-    enum class CursorMode {
+namespace Fermion
+{
+    enum class CursorMode
+    {
         Normal = 0,
         Hidden = 1,
         Disabled = 2 // 锁定并隐藏光标
     };
 
-    class Input {
+    class Input
+    {
     public:
         static bool isKeyPressed(KeyCode key);
 

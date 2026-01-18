@@ -2,26 +2,26 @@
 #include "Renderer/CommandBuffer.hpp"
 
 namespace Fermion {
-void CommandBuffer::Record(const RenderCommandData &command) {
-    if (command.Execute)
+void CommandBuffer::record(const RenderCommandData &command) {
+    if (command.execute)
         m_Commands.emplace_back(command);
 }
 
-void CommandBuffer::Record(const std::function<void(RendererAPI &)> &command) {
+void CommandBuffer::record(const std::function<void(RendererAPI &)> &command) {
     if (!command)
         return;
 
     RenderCommandData data;
-    data.Execute = command;
-    Record(data);
+    data.execute = command;
+    record(data);
 }
 
-void CommandBuffer::Execute(RendererBackend &backend) const {
+void CommandBuffer::execute(RendererBackend &backend) const {
     for (auto &command : m_Commands)
-        backend.Submit(command);
+        backend.submit(command);
 }
 
-void CommandBuffer::Clear() {
+void CommandBuffer::clear() {
     m_Commands.clear();
 }
 

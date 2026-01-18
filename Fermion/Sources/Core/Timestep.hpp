@@ -15,7 +15,6 @@ namespace Fermion
             return m_time;
         }
 
-
         float getSeconds() const
         {
             return m_time;

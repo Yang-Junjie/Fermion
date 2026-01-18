@@ -8,8 +8,10 @@
 #include "Asset/AssetManager/EditorAssetManager.hpp"
 #include "Asset/AssetManager/RuntimeAssetManager.hpp"
 
-namespace Fermion {
-    struct ProjectConfig {
+namespace Fermion
+{
+    struct ProjectConfig
+    {
         std::string name = "Untitled";
         std::string version = "1.0.0";
         std::string author = "Your";
@@ -19,22 +21,27 @@ namespace Fermion {
         std::filesystem::path scriptDirectory;
     };
 
-    class Project {
+    class Project
+    {
     public:
-        static const std::filesystem::path &getProjectDirectory() {
+        static const std::filesystem::path &getProjectDirectory()
+        {
             return s_activeProject->m_projectDirectory;
         }
 
-        static const std::filesystem::path &getProjectPath() {
+        static const std::filesystem::path &getProjectPath()
+        {
             return s_activeProject->m_projectPath;
         }
 
-        ProjectConfig &getConfig() {
+        ProjectConfig &getConfig()
+        {
             return m_config;
         }
 
-        static std::shared_ptr<Project> getActive() {
-            //FERMION_ASSERT(s_activeProject!=nullptr, "Project is not active!");
+        static std::shared_ptr<Project> getActive()
+        {
+            // FERMION_ASSERT(s_activeProject!=nullptr, "Project is not active!");
             return s_activeProject;
         }
 
@@ -48,15 +55,18 @@ namespace Fermion {
 
         static void initRuntimeAssets();
 
-        inline static std::shared_ptr<AssetManagerBase> getAssetManager() {
+        inline static std::shared_ptr<AssetManagerBase> getAssetManager()
+        {
             return s_assetManager;
         }
 
-        inline static std::shared_ptr<EditorAssetManager> getEditorAssetManager() {
+        inline static std::shared_ptr<EditorAssetManager> getEditorAssetManager()
+        {
             return std::dynamic_pointer_cast<EditorAssetManager>(s_assetManager);
         }
 
-        inline static std::shared_ptr<RuntimeAssetManager> getRuntimeAssetManager() {
+        inline static std::shared_ptr<RuntimeAssetManager> getRuntimeAssetManager()
+        {
             return std::dynamic_pointer_cast<RuntimeAssetManager>(s_assetManager);
         }
 

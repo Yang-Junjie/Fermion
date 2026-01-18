@@ -1,6 +1,7 @@
-﻿#include "Fermion.hpp"
+#include "Fermion.hpp"
 #include "BosonLayer.hpp"
 #include "Scene/SceneSerializer.hpp"
+#include "Scene/EntityManager.hpp"
 #include "Utils/PlatformUtils.hpp"
 #include "Renderer/Font/Font.hpp"
 #include "Panels/InspectorPanel.hpp"
@@ -307,7 +308,7 @@ namespace Fermion
             {
                 if (const Entity selected = m_sceneHierarchyPanel.getSelectedEntity(); selected)
                 {
-                    m_activeScene->destroyEntity(selected);
+                    m_activeScene->getEntityManager().destroyEntity(selected);
                     m_sceneHierarchyPanel.setSelectedEntity({});
                 }
             }
@@ -700,7 +701,7 @@ namespace Fermion
             const glm::mat4 &cameraView = m_editorCamera.getViewMatrix();
             // Entity
             auto &transformComponent = selectedEntity.getComponent<TransformComponent>();
-            glm::mat4 worldTransform = m_activeScene->getWorldSpaceTransformMatrix(selectedEntity);
+            glm::mat4 worldTransform = m_activeScene->getEntityManager().getWorldSpaceTransformMatrix(selectedEntity);
 
             bool snap = Input::isKeyPressed(KeyCode::LeftAlt);
             float snapValue = 0.5f;
@@ -715,10 +716,10 @@ namespace Fermion
             if (ImGuizmo::IsUsing())
             {
                 glm::mat4 localTransform = worldTransform;
-                Entity parent = m_activeScene->tryGetEntityByUUID(selectedEntity.getParentUUID());
+                Entity parent = m_activeScene->getEntityManager().tryGetEntityByUUID(selectedEntity.getParentUUID());
                 if (parent)
                 {
-                    glm::mat4 parentTransform = m_activeScene->getWorldSpaceTransformMatrix(parent);
+                    glm::mat4 parentTransform = m_activeScene->getEntityManager().getWorldSpaceTransformMatrix(parent);
                     localTransform = glm::inverse(parentTransform) * worldTransform;
                 }
 
@@ -836,7 +837,7 @@ namespace Fermion
     {
         if (m_sceneState == SceneState::Play)
         {
-            Entity camera = m_activeScene->getPrimaryCameraEntity();
+            Entity camera = m_activeScene->getEntityManager().getPrimaryCameraEntity();
             if (!camera)
                 return false;
 
@@ -861,9 +862,9 @@ namespace Fermion
     {
         auto getParentTransform = [&](Entity entity)
         {
-            Entity parent = m_activeScene->tryGetEntityByUUID(entity.getParentUUID());
+            Entity parent = m_activeScene->getEntityManager().tryGetEntityByUUID(entity.getParentUUID());
             if (parent)
-                return m_activeScene->getWorldSpaceTransformMatrix(parent);
+                return m_activeScene->getEntityManager().getWorldSpaceTransformMatrix(parent);
             return glm::mat4(1.0f);
         };
 
@@ -936,9 +937,9 @@ namespace Fermion
 
         auto getParentTransform = [&](Entity entity)
         {
-            Entity parent = m_activeScene->tryGetEntityByUUID(entity.getParentUUID());
+            Entity parent = m_activeScene->getEntityManager().tryGetEntityByUUID(entity.getParentUUID());
             if (parent)
-                return m_activeScene->getWorldSpaceTransformMatrix(parent);
+                return m_activeScene->getEntityManager().getWorldSpaceTransformMatrix(parent);
             return glm::mat4(1.0f);
         };
 
@@ -1132,7 +1133,7 @@ namespace Fermion
     {
         if (Entity selectedEntity = m_sceneHierarchyPanel.getSelectedEntity(); selectedEntity)
         {
-            glm::mat4 worldTransform = m_activeScene->getWorldSpaceTransformMatrix(selectedEntity);
+            glm::mat4 worldTransform = m_activeScene->getEntityManager().getWorldSpaceTransformMatrix(selectedEntity);
             if (selectedEntity.hasComponent<MeshComponent>())
             {
                 m_viewportRenderer->submitMesh(selectedEntity.getComponent<MeshComponent>(),
@@ -1264,7 +1265,7 @@ namespace Fermion
         Entity selectedEntity = m_sceneHierarchyPanel.getSelectedEntity();
         if (selectedEntity)
         {
-            const Entity newEntity = m_editorScene->duplicateEntity(selectedEntity);
+            const Entity newEntity = m_editorScene->getEntityManager().duplicateEntity(selectedEntity);
             m_sceneHierarchyPanel.setSelectedEntity(newEntity);
         }
     }
