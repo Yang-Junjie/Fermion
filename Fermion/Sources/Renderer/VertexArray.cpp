@@ -1,6 +1,6 @@
 ﻿#include "fmpch.hpp"
 #include "Renderer/VertexArray.hpp"
-#include "Renderer/Renderer.hpp"
+#include "Renderer/Renderers/Renderer.hpp"
 #include "OpenGLVertexArray.hpp"
 
 namespace Fermion {

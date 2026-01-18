@@ -27,7 +27,11 @@ public:
         return m_depthAttachment;
     }
     
+    virtual void bindColorAttachment(uint32_t attachmentIndex, uint32_t slot = 0) const override;
+
     virtual void bindDepthAttachment(uint32_t slot = 0) const override;
+
+    virtual void blitTo(const std::shared_ptr<Framebuffer> &target, const FramebufferBlitSpecification &spec) const override;
 
     virtual const FramebufferSpecification &getSpecification() const override {
         return m_specification;

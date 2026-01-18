@@ -41,16 +41,16 @@ set(CORE_SOURCES
 
     ${FERMION_DIR}/Math/Math.cpp
 
-    ${FERMION_DIR}/Renderer/Renderer.cpp
+    ${FERMION_DIR}/Renderer/Renderers/Renderer.cpp
     ${FERMION_DIR}/Renderer/RendererAPI.cpp
     ${FERMION_DIR}/Renderer/RenderCommand.cpp
-    ${FERMION_DIR}/Renderer/Renderer2D.cpp
-    ${FERMION_DIR}/Renderer/Renderer3D.cpp
+    ${FERMION_DIR}/Renderer/Renderers/Renderer2D.cpp
+    ${FERMION_DIR}/Renderer/Renderers/Renderer3D.cpp
     ${FERMION_DIR}/Renderer/CommandBuffer.cpp
     ${FERMION_DIR}/Renderer/RenderCommandQueue.cpp
     ${FERMION_DIR}/Renderer/RendererBackend.cpp
     ${FERMION_DIR}/Renderer/Pipeline.cpp
-    ${FERMION_DIR}/Renderer/DebugRenderer.cpp
+    ${FERMION_DIR}/Renderer/Renderers/DebugRenderer.cpp
     ${FERMION_DIR}/Renderer/GraphicsContext.cpp
     ${FERMION_DIR}/Renderer/Buffer.cpp
     ${FERMION_DIR}/Renderer/FrameBuffer.cpp
@@ -59,7 +59,9 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Renderer/Camera/OrthographicCameraController.cpp
     ${FERMION_DIR}/Renderer/Camera/SceneCamera.cpp
     ${FERMION_DIR}/Renderer/Camera/EditorCamera.cpp
-    ${FERMION_DIR}/Renderer/SceneRenderer.cpp
+    ${FERMION_DIR}/Renderer/Renderers/SceneRenderer.cpp
+    ${FERMION_DIR}/Renderer/Renderers/EnvironmentRenderer.cpp
+    ${FERMION_DIR}/Renderer/Renderers/ShadowMapRenderer.cpp
     ${FERMION_DIR}/Renderer/Shader.cpp
     ${FERMION_DIR}/Renderer/Texture/Texture.cpp
     ${FERMION_DIR}/Renderer/Texture/SubTexture2D.cpp

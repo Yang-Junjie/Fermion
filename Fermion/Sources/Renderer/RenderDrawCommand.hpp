@@ -23,6 +23,7 @@ struct MeshDrawCommand {
     // CPU draw info
     AABB aabb;
     bool drawOutline = false;
+    bool visible = true;
 };
 
 struct SkyboxDrawCommand {

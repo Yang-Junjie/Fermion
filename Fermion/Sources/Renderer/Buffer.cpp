@@ -1,5 +1,5 @@
 ﻿#include "Renderer/Buffer.hpp"
-#include "Renderer/Renderer.hpp"
+#include "Renderer/Renderers/Renderer.hpp"
 #include "OpenGLBuffer.hpp"
 
 namespace Fermion {

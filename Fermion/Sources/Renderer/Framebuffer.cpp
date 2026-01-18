@@ -1,7 +1,7 @@
 #include "fmpch.hpp"
 #include "Renderer/Framebuffer.hpp"
 
-#include "Renderer/Renderer.hpp"
+#include "Renderer/Renderers/Renderer.hpp"
 
 #include "OpenGLFramebuffer.hpp"
 
@@ -15,6 +15,13 @@ std::shared_ptr<Framebuffer> Framebuffer::create(const FramebufferSpecification 
 
     FERMION_ASSERT(false, "Unknown RendererAPI!");
     return nullptr;
+}
+
+void Framebuffer::blit(const std::shared_ptr<Framebuffer> &source, const std::shared_ptr<Framebuffer> &target,
+                       const FramebufferBlitSpecification &spec) {
+    if (!source || !target)
+        return;
+    source->blitTo(target, spec);
 }
 
 } // namespace Fermion

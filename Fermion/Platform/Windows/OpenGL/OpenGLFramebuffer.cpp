@@ -242,9 +242,80 @@ void OpenGLFramebuffer::clearAttachment(uint32_t attachmentIndex, int value) {
     }
 }
 
+void OpenGLFramebuffer::bindColorAttachment(uint32_t attachmentIndex, uint32_t slot) const {
+    FERMION_ASSERT(attachmentIndex < m_colorAttachments.size(), "Attachment index out of range!");
+    glActiveTexture(GL_TEXTURE0 + slot);
+    glBindTexture(Utils::textureTarget(m_specification.samples > 1), m_colorAttachments[attachmentIndex]);
+}
+
 void OpenGLFramebuffer::bindDepthAttachment(uint32_t slot) const {
     glActiveTexture(GL_TEXTURE0 + slot);
-    glBindTexture(GL_TEXTURE_2D, m_depthAttachment);
+    glBindTexture(Utils::textureTarget(m_specification.samples > 1), m_depthAttachment);
+}
+
+void OpenGLFramebuffer::blitTo(const std::shared_ptr<Framebuffer> &target, const FramebufferBlitSpecification &spec) const {
+    auto targetFB = std::dynamic_pointer_cast<OpenGLFramebuffer>(target);
+    FERMION_ASSERT(targetFB, "Target framebuffer must be OpenGLFramebuffer!");
+    if (!targetFB)
+        return;
+
+    GLint prevRead = 0;
+    GLint prevDraw = 0;
+    glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &prevRead);
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &prevDraw);
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, m_rendererID);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFB->m_rendererID);
+
+    GLenum mask = 0;
+    const bool blitColor = hasBlitMask(spec.mask, FramebufferBlitMask::Color);
+    if (blitColor) {
+        FERMION_ASSERT(spec.srcAttachmentIndex < m_colorAttachments.size(), "Source attachment index out of range!");
+        FERMION_ASSERT(spec.dstAttachmentIndex < targetFB->m_colorAttachments.size(), "Destination attachment index out of range!");
+        glReadBuffer(GL_COLOR_ATTACHMENT0 + spec.srcAttachmentIndex);
+        glDrawBuffer(GL_COLOR_ATTACHMENT0 + spec.dstAttachmentIndex);
+        mask |= GL_COLOR_BUFFER_BIT;
+    } else {
+        glReadBuffer(GL_NONE);
+        glDrawBuffer(GL_NONE);
+    }
+
+    if (hasBlitMask(spec.mask, FramebufferBlitMask::Depth))
+        mask |= GL_DEPTH_BUFFER_BIT;
+    if (hasBlitMask(spec.mask, FramebufferBlitMask::Stencil))
+        mask |= GL_STENCIL_BUFFER_BIT;
+
+    GLenum filter = (spec.filter == FramebufferBlitFilter::Linear) ? GL_LINEAR : GL_NEAREST;
+    if (blitColor && spec.srcAttachmentIndex < m_colorAttachmentSpecifications.size()) {
+        const auto srcFormat = m_colorAttachmentSpecifications[spec.srcAttachmentIndex].textureFormat;
+        if (srcFormat == FramebufferTextureFormat::RED_INTEGER)
+            filter = GL_NEAREST;
+    }
+
+    glBlitFramebuffer(0, 0, m_specification.width, m_specification.height,
+                      0, 0, targetFB->m_specification.width, targetFB->m_specification.height,
+                      mask, filter);
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, m_rendererID);
+    if (m_colorAttachments.empty()) {
+        glReadBuffer(GL_NONE);
+    } else {
+        glReadBuffer(GL_COLOR_ATTACHMENT0);
+    }
+
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, targetFB->m_rendererID);
+    if (targetFB->m_colorAttachments.empty()) {
+        glDrawBuffer(GL_NONE);
+    } else if (targetFB->m_colorAttachments.size() == 1) {
+        glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    } else {
+        FERMION_ASSERT(targetFB->m_colorAttachments.size() <= 4, "Maximum number of color attachments exceeded!");
+        GLenum buffers[4] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
+        glDrawBuffers((GLsizei)targetFB->m_colorAttachments.size(), buffers);
+    }
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, prevRead);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevDraw);
 }
 
 } // namespace Fermion

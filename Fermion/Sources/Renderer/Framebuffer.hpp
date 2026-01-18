@@ -44,6 +44,37 @@ struct FramebufferSpecification {
     bool swapChainTarget = false;
 };
 
+enum class FramebufferBlitMask : uint32_t {
+    None = 0,
+    Color = 1 << 0,
+    Depth = 1 << 1,
+    Stencil = 1 << 2
+};
+
+inline FramebufferBlitMask operator|(FramebufferBlitMask a, FramebufferBlitMask b) {
+    return static_cast<FramebufferBlitMask>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+}
+
+inline FramebufferBlitMask operator&(FramebufferBlitMask a, FramebufferBlitMask b) {
+    return static_cast<FramebufferBlitMask>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
+}
+
+inline bool hasBlitMask(FramebufferBlitMask value, FramebufferBlitMask mask) {
+    return (static_cast<uint32_t>(value) & static_cast<uint32_t>(mask)) != 0;
+}
+
+enum class FramebufferBlitFilter {
+    Nearest,
+    Linear
+};
+
+struct FramebufferBlitSpecification {
+    uint32_t srcAttachmentIndex = 0;
+    uint32_t dstAttachmentIndex = 0;
+    FramebufferBlitMask mask = FramebufferBlitMask::Color;
+    FramebufferBlitFilter filter = FramebufferBlitFilter::Nearest;
+};
+
 class Framebuffer {
 public:
     virtual ~Framebuffer() = default;
@@ -60,11 +91,18 @@ public:
     
     virtual uint32_t getDepthAttachmentRendererID() const = 0;
     
+    virtual void bindColorAttachment(uint32_t attachmentIndex, uint32_t slot = 0) const = 0;
+
     virtual void bindDepthAttachment(uint32_t slot = 0) const = 0;
+
+    virtual void blitTo(const std::shared_ptr<Framebuffer> &target, const FramebufferBlitSpecification &spec) const = 0;
 
     virtual const FramebufferSpecification &getSpecification() const = 0;
 
     static std::shared_ptr<Framebuffer> create(const FramebufferSpecification &spec);
+
+    static void blit(const std::shared_ptr<Framebuffer> &source, const std::shared_ptr<Framebuffer> &target,
+                     const FramebufferBlitSpecification &spec);
 };
 
 } // namespace Fermion

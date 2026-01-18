@@ -8,7 +8,7 @@
 #include "Panels/MenuBarPanel.hpp"
 #include "Panels/MaterialEditorPanel.hpp"
 
-#include "Renderer/SceneRenderer.hpp"
+#include "Renderer/Renderers/SceneRenderer.hpp"
 
 #include <filesystem>
 #include <imgui.h>

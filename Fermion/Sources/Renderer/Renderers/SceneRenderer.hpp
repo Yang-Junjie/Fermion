@@ -1,20 +1,23 @@
 ﻿#pragma once
 #include "Scene/Components.hpp"
 #include "Scene/Scene.hpp"
-#include "Model/Mesh.hpp"
-#include "Model/Material.hpp"
-#include "Camera/Camera.hpp"
-#include "Camera/EditorCamera.hpp"
+#include "Renderer/Model/Mesh.hpp"
+#include "Renderer/Model/Material.hpp"
+#include "Renderer/Camera/Camera.hpp"
+#include "Renderer/Camera/EditorCamera.hpp"
 #include "DebugRenderer.hpp"
-#include "Framebuffer.hpp"
-#include "RenderGraph.hpp"
-#include "RenderDrawCommand.hpp"
+#include "Renderer/Framebuffer.hpp"
+#include "Renderer/RenderGraph.hpp"
+#include "Renderer/RenderDrawCommand.hpp"
+#include <array>
 #include <vector>
-#include "RenderCommandQueue.hpp"
+#include "Renderer/RenderCommandQueue.hpp"
 
 namespace Fermion
 {
     class DebugRenderer;
+    class EnvironmentRenderer;
+    class ShadowMapRenderer;
 
     class SceneRenderer
     {
@@ -36,7 +39,6 @@ namespace Fermion
             bool enableDepthView = false;
             float depthViewPower = 3.0f;  
             glm::vec4 meshOutlineColor = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-
 
             float ambientIntensity = 0.1f;
 
@@ -110,6 +112,7 @@ namespace Fermion
         };
 
         SceneRenderer();
+        ~SceneRenderer();
 
         void beginScene(const Camera &camera, const glm::mat4 &transform);
 
@@ -177,7 +180,6 @@ namespace Fermion
             return m_sceneData;
         }
 
-        uint32_t getDepthViewRendererID() const;
 
         void resetStatistics();
 
@@ -198,57 +200,28 @@ namespace Fermion
 
         void FlushDrawList();
 
-        glm::mat4 calculateLightSpaceMatrix(const DirectionalLight &light, float orthoSize = 20.0f);
-
-        void convertEquirectangularToCubemap();
-        void initializeIBL();
-        void generateIrradianceMap();
-        void generatePrefilterMap();
-        void generateBRDFLUT();
-
     private:
         std::shared_ptr<DebugRenderer> m_debugRenderer;
+        std::unique_ptr<EnvironmentRenderer> m_environmentRenderer;
+        std::unique_ptr<ShadowMapRenderer> m_shadowRenderer;
 
         std::shared_ptr<Scene> m_scene;
 
         std::vector<MeshDrawCommand> s_MeshDrawList;
 
-        // HDR环境贴图相关
-        std::unique_ptr<Texture2D> m_hdrEnvironment = nullptr;
-        std::unique_ptr<TextureCube> m_environmentCubemap = nullptr;
-        std::shared_ptr<VertexArray> m_cubeVA = nullptr;
-        
-        std::shared_ptr<VertexArray> m_quadVA = nullptr;  
-
         std::shared_ptr<VertexArray> m_depthViewQuadVA = nullptr;
 
         std::shared_ptr<Pipeline> m_MeshPipeline;
         std::shared_ptr<Pipeline> m_PBRMeshPipeline;
-        std::shared_ptr<Pipeline> m_SkyboxPipeline;
-        std::shared_ptr<Pipeline> m_ShadowPipeline;
         std::shared_ptr<Pipeline> m_DepthViewPipeline;
-
-        // IBL resources
-        std::shared_ptr<Pipeline> m_IBLIrradiancePipeline;
-        std::shared_ptr<Pipeline> m_IBLPrefilterPipeline;
-        std::shared_ptr<Pipeline> m_IBLBRDFPipeline;
-        std::shared_ptr<Pipeline> m_EquirectToCubePipeline;
-
-        std::unique_ptr<TextureCube> m_irradianceMap = nullptr;
-        std::unique_ptr<TextureCube> m_prefilterMap = nullptr;
-        std::unique_ptr<Texture2D> m_brdfLUT = nullptr;
-
-        bool m_iblInitialized = false;
-        bool m_environmentLoaded = false;
-
-        std::shared_ptr<Framebuffer> m_shadowMapFB;
         std::shared_ptr<Framebuffer> m_targetFramebuffer;
-        glm::mat4 m_lightSpaceMatrix;
 
         RenderGraph m_RenderGraph;
         RenderCommandQueue m_CommandQueue;
         SceneInfo m_sceneData;
 
         RenderStatistics::Renderer3DStatistics m_renderer3DStatistics;
+        std::array<glm::vec4, 6> m_cameraFrustumPlanes{};
+        bool m_hasCameraFrustum = false;
     };
 } // namespace Fermion

@@ -10,8 +10,8 @@
 
 #include "Scene/Scene.hpp"
 #include "Scene/EntityManager.hpp"
-#include "Renderer/SceneRenderer.hpp"
-#include "Renderer/DebugRenderer.hpp"
+#include "Renderer/Renderers/SceneRenderer.hpp"
+#include "Renderer/Renderers/DebugRenderer.hpp"
 #include "Scene/Entity.hpp"
 #include "Scene/Components.hpp"
 #include "Physics/Physics2D.hpp"

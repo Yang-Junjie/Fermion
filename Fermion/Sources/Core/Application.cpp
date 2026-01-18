@@ -4,7 +4,7 @@
 #include "Renderer/Buffer.hpp"
 #include "Renderer/VertexArray.hpp"
 #include "Renderer/Model/MeshFactory.hpp"
-#include "Renderer/Renderer.hpp"
+#include "Renderer/Renderers/Renderer.hpp"
 #include <GLFW/glfw3.h>
 
 namespace Fermion
