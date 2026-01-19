@@ -575,6 +575,22 @@ namespace Fermion
             ImGui::DragFloat("Normal Map Strength", &m_viewportRenderer->getSceneInfo().normalMapStrength, 0.1f, 0.0f, 5.0f);
             ImGui::DragFloat("Toksvig Strength", &m_viewportRenderer->getSceneInfo().toksvigStrength, 0.05f, 0.0f, 4.0f);
 
+            ImGui::SeparatorText("SSGI");
+            if (ImGui::Checkbox("Enable SSGI", &sceneInfo.enableSSGI))
+            {
+                if (sceneInfo.enableSSGI)
+                    sceneInfo.renderMode = SceneRenderer::RenderMode::DeferredHybrid;
+            }
+            if (sceneInfo.enableSSGI)
+            {
+                ImGui::Indent();
+                ImGui::DragFloat("SSGI Intensity", &sceneInfo.ssgiIntensity, 0.05f, 0.0f, 4.0f);
+                ImGui::DragFloat("SSGI Radius", &sceneInfo.ssgiRadius, 0.05f, 0.1f, 10.0f);
+                ImGui::DragFloat("SSGI Bias", &sceneInfo.ssgiBias, 0.001f, 0.0f, 1.0f);
+                ImGui::SliderInt("SSGI Samples", &sceneInfo.ssgiSampleCount, 1, 32);
+                ImGui::Unindent();
+            }
+
             ImGui::Separator();
             ImGui::DragFloat("Shadow Bias", &m_viewportRenderer->getSceneInfo().shadowBias, 0.0001f, 0.0f, 0.1f);
             ImGui::Separator();
@@ -627,7 +643,7 @@ namespace Fermion
                     sceneInfo.gbufferDebug = SceneRenderer::GBufferDebugMode::None;
             }
 
-            const char *gbufferModes[] = {"None", "Albedo", "Normal", "Material", "Roughness", "Metallic", "AO", "Emissive", "Depth", "ObjectID"};
+            const char *gbufferModes[] = {"None", "Albedo", "Normal", "Material", "Roughness", "Metallic", "AO", "Emissive", "Depth", "ObjectID", "SSGI"};
             int gbufferModeIndex = static_cast<int>(sceneInfo.gbufferDebug);
             if (ImGui::Combo("GBuffer Debug", &gbufferModeIndex, gbufferModes, IM_ARRAYSIZE(gbufferModes)))
             {

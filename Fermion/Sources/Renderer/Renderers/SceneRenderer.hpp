@@ -46,7 +46,8 @@ namespace Fermion
             AO = 6,
             Emissive = 7,
             Depth = 8,
-            ObjectID = 9
+            ObjectID = 9,
+            SSGI = 10
         };
 
         struct SceneRendererCamera
@@ -73,6 +74,11 @@ namespace Fermion
             float ambientIntensity = 0.1f;
             RenderMode renderMode = RenderMode::DeferredHybrid;
             GBufferDebugMode gbufferDebug = GBufferDebugMode::None;
+            bool enableSSGI = false;
+            float ssgiIntensity = 1.0f;
+            float ssgiRadius = 1.0f;
+            float ssgiBias = 0.05f;
+            int ssgiSampleCount = 16;
 
             // Shadow mapping settings
             uint32_t shadowMapSize = 2048;
@@ -242,9 +248,11 @@ namespace Fermion
         void ForwardPass(ResourceHandle shadowMap, ResourceHandle sceneDepth, ResourceHandle lightingResult);
         void GBufferPass(ResourceHandle gBuffer, ResourceHandle sceneDepth);
         void recordGBufferPass(CommandBuffer &commandBuffer);
-        void LightingPass(ResourceHandle gBuffer, ResourceHandle shadowMap, ResourceHandle sceneDepth, ResourceHandle lightingResult);
+        void LightingPass(ResourceHandle gBuffer, ResourceHandle shadowMap, ResourceHandle sceneDepth, ResourceHandle ssgi, ResourceHandle lightingResult);
         void recordLightingPass(CommandBuffer &commandBuffer);
-        void GBufferDebugPass(ResourceHandle gBuffer, ResourceHandle sceneDepth);
+        void SSGIPass(ResourceHandle gBuffer, ResourceHandle sceneDepth, ResourceHandle ssgi);
+        void recordSSGIPass(CommandBuffer &commandBuffer);
+        void GBufferDebugPass(ResourceHandle gBuffer, ResourceHandle sceneDepth, ResourceHandle ssgi);
         void recordGBufferDebugPass(CommandBuffer &commandBuffer);
         void TransparentPass(ResourceHandle shadowMap, ResourceHandle sceneDepth, ResourceHandle lightingResult);
         void recordForwardPass(CommandBuffer &commandBuffer, bool drawTransparent);
@@ -260,6 +268,7 @@ namespace Fermion
 
         void FlushDrawList();
         void ensureGBuffer(uint32_t width, uint32_t height);
+        void ensureSSGI(uint32_t width, uint32_t height);
 
     private:
         std::shared_ptr<DebugRenderer> m_debugRenderer;
@@ -279,9 +288,11 @@ namespace Fermion
         std::shared_ptr<Pipeline> m_DeferredLightingPipeline;
         std::shared_ptr<Pipeline> m_GBufferDebugPipeline;
         std::shared_ptr<Pipeline> m_GBufferOutlinePipeline;
+        std::shared_ptr<Pipeline> m_SSGIPipeline;
         std::shared_ptr<Pipeline> m_DepthViewPipeline;
         std::shared_ptr<Framebuffer> m_targetFramebuffer;
         std::shared_ptr<Framebuffer> m_gBufferFramebuffer;
+        std::shared_ptr<Framebuffer> m_ssgiFramebuffer;
 
         RenderGraph m_RenderGraph;
         RenderCommandQueue m_CommandQueue;

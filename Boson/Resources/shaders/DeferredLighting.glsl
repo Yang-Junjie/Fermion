@@ -66,6 +66,7 @@ uniform sampler2D u_GBufferNormal;
 uniform sampler2D u_GBufferMaterial;
 uniform sampler2D u_GBufferEmissive;
 uniform sampler2D u_GBufferDepth;
+uniform sampler2D u_SSGI;
 
 uniform mat4 u_InverseViewProjection;
 uniform mat4 u_LightSpaceMatrix;
@@ -82,6 +83,7 @@ uniform samplerCube u_IrradianceMap;
 uniform samplerCube u_PrefilterMap;
 uniform sampler2D u_BRDFLT;
 uniform float u_PrefilterMaxLOD;
+uniform bool u_EnableSSGI;
 
 float DistributionGGX(vec3 N, vec3 H, float roughness)
 {
@@ -126,6 +128,11 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
 {
     return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}
+
+float computeSpecularOcclusion(float NoV, float ao, float roughness)
+{
+    return clamp(pow(NoV + ao, exp2(-16.0 * roughness - 1.0)) - 1.0 + ao, 0.0, 1.0);
 }
 
 float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir)
@@ -308,7 +315,8 @@ void main()
             prefilteredColor = vec3(0.03);
 
         vec2 brdf = texture(u_BRDFLT, vec2(NoV, roughness)).rg;
-        vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
+        float specOcclusion = computeSpecularOcclusion(NoV, ao, roughness);
+        vec3 specular = prefilteredColor * (F * brdf.x + brdf.y) * specOcclusion;
 
         ambient = (kD * diffuse + specular) * ao;
     }
@@ -316,6 +324,11 @@ void main()
     {
         ambient = vec3(u_AmbientIntensity) * albedo * ao;
     }
+
+    vec3 ssgi = vec3(0.0);
+    if (u_EnableSSGI)
+        ssgi = texture(u_SSGI, v_TexCoords).rgb;
+    ambient += ssgi * ao;
 
     vec3 color = ambient + Lo + emissive;
 

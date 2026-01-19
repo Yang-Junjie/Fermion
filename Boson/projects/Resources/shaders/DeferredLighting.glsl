@@ -66,6 +66,7 @@ uniform sampler2D u_GBufferNormal;
 uniform sampler2D u_GBufferMaterial;
 uniform sampler2D u_GBufferEmissive;
 uniform sampler2D u_GBufferDepth;
+uniform sampler2D u_SSGI;
 
 uniform mat4 u_InverseViewProjection;
 uniform mat4 u_LightSpaceMatrix;
@@ -82,6 +83,7 @@ uniform samplerCube u_IrradianceMap;
 uniform samplerCube u_PrefilterMap;
 uniform sampler2D u_BRDFLT;
 uniform float u_PrefilterMaxLOD;
+uniform bool u_EnableSSGI;
 
 float DistributionGGX(vec3 N, vec3 H, float roughness)
 {
@@ -317,6 +319,11 @@ void main()
     {
         ambient = vec3(u_AmbientIntensity) * albedo * ao;
     }
+
+    vec3 ssgi = vec3(0.0);
+    if (u_EnableSSGI)
+        ssgi = texture(u_SSGI, v_TexCoords).rgb;
+    ambient += ssgi * ao;
 
     vec3 color = ambient + Lo + emissive;
 

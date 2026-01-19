@@ -173,6 +173,17 @@ namespace Fermion
             m_GBufferOutlinePipeline = Pipeline::create(outlineSpec);
         }
 
+        // SSGI Pipeline
+        {
+            PipelineSpecification ssgiSpec;
+            ssgiSpec.shader = Renderer::getShaderLibrary()->get("SSGI");
+            ssgiSpec.depthTest = false;
+            ssgiSpec.depthWrite = false;
+            ssgiSpec.cull = CullMode::None;
+
+            m_SSGIPipeline = Pipeline::create(ssgiSpec);
+        }
+
         m_environmentRenderer = std::make_unique<EnvironmentRenderer>();
         m_shadowRenderer = std::make_unique<ShadowMapRenderer>();
 
@@ -520,11 +531,11 @@ namespace Fermion
                                  } });
     }
 
-    void SceneRenderer::LightingPass(ResourceHandle gBuffer, ResourceHandle shadowMap, ResourceHandle sceneDepth, ResourceHandle lightingResult)
+    void SceneRenderer::LightingPass(ResourceHandle gBuffer, ResourceHandle shadowMap, ResourceHandle sceneDepth, ResourceHandle ssgi, ResourceHandle lightingResult)
     {
         m_RenderGraph.addPass(
             {.Name = "LightingPass",
-             .Inputs = {gBuffer, shadowMap, sceneDepth},
+             .Inputs = {gBuffer, shadowMap, sceneDepth, ssgi},
              .Outputs = {lightingResult},
              .Execute = [this](CommandBuffer &commandBuffer)
              {
@@ -559,12 +570,17 @@ namespace Fermion
                                  shader->setInt("u_GBufferMaterial", 2);
                                  shader->setInt("u_GBufferEmissive", 3);
                                  shader->setInt("u_GBufferDepth", 4);
+                                 shader->setInt("u_SSGI", 5);
 
                                  m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Albedo), 0);
                                  m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Normal), 1);
                                  m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Material), 2);
                                  m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Emissive), 3);
                                  m_gBufferFramebuffer->bindDepthAttachment(4);
+                                 const bool useSSGI = m_sceneData.enableSSGI && m_ssgiFramebuffer;
+                                 shader->setBool("u_EnableSSGI", useSSGI);
+                                 if (useSSGI)
+                                     m_ssgiFramebuffer->bindColorAttachment(0, 5);
 
                                  const glm::mat4 viewProjection = m_sceneData.sceneCamera.camera.getProjection() * m_sceneData.sceneCamera.view;
                                  const glm::mat4 inverseViewProjection = glm::inverse(viewProjection);
@@ -647,11 +663,66 @@ namespace Fermion
                                  RenderCommand::drawIndexed(m_depthViewQuadVA, m_depthViewQuadVA->getIndexBuffer()->getCount()); });
     }
 
-    void SceneRenderer::GBufferDebugPass(ResourceHandle gBuffer, ResourceHandle sceneDepth)
+    void SceneRenderer::SSGIPass(ResourceHandle gBuffer, ResourceHandle sceneDepth, ResourceHandle ssgi)
+    {
+        m_RenderGraph.addPass(
+            {.Name = "SSGIPass",
+             .Inputs = {gBuffer, sceneDepth},
+             .Outputs = {ssgi},
+             .Execute = [this](CommandBuffer &commandBuffer)
+             {
+                 recordSSGIPass(commandBuffer);
+             }});
+    }
+
+    void SceneRenderer::recordSSGIPass(CommandBuffer &commandBuffer)
+    {
+        commandBuffer.record([this](RendererAPI &api)
+                             {
+                                 if (!m_gBufferFramebuffer || !m_SSGIPipeline || !m_ssgiFramebuffer)
+                                     return;
+
+                                 m_ssgiFramebuffer->bind();
+                                 RenderCommand::setBlendEnabled(false);
+                                 RenderCommand::setClearColor({0.0f, 0.0f, 0.0f, 1.0f});
+                                 RenderCommand::clear();
+
+                                 m_SSGIPipeline->bind();
+                                 auto shader = m_SSGIPipeline->getShader();
+
+                                 shader->setInt("u_GBufferAlbedo", 0);
+                                 shader->setInt("u_GBufferNormal", 1);
+                                 shader->setInt("u_GBufferDepth", 2);
+
+                                 m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Albedo), 0);
+                                 m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Normal), 1);
+                                 m_gBufferFramebuffer->bindDepthAttachment(2);
+
+                                 const glm::mat4 viewProjection = m_sceneData.sceneCamera.camera.getProjection() * m_sceneData.sceneCamera.view;
+                                 const glm::mat4 inverseViewProjection = glm::inverse(viewProjection);
+                                 shader->setMat4("u_ViewProjection", viewProjection);
+                                 shader->setMat4("u_InverseViewProjection", inverseViewProjection);
+
+                                 int sampleCount = m_sceneData.ssgiSampleCount;
+                                 if (sampleCount < 1)
+                                     sampleCount = 1;
+                                 if (sampleCount > 32)
+                                     sampleCount = 32;
+                                 shader->setInt("u_SSGISampleCount", sampleCount);
+                                 shader->setFloat("u_SSGIRadius", m_sceneData.ssgiRadius);
+                                 shader->setFloat("u_SSGIBias", m_sceneData.ssgiBias);
+                                 shader->setFloat("u_SSGIIntensity", m_sceneData.ssgiIntensity);
+
+                                 RenderCommand::drawIndexed(m_depthViewQuadVA, m_depthViewQuadVA->getIndexBuffer()->getCount());
+                                 RenderCommand::setBlendEnabled(true);
+                             });
+    }
+
+    void SceneRenderer::GBufferDebugPass(ResourceHandle gBuffer, ResourceHandle sceneDepth, ResourceHandle ssgi)
     {
         m_RenderGraph.addPass(
             {.Name = "GBufferDebugPass",
-             .Inputs = {gBuffer, sceneDepth},
+             .Inputs = {gBuffer, sceneDepth, ssgi},
              .Execute = [this](CommandBuffer &commandBuffer)
              {
                  recordGBufferDebugPass(commandBuffer);
@@ -686,6 +757,7 @@ namespace Fermion
                                  shader->setInt("u_GBufferEmissive", 3);
                                  shader->setInt("u_GBufferObjectID", 4);
                                  shader->setInt("u_GBufferDepth", 5);
+                                 shader->setInt("u_SSGI", 6);
                                  shader->setInt("u_Mode", static_cast<int>(m_sceneData.gbufferDebug));
                                  shader->setFloat("u_Near", m_sceneData.sceneCamera.nearClip);
                                  shader->setFloat("u_Far", m_sceneData.sceneCamera.farClip);
@@ -697,6 +769,8 @@ namespace Fermion
                                  m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Emissive), 3);
                                  m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::ObjectID), 4);
                                  m_gBufferFramebuffer->bindDepthAttachment(5);
+                                 if (m_ssgiFramebuffer)
+                                     m_ssgiFramebuffer->bindColorAttachment(0, 6);
 
                                  RenderCommand::drawIndexed(m_depthViewQuadVA, m_depthViewQuadVA->getIndexBuffer()->getCount()); });
     }
@@ -1027,6 +1101,29 @@ namespace Fermion
         m_gBufferFramebuffer = Framebuffer::create(gBufferSpec);
     }
 
+    void SceneRenderer::ensureSSGI(uint32_t width, uint32_t height)
+    {
+        if (width == 0 || height == 0)
+            return;
+
+        if (m_ssgiFramebuffer &&
+            m_ssgiFramebuffer->getSpecification().width == width &&
+            m_ssgiFramebuffer->getSpecification().height == height)
+        {
+            return;
+        }
+
+        FramebufferSpecification ssgiSpec;
+        ssgiSpec.width = width;
+        ssgiSpec.height = height;
+        ssgiSpec.attachments = {
+            FramebufferTextureFormat::RGB16F
+        };
+        ssgiSpec.swapChainTarget = false;
+
+        m_ssgiFramebuffer = Framebuffer::create(ssgiSpec);
+    }
+
     void SceneRenderer::FlushDrawList()
     {
         m_RenderGraph.reset();
@@ -1040,12 +1137,19 @@ namespace Fermion
         ResourceHandle gBuffer = RenderGraph::createResource();
         ResourceHandle lightingResult = RenderGraph::createResource();
         ResourceHandle sceneDepth = RenderGraph::createResource();
+        ResourceHandle ssgi = ResourceHandle{0};
 
         uint32_t viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
         uint32_t viewportHeight = m_scene ? m_scene->getViewportHeight() : 0;
         const bool useDeferred = m_sceneData.renderMode == RenderMode::DeferredHybrid;
         if (useDeferred)
             ensureGBuffer(viewportWidth, viewportHeight);
+        const bool useSSGI = useDeferred && (m_sceneData.enableSSGI || m_sceneData.gbufferDebug == GBufferDebugMode::SSGI);
+        if (useSSGI)
+        {
+            ensureSSGI(viewportWidth, viewportHeight);
+            ssgi = RenderGraph::createResource();
+        }
 
         bool hasTransparent = false;
         for (const auto &cmd : s_MeshDrawList)
@@ -1066,13 +1170,16 @@ namespace Fermion
         {
             GBufferPass(gBuffer, sceneDepth);
 
+            if (useSSGI)
+                SSGIPass(gBuffer, sceneDepth, ssgi);
+
             if (showGBufferDebug)
             {
-                GBufferDebugPass(gBuffer, sceneDepth);
+                GBufferDebugPass(gBuffer, sceneDepth, ssgi);
             }
             else
             {
-                LightingPass(gBuffer, shadowMap, sceneDepth, lightingResult);
+                LightingPass(gBuffer, shadowMap, sceneDepth, ssgi, lightingResult);
 
                 if (m_sceneData.showSkybox)
                     SkyboxPass(lightingResult);

@@ -194,6 +194,10 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness) {
     return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
+float computeSpecularOcclusion(float NoV, float ao, float roughness) {
+    return clamp(pow(NoV + ao, exp2(-16.0 * roughness - 1.0)) - 1.0 + ao, 0.0, 1.0);
+}
+
 // 阴影计算
 float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir) {
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
@@ -464,7 +468,8 @@ void main() {
             prefilteredColor = vec3(0.03);
 
         vec2 brdf = texture(u_BRDFLT, vec2(NoV, roughness)).rg;
-        vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
+        float specOcclusion = computeSpecularOcclusion(NoV, ao, roughness);
+        vec3 specular = prefilteredColor * (F * brdf.x + brdf.y) * specOcclusion;
 
         ambient = (kD * diffuse + specular) * ao;
     } else {
