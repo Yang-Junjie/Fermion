@@ -301,8 +301,7 @@ void main()
         vec3 diffuse = irradiance * albedo;
 
         vec3 R = reflect(-V, normal);
-        float grazingBoost = pow(1.0 - NoV, 2.0);
-        float lod = roughness * u_PrefilterMaxLOD + grazingBoost * 2.0;
+        float lod = roughness * u_PrefilterMaxLOD;
 
         vec3 prefilteredColor = textureLod(u_PrefilterMap, R, lod).rgb;
         if (length(prefilteredColor) < 0.001)

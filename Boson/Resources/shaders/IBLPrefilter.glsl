@@ -107,9 +107,9 @@ void main() {
             float saSample = 1.0 / (float(SAMPLE_COUNT) * pdf + 0.0001);
 
             float mipLevel = u_Roughness == 0.0 ? 0.0 : 0.5 * log2(saSample / saTexel);
-            prefilteredColor += textureLod(u_EnvironmentMap, L, mipLevel).rgb * NdotL;
-            // prefilteredColor += texture(u_EnvironmentMap, L).rgb * NdotL;
-            totalWeight += NdotL;
+            prefilteredColor += textureLod(u_EnvironmentMap, L, mipLevel).rgb;
+            // prefilteredColor += texture(u_EnvironmentMap, L).rgb;
+            totalWeight += 1.0;
         }
     }
 

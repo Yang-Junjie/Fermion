@@ -324,18 +324,19 @@ void main() {
    // ================= Specular Anti-Aliasing =================
 
 // 法线变化导致的 roughness 提升（Karis 2013）
-    float variance = normalVariance;
-    float kernelRoughness = min(2.0 * variance, 1.0);
+    float roughnessAA = clamp(roughness, 0.04, 1.0);
+    if(u_UseNormalMap) {
+        float variance = normalVariance;
+        float kernelRoughness = min(2.0 * variance, 1.0);
 
-// Toksvig 修正（法线贴图能量损失）
-    float normalLength = length(texture(u_NormalMap, uv).xyz * 2.0 - 1.0);
-    float tokvsig = clamp((1.0 - normalLength), 0.0, 1.0);
+    // Toksvig 修正（法线贴图能量损失）
+        float normalLength = length(texture(u_NormalMap, uv).xyz * 2.0 - 1.0);
+        float tokvsig = clamp((1.0 - normalLength), 0.0, 1.0);
 
-// 掠射角下额外模糊，防止闪烁
-    float grazingFactor = pow(1.0 - NoV, 3.0);
+        roughnessAA = clamp(sqrt(roughnessAA * roughnessAA + kernelRoughness + tokvsig * 0.5 * u_ToksvigStrength), 0.04, 1.0);
+    }
 
-// 综合 roughness
-    roughness = clamp(sqrt(roughness * roughness + kernelRoughness + tokvsig * 0.5 * u_ToksvigStrength + grazingFactor * 0.25), 0.04, 1.0);
+    roughness = roughnessAA;
 
     // 计算F0
     vec3 F0 = mix(vec3(F0_NON_METAL), albedo, metallic);
@@ -456,9 +457,7 @@ void main() {
     // ================= 镜面反射 =================
         vec3 R = reflect(-V, N);
 
-    // 掠射角 mip 提升（防止闪烁噪点）
-        float grazingBoost = pow(1.0 - NoV, 2.0);
-        float lod = roughness * u_PrefilterMaxLOD + grazingBoost * 2.0;
+        float lod = roughness * u_PrefilterMaxLOD;
 
         vec3 prefilteredColor = textureLod(u_PrefilterMap, R, lod).rgb;
         if(length(prefilteredColor) < 0.001)
