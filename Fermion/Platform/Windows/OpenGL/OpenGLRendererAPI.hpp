@@ -15,6 +15,7 @@ public:
 
     virtual void setClearColor(const glm::vec4 &color) override;
     virtual void clear() override;
+    virtual void setBlendEnabled(bool enabled) override;
 
     virtual void drawIndexed(const std::shared_ptr<VertexArray> &vertexArray, uint32_t indexCount = 0) override;
     virtual void drawIndexed(const std::shared_ptr<VertexArray> &vertexArray, uint32_t indexCount, uint32_t indexOffset) override;

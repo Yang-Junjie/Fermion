@@ -22,6 +22,10 @@ public:
         s_rendererAPI->clear();
     }
 
+    static void setBlendEnabled(bool enabled) {
+        s_rendererAPI->setBlendEnabled(enabled);
+    }
+
     static void drawIndexed(const std::shared_ptr<VertexArray> &vertexArray, uint32_t indexCount = 0) {
         s_rendererAPI->drawIndexed(vertexArray, indexCount);
     }

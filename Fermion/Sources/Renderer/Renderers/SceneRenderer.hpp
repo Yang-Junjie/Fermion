@@ -20,6 +20,35 @@ namespace Fermion
     class SceneRenderer
     {
     public:
+        enum class GBufferAttachment : uint32_t
+        {
+            Albedo = 0,
+            Normal = 1,
+            Material = 2,
+            Emissive = 3,
+            ObjectID = 4
+        };
+
+        enum class RenderMode : uint8_t
+        {
+            Forward = 0,
+            DeferredHybrid = 1
+        };
+
+        enum class GBufferDebugMode : uint8_t
+        {
+            None = 0,
+            Albedo = 1,
+            Normal = 2,
+            Material = 3,
+            Roughness = 4,
+            Metallic = 5,
+            AO = 6,
+            Emissive = 7,
+            Depth = 8,
+            ObjectID = 9
+        };
+
         struct SceneRendererCamera
         {
             Camera camera;
@@ -37,14 +66,20 @@ namespace Fermion
             bool enableDepthView = false;
             float depthViewPower = 3.0f;  
             glm::vec4 meshOutlineColor = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+            float outlineDepthThreshold = 1.0f;
+            float outlineNormalThreshold = 2.0f;
+            float outlineThickness = 3.0f;
 
             float ambientIntensity = 0.1f;
+            RenderMode renderMode = RenderMode::DeferredHybrid;
+            GBufferDebugMode gbufferDebug = GBufferDebugMode::None;
 
             // Shadow mapping settings
             uint32_t shadowMapSize = 2048;
             float shadowBias = 0.01f;
             float shadowSoftness = 1.0f;
             float normalMapStrength = 1.0f;
+            float toksvigStrength = 1.0f;
 
             // IBL settings
             bool useIBL = true;
@@ -178,6 +213,8 @@ namespace Fermion
             return m_sceneData;
         }
 
+        void setOutlineIDs(const std::vector<int> &ids);
+
 
         void resetStatistics();
 
@@ -185,18 +222,44 @@ namespace Fermion
 
         void loadHDREnvironment(const std::string& hdrPath);
 
+        std::shared_ptr<Framebuffer> getGBufferFramebuffer() const
+        {
+            return m_gBufferFramebuffer;
+        }
+
+        uint32_t getGBufferAttachmentRendererID(GBufferAttachment attachment) const
+        {
+            return m_gBufferFramebuffer ? m_gBufferFramebuffer->getColorAttachmentRendererID(static_cast<uint32_t>(attachment)) : 0;
+        }
+
+        void bindGBufferAttachment(GBufferAttachment attachment, uint32_t slot = 0) const
+        {
+            if (m_gBufferFramebuffer)
+                m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(attachment), slot);
+        }
+
     private:
-        void GeometryPass(ResourceHandle shadowMap, ResourceHandle sceneDepth);
+        void ForwardPass(ResourceHandle shadowMap, ResourceHandle sceneDepth, ResourceHandle lightingResult);
+        void GBufferPass(ResourceHandle gBuffer, ResourceHandle sceneDepth);
+        void recordGBufferPass(CommandBuffer &commandBuffer);
+        void LightingPass(ResourceHandle gBuffer, ResourceHandle shadowMap, ResourceHandle sceneDepth, ResourceHandle lightingResult);
+        void recordLightingPass(CommandBuffer &commandBuffer);
+        void GBufferDebugPass(ResourceHandle gBuffer, ResourceHandle sceneDepth);
+        void recordGBufferDebugPass(CommandBuffer &commandBuffer);
+        void TransparentPass(ResourceHandle shadowMap, ResourceHandle sceneDepth, ResourceHandle lightingResult);
+        void recordForwardPass(CommandBuffer &commandBuffer, bool drawTransparent);
 
-        void OutlinePass();
+        void OutlinePass(ResourceHandle gBuffer, ResourceHandle sceneDepth, ResourceHandle lightingResult);
+        void recordOutlinePostProcess(CommandBuffer &commandBuffer, const std::vector<int> &outlineIDs);
 
-        void SkyboxPass();
+        void SkyboxPass(ResourceHandle lightingResult);
 
         void ShadowPass(ResourceHandle shadowMap);
 
-        void DepthViewPass(ResourceHandle sceneDepth);
+        void DepthViewPass(ResourceHandle sceneDepth, ResourceHandle lightingResult);
 
         void FlushDrawList();
+        void ensureGBuffer(uint32_t width, uint32_t height);
 
     private:
         std::shared_ptr<DebugRenderer> m_debugRenderer;
@@ -211,8 +274,14 @@ namespace Fermion
 
         std::shared_ptr<Pipeline> m_MeshPipeline;
         std::shared_ptr<Pipeline> m_PBRMeshPipeline;
+        std::shared_ptr<Pipeline> m_GBufferMeshPipeline;
+        std::shared_ptr<Pipeline> m_GBufferPBRMeshPipeline;
+        std::shared_ptr<Pipeline> m_DeferredLightingPipeline;
+        std::shared_ptr<Pipeline> m_GBufferDebugPipeline;
+        std::shared_ptr<Pipeline> m_GBufferOutlinePipeline;
         std::shared_ptr<Pipeline> m_DepthViewPipeline;
         std::shared_ptr<Framebuffer> m_targetFramebuffer;
+        std::shared_ptr<Framebuffer> m_gBufferFramebuffer;
 
         RenderGraph m_RenderGraph;
         RenderCommandQueue m_CommandQueue;
@@ -221,5 +290,6 @@ namespace Fermion
         RenderStatistics::Renderer3DStatistics m_renderer3DStatistics;
         std::array<glm::vec4, 6> m_cameraFrustumPlanes{};
         bool m_hasCameraFrustum = false;
+        std::vector<int> m_outlineIDs;
     };
 } // namespace Fermion

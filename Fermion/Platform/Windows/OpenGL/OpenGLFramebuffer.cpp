@@ -188,9 +188,15 @@ void OpenGLFramebuffer::invalidate() {
     }
 
     if (m_colorAttachments.size() > 1) {
-        FERMION_ASSERT(m_colorAttachments.size() <= 4, "Maximum number of color attachments exceeded!");
-        GLenum buffers[4] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
-        glDrawBuffers((GLsizei)m_colorAttachments.size(), buffers);
+        GLint maxAttachments = 0;
+        glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &maxAttachments);
+        FERMION_ASSERT(m_colorAttachments.size() <= static_cast<size_t>(maxAttachments),
+                       "Maximum number of color attachments exceeded!");
+        std::vector<GLenum> buffers;
+        buffers.reserve(m_colorAttachments.size());
+        for (size_t i = 0; i < m_colorAttachments.size(); ++i)
+            buffers.push_back(static_cast<GLenum>(GL_COLOR_ATTACHMENT0 + i));
+        glDrawBuffers((GLsizei)m_colorAttachments.size(), buffers.data());
     } else if (m_colorAttachments.empty()) {
         // Only depth-pass
         glDrawBuffer(GL_NONE);
@@ -222,9 +228,18 @@ void OpenGLFramebuffer::resize(uint32_t width, uint32_t height) {
 
 int OpenGLFramebuffer::readPixel(uint32_t attachmentIndex, int x, int y) {
     FERMION_ASSERT(attachmentIndex < m_colorAttachments.size(), "Attachment index out of range!");
+    GLint prevReadFramebuffer = 0;
+    GLint prevReadBuffer = 0;
+    glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &prevReadFramebuffer);
+    glGetIntegerv(GL_READ_BUFFER, &prevReadBuffer);
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, m_rendererID);
     glReadBuffer(GL_COLOR_ATTACHMENT0 + attachmentIndex);
-    int pixelData;
+    int pixelData = -1;
     glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixelData);
+
+    glReadBuffer(prevReadBuffer);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, prevReadFramebuffer);
     return pixelData;
 }
 
@@ -239,6 +254,14 @@ void OpenGLFramebuffer::clearAttachment(uint32_t attachmentIndex, int value) {
         GLint clearColor[4] = {value, value, value, value};
         glClearTexImage(m_colorAttachments[attachmentIndex], 0,
                         Utils::fermionFBBaseFormatToGL(spec.textureFormat), GL_INT, clearColor);
+    } else if (spec.textureFormat == FramebufferTextureFormat::RGB16F ||
+               spec.textureFormat == FramebufferTextureFormat::RG16F) {
+        float clearColor[4] = {static_cast<float>(value),
+                               static_cast<float>(value),
+                               static_cast<float>(value),
+                               static_cast<float>(value)};
+        glClearTexImage(m_colorAttachments[attachmentIndex], 0,
+                        Utils::fermionFBBaseFormatToGL(spec.textureFormat), GL_FLOAT, clearColor);
     }
 }
 
@@ -309,9 +332,15 @@ void OpenGLFramebuffer::blitTo(const std::shared_ptr<Framebuffer> &target, const
     } else if (targetFB->m_colorAttachments.size() == 1) {
         glDrawBuffer(GL_COLOR_ATTACHMENT0);
     } else {
-        FERMION_ASSERT(targetFB->m_colorAttachments.size() <= 4, "Maximum number of color attachments exceeded!");
-        GLenum buffers[4] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
-        glDrawBuffers((GLsizei)targetFB->m_colorAttachments.size(), buffers);
+        GLint maxAttachments = 0;
+        glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &maxAttachments);
+        FERMION_ASSERT(targetFB->m_colorAttachments.size() <= static_cast<size_t>(maxAttachments),
+                       "Maximum number of color attachments exceeded!");
+        std::vector<GLenum> buffers;
+        buffers.reserve(targetFB->m_colorAttachments.size());
+        for (size_t i = 0; i < targetFB->m_colorAttachments.size(); ++i)
+            buffers.push_back(static_cast<GLenum>(GL_COLOR_ATTACHMENT0 + i));
+        glDrawBuffers((GLsizei)targetFB->m_colorAttachments.size(), buffers.data());
     }
 
     glBindFramebuffer(GL_READ_FRAMEBUFFER, prevRead);

@@ -118,6 +118,7 @@ uniform sampler2D u_AlbedoMap;
 
 uniform bool u_UseNormalMap;
 uniform sampler2D u_NormalMap;
+uniform float u_ToksvigStrength;
 
 uniform bool u_UseMetallicMap;
 uniform sampler2D u_MetallicMap;
@@ -225,8 +226,9 @@ float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir) {
 }
 
 // 获取法线使用导数计算TBN
-vec3 getNormalFromMap() {
+vec3 getNormalFromMap(out float normalVariance) {
     if (!u_UseNormalMap) {
+        normalVariance = 0.0;
         return normalize(v_Normal);
     }
     
@@ -242,7 +244,13 @@ vec3 getNormalFromMap() {
     vec3 B = -normalize(cross(N, T));
     mat3 TBN = mat3(T, B, N);
 
-    return normalize(TBN * tangentNormal);
+    vec3 worldNormal = normalize(TBN * tangentNormal);
+
+    vec3 dndx = dFdx(worldNormal);
+    vec3 dndy = dFdy(worldNormal);
+    normalVariance = max(0.0, dot(dndx, dndx) + dot(dndy, dndy));
+
+    return worldNormal;
 }
 
 // Lambert diffuse
@@ -285,8 +293,18 @@ void main() {
     float ao = u_UseAOMap ? texture(u_AOMap, uv).r : u_Material.ao;
 
     // 获取法线
-    vec3 N = getNormalFromMap();
+    float normalVariance;
+    vec3 N = getNormalFromMap(normalVariance);
     vec3 V = normalize(u_CameraPosition - v_WorldPos);
+    float NoV = max(dot(N, V), 0.0);
+
+    // ================= Specular Anti-Aliasing =================
+    float variance = normalVariance;
+    float kernelRoughness = min(2.0 * variance, 1.0);
+    float normalLength = length(texture(u_NormalMap, uv).xyz * 2.0 - 1.0);
+    float tokvsig = u_UseNormalMap ? clamp(1.0 - normalLength, 0.0, 1.0) : 0.0;
+    float grazingFactor = pow(1.0 - NoV, 3.0);
+    roughness = clamp(sqrt(roughness * roughness + kernelRoughness + tokvsig * 0.5 * u_ToksvigStrength + grazingFactor * 0.25), 0.04, 1.0);
 
     // 计算F0
     vec3 F0 = mix(vec3(F0_NON_METAL), albedo, metallic);

@@ -119,6 +119,7 @@ uniform sampler2D u_AlbedoMap;
 uniform bool u_UseNormalMap;
 uniform sampler2D u_NormalMap;
 uniform float u_NormalStrength;
+uniform float u_ToksvigStrength;
 
 uniform bool u_UseMetallicMap;
 uniform sampler2D u_MetallicMap;
@@ -334,7 +335,7 @@ void main() {
     float grazingFactor = pow(1.0 - NoV, 3.0);
 
 // 综合 roughness
-    roughness = clamp(sqrt(roughness * roughness + kernelRoughness + tokvsig * 0.5 + grazingFactor * 0.25), 0.04, 1.0);
+    roughness = clamp(sqrt(roughness * roughness + kernelRoughness + tokvsig * 0.5 * u_ToksvigStrength + grazingFactor * 0.25), 0.04, 1.0);
 
     // 计算F0
     vec3 F0 = mix(vec3(F0_NON_METAL), albedo, metallic);

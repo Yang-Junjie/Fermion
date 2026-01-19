@@ -185,27 +185,32 @@ namespace Fermion
     void EnvironmentRenderer::addSkyboxPass(RenderGraph &renderGraph,
                                             const glm::mat4 &view,
                                             const glm::mat4 &projection,
-                                            uint32_t *skyboxDrawCalls) const
+                                            uint32_t *skyboxDrawCalls,
+                                            ResourceHandle dependency) const
     {
-        renderGraph.addPass(
-            {.Name = "SkyboxPass",
-             .Execute = [this, view, projection, skyboxDrawCalls](CommandBuffer &commandBuffer)
-             {
-                 if (!m_environmentCubemap)
-                     return;
+        RenderGraphPass pass;
+        pass.Name = "SkyboxPass";
+        if (dependency.isValid())
+            pass.Inputs = {dependency};
+        pass.Execute = [this, view, projection, skyboxDrawCalls](CommandBuffer &commandBuffer)
+        {
+            if (!m_environmentCubemap)
+                return;
 
-                 SkyboxDrawCommand cmd;
-                 cmd.pipeline = m_skyboxPipeline;
-                 cmd.vao = m_cubeVA;
-                 cmd.cubemap = m_environmentCubemap.get();
-                 cmd.view = view;
-                 cmd.projection = projection;
+            SkyboxDrawCommand cmd;
+            cmd.pipeline = m_skyboxPipeline;
+            cmd.vao = m_cubeVA;
+            cmd.cubemap = m_environmentCubemap.get();
+            cmd.view = view;
+            cmd.projection = projection;
 
-                 if (cmd.pipeline && cmd.vao && cmd.cubemap && skyboxDrawCalls)
-                     (*skyboxDrawCalls)++;
+            if (cmd.pipeline && cmd.vao && cmd.cubemap && skyboxDrawCalls)
+                (*skyboxDrawCalls)++;
 
-                 Renderer3D::recordSkyboxPass(commandBuffer, cmd);
-             }});
+            Renderer3D::recordSkyboxPass(commandBuffer, cmd);
+        };
+
+        renderGraph.addPass(pass);
     }
 
     TextureCube *EnvironmentRenderer::getEnvironmentCubemap() const

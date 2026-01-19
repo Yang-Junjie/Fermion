@@ -20,6 +20,7 @@ public:
     virtual void setViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) = 0;
     virtual void setClearColor(const glm::vec4 &color) = 0;
     virtual void clear() = 0;
+    virtual void setBlendEnabled(bool enabled) = 0;
 
     virtual void drawIndexed(const std::shared_ptr<VertexArray> &vertexArray, uint32_t indexCount = 0) = 0;
     virtual void drawIndexed(const std::shared_ptr<VertexArray> &vertexArray, uint32_t indexCount, uint32_t indexOffset) = 0;

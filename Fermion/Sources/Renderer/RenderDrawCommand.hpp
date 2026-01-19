@@ -22,6 +22,7 @@ struct MeshDrawCommand {
 
     // CPU draw info
     AABB aabb;
+    bool transparent = false;
     bool drawOutline = false;
     bool visible = true;
 };

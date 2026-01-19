@@ -23,6 +23,7 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/glm.hpp>
 #include <utility>
+#include <vector>
 
 namespace
 {
@@ -150,6 +151,15 @@ namespace Fermion
 
         // Tell SceneRenderer which framebuffer to restore after shadow pass
         m_viewportRenderer->setTargetFramebuffer(m_framebuffer);
+
+        if (m_viewportRenderer)
+        {
+            std::vector<int> outlineIDs;
+            Entity selectedEntity = m_sceneHierarchyPanel.getSelectedEntity();
+            if (selectedEntity && selectedEntity.hasComponent<MeshComponent>())
+                outlineIDs.push_back((int)selectedEntity);
+            m_viewportRenderer->setOutlineIDs(outlineIDs);
+        }
 
         // Update the active scene based on the current scene state
         if (m_sceneState == SceneState::Play)
@@ -563,6 +573,7 @@ namespace Fermion
             ImGui::Checkbox("use IBL", &m_viewportRenderer->getSceneInfo().useIBL);
             ImGui::DragFloat("Ambient Intensity", &m_viewportRenderer->getSceneInfo().ambientIntensity, 0.01f, 0.0f, 1.0f);
             ImGui::DragFloat("Normal Map Strength", &m_viewportRenderer->getSceneInfo().normalMapStrength, 0.1f, 0.0f, 5.0f);
+            ImGui::DragFloat("Toksvig Strength", &m_viewportRenderer->getSceneInfo().toksvigStrength, 0.05f, 0.0f, 4.0f);
 
             ImGui::Separator();
             ImGui::DragFloat("Shadow Bias", &m_viewportRenderer->getSceneInfo().shadowBias, 0.0001f, 0.0f, 0.1f);
@@ -606,6 +617,25 @@ namespace Fermion
             ImGui::Text("m_viewportFocused: %s", m_viewportFocused ? "yes" : "no");
 
             ImGui::Separator();
+            auto &sceneInfo = m_viewportRenderer->getSceneInfo();
+            const char *renderModes[] = {"Forward", "Deferred Hybrid"};
+            int renderModeIndex = static_cast<int>(sceneInfo.renderMode);
+            if (ImGui::Combo("Render Mode", &renderModeIndex, renderModes, IM_ARRAYSIZE(renderModes)))
+            {
+                sceneInfo.renderMode = static_cast<SceneRenderer::RenderMode>(renderModeIndex);
+                if (sceneInfo.renderMode == SceneRenderer::RenderMode::Forward)
+                    sceneInfo.gbufferDebug = SceneRenderer::GBufferDebugMode::None;
+            }
+
+            const char *gbufferModes[] = {"None", "Albedo", "Normal", "Material", "Roughness", "Metallic", "AO", "Emissive", "Depth", "ObjectID"};
+            int gbufferModeIndex = static_cast<int>(sceneInfo.gbufferDebug);
+            if (ImGui::Combo("GBuffer Debug", &gbufferModeIndex, gbufferModes, IM_ARRAYSIZE(gbufferModes)))
+            {
+                sceneInfo.gbufferDebug = static_cast<SceneRenderer::GBufferDebugMode>(gbufferModeIndex);
+                if (sceneInfo.gbufferDebug != SceneRenderer::GBufferDebugMode::None)
+                    sceneInfo.renderMode = SceneRenderer::RenderMode::DeferredHybrid;
+            }
+
             ImGui::Checkbox("show depth buffer", &m_viewportRenderer->getSceneInfo().enableDepthView);
             if (m_viewportRenderer->getSceneInfo().enableDepthView)
             {
@@ -616,7 +646,8 @@ namespace Fermion
             ImGui::Checkbox("showPhysicsColliders", &m_showPhysicsColliders);
             ImGui::Checkbox("showRenderEntities", &m_showRenderEntities);
 
-            ImGui::ColorEdit4("Mesh Pick Outline Color", glm::value_ptr(m_viewportRenderer->getSceneInfo().meshOutlineColor));
+            ImGui::SeparatorText("Outline Settings");
+            ImGui::ColorEdit4("Outline Color", glm::value_ptr(sceneInfo.meshOutlineColor));
             ImGui::Separator();
             ImGui::Image((ImTextureID)s_Font->getAtlasTexture()->getRendererID(),
                          {512, 512}, {0, 1}, {1, 0});
@@ -823,7 +854,21 @@ namespace Fermion
         const int pixelX = static_cast<int>(local.x);
         const int pixelY = static_cast<int>(size.y - local.y);
 
-        const int entityID = m_framebuffer->readPixel(1, pixelX, pixelY);
+        int entityID = -1;
+        if (m_viewportRenderer)
+        {
+            const auto &sceneInfo = m_viewportRenderer->getSceneInfo();
+            if (sceneInfo.renderMode == SceneRenderer::RenderMode::DeferredHybrid)
+            {
+                if (auto gbuffer = m_viewportRenderer->getGBufferFramebuffer())
+                {
+                    entityID = gbuffer->readPixel(static_cast<uint32_t>(SceneRenderer::GBufferAttachment::ObjectID), pixelX, pixelY);
+                }
+            }
+        }
+
+        if (entityID == -1)
+            entityID = m_framebuffer->readPixel(1, pixelX, pixelY);
         if (entityID == -1)
             return;
 
@@ -1136,8 +1181,11 @@ namespace Fermion
             glm::mat4 worldTransform = m_activeScene->getEntityManager().getWorldSpaceTransformMatrix(selectedEntity);
             if (selectedEntity.hasComponent<MeshComponent>())
             {
-                m_viewportRenderer->submitMesh(selectedEntity.getComponent<MeshComponent>(),
-                                               worldTransform, -1, true);
+                if (m_viewportRenderer->getSceneInfo().renderMode == SceneRenderer::RenderMode::Forward)
+                {
+                    m_viewportRenderer->submitMesh(selectedEntity.getComponent<MeshComponent>(),
+                                                   worldTransform, (int)selectedEntity, true);
+                }
             }
             else
             {

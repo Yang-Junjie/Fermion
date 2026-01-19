@@ -45,7 +45,8 @@ namespace Fermion
         void addSkyboxPass(RenderGraph &renderGraph,
                            const glm::mat4 &view,
                            const glm::mat4 &projection,
-                           uint32_t *skyboxDrawCalls) const;
+                           uint32_t *skyboxDrawCalls,
+                           ResourceHandle dependency = {}) const;
 
         TextureCube *getEnvironmentCubemap() const;
         bool hasEnvironment() const;

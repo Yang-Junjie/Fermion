@@ -76,6 +76,17 @@ namespace Fermion
             return true;
         }
 
+        bool IsTransparentMaterial(const std::shared_ptr<Material> &material)
+        {
+            if (!material)
+                return false;
+
+            if (material->getType() == MaterialType::Phong)
+                return material->getDiffuseColor().a < 1.0f;
+
+            return false;
+        }
+
     }
     SceneRenderer::SceneRenderer()
     {
@@ -103,6 +114,63 @@ namespace Fermion
             pbrSpec.cull = CullMode::Back;
 
             m_PBRMeshPipeline = Pipeline::create(pbrSpec);
+        }
+
+        // G-Buffer Mesh Pipeline (Phong)
+        {
+            PipelineSpecification gbufferSpec;
+            gbufferSpec.shader = Renderer::getShaderLibrary()->get("GBufferMesh");
+            gbufferSpec.depthTest = true;
+            gbufferSpec.depthWrite = true;
+            gbufferSpec.depthOperator = DepthCompareOperator::Less;
+            gbufferSpec.cull = CullMode::Back;
+
+            m_GBufferMeshPipeline = Pipeline::create(gbufferSpec);
+        }
+
+        // G-Buffer Mesh Pipeline (PBR)
+        {
+            PipelineSpecification gbufferPbrSpec;
+            gbufferPbrSpec.shader = Renderer::getShaderLibrary()->get("GBufferPBRMesh");
+            gbufferPbrSpec.depthTest = true;
+            gbufferPbrSpec.depthWrite = true;
+            gbufferPbrSpec.depthOperator = DepthCompareOperator::Less;
+            gbufferPbrSpec.cull = CullMode::Back;
+
+            m_GBufferPBRMeshPipeline = Pipeline::create(gbufferPbrSpec);
+        }
+
+        // Deferred Lighting Pipeline
+        {
+            PipelineSpecification lightingSpec;
+            lightingSpec.shader = Renderer::getShaderLibrary()->get("DeferredLighting");
+            lightingSpec.depthTest = false;
+            lightingSpec.depthWrite = false;
+            lightingSpec.cull = CullMode::None;
+
+            m_DeferredLightingPipeline = Pipeline::create(lightingSpec);
+        }
+
+        // G-Buffer Debug Pipeline
+        {
+            PipelineSpecification debugSpec;
+            debugSpec.shader = Renderer::getShaderLibrary()->get("GBufferDebug");
+            debugSpec.depthTest = false;
+            debugSpec.depthWrite = false;
+            debugSpec.cull = CullMode::None;
+
+            m_GBufferDebugPipeline = Pipeline::create(debugSpec);
+        }
+
+        // G-Buffer Outline Pipeline
+        {
+            PipelineSpecification outlineSpec;
+            outlineSpec.shader = Renderer::getShaderLibrary()->get("GBufferOutline");
+            outlineSpec.depthTest = false;
+            outlineSpec.depthWrite = false;
+            outlineSpec.cull = CullMode::None;
+
+            m_GBufferOutlinePipeline = Pipeline::create(outlineSpec);
         }
 
         m_environmentRenderer = std::make_unique<EnvironmentRenderer>();
@@ -303,6 +371,7 @@ namespace Fermion
                     cmd.objectID = objectId;
                     cmd.drawOutline = drawOutline;
                     cmd.visible = visible;
+                    cmd.transparent = IsTransparentMaterial(material);
                     cmd.aabb = mesh->getBoundingBox();
 
                     s_MeshDrawList.emplace_back(std::move(cmd));
@@ -340,122 +409,533 @@ namespace Fermion
         return result;
     }
 
-    void SceneRenderer::GeometryPass(ResourceHandle shadowMap, ResourceHandle sceneDepth)
+    void SceneRenderer::setOutlineIDs(const std::vector<int> &ids)
+    {
+        m_outlineIDs = ids;
+    }
+
+    void SceneRenderer::ForwardPass(ResourceHandle shadowMap, ResourceHandle sceneDepth, ResourceHandle lightingResult)
     {
         m_RenderGraph.addPass(
-            {.Name = "GeometryPass",
+            {.Name = "ForwardPass",
              .Inputs = {shadowMap},
-             .Outputs = {sceneDepth},
+             .Outputs = {sceneDepth, lightingResult},
              .Execute = [this](CommandBuffer &commandBuffer)
              {
-                 commandBuffer.record([this](RendererAPI &api)
-                                      {
-                 std::shared_ptr<Pipeline> currentPipeline = nullptr;
-                 EnvironmentRenderer::IBLSettings iblSettings = {
-                     .useIBL = m_sceneData.useIBL,
-                     .irradianceMapSize = m_sceneData.irradianceMapSize,
-                     .prefilterMapSize = m_sceneData.prefilterMapSize,
-                     .brdfLUTSize = m_sceneData.brdfLUTSize,
-                     .prefilterMaxMipLevels = m_sceneData.prefilterMaxMipLevels
-                 };
-                 uint32_t viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
-                 uint32_t viewportHeight = m_scene ? m_scene->getViewportHeight() : 0;
-                 
-                 for (auto &cmd : s_MeshDrawList) {
-                     if (!cmd.visible)
-                         continue;
-                     if (currentPipeline != cmd.pipeline) {
-                         currentPipeline = cmd.pipeline;
-                         currentPipeline->bind();
-                     }
-                     
-                     auto shader = currentPipeline->getShader();
-                     shader->setMat4("u_Model", cmd.transform);
-                     shader->setInt("u_ObjectID", cmd.objectID);
-                     
-                     if (cmd.pipeline == m_PBRMeshPipeline) {
-                         glm::vec3 cameraPos = glm::vec3(glm::inverse(m_sceneData.sceneCamera.view)[3]);
-                         shader->setFloat3("u_CameraPosition", cameraPos);
-                         shader->setFloat("u_AmbientIntensity", m_sceneData.ambientIntensity);
-                        
-                         if (m_environmentRenderer) {
-                             m_environmentRenderer->ensureIBLInitialized(iblSettings, m_targetFramebuffer, viewportWidth, viewportHeight,
-                                                                          &m_renderer3DStatistics.iblDrawCalls);
-                             m_environmentRenderer->bindIBL(shader, iblSettings);
-                         } else {
-                             shader->setBool("u_UseIBL", false);
-                         }
-                     }
-                         
-                         // Shadow mapping
-                         bool enableShadows = m_sceneData.enableShadows && m_shadowRenderer && m_shadowRenderer->getShadowMapFramebuffer();
-                         shader->setBool("u_EnableShadows", enableShadows);
-                         if (enableShadows) {
-                             shader->setMat4("u_LightSpaceMatrix", m_shadowRenderer->getLightSpaceMatrix());
-                             shader->setFloat("u_ShadowBias", m_sceneData.shadowBias);
-                             shader->setFloat("u_ShadowSoftness", m_sceneData.shadowSoftness);
-                             shader->setInt("u_ShadowMap", 10); 
-                             
-                             m_shadowRenderer->getShadowMapFramebuffer()->bindDepthAttachment(10);
-                         }
-                         
-                         // Directional light
-                         const auto &dirLight = m_sceneData.sceneEnvironmentLight.directionalLight;
-                         shader->setFloat3("u_DirectionalLight.direction", -dirLight.direction);
-                         shader->setFloat3("u_DirectionalLight.color", dirLight.color);
-                         shader->setFloat("u_DirectionalLight.intensity", dirLight.intensity);
-                         
-                         // Point lights
-                         uint32_t maxLights = 16;
-                         uint32_t pointCount = std::min(maxLights, (uint32_t)m_sceneData.sceneEnvironmentLight.pointLights.size());
-                         shader->setInt("u_PointLightCount", pointCount);
-                         for (uint32_t i = 0; i < pointCount; i++) {
-                             const auto &l = m_sceneData.sceneEnvironmentLight.pointLights[i];
-                             std::string base = "u_PointLights[" + std::to_string(i) + "]";
-                             shader->setFloat3(base + ".position", l.position);
-                             shader->setFloat3(base + ".color", l.color);
-                             shader->setFloat(base + ".intensity", l.intensity);
-                             shader->setFloat(base + ".range", l.range);
-                         }
-                         
-                         // Spot lights
-                         uint32_t spotCount = std::min(maxLights, (uint32_t)m_sceneData.sceneEnvironmentLight.spotLights.size());
-                         shader->setInt("u_SpotLightCount", spotCount);
-                         for (uint32_t i = 0; i < spotCount; i++) {
-                             const auto &l = m_sceneData.sceneEnvironmentLight.spotLights[i];
-                             std::string base = "u_SpotLights[" + std::to_string(i) + "]";
-                             shader->setFloat3(base + ".position", l.position);
-                             shader->setFloat3(base + ".direction", glm::normalize(l.direction));
-                             shader->setFloat3(base + ".color", l.color);
-                             shader->setFloat(base + ".intensity", l.intensity);
-                             shader->setFloat(base + ".range", l.range);
-                             shader->setFloat(base + ".innerConeAngle", l.innerConeAngle);
-                             shader->setFloat(base + ".outerConeAngle", l.outerConeAngle);
-                         }
-
-                         // Normal map strength
-                         shader->setFloat("u_NormalStrength", m_sceneData.normalMapStrength);
-                         
-                         if (cmd.material)
-                             cmd.material->bind(shader);
-                             
-                         RenderCommand::drawIndexed(cmd.vao, cmd.indexCount, cmd.indexOffset);
-                         m_renderer3DStatistics.geometryDrawCalls++;
-                     } });
+                 recordForwardPass(commandBuffer, false);
              }});
     }
 
-    void SceneRenderer::OutlinePass()
+    void SceneRenderer::GBufferPass(ResourceHandle gBuffer, ResourceHandle sceneDepth)
     {
         m_RenderGraph.addPass(
+            {.Name = "GBufferPass",
+             .Outputs = {gBuffer, sceneDepth},
+             .Execute = [this](CommandBuffer &commandBuffer)
+             {
+                 recordGBufferPass(commandBuffer);
+             }});
+    }
+
+    void SceneRenderer::recordGBufferPass(CommandBuffer &commandBuffer)
+    {
+        commandBuffer.record([this](RendererAPI &api)
+                             {
+                                 if (!m_gBufferFramebuffer)
+                                     return;
+
+                                 m_gBufferFramebuffer->bind();
+                                 RenderCommand::setBlendEnabled(false);
+                                 RenderCommand::setClearColor({0.0f, 0.0f, 0.0f, 1.0f});
+                                 RenderCommand::clear();
+                                 m_gBufferFramebuffer->clearAttachment(static_cast<uint32_t>(GBufferAttachment::ObjectID), -1);
+
+                                 std::shared_ptr<Pipeline> currentPipeline = nullptr;
+                                 const glm::mat4 viewProjection = m_sceneData.sceneCamera.camera.getProjection() * m_sceneData.sceneCamera.view;
+                                 EnvironmentRenderer::IBLSettings iblSettings = {
+                                     .useIBL = m_sceneData.useIBL,
+                                     .irradianceMapSize = m_sceneData.irradianceMapSize,
+                                     .prefilterMapSize = m_sceneData.prefilterMapSize,
+                                     .brdfLUTSize = m_sceneData.brdfLUTSize,
+                                     .prefilterMaxMipLevels = m_sceneData.prefilterMaxMipLevels
+                                 };
+                                 uint32_t viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
+                                 uint32_t viewportHeight = m_scene ? m_scene->getViewportHeight() : 0;
+
+                                 if (m_environmentRenderer)
+                                 {
+                                     m_environmentRenderer->ensureIBLInitialized(iblSettings, m_targetFramebuffer, viewportWidth, viewportHeight,
+                                                                                  &m_renderer3DStatistics.iblDrawCalls);
+                                 }
+
+                                 for (auto &cmd : s_MeshDrawList)
+                                 {
+                                     if (!cmd.visible || cmd.transparent)
+                                         continue;
+
+                                     const bool isPbr = cmd.pipeline == m_PBRMeshPipeline;
+                                     auto desiredPipeline = isPbr ? m_GBufferPBRMeshPipeline : m_GBufferMeshPipeline;
+                                     if (!desiredPipeline)
+                                         continue;
+
+                                     if (currentPipeline != desiredPipeline)
+                                     {
+                                         currentPipeline = desiredPipeline;
+                                         currentPipeline->bind();
+                                         auto shader = currentPipeline->getShader();
+                                         shader->setMat4("u_ViewProjection", viewProjection);
+                                         if (isPbr)
+                                         {
+                                             shader->setFloat("u_NormalStrength", m_sceneData.normalMapStrength);
+                                             shader->setFloat("u_ToksvigStrength", m_sceneData.toksvigStrength);
+                                         }
+                                     }
+
+                                     auto shader = currentPipeline->getShader();
+                                     shader->setMat4("u_Model", cmd.transform);
+                                     shader->setInt("u_ObjectID", cmd.objectID);
+
+                                     if (cmd.material)
+                                         cmd.material->bind(shader);
+
+                                     RenderCommand::drawIndexed(cmd.vao, cmd.indexCount, cmd.indexOffset);
+                                     m_renderer3DStatistics.geometryDrawCalls++;
+                                 }
+
+                                 if (m_targetFramebuffer)
+                                 {
+                                     Framebuffer::blit(m_gBufferFramebuffer, m_targetFramebuffer, {
+                                         .mask = FramebufferBlitMask::Depth
+                                     });
+                                     m_targetFramebuffer->bind();
+                                 }
+                                 else
+                                 {
+                                     m_gBufferFramebuffer->unbind();
+                                     uint32_t viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
+                                     uint32_t viewportHeight = m_scene ? m_scene->getViewportHeight() : 0;
+                                     if (viewportWidth > 0 && viewportHeight > 0)
+                                         RenderCommand::setViewport(0, 0, viewportWidth, viewportHeight);
+                                 RenderCommand::setBlendEnabled(true);
+                                 } });
+    }
+
+    void SceneRenderer::LightingPass(ResourceHandle gBuffer, ResourceHandle shadowMap, ResourceHandle sceneDepth, ResourceHandle lightingResult)
+    {
+        m_RenderGraph.addPass(
+            {.Name = "LightingPass",
+             .Inputs = {gBuffer, shadowMap, sceneDepth},
+             .Outputs = {lightingResult},
+             .Execute = [this](CommandBuffer &commandBuffer)
+             {
+                 recordLightingPass(commandBuffer);
+             }});
+    }
+
+    void SceneRenderer::recordLightingPass(CommandBuffer &commandBuffer)
+    {
+        commandBuffer.record([this](RendererAPI &api)
+                             {
+                                 if (!m_gBufferFramebuffer || !m_DeferredLightingPipeline)
+                                     return;
+
+                                 if (m_targetFramebuffer)
+                                 {
+                                     m_targetFramebuffer->bind();
+                                 }
+                                 else
+                                 {
+                                     uint32_t viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
+                                     uint32_t viewportHeight = m_scene ? m_scene->getViewportHeight() : 0;
+                                     if (viewportWidth > 0 && viewportHeight > 0)
+                                         RenderCommand::setViewport(0, 0, viewportWidth, viewportHeight);
+                                 }
+
+                                 m_DeferredLightingPipeline->bind();
+                                 auto shader = m_DeferredLightingPipeline->getShader();
+
+                                 shader->setInt("u_GBufferAlbedo", 0);
+                                 shader->setInt("u_GBufferNormal", 1);
+                                 shader->setInt("u_GBufferMaterial", 2);
+                                 shader->setInt("u_GBufferEmissive", 3);
+                                 shader->setInt("u_GBufferDepth", 4);
+
+                                 m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Albedo), 0);
+                                 m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Normal), 1);
+                                 m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Material), 2);
+                                 m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Emissive), 3);
+                                 m_gBufferFramebuffer->bindDepthAttachment(4);
+
+                                 const glm::mat4 viewProjection = m_sceneData.sceneCamera.camera.getProjection() * m_sceneData.sceneCamera.view;
+                                 const glm::mat4 inverseViewProjection = glm::inverse(viewProjection);
+                                 shader->setMat4("u_InverseViewProjection", inverseViewProjection);
+
+                                 glm::vec3 cameraPos = glm::vec3(glm::inverse(m_sceneData.sceneCamera.view)[3]);
+                                 shader->setFloat3("u_CameraPosition", cameraPos);
+                                 shader->setFloat("u_AmbientIntensity", m_sceneData.ambientIntensity);
+
+                                 EnvironmentRenderer::IBLSettings iblSettings = {
+                                     .useIBL = m_sceneData.useIBL,
+                                     .irradianceMapSize = m_sceneData.irradianceMapSize,
+                                     .prefilterMapSize = m_sceneData.prefilterMapSize,
+                                     .brdfLUTSize = m_sceneData.brdfLUTSize,
+                                     .prefilterMaxMipLevels = m_sceneData.prefilterMaxMipLevels
+                                 };
+                                 uint32_t viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
+                                 uint32_t viewportHeight = m_scene ? m_scene->getViewportHeight() : 0;
+
+                                 if (m_environmentRenderer)
+                                 {
+                                     m_environmentRenderer->ensureIBLInitialized(iblSettings, m_targetFramebuffer, viewportWidth, viewportHeight,
+                                                                                  &m_renderer3DStatistics.iblDrawCalls);
+                                     m_environmentRenderer->bindIBL(shader, iblSettings);
+                                 }
+                                 else
+                                 {
+                                     shader->setBool("u_UseIBL", false);
+                                 }
+
+                                 bool enableShadows = m_sceneData.enableShadows && m_shadowRenderer && m_shadowRenderer->getShadowMapFramebuffer();
+                                 shader->setBool("u_EnableShadows", enableShadows);
+                                 if (enableShadows)
+                                 {
+                                     shader->setMat4("u_LightSpaceMatrix", m_shadowRenderer->getLightSpaceMatrix());
+                                     shader->setFloat("u_ShadowBias", m_sceneData.shadowBias);
+                                     shader->setFloat("u_ShadowSoftness", m_sceneData.shadowSoftness);
+                                     shader->setInt("u_ShadowMap", 10);
+
+                                     m_shadowRenderer->getShadowMapFramebuffer()->bindDepthAttachment(10);
+                                 }
+                                 else
+                                 {
+                                     shader->setMat4("u_LightSpaceMatrix", glm::mat4(1.0f));
+                                 }
+
+                                 const auto &dirLight = m_sceneData.sceneEnvironmentLight.directionalLight;
+                                 shader->setFloat3("u_DirectionalLight.direction", -dirLight.direction);
+                                 shader->setFloat3("u_DirectionalLight.color", dirLight.color);
+                                 shader->setFloat("u_DirectionalLight.intensity", dirLight.intensity);
+
+                                 uint32_t maxLights = 16;
+                                 uint32_t pointCount = std::min(maxLights, (uint32_t)m_sceneData.sceneEnvironmentLight.pointLights.size());
+                                 shader->setInt("u_PointLightCount", pointCount);
+                                 for (uint32_t i = 0; i < pointCount; i++)
+                                 {
+                                     const auto &l = m_sceneData.sceneEnvironmentLight.pointLights[i];
+                                     std::string base = "u_PointLights[" + std::to_string(i) + "]";
+                                     shader->setFloat3(base + ".position", l.position);
+                                     shader->setFloat3(base + ".color", l.color);
+                                     shader->setFloat(base + ".intensity", l.intensity);
+                                     shader->setFloat(base + ".range", l.range);
+                                 }
+
+                                 uint32_t spotCount = std::min(maxLights, (uint32_t)m_sceneData.sceneEnvironmentLight.spotLights.size());
+                                 shader->setInt("u_SpotLightCount", spotCount);
+                                 for (uint32_t i = 0; i < spotCount; i++)
+                                 {
+                                     const auto &l = m_sceneData.sceneEnvironmentLight.spotLights[i];
+                                     std::string base = "u_SpotLights[" + std::to_string(i) + "]";
+                                     shader->setFloat3(base + ".position", l.position);
+                                     shader->setFloat3(base + ".direction", glm::normalize(l.direction));
+                                     shader->setFloat3(base + ".color", l.color);
+                                     shader->setFloat(base + ".intensity", l.intensity);
+                                     shader->setFloat(base + ".range", l.range);
+                                     shader->setFloat(base + ".innerConeAngle", l.innerConeAngle);
+                                     shader->setFloat(base + ".outerConeAngle", l.outerConeAngle);
+                                 }
+
+                                 RenderCommand::drawIndexed(m_depthViewQuadVA, m_depthViewQuadVA->getIndexBuffer()->getCount()); });
+    }
+
+    void SceneRenderer::GBufferDebugPass(ResourceHandle gBuffer, ResourceHandle sceneDepth)
+    {
+        m_RenderGraph.addPass(
+            {.Name = "GBufferDebugPass",
+             .Inputs = {gBuffer, sceneDepth},
+             .Execute = [this](CommandBuffer &commandBuffer)
+             {
+                 recordGBufferDebugPass(commandBuffer);
+             }});
+    }
+
+    void SceneRenderer::recordGBufferDebugPass(CommandBuffer &commandBuffer)
+    {
+        commandBuffer.record([this](RendererAPI &api)
+                             {
+                                 if (!m_gBufferFramebuffer || !m_GBufferDebugPipeline)
+                                     return;
+
+                                 if (m_targetFramebuffer)
+                                 {
+                                     m_targetFramebuffer->bind();
+                                 }
+                                 else
+                                 {
+                                     uint32_t viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
+                                     uint32_t viewportHeight = m_scene ? m_scene->getViewportHeight() : 0;
+                                     if (viewportWidth > 0 && viewportHeight > 0)
+                                         RenderCommand::setViewport(0, 0, viewportWidth, viewportHeight);
+                                 }
+
+                                 m_GBufferDebugPipeline->bind();
+                                 auto shader = m_GBufferDebugPipeline->getShader();
+
+                                 shader->setInt("u_GBufferAlbedo", 0);
+                                 shader->setInt("u_GBufferNormal", 1);
+                                 shader->setInt("u_GBufferMaterial", 2);
+                                 shader->setInt("u_GBufferEmissive", 3);
+                                 shader->setInt("u_GBufferObjectID", 4);
+                                 shader->setInt("u_GBufferDepth", 5);
+                                 shader->setInt("u_Mode", static_cast<int>(m_sceneData.gbufferDebug));
+                                 shader->setFloat("u_Near", m_sceneData.sceneCamera.nearClip);
+                                 shader->setFloat("u_Far", m_sceneData.sceneCamera.farClip);
+                                 shader->setFloat("u_DepthPower", m_sceneData.depthViewPower);
+
+                                 m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Albedo), 0);
+                                 m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Normal), 1);
+                                 m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Material), 2);
+                                 m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Emissive), 3);
+                                 m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::ObjectID), 4);
+                                 m_gBufferFramebuffer->bindDepthAttachment(5);
+
+                                 RenderCommand::drawIndexed(m_depthViewQuadVA, m_depthViewQuadVA->getIndexBuffer()->getCount()); });
+    }
+
+    void SceneRenderer::TransparentPass(ResourceHandle shadowMap, ResourceHandle sceneDepth, ResourceHandle lightingResult)
+    {
+        m_RenderGraph.addPass(
+            {.Name = "TransparentPass",
+             .Inputs = {shadowMap, sceneDepth, lightingResult},
+             .Execute = [this](CommandBuffer &commandBuffer)
+             {
+                 recordForwardPass(commandBuffer, true);
+             }});
+    }
+
+    void SceneRenderer::recordForwardPass(CommandBuffer &commandBuffer, bool drawTransparent)
+    {
+        commandBuffer.record([this, drawTransparent](RendererAPI &api)
+                             {
+                                 std::shared_ptr<Pipeline> currentPipeline = nullptr;
+                                 EnvironmentRenderer::IBLSettings iblSettings = {
+                                     .useIBL = m_sceneData.useIBL,
+                                     .irradianceMapSize = m_sceneData.irradianceMapSize,
+                                     .prefilterMapSize = m_sceneData.prefilterMapSize,
+                                     .brdfLUTSize = m_sceneData.brdfLUTSize,
+                                     .prefilterMaxMipLevels = m_sceneData.prefilterMaxMipLevels
+                                 };
+                                 uint32_t viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
+                                 uint32_t viewportHeight = m_scene ? m_scene->getViewportHeight() : 0;
+
+                                 for (auto &cmd : s_MeshDrawList)
+                                 {
+                                     if (!cmd.visible)
+                                         continue;
+                                     if (cmd.transparent != drawTransparent)
+                                         continue;
+                                     if (currentPipeline != cmd.pipeline)
+                                     {
+                                         currentPipeline = cmd.pipeline;
+                                         currentPipeline->bind();
+                                     }
+
+                                     auto shader = currentPipeline->getShader();
+                                     shader->setMat4("u_Model", cmd.transform);
+                                     shader->setInt("u_ObjectID", cmd.objectID);
+
+                                     if (cmd.pipeline == m_PBRMeshPipeline)
+                                     {
+                                         glm::vec3 cameraPos = glm::vec3(glm::inverse(m_sceneData.sceneCamera.view)[3]);
+                                         shader->setFloat3("u_CameraPosition", cameraPos);
+                                         shader->setFloat("u_AmbientIntensity", m_sceneData.ambientIntensity);
+
+                                         if (m_environmentRenderer)
+                                         {
+                                             m_environmentRenderer->ensureIBLInitialized(iblSettings, m_targetFramebuffer, viewportWidth, viewportHeight,
+                                                                                          &m_renderer3DStatistics.iblDrawCalls);
+                                             m_environmentRenderer->bindIBL(shader, iblSettings);
+                                         }
+                                         else
+                                         {
+                                             shader->setBool("u_UseIBL", false);
+                                         }
+                                     }
+
+                                     // Shadow mapping
+                                     bool enableShadows = m_sceneData.enableShadows && m_shadowRenderer && m_shadowRenderer->getShadowMapFramebuffer();
+                                     shader->setBool("u_EnableShadows", enableShadows);
+                                     if (enableShadows)
+                                     {
+                                         shader->setMat4("u_LightSpaceMatrix", m_shadowRenderer->getLightSpaceMatrix());
+                                         shader->setFloat("u_ShadowBias", m_sceneData.shadowBias);
+                                         shader->setFloat("u_ShadowSoftness", m_sceneData.shadowSoftness);
+                                         shader->setInt("u_ShadowMap", 10);
+
+                                         m_shadowRenderer->getShadowMapFramebuffer()->bindDepthAttachment(10);
+                                     }
+
+                                     // Directional light
+                                     const auto &dirLight = m_sceneData.sceneEnvironmentLight.directionalLight;
+                                     shader->setFloat3("u_DirectionalLight.direction", -dirLight.direction);
+                                     shader->setFloat3("u_DirectionalLight.color", dirLight.color);
+                                     shader->setFloat("u_DirectionalLight.intensity", dirLight.intensity);
+
+                                     // Point lights
+                                     uint32_t maxLights = 16;
+                                     uint32_t pointCount = std::min(maxLights, (uint32_t)m_sceneData.sceneEnvironmentLight.pointLights.size());
+                                     shader->setInt("u_PointLightCount", pointCount);
+                                     for (uint32_t i = 0; i < pointCount; i++)
+                                     {
+                                         const auto &l = m_sceneData.sceneEnvironmentLight.pointLights[i];
+                                         std::string base = "u_PointLights[" + std::to_string(i) + "]";
+                                         shader->setFloat3(base + ".position", l.position);
+                                         shader->setFloat3(base + ".color", l.color);
+                                         shader->setFloat(base + ".intensity", l.intensity);
+                                         shader->setFloat(base + ".range", l.range);
+                                     }
+
+                                     // Spot lights
+                                     uint32_t spotCount = std::min(maxLights, (uint32_t)m_sceneData.sceneEnvironmentLight.spotLights.size());
+                                     shader->setInt("u_SpotLightCount", spotCount);
+                                     for (uint32_t i = 0; i < spotCount; i++)
+                                     {
+                                         const auto &l = m_sceneData.sceneEnvironmentLight.spotLights[i];
+                                         std::string base = "u_SpotLights[" + std::to_string(i) + "]";
+                                         shader->setFloat3(base + ".position", l.position);
+                                         shader->setFloat3(base + ".direction", glm::normalize(l.direction));
+                                         shader->setFloat3(base + ".color", l.color);
+                                         shader->setFloat(base + ".intensity", l.intensity);
+                                         shader->setFloat(base + ".range", l.range);
+                                         shader->setFloat(base + ".innerConeAngle", l.innerConeAngle);
+                                         shader->setFloat(base + ".outerConeAngle", l.outerConeAngle);
+                                     }
+
+                                     // Normal map strength
+                                     shader->setFloat("u_NormalStrength", m_sceneData.normalMapStrength);
+                                     shader->setFloat("u_ToksvigStrength", m_sceneData.toksvigStrength);
+
+                                     if (cmd.material)
+                                         cmd.material->bind(shader);
+
+                                     RenderCommand::drawIndexed(cmd.vao, cmd.indexCount, cmd.indexOffset);
+                                     m_renderer3DStatistics.geometryDrawCalls++;
+                                 } });
+    }
+
+    void SceneRenderer::OutlinePass(ResourceHandle gBuffer, ResourceHandle sceneDepth, ResourceHandle lightingResult)
+    {
+        std::vector<int> outlineIDs = m_outlineIDs;
+        bool hasOutlineDrawCommands = false;
+        for (const auto &cmd : s_MeshDrawList)
+        {
+            if (cmd.drawOutline && cmd.visible)
+            {
+                hasOutlineDrawCommands = true;
+                outlineIDs.push_back(cmd.objectID);
+            }
+        }
+
+        std::vector<int> uniqueIDs;
+        uniqueIDs.reserve(outlineIDs.size());
+        const size_t maxOutlineIDs = 32;
+        for (int id : outlineIDs)
+        {
+            if (id < 0)
+                continue;
+
+            bool exists = false;
+            for (int existing : uniqueIDs)
+            {
+                if (existing == id)
+                {
+                    exists = true;
+                    break;
+                }
+            }
+
+            if (!exists)
+                uniqueIDs.push_back(id);
+
+            if (uniqueIDs.size() >= maxOutlineIDs)
+                break;
+        }
+
+        const bool canUseGBuffer = m_sceneData.renderMode == RenderMode::DeferredHybrid &&
+                                   m_gBufferFramebuffer &&
+                                   m_GBufferOutlinePipeline;
+
+        if (canUseGBuffer && !uniqueIDs.empty())
+        {
+            m_RenderGraph.addPass(
+                {.Name = "OutlinePass",
+                 .Inputs = {gBuffer, sceneDepth, lightingResult},
+                 .Execute = [this, outlineIDs = std::move(uniqueIDs)](CommandBuffer &commandBuffer)
+                 {
+                     recordOutlinePostProcess(commandBuffer, outlineIDs);
+                 }});
+            return;
+        }
+
+        if (!hasOutlineDrawCommands)
+            return;
+
+        m_RenderGraph.addPass(
             {.Name = "OutlinePass",
+             .Inputs = {lightingResult},
              .Execute = [this](CommandBuffer &commandBuffer)
              {
                  Renderer2D::recordOutlinePass(commandBuffer, s_MeshDrawList, m_sceneData.meshOutlineColor);
              }});
     }
 
-    void SceneRenderer::SkyboxPass()
+    void SceneRenderer::recordOutlinePostProcess(CommandBuffer &commandBuffer, const std::vector<int> &outlineIDs)
+    {
+        commandBuffer.record([this, outlineIDs](RendererAPI &api)
+                             {
+                                 if (!m_gBufferFramebuffer || !m_GBufferOutlinePipeline || outlineIDs.empty())
+                                     return;
+
+                                 if (m_targetFramebuffer)
+                                 {
+                                     m_targetFramebuffer->bind();
+                                 }
+                                 else
+                                 {
+                                     uint32_t viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
+                                     uint32_t viewportHeight = m_scene ? m_scene->getViewportHeight() : 0;
+                                     if (viewportWidth > 0 && viewportHeight > 0)
+                                         RenderCommand::setViewport(0, 0, viewportWidth, viewportHeight);
+                                 }
+
+                                 m_GBufferOutlinePipeline->bind();
+                                 auto shader = m_GBufferOutlinePipeline->getShader();
+
+                                 shader->setInt("u_GBufferNormal", 0);
+                                 shader->setInt("u_GBufferDepth", 1);
+                                 shader->setInt("u_GBufferObjectID", 2);
+
+                                 m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Normal), 0);
+                                 m_gBufferFramebuffer->bindDepthAttachment(1);
+                                 m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::ObjectID), 2);
+
+                                 shader->setFloat4("u_OutlineColor", m_sceneData.meshOutlineColor);
+                                 int outlineCount = static_cast<int>(outlineIDs.size());
+                                 if (outlineCount > 32)
+                                     outlineCount = 32;
+                                 shader->setInt("u_OutlineIDCount", outlineCount);
+                                 if (outlineCount > 0)
+                                     shader->setIntArray("u_OutlineIDs", const_cast<int *>(outlineIDs.data()), outlineCount);
+
+                                 shader->setFloat("u_Near", m_sceneData.sceneCamera.nearClip);
+                                 shader->setFloat("u_Far", m_sceneData.sceneCamera.farClip);
+                                 shader->setFloat("u_DepthThreshold", m_sceneData.outlineDepthThreshold);
+                                 shader->setFloat("u_NormalThreshold", m_sceneData.outlineNormalThreshold);
+                                 shader->setFloat("u_Thickness", m_sceneData.outlineThickness);
+
+                                 RenderCommand::drawIndexed(m_depthViewQuadVA, m_depthViewQuadVA->getIndexBuffer()->getCount()); });
+    }
+
+    void SceneRenderer::SkyboxPass(ResourceHandle lightingResult)
     {
         if (!m_environmentRenderer)
             return;
@@ -463,7 +943,8 @@ namespace Fermion
         m_environmentRenderer->addSkyboxPass(m_RenderGraph,
                                              m_sceneData.sceneCamera.view,
                                              m_sceneData.sceneCamera.camera.getProjection(),
-                                             &m_renderer3DStatistics.skyboxDrawCalls);
+                                             &m_renderer3DStatistics.skyboxDrawCalls,
+                                             lightingResult);
     }
     void SceneRenderer::ShadowPass(ResourceHandle shadowMap)
     {
@@ -483,14 +964,14 @@ namespace Fermion
                                   &m_renderer3DStatistics.shadowDrawCalls);
     }
 
-    void SceneRenderer::DepthViewPass(ResourceHandle sceneDepth)
+    void SceneRenderer::DepthViewPass(ResourceHandle sceneDepth, ResourceHandle lightingResult)
     {
         if (!m_targetFramebuffer)
             return;
 
         m_RenderGraph.addPass(
             {.Name = "DepthViewPass",
-             .Inputs = {sceneDepth},
+             .Inputs = {sceneDepth, lightingResult},
              .Execute = [this](CommandBuffer &commandBuffer)
              {
                  commandBuffer.record([this](RendererAPI &api)
@@ -499,7 +980,14 @@ namespace Fermion
                     auto shader = m_DepthViewPipeline->getShader();
 
                     shader->setInt("u_Depth", 0);
-                    m_targetFramebuffer->bindDepthAttachment(0);
+                    if (m_gBufferFramebuffer && m_sceneData.renderMode == RenderMode::DeferredHybrid)
+                    {
+                        m_gBufferFramebuffer->bindDepthAttachment(0);
+                    }
+                    else
+                    {
+                        m_targetFramebuffer->bindDepthAttachment(0);
+                    }
 
                     shader->setFloat("u_Near", m_sceneData.sceneCamera.nearClip);
                     shader->setFloat("u_Far", m_sceneData.sceneCamera.farClip);
@@ -509,6 +997,34 @@ namespace Fermion
                     
                     RenderCommand::drawIndexed(m_depthViewQuadVA, m_depthViewQuadVA->getIndexBuffer()->getCount()); });
              }});
+    }
+
+    void SceneRenderer::ensureGBuffer(uint32_t width, uint32_t height)
+    {
+        if (width == 0 || height == 0)
+            return;
+
+        if (m_gBufferFramebuffer &&
+            m_gBufferFramebuffer->getSpecification().width == width &&
+            m_gBufferFramebuffer->getSpecification().height == height)
+        {
+            return;
+        }
+
+        FramebufferSpecification gBufferSpec;
+        gBufferSpec.width = width;
+        gBufferSpec.height = height;
+        gBufferSpec.attachments = {
+            FramebufferTextureFormat::RGBA8,        // Albedo
+            FramebufferTextureFormat::RGB16F,       // Normal
+            FramebufferTextureFormat::RGB16F,       // Material (Roughness/Metallic/AO)
+            FramebufferTextureFormat::RGB16F,       // Emissive
+            FramebufferTextureFormat::RED_INTEGER,  // ObjectID
+            FramebufferTextureFormat::Depth         // Depth
+        };
+        gBufferSpec.swapChainTarget = false;
+
+        m_gBufferFramebuffer = Framebuffer::create(gBufferSpec);
     }
 
     void SceneRenderer::FlushDrawList()
@@ -521,23 +1037,70 @@ namespace Fermion
         if (m_sceneData.enableShadows)
             shadowMap = RenderGraph::createResource();
 
+        ResourceHandle gBuffer = RenderGraph::createResource();
+        ResourceHandle lightingResult = RenderGraph::createResource();
         ResourceHandle sceneDepth = RenderGraph::createResource();
+
+        uint32_t viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
+        uint32_t viewportHeight = m_scene ? m_scene->getViewportHeight() : 0;
+        const bool useDeferred = m_sceneData.renderMode == RenderMode::DeferredHybrid;
+        if (useDeferred)
+            ensureGBuffer(viewportWidth, viewportHeight);
+
+        bool hasTransparent = false;
+        for (const auto &cmd : s_MeshDrawList)
+        {
+            if (cmd.transparent)
+            {
+                hasTransparent = true;
+                break;
+            }
+        }
 
         if (m_sceneData.enableShadows)
             ShadowPass(shadowMap);
 
-        if (m_sceneData.showSkybox)
-            SkyboxPass();
-        OutlinePass();
+        const bool showGBufferDebug = useDeferred && (m_sceneData.gbufferDebug != GBufferDebugMode::None);
 
-        GeometryPass(shadowMap, sceneDepth);
+        if (useDeferred)
+        {
+            GBufferPass(gBuffer, sceneDepth);
 
-        if (m_sceneData.enableDepthView)
-            DepthViewPass(sceneDepth);
+            if (showGBufferDebug)
+            {
+                GBufferDebugPass(gBuffer, sceneDepth);
+            }
+            else
+            {
+                LightingPass(gBuffer, shadowMap, sceneDepth, lightingResult);
+
+                if (m_sceneData.showSkybox)
+                    SkyboxPass(lightingResult);
+
+                if (hasTransparent)
+                    TransparentPass(shadowMap, sceneDepth, lightingResult);
+            }
+        }
+        else
+        {
+            ForwardPass(shadowMap, sceneDepth, lightingResult);
+
+            if (m_sceneData.showSkybox)
+                SkyboxPass(lightingResult);
+
+            if (hasTransparent)
+                TransparentPass(shadowMap, sceneDepth, lightingResult);
+        }
+
+        if (m_sceneData.enableDepthView && !showGBufferDebug)
+            DepthViewPass(sceneDepth, lightingResult);
+
+        OutlinePass(gBuffer, sceneDepth, lightingResult);
 
         RendererBackend backend(RenderCommand::GetRendererAPI());
         m_RenderGraph.execute(m_CommandQueue, backend);
         s_MeshDrawList.clear();
+        m_outlineIDs.clear();
     }
 
     void SceneRenderer::loadHDREnvironment(const std::string &hdrPath)
