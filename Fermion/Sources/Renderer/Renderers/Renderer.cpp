@@ -3,7 +3,6 @@
 #include "Renderer/Renderers/Renderer2D.hpp"
 #include "Renderer/Renderers/Renderer3D.hpp"
 #include "OpenGLShader.hpp"
-#include "Renderer.hpp"
 namespace Fermion
 {
     std::unique_ptr<Renderer::SceneData> Renderer::s_sceneData = std::make_unique<Renderer::SceneData>();

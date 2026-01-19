@@ -4,7 +4,6 @@
 #include <memory>
 #include <filesystem>
 
-#include "Asset/Asset.hpp"
 #include "Asset/AssetManager/EditorAssetManager.hpp"
 #include "Asset/AssetManager/RuntimeAssetManager.hpp"
 

@@ -7,7 +7,6 @@
 #include "glad/glad.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include "Renderer.hpp"
-#include "Renderer2D.hpp"
 #include "Renderer/Font/MSDFData.hpp"
 #include <filesystem>
 

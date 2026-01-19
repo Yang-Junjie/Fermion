@@ -2,7 +2,6 @@
 #include "Font.hpp"
 
 #include <stb_image_write.h>
-#include <stb_image.h>
 #undef INFINITE
 #include <msdf-atlas-gen.h>
 #include <FontGeometry.h>

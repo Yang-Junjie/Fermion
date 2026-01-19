@@ -1,6 +1,5 @@
 #pragma once
 
-#include "fmpch.hpp"
 #include "Renderer/RendererBackend.hpp"
 
 namespace Fermion {

@@ -2,7 +2,7 @@
 #include <cstdarg>
 #include <cstring>
 #include <cstdlib>
-
+#include <cstdio>
 namespace Fermion
 {
     ConsolePanel::ConsolePanel()

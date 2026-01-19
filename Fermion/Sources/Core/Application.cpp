@@ -1,8 +1,6 @@
 ﻿#include "Core/Application.hpp"
 #include "Core/Timestep.hpp"
 #include "Script/ScriptManager.hpp"
-#include "Renderer/Buffer.hpp"
-#include "Renderer/VertexArray.hpp"
 #include "Renderer/Model/MeshFactory.hpp"
 #include "Renderer/Renderers/Renderer.hpp"
 #include <GLFW/glfw3.h>

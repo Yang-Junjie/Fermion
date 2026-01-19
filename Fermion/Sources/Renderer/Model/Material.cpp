@@ -1,5 +1,6 @@
 #include "Material.hpp"
 #include "Project/Project.hpp"
+#include "../Texture/Texture.hpp"
 
 namespace Fermion
 {

@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "Events/Event.hpp"
 #include "Core/Timestep.hpp"
+#include <string>
 namespace Fermion
 {
     class Layer

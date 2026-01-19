@@ -3,8 +3,7 @@
     本文件描述了事件系统
 */
 #pragma once
-#include "fmpch.hpp"
-
+#include <string>
 namespace Fermion
 {
     enum class EventType : int

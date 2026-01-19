@@ -5,7 +5,6 @@
 #include "Renderer/Model/MeshFactory.hpp"
 #include "yaml-cpp/emittermanip.h"
 
-#include <cstdint>
 #include <fstream>
 #include <yaml-cpp/yaml.h>
 #include "Core/Yaml.hpp"

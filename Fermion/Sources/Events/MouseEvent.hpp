@@ -4,6 +4,8 @@
 #pragma once
 #include "Events/Event.hpp"
 #include "Core/MouseCodes.hpp"
+#include <string>
+#include <sstream>
 
 namespace Fermion
 {

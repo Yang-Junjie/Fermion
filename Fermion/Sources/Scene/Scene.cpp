@@ -3,7 +3,6 @@
 #include "Scene/EntityManager.hpp"
 #include "Scene/Entity.hpp"
 #include "Scene/Components.hpp"
-#include "Scene/ScriptableEntity.hpp"
 #include "Renderer/Renderers/Renderer2D.hpp"
 #include "Renderer/Renderers/SceneRenderer.hpp"
 #include "Physics/Physics2D.hpp"
@@ -11,7 +10,6 @@
 #include "Script/ScriptManager.hpp"
 #include <glm/glm.hpp>
 #include "Core/Log.hpp"
-#include "Scene.hpp"
 
 namespace Fermion
 {
@@ -777,17 +775,17 @@ namespace Fermion
             ScriptManager::onUpdateEntity(entity, ts);
         }
 
-        getRegistry().view<NativeScriptComponent>().each(
-            [=](auto entity, auto &nsc)
-            {
-                if (!nsc.instance)
-                {
-                    nsc.instance = nsc.instantiateScript();
-                    nsc.instance->m_entity = Entity{entity, this};
-                    nsc.instance->onCreate();
-                }
-                nsc.instance->onUpdate(ts);
-            });
+        // getRegistry().view<NativeScriptComponent>().each(
+        //     [=](auto entity, auto &nsc)
+        //     {
+        //         if (!nsc.instance)
+        //         {
+        //             nsc.instance = nsc.instantiateScript();
+        //             nsc.instance->m_entity = Entity{entity, this};
+        //             nsc.instance->onCreate();
+        //         }
+        //         nsc.instance->onUpdate(ts);
+        //     });
     }
 
     void Scene::onViewportResize(uint32_t width, uint32_t height)

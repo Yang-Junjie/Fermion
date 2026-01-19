@@ -1,5 +1,6 @@
 ﻿#include "Core/Log.hpp"
 #include "fmpch.hpp"
+#include <spdlog/sinks/basic_file_sink.h>
 
 namespace Fermion
 {

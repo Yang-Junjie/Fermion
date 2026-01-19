@@ -3,7 +3,6 @@
 #include <string>
 #include <variant>
 #include <stdexcept>
-#include <map>
 
 namespace Fermion {
 enum class ScriptFieldType {

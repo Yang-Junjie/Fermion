@@ -6,8 +6,6 @@
 #include "Renderer/RendererConfig.hpp"
 #include "Renderer/RenderDrawCommand.hpp"
 #include "Renderer/CommandBuffer.hpp"
-#include "Renderer/Model/Mesh.hpp"
-#include "Renderer/Model/Material.hpp"
 #include "Scene/Scene.hpp"
 
 namespace Fermion

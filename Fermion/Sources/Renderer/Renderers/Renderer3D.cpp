@@ -1,7 +1,6 @@
 #pragma once
 #include "Renderer3D.hpp"
 #include "fmpch.hpp"
-#include "Renderer/VertexArray.hpp"
 #include "Renderer/Shader.hpp"
 #include "Renderer/RenderCommand.hpp"
 #include "Renderer/Pipeline.hpp"

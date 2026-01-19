@@ -5,8 +5,6 @@
 
 #include "Core/Layer.hpp"
 #include "Events/Event.hpp"
-#include "Events/KeyEvent.hpp"
-#include "Events/MouseEvent.hpp"
 #include <GLFW/glfw3.h>
 
 namespace Fermion

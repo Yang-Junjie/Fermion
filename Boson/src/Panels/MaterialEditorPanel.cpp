@@ -1,6 +1,7 @@
 #include "MaterialEditorPanel.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include "Renderer/Model/MaterialFactory.hpp"
+#include "Renderer/Texture/Texture.hpp"
 #include "Project/Project.hpp"
 namespace Fermion
 {

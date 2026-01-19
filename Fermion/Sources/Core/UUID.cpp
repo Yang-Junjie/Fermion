@@ -3,7 +3,6 @@
 
 #include <random>
 
-#include <unordered_map>
 
 namespace Fermion
 {

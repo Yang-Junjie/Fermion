@@ -2,7 +2,6 @@
 
 #include "Core/Log.hpp"
 
-#include <algorithm>
 #include <chrono>
 #include <fstream>
 #include <iomanip>

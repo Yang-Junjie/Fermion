@@ -1,6 +1,5 @@
 #include "MeshFactory.hpp"
 #include "Asset/AssetManager.hpp"
-#include "Mesh.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 #include <memory>

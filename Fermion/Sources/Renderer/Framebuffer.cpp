@@ -1,8 +1,5 @@
-#include "fmpch.hpp"
 #include "Renderer/Framebuffer.hpp"
-
 #include "Renderer/Renderers/Renderer.hpp"
-
 #include "OpenGLFramebuffer.hpp"
 
 namespace Fermion {

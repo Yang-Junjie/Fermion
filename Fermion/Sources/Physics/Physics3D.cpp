@@ -34,10 +34,8 @@
 #include <Jolt/Physics/Collision/PhysicsMaterialSimple.h>
 
 #include <cstdarg>
-#include <cstdio>
 #include <cstdlib>
 #include <thread>
-#include <algorithm>
 #include <format>
 
 namespace

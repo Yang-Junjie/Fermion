@@ -1,13 +1,10 @@
 #pragma once
 #include "fmpch.hpp"
-#include "../Buffer.hpp"
 #include "../VertexArray.hpp"
-#include "../Texture/Texture.hpp"
 #include "Asset/Asset.hpp"
 #include "Math/AABB.hpp"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
-#include <assimp/postprocess.h>
 
 namespace Fermion
 {

@@ -1,5 +1,5 @@
 #include "Mesh.hpp"
-
+#include <assimp/postprocess.h>
 namespace Fermion {
     Mesh::Mesh(std::vector<Vertex> vertices,
                std::vector<uint32_t> indices,

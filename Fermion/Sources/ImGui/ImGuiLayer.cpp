@@ -1,6 +1,7 @@
 ﻿#include "ImGuiLayer.hpp"
 #include "Core/Log.hpp"
 #include <imgui.h>
+#include "fmpch.hpp"
 #ifdef FM_PLATFORM_DESKTOP
 #include <backends/imgui_impl_glfw.h>
 #endif

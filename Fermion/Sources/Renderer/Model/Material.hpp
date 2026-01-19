@@ -1,7 +1,6 @@
 #pragma once
 #include "fmpch.hpp"
 #include "Renderer/Shader.hpp"
-#include "../Texture/Texture.hpp"
 #include "Asset/Asset.hpp"
 
 namespace Fermion

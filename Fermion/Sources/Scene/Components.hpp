@@ -1,9 +1,6 @@
 ﻿#pragma once
-#include "fmpch.hpp"
 #include "Core/UUID.hpp"
-// #include "Scene/ScriptableEntity.hpp"
 #include "Renderer/Model/Mesh.hpp"
-#include "Renderer/Model/Material.hpp"
 #include "Renderer/Texture/Texture.hpp"
 #include "Renderer/Camera/SceneCamera.hpp"
 #include "Renderer/Font/Font.hpp"

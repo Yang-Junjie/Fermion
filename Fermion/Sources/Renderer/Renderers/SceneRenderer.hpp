@@ -1,8 +1,6 @@
 ﻿#pragma once
 #include "Scene/Components.hpp"
 #include "Scene/Scene.hpp"
-#include "Renderer/Model/Mesh.hpp"
-#include "Renderer/Model/Material.hpp"
 #include "Renderer/Camera/Camera.hpp"
 #include "Renderer/Camera/EditorCamera.hpp"
 #include "DebugRenderer.hpp"
