@@ -122,7 +122,7 @@ namespace Fermion
         {
             // PNG 已存在，直接加载纹理
             Log::Info(std::format("Loading cached font atlas: {}", pngPath.string()));
-            m_atlasTexture = Texture2D::create(pngPath.string());
+            m_atlasTexture = Texture2D::create(pngPath.string(), false);
         }
         else
         {

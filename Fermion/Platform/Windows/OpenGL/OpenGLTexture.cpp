@@ -181,6 +181,9 @@ void OpenGLTexture2D::setData(void *data, uint32_t size) {
         data);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, previousAlignment);
+
+    if (m_generateMipmap)
+        glGenerateTextureMipmap(m_rendererID);
 }
 
 void OpenGLTexture2D::bind(uint32_t slot) const {
@@ -418,9 +421,12 @@ void OpenGLTexture2D::copyFromFramebuffer(std::shared_ptr<Framebuffer> fb, uint3
         m_width,
         m_height
     );
-    
+
     glBindTexture(GL_TEXTURE_2D, 0);
     fb->unbind();
+
+    if (m_generateMipmap)
+        glGenerateTextureMipmap(m_rendererID);
 }
 
 } // namespace Fermion

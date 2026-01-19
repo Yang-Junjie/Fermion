@@ -43,8 +43,8 @@ namespace Fermion
     class Texture2D : public Texture
     {
     public:
-        static std::unique_ptr<Texture2D> create(uint32_t width, uint32_t height);
-        static std::unique_ptr<Texture2D> create(const std::string &path);
+        static std::unique_ptr<Texture2D> create(uint32_t width, uint32_t height, bool generateMips = false);
+        static std::unique_ptr<Texture2D> create(const std::string &path, bool generateMips = true);
         static std::unique_ptr<Texture2D> create(const TextureSpecification &spec);
         
         virtual void copyFromFramebuffer(std::shared_ptr<class Framebuffer> fb, uint32_t x, uint32_t y) = 0;
