@@ -1,0 +1,7 @@
+Material:
+  Type: 2
+  Name: glass
+  Albedo: [1, 1, 1]
+  Metallic: 1
+  Roughness: 0
+  AO: 1

@@ -36,5 +36,8 @@ void main() {
     vec2 uv = SampleSphericalMap(normalize(v_LocalPos));
     vec3 color = texture(u_EquirectangularMap, uv).rgb;
     
+    // 限制极端HDR值，防止后续IBL生成时出现问题
+    color = min(color, vec3(500.0));
+    
     FragColor = vec4(color, 1.0);
 }

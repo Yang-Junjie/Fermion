@@ -28,7 +28,7 @@ void main() {
     // 计算法线矩阵
     mat3 normalMatrix = transpose(inverse(mat3(u_Model)));
     v_Normal = normalize(normalMatrix * a_Normal);
-    
+
     // 构建TBN矩阵用于法线贴图
     vec3 T = normalize(normalMatrix * a_Tangent);
     vec3 N = v_Normal;
@@ -36,7 +36,7 @@ void main() {
     T = normalize(T - dot(T, N) * N);
     vec3 B = cross(N, T);
     v_TBN = mat3(T, B, N);
-    
+
     v_Color = a_Color;
     v_TexCoords = a_TexCoords;
     v_FragPosLightSpace = u_LightSpaceMatrix * worldPos;
@@ -118,6 +118,7 @@ uniform sampler2D u_AlbedoMap;
 
 uniform bool u_UseNormalMap;
 uniform sampler2D u_NormalMap;
+uniform float u_NormalStrength;
 uniform float u_ToksvigStrength;
 
 uniform bool u_UseMetallicMap;
@@ -143,7 +144,6 @@ uniform samplerCube u_IrradianceMap;
 uniform samplerCube u_PrefilterMap;
 uniform sampler2D u_BRDFLT;
 uniform float u_PrefilterMaxLOD;
-uniform float u_IBLIntensity;
 
 // ============================================================================
 // PBR函数
@@ -194,25 +194,29 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness) {
     return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
+float computeSpecularOcclusion(float NoV, float ao, float roughness) {
+    return clamp(pow(NoV + ao, exp2(-16.0 * roughness - 1.0)) - 1.0 + ao, 0.0, 1.0);
+}
+
 // 阴影计算
 float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir) {
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     projCoords = projCoords * 0.5 + 0.5;
-    
-    if(projCoords.z > 1.0 || projCoords.x < 0.0 || projCoords.x > 1.0 || 
-       projCoords.y < 0.0 || projCoords.y > 1.0)
+
+    if(projCoords.z > 1.0 || projCoords.x < 0.0 || projCoords.x > 1.0 ||
+        projCoords.y < 0.0 || projCoords.y > 1.0)
         return 0.0;
-    
+
     float closestDepth = texture(u_ShadowMap, projCoords.xy).r;
     float currentDepth = projCoords.z;
-    
+
     float bias = max(u_ShadowBias * (1.0 - dot(normal, lightDir)), u_ShadowBias * 0.1);
-    
+
     float shadow = 0.0;
     vec2 texelSize = 1.0 / textureSize(u_ShadowMap, 0);
     int pcfRange = int(u_ShadowSoftness);
     int sampleCount = 0;
-    
+
     for(int x = -pcfRange; x <= pcfRange; ++x) {
         for(int y = -pcfRange; y <= pcfRange; ++y) {
             float pcfDepth = texture(u_ShadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
@@ -221,19 +225,21 @@ float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir) {
         }
     }
     shadow /= float(sampleCount);
-    
+
     return shadow;
 }
 
 // 获取法线使用导数计算TBN
 vec3 getNormalFromMap(out float normalVariance) {
-    if (!u_UseNormalMap) {
+    if(!u_UseNormalMap) {
         normalVariance = 0.0;
         return normalize(v_Normal);
     }
-    
+
+    // 采样切线空间法线
     vec3 tangentNormal = texture(u_NormalMap, v_TexCoords).xyz * 2.0 - 1.0;
 
+    // 构建 TBN（屏幕导数方式，避免切线错误）
     vec3 Q1 = dFdx(v_WorldPos);
     vec3 Q2 = dFdy(v_WorldPos);
     vec2 st1 = dFdx(v_TexCoords);
@@ -241,11 +247,13 @@ vec3 getNormalFromMap(out float normalVariance) {
 
     vec3 N = normalize(v_Normal);
     vec3 T = normalize(Q1 * st2.t - Q2 * st1.t);
-    vec3 B = -normalize(cross(N, T));
+    vec3 B = normalize(cross(N, T));
     mat3 TBN = mat3(T, B, N);
 
+    // 世界空间法线
     vec3 worldNormal = normalize(TBN * tangentNormal);
 
+    // 计算法线变化率（用于 Specular AA）
     vec3 dndx = dFdx(worldNormal);
     vec3 dndy = dFdy(worldNormal);
     normalVariance = max(0.0, dot(dndx, dndx) + dot(dndy, dndy));
@@ -298,13 +306,41 @@ void main() {
     vec3 V = normalize(u_CameraPosition - v_WorldPos);
     float NoV = max(dot(N, V), 0.0);
 
-    // ================= Specular Anti-Aliasing =================
-    float variance = normalVariance;
-    float kernelRoughness = min(2.0 * variance, 1.0);
-    float normalLength = length(texture(u_NormalMap, uv).xyz * 2.0 - 1.0);
-    float tokvsig = u_UseNormalMap ? clamp(1.0 - normalLength, 0.0, 1.0) : 0.0;
-    float grazingFactor = pow(1.0 - NoV, 3.0);
-    roughness = clamp(sqrt(roughness * roughness + kernelRoughness + tokvsig * 0.5 * u_ToksvigStrength + grazingFactor * 0.25), 0.04, 1.0);
+    // ==========================================================
+    // Normal Map Weighting (Roughness-based Normal Filtering)
+    // ==========================================================
+
+    vec3 N_geom = normalize(v_Normal);
+
+    float roughnessWeight = smoothstep(0.15, 0.75, 1.0 - roughness);
+    float grazingAttenuation = smoothstep(0.0, 0.4, NoV);
+
+    float normalWeight = roughnessWeight * grazingAttenuation;
+    normalWeight *= u_NormalStrength;
+
+    float distance = length(u_CameraPosition - v_WorldPos);
+    float distanceBoost = clamp(1.5 - distance * 0.15, 0.7, 1.5);
+    normalWeight *= distanceBoost;
+
+    N = normalize(mix(N_geom, N, normalWeight));
+    NoV = max(dot(N, V), 0.0);
+
+   // ================= Specular Anti-Aliasing =================
+
+// 法线变化导致的 roughness 提升（Karis 2013）
+    float roughnessAA = clamp(roughness, 0.04, 1.0);
+    if(u_UseNormalMap) {
+        float variance = normalVariance;
+        float kernelRoughness = min(2.0 * variance, 1.0);
+
+    // Toksvig 修正（法线贴图能量损失）
+        float normalLength = length(texture(u_NormalMap, uv).xyz * 2.0 - 1.0);
+        float tokvsig = clamp((1.0 - normalLength), 0.0, 1.0);
+
+        roughnessAA = clamp(sqrt(roughnessAA * roughnessAA + kernelRoughness + tokvsig * 0.5 * u_ToksvigStrength), 0.04, 1.0);
+    }
+
+    roughness = roughnessAA;
 
     // 计算F0
     vec3 F0 = mix(vec3(F0_NON_METAL), albedo, metallic);
@@ -317,17 +353,17 @@ void main() {
     // ========================================================================
     {
         vec3 L = normalize(-u_DirectionalLight.direction);
-        
+
         vec3 kS;
         vec3 specularBRDF = CookTorrance(N, L, V, roughness, metallic, F0, kS);
         vec3 diffuseBRDF = LambertDiffuse(kS, albedo, metallic);
-        
+
         float NdotL = max(dot(N, L), 0.0);
         vec3 radiance = u_DirectionalLight.color * u_DirectionalLight.intensity;
 
         // 计算阴影
         float shadow = 0.0;
-        if (u_EnableShadows) {
+        if(u_EnableShadows) {
             shadow = calculateShadow(v_FragPosLightSpace, N, L);
         }
 
@@ -342,7 +378,7 @@ void main() {
 
         vec3 L = light.position - v_WorldPos;
         float distance = length(L);
-        
+
         if(distance > light.range)
             continue;
 
@@ -351,7 +387,7 @@ void main() {
         // 衰减
         float attenuation = 1.0 - (distance / light.range);
         attenuation = attenuation * attenuation;
-        
+
         vec3 radiance = light.color * light.intensity * attenuation;
 
         vec3 kS;
@@ -371,7 +407,7 @@ void main() {
 
         vec3 L = light.position - v_WorldPos;
         float distance = length(L);
-        
+
         if(distance > light.range)
             continue;
 
@@ -381,14 +417,14 @@ void main() {
         float theta = dot(L, normalize(light.direction));
         float epsilon = light.innerConeAngle - light.outerConeAngle;
         float spotIntensity = clamp((theta - light.outerConeAngle) / epsilon, 0.0, 1.0);
-        
+
         if(spotIntensity <= 0.0)
             continue;
 
         // 距离衰减
         float attenuation = 1.0 - (distance / light.range);
         attenuation = attenuation * attenuation;
-        
+
         vec3 radiance = light.color * light.intensity * attenuation * spotIntensity;
 
         vec3 kS;
@@ -404,47 +440,49 @@ void main() {
     // 环境光
     // ========================================================================
     vec3 ambient = vec3(0.0);
-    
-    if (u_UseIBL) {
-        // IBL环境光照
-        vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
-        
-        // 漫反射部分
+
+    if(u_UseIBL) {
+        float NoV = max(dot(N, V), 0.0);
+
+    // Fresnel
+        vec3 F = fresnelSchlickRoughness(NoV, F0, roughness);
+
+    // 能量守恒
         vec3 kS = F;
-        vec3 kD = (vec3(1.0) - kS) * (1.0 - metallic);
-        
+        vec3 kD = (1.0 - kS) * (1.0 - metallic);
+
+    // ================= 漫反射 =================
         vec3 irradiance = texture(u_IrradianceMap, N).rgb;
-        
-        if (length(irradiance) < 0.001) {
-            irradiance = vec3(0.03); // fallback环境光
-        }
-        
+        if(length(irradiance) < 0.001)
+            irradiance = vec3(0.03);
+
         vec3 diffuse = irradiance * albedo;
-        
-        // 镜面反射部分
+
+    // ================= 镜面反射 =================
         vec3 R = reflect(-V, N);
-        vec3 prefilteredColor = textureLod(u_PrefilterMap, R, roughness * u_PrefilterMaxLOD).rgb;
-        
-        // 调试: 如果预过滤颜色为0,也使用fallback
-        if (length(prefilteredColor) < 0.001) {
+
+        float lod = roughness * u_PrefilterMaxLOD;
+
+        vec3 prefilteredColor = textureLod(u_PrefilterMap, R, lod).rgb;
+        if(length(prefilteredColor) < 0.001)
             prefilteredColor = vec3(0.03);
-        }
-        
-        vec2 brdf = texture(u_BRDFLT, vec2(max(dot(N, V), 0.0), roughness)).rg;
-        vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
-         
-        ambient = (kD * diffuse + specular) * ao * u_IBLIntensity;
+
+        vec2 brdf = texture(u_BRDFLT, vec2(NoV, roughness)).rg;
+        float specOcclusion = computeSpecularOcclusion(NoV, ao, roughness);
+        vec3 specular = prefilteredColor * (F * brdf.x + brdf.y) * specOcclusion;
+
+        ambient = (kD * diffuse + specular) * ao;
     } else {
         // 简单环境光
         ambient = vec3(u_AmbientIntensity) * albedo * ao;
     }
-    
+
     vec3 color = ambient + Lo;
 
     // HDR色调映射
     color = color / (color + vec3(1.0));
     // Gamma校正
-    color = pow(color, vec3(1.0/2.2));
+    color = pow(color, vec3(1.0 / 2.2));
 
     o_Color = vec4(color, 1.0);
     o_ObjectID = v_ObjectID;

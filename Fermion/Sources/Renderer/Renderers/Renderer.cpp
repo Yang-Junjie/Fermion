@@ -1,7 +1,6 @@
 ﻿
 #include "Renderer/Renderers/Renderer.hpp"
 #include "Renderer/Renderers/Renderer2D.hpp"
-#include "Renderer/Renderers/Renderer3D.hpp"
 #include "OpenGLShader.hpp"
 namespace Fermion
 {
@@ -22,6 +21,7 @@ namespace Fermion
         s_shaderLibrary->load(s_config.ShaderPath + "GBufferDebug.glsl");
         s_shaderLibrary->load(s_config.ShaderPath + "GBufferOutline.glsl");
         s_shaderLibrary->load(s_config.ShaderPath + "SSGI.glsl");
+        s_shaderLibrary->load(s_config.ShaderPath + "GTAO.glsl");
         s_shaderLibrary->load(s_config.ShaderPath + "Skybox.glsl");
         s_shaderLibrary->load(s_config.ShaderPath + "Shadow.glsl");
         
@@ -39,7 +39,6 @@ namespace Fermion
         s_shaderLibrary->load(s_config.ShaderPath + "Text.glsl");
 
         Renderer2D::init(s_config);
-        Renderer3D::init(s_config);
     }
 
     void Renderer::setConfig(const RendererConfig &config)

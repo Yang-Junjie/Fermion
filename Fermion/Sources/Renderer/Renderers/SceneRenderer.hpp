@@ -47,7 +47,8 @@ namespace Fermion
             Emissive = 7,
             Depth = 8,
             ObjectID = 9,
-            SSGI = 10
+            SSGI = 10,
+            GTAO = 11
         };
 
         struct SceneRendererCamera
@@ -65,7 +66,7 @@ namespace Fermion
             bool showSkybox = true;
             bool enableShadows = true;
             bool enableDepthView = false;
-            float depthViewPower = 3.0f;  
+            float depthViewPower = 3.0f;
             glm::vec4 meshOutlineColor = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
             float outlineDepthThreshold = 1.0f;
             float outlineNormalThreshold = 2.0f;
@@ -79,6 +80,13 @@ namespace Fermion
             float ssgiRadius = 1.0f;
             float ssgiBias = 0.05f;
             int ssgiSampleCount = 16;
+            bool enableGTAO = false;
+            float gtaoIntensity = 1.0f;
+            float gtaoRadius = 1.0f;
+            float gtaoBias = 0.03f;
+            float gtaoPower = 1.25f;
+            int gtaoSliceCount = 6;
+            int gtaoStepCount = 6;
 
             // Shadow mapping settings
             uint32_t shadowMapSize = 2048;
@@ -221,12 +229,11 @@ namespace Fermion
 
         void setOutlineIDs(const std::vector<int> &ids);
 
-
         void resetStatistics();
 
         RenderStatistics getStatistics() const;
 
-        void loadHDREnvironment(const std::string& hdrPath);
+        void loadHDREnvironment(const std::string &hdrPath);
 
         std::shared_ptr<Framebuffer> getGBufferFramebuffer() const
         {
@@ -245,15 +252,28 @@ namespace Fermion
         }
 
     private:
+
+        void createPipelines();
+        void updateViewState(const SceneRendererCamera &camera);
+
         void ForwardPass(ResourceHandle shadowMap, ResourceHandle sceneDepth, ResourceHandle lightingResult);
+
         void GBufferPass(ResourceHandle gBuffer, ResourceHandle sceneDepth);
         void recordGBufferPass(CommandBuffer &commandBuffer);
-        void LightingPass(ResourceHandle gBuffer, ResourceHandle shadowMap, ResourceHandle sceneDepth, ResourceHandle ssgi, ResourceHandle lightingResult);
+
+        void LightingPass(ResourceHandle gBuffer, ResourceHandle shadowMap, ResourceHandle sceneDepth, ResourceHandle ssgi, ResourceHandle gtao,
+                          ResourceHandle lightingResult);
         void recordLightingPass(CommandBuffer &commandBuffer);
+
         void SSGIPass(ResourceHandle gBuffer, ResourceHandle sceneDepth, ResourceHandle ssgi);
         void recordSSGIPass(CommandBuffer &commandBuffer);
-        void GBufferDebugPass(ResourceHandle gBuffer, ResourceHandle sceneDepth, ResourceHandle ssgi);
+
+        void GTAOPass(ResourceHandle gBuffer, ResourceHandle sceneDepth, ResourceHandle gtao);
+        void recordGTAOPass(CommandBuffer &commandBuffer);
+
+        void GBufferDebugPass(ResourceHandle gBuffer, ResourceHandle sceneDepth, ResourceHandle ssgi, ResourceHandle gtao);
         void recordGBufferDebugPass(CommandBuffer &commandBuffer);
+
         void TransparentPass(ResourceHandle shadowMap, ResourceHandle sceneDepth, ResourceHandle lightingResult);
         void recordForwardPass(CommandBuffer &commandBuffer, bool drawTransparent);
 
@@ -261,14 +281,14 @@ namespace Fermion
         void recordOutlinePostProcess(CommandBuffer &commandBuffer, const std::vector<int> &outlineIDs);
 
         void SkyboxPass(ResourceHandle lightingResult);
-
         void ShadowPass(ResourceHandle shadowMap);
-
         void DepthViewPass(ResourceHandle sceneDepth, ResourceHandle lightingResult);
 
         void FlushDrawList();
+
         void ensureGBuffer(uint32_t width, uint32_t height);
         void ensureSSGI(uint32_t width, uint32_t height);
+        void ensureGTAO(uint32_t width, uint32_t height);
 
     private:
         std::shared_ptr<DebugRenderer> m_debugRenderer;
@@ -289,10 +309,23 @@ namespace Fermion
         std::shared_ptr<Pipeline> m_GBufferDebugPipeline;
         std::shared_ptr<Pipeline> m_GBufferOutlinePipeline;
         std::shared_ptr<Pipeline> m_SSGIPipeline;
+        std::shared_ptr<Pipeline> m_GTAOPipeline;
         std::shared_ptr<Pipeline> m_DepthViewPipeline;
         std::shared_ptr<Framebuffer> m_targetFramebuffer;
         std::shared_ptr<Framebuffer> m_gBufferFramebuffer;
         std::shared_ptr<Framebuffer> m_ssgiFramebuffer;
+        std::shared_ptr<Framebuffer> m_gtaoFramebuffer;
+        std::array<std::shared_ptr<Framebuffer>, 2> m_ssgiFramebuffers;
+
+        uint32_t m_ssgiHistoryIndex = 0;
+        uint32_t m_ssgiFrameIndex = 0;
+        bool m_ssgiHistoryValid = false;
+        bool m_ssgiWasEnabled = false;
+        glm::mat4 m_lastSSGIViewProjection = glm::mat4(1.0f);
+        float m_lastSSGIRadius = 0.0f;
+        float m_lastSSGIBias = 0.0f;
+        float m_lastSSGIIntensity = 0.0f;
+        int m_lastSSGISampleCount = 0;
 
         RenderGraph m_RenderGraph;
         RenderCommandQueue m_CommandQueue;

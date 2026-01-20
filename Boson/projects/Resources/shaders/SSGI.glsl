@@ -22,6 +22,7 @@ in vec2 v_TexCoords;
 uniform sampler2D u_GBufferAlbedo;
 uniform sampler2D u_GBufferNormal;
 uniform sampler2D u_GBufferDepth;
+uniform sampler2D u_SSGIHistory;
 
 uniform mat4 u_ViewProjection;
 uniform mat4 u_InverseViewProjection;
@@ -30,46 +31,36 @@ uniform float u_SSGIRadius;
 uniform float u_SSGIBias;
 uniform float u_SSGIIntensity;
 uniform int u_SSGISampleCount;
+uniform int u_FrameIndex;
 
-const int SSGI_KERNEL_SIZE = 32;
-const vec3 SSGI_KERNEL[SSGI_KERNEL_SIZE] = vec3[](
-    vec3(0.5381, 0.1856, 0.4319),
-    vec3(0.1379, 0.2486, 0.4430),
-    vec3(0.3371, 0.5679, 0.0057),
-    vec3(0.6999, -0.0451, 0.0019),
-    vec3(0.0689, -0.1598, 0.8547),
-    vec3(0.0560, 0.0069, 0.1843),
-    vec3(-0.0146, 0.1402, 0.0762),
-    vec3(0.0100, -0.1924, 0.0344),
-    vec3(-0.3577, -0.5301, 0.4358),
-    vec3(-0.3169, 0.1063, 0.0158),
-    vec3(0.0103, -0.5869, 0.0046),
-    vec3(-0.0897, -0.4940, 0.3287),
-    vec3(0.7119, -0.0154, 0.0918),
-    vec3(-0.0533, 0.0596, 0.5411),
-    vec3(0.0353, -0.0631, 0.5460),
-    vec3(-0.4776, 0.2847, 0.0271),
-    vec3(0.2464, 0.8786, 0.1578),
-    vec3(-0.4243, 0.2541, 0.1365),
-    vec3(0.0796, 0.4022, 0.8099),
-    vec3(0.2998, -0.1527, 0.7442),
-    vec3(-0.1221, 0.0524, 0.9891),
-    vec3(0.6158, 0.1893, -0.0556),
-    vec3(-0.2456, -0.0942, 0.7147),
-    vec3(-0.6231, 0.0076, 0.1899),
-    vec3(0.0845, -0.8601, 0.2459),
-    vec3(-0.1723, -0.2335, 0.6554),
-    vec3(0.4027, 0.0931, 0.5984),
-    vec3(-0.5582, 0.3812, 0.0473),
-    vec3(0.1904, -0.3562, 0.6991),
-    vec3(-0.0193, 0.6729, 0.2947),
-    vec3(0.7214, -0.1038, 0.2725),
-    vec3(-0.3017, -0.6219, 0.1864)
-);
+const int SSGI_MAX_SAMPLES = 64;
+const float PI = 3.14159265359;
 
 float rand(vec2 co)
 {
     return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+float halton(int index, int base)
+{
+    float f = 1.0;
+    float r = 0.0;
+    int i = index;
+    while (i > 0)
+    {
+        f /= float(base);
+        r += f * float(i % base);
+        i /= base;
+    }
+    return r;
+}
+
+vec3 cosineSampleHemisphere(vec2 xi)
+{
+    float phi = 2.0 * PI * xi.x;
+    float cosTheta = sqrt(1.0 - xi.y);
+    float sinTheta = sqrt(xi.y);
+    return vec3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
 }
 
 vec3 reconstructWorldPosition(vec2 uv, float depth)
@@ -114,18 +105,29 @@ void main()
     int sampleCount = u_SSGISampleCount;
     if (sampleCount < 1)
         sampleCount = 1;
-    if (sampleCount > SSGI_KERNEL_SIZE)
-        sampleCount = SSGI_KERNEL_SIZE;
+    if (sampleCount > SSGI_MAX_SAMPLES)
+        sampleCount = SSGI_MAX_SAMPLES;
 
-    for (int i = 0; i < SSGI_KERNEL_SIZE; ++i)
+    vec2 sequenceOffset = vec2(
+        rand(v_TexCoords * 17.13 + float(u_FrameIndex)),
+        rand(v_TexCoords * 91.27 + float(u_FrameIndex) * 1.37)
+    );
+
+    for (int i = 0; i < SSGI_MAX_SAMPLES; ++i)
     {
         if (i >= sampleCount)
             break;
 
-        float scale = float(i) / float(SSGI_KERNEL_SIZE);
-        scale = mix(0.1, 1.0, scale * scale);
-        vec3 sampleDir = TBN * normalize(SSGI_KERNEL[i]);
-        vec3 samplePos = worldPos + sampleDir * radius * scale;
+        int sequenceIndex = i + u_FrameIndex * sampleCount;
+        vec2 xi = vec2(halton(sequenceIndex + 1, 2), halton(sequenceIndex + 1, 3));
+        float radiusSample = halton(sequenceIndex + 1, 5);
+        xi = fract(xi + sequenceOffset);
+        radiusSample = fract(radiusSample + sequenceOffset.x);
+
+        vec3 sampleDir = cosineSampleHemisphere(xi);
+        vec3 sampleDirWorld = TBN * sampleDir;
+        float radiusScale = mix(0.1, 1.0, radiusSample * radiusSample);
+        vec3 samplePos = worldPos + sampleDirWorld * radius * radiusScale;
 
         vec4 offset = u_ViewProjection * vec4(samplePos, 1.0);
         if (offset.w <= 0.0)
@@ -148,9 +150,11 @@ void main()
             continue;
 
         vec3 toSampleDir = toSample / max(dist, 0.0001);
-        float NdotL = max(dot(normal, toSampleDir), 0.0);
+        float NdotL = dot(normal, toSampleDir);
+        if (NdotL <= 0.0)
+            continue;
         float rangeWeight = 1.0 - (dist / radius);
-        float weight = NdotL * rangeWeight;
+        float weight = rangeWeight;
         if (weight <= 0.0)
             continue;
 
@@ -162,5 +166,15 @@ void main()
     vec3 gi = (weightSum > 0.0) ? (giAccum / weightSum) : vec3(0.0);
     gi = gi * albedo * u_SSGIIntensity;
 
-    o_Color = vec4(gi, 1.0);
+    if (u_FrameIndex <= 0)
+    {
+        o_Color = vec4(gi, 1.0);
+        return;
+    }
+
+    vec3 history = texture(u_SSGIHistory, v_TexCoords).rgb;
+    float frameWeight = 1.0 / float(u_FrameIndex + 1);
+    vec3 giTemporal = mix(history, gi, frameWeight);
+
+    o_Color = vec4(giTemporal, 1.0);
 }

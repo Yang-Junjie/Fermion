@@ -67,6 +67,7 @@ uniform sampler2D u_GBufferMaterial;
 uniform sampler2D u_GBufferEmissive;
 uniform sampler2D u_GBufferDepth;
 uniform sampler2D u_SSGI;
+uniform sampler2D u_GTAO;
 
 uniform mat4 u_InverseViewProjection;
 uniform mat4 u_LightSpaceMatrix;
@@ -84,6 +85,7 @@ uniform samplerCube u_PrefilterMap;
 uniform sampler2D u_BRDFLT;
 uniform float u_PrefilterMaxLOD;
 uniform bool u_EnableSSGI;
+uniform bool u_EnableGTAO;
 
 float DistributionGGX(vec3 N, vec3 H, float roughness)
 {
@@ -210,6 +212,10 @@ void main()
     float roughness = clamp(material.r, 0.04, 1.0);
     float metallic = clamp(material.g, 0.0, 1.0);
     float ao = clamp(material.b, 0.0, 1.0);
+    float gtao = 1.0;
+    if (u_EnableGTAO)
+        gtao = clamp(texture(u_GTAO, v_TexCoords).r, 0.0, 1.0);
+    float combinedAO = ao * gtao;
 
     vec3 worldPos = reconstructWorldPosition(v_TexCoords, depth);
     vec3 V = normalize(u_CameraPosition - worldPos);
@@ -315,20 +321,20 @@ void main()
             prefilteredColor = vec3(0.03);
 
         vec2 brdf = texture(u_BRDFLT, vec2(NoV, roughness)).rg;
-        float specOcclusion = computeSpecularOcclusion(NoV, ao, roughness);
+        float specOcclusion = computeSpecularOcclusion(NoV, combinedAO, roughness);
         vec3 specular = prefilteredColor * (F * brdf.x + brdf.y) * specOcclusion;
 
-        ambient = (kD * diffuse + specular) * ao;
+        ambient = (kD * diffuse + specular) * combinedAO;
     }
     else
     {
-        ambient = vec3(u_AmbientIntensity) * albedo * ao;
+        ambient = vec3(u_AmbientIntensity) * albedo * combinedAO;
     }
 
     vec3 ssgi = vec3(0.0);
     if (u_EnableSSGI)
         ssgi = texture(u_SSGI, v_TexCoords).rgb;
-    ambient += ssgi * ao;
+    ambient += ssgi * combinedAO;
 
     vec3 color = ambient + Lo + emissive;
 

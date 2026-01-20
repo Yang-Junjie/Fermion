@@ -4,7 +4,6 @@
 #include "Core/Log.hpp"
 #include "Renderer/RenderCommand.hpp"
 #include "Renderer/Renderers/Renderer.hpp"
-#include "Renderer/Renderers/Renderer3D.hpp"
 
 #include <cmath>
 #include <glm/gtc/matrix_transform.hpp>
@@ -70,6 +69,25 @@ namespace Fermion
         uint32_t ClampViewport(uint32_t value)
         {
             return value == 0 ? 1 : value;
+        }
+
+        void RecordSkyboxPass(CommandBuffer &commandBuffer, const SkyboxDrawCommand &drawCommand)
+        {
+            commandBuffer.record([drawCommand](RendererAPI &)
+                                 {
+                                     if (!drawCommand.pipeline || !drawCommand.vao || !drawCommand.cubemap)
+                                         return;
+
+                                     drawCommand.pipeline->bind();
+                                     auto shader = drawCommand.pipeline->getShader();
+                                     shader->bind();
+                                     shader->setMat4("u_View", glm::mat4(glm::mat3(drawCommand.view)));
+                                     shader->setMat4("u_Projection", drawCommand.projection);
+
+                                     drawCommand.cubemap->bind(0);
+                                     shader->setInt("u_Cubemap", 0);
+
+                                     RenderCommand::drawIndexed(drawCommand.vao, 36); });
         }
     }
 
@@ -207,7 +225,7 @@ namespace Fermion
             if (cmd.pipeline && cmd.vao && cmd.cubemap && skyboxDrawCalls)
                 (*skyboxDrawCalls)++;
 
-            Renderer3D::recordSkyboxPass(commandBuffer, cmd);
+            RecordSkyboxPass(commandBuffer, cmd);
         };
 
         renderGraph.addPass(pass);
