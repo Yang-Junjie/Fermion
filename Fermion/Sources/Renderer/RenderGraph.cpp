@@ -14,7 +14,7 @@ namespace Fermion
     {
         PassNode node;
         node.Pass = pass;
-        node.CommandBuffer = std::make_shared<CommandBuffer>();
+        node.commandBuffer = std::make_shared<CommandBuffer>();
         m_Passes.emplace_back(std::move(node));
         m_Dirty = true;
         return m_Passes.size() - 1;
@@ -151,10 +151,10 @@ namespace Fermion
         for (const PassHandle pass : m_ExecutionOrder)
         {
             auto &passNode = m_Passes[pass];
-            passNode.CommandBuffer->clear();
+            passNode.commandBuffer->clear();
             if (passNode.Pass.Execute)
-                passNode.Pass.Execute(*passNode.CommandBuffer);
-            queue.submit(passNode.CommandBuffer);
+                passNode.Pass.Execute(*passNode.commandBuffer);
+            queue.submit(passNode.commandBuffer);
         }
         queue.flush(backend);
     }

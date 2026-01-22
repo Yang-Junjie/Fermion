@@ -6,6 +6,7 @@
 #include "Script/ScriptManager.hpp"
 #include "Project/Project.hpp"
 
+#include <cstring>
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <entt/entt.hpp>
@@ -26,15 +27,14 @@ namespace Fermion
     {
         AssetHandle modelHandle = editorAssets->importAsset(path);
         FERMION_ASSERT(modelHandle.isValid(), "Failed to import model asset");
-
-        auto modelAsset = editorAssets->getAsset<ModelAsset>(modelHandle);
+        auto modelAsset = editorAssets->template getAsset<ModelAsset>(modelHandle);
         FERMION_ASSERT(modelAsset!=nullptr, "Failed to get model asset");
 
         component.meshHandle = modelAsset->mesh;
         component.memoryOnly = false;
 
 
-        auto mesh = editorAssets->getAsset<Mesh>(modelAsset->mesh);
+        auto mesh = editorAssets->template getAsset<Mesh>(modelAsset->mesh);
         FERMION_ASSERT(mesh!=nullptr, "Failed to get mesh asset");
 
         const auto &subMeshes = mesh->getSubMeshes();
@@ -126,7 +126,7 @@ namespace Fermion
 
         if (static_cast<uint64_t>(component.meshHandle) != 0)
         {
-            mesh = editorAssets->getAsset<Mesh>(component.meshHandle);
+            mesh = editorAssets->template getAsset<Mesh>(component.meshHandle);
             if (mesh)
             {
                 subMeshCount = static_cast<uint32_t>(mesh->getSubMeshes().size());
@@ -311,8 +311,11 @@ namespace Fermion
 
             char buffer[256];
             memset(buffer, 0, sizeof(buffer));
+#ifdef __linux__
+            strncpy(buffer, tag.c_str(), sizeof(buffer));
+#else
             strncpy_s(buffer, tag.c_str(), sizeof(buffer));
-
+#endif
             if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
             {
                 tag = std::string(buffer);
