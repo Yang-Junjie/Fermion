@@ -37,7 +37,7 @@ namespace Fermion
         struct PassNode
         {
             RenderGraphPass Pass;
-            std::shared_ptr<CommandBuffer> CommandBuffer;
+            std::shared_ptr<CommandBuffer> commandBuffer;
         };
 
         std::vector<PassNode> m_Passes;

@@ -31,8 +31,11 @@ namespace Fermion
         vsnprintf(buf, IM_ARRAYSIZE(buf), fmt, args);
         buf[IM_ARRAYSIZE(buf) - 1] = 0;
         va_end(args);
-
+#ifdef __linux__
+            m_items.push_back(strdup(buf));
+#else
         m_items.push_back(_strdup(buf));
+#endif
         m_scrollToBottom = true;
     }
 

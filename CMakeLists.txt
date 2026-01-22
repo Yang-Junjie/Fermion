@@ -65,6 +65,11 @@ if (USE_GLFW)
     set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
     set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
     set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+    if(UNIX AND NOT APPLE)
+        
+        set(GLFW_BUILD_X11 ON CACHE BOOL "" FORCE)
+    set(GLFW_BUILD_WAYLAND ON CACHE BOOL "" FORCE)
+    endif()
     add_subdirectory(Fermion/external/GLFW)
 endif ()
 
@@ -82,6 +87,12 @@ add_subdirectory(Fermion/external/entt)
 add_subdirectory(Fermion/external/glm)
 add_subdirectory(Fermion/external/yaml-cpp)
 add_subdirectory(Fermion/external/box2d)
+
+# 在引入 JoltPhysics 之前设置选项，确保禁用 Vulkan 和 DX12 支持
+set(JPH_USE_VK OFF CACHE BOOL "Disable Vulkan" FORCE)
+set(JPH_USE_DX12 OFF CACHE BOOL "Disable DirectX" FORCE)
+set(JPH_USE_DXC OFF CACHE BOOL "Disable DXC shader compiler" FORCE)
+
 add_subdirectory(Fermion/external/JoltPhysics/Build)
 add_subdirectory(Fermion/external/assimp)
 add_subdirectory(Fermion/external/freetype)

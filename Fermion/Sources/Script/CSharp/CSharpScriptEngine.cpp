@@ -143,7 +143,9 @@ namespace Fermion
     {
         if (m_initialized)
             return false;
-
+#ifndef _WIN32
+        mono_set_dirs("/usr/lib", "/etc");
+#endif
         mono_set_assemblies_path(std::filesystem::current_path().string().c_str());
         mono_config_parse(nullptr);
 

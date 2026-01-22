@@ -8,7 +8,7 @@
 #include "Asset/SceneAsset.hpp"
 #include "Script/ScriptManager.hpp"
 
-#include "imgui/ConsolePanel.hpp"
+#include "ImGui/ConsolePanel.hpp"
 #include "Math/Math.hpp"
 
 #include <format>

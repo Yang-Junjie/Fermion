@@ -16,7 +16,7 @@
 #include "Scene/Components.hpp"
 #include "Physics/Physics2D.hpp"
 #include "Physics/Physics3D.hpp"
-#include "imgui/ConsolePanel.hpp"
+#include "ImGui/ConsolePanel.hpp"
 
 #include "mono/metadata/object.h"
 #include "mono/metadata/reflection.h"

@@ -21,8 +21,11 @@ namespace Fermion
         bool InputTextStdString(const char *label, std::string &str)
         {
             char buffer[512];
+#ifdef __linux__
+            strcpy(buffer,str.c_str());
+#else
             strcpy_s(buffer, str.c_str());
-
+#endif
             if (ImGui::InputText(label, buffer, sizeof(buffer)))
             {
                 str = buffer;

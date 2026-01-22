@@ -18,6 +18,9 @@ if(PLATFORM STREQUAL "Desktop")
         set(PLATFORM_EXCLUSIVE_SOURCES
             ${PLATFORM_DIR}/Windows/Window/WindowsPlatformUtils.cpp
         )
+    elseif(UNIX AND NOT APPLE)
+        set(PLATFORM_EXCLUSIVE_SOURCES 
+            ${PLATFORM_DIR}/Linux/Window/LinuxPlatformUtils.cpp)
     endif()
 elseif(Platform STREQUAL "Android")
     set(IMGUI_PLATFORM_SOURCE
@@ -53,7 +56,7 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Renderer/Renderers/DebugRenderer.cpp
     ${FERMION_DIR}/Renderer/GraphicsContext.cpp
     ${FERMION_DIR}/Renderer/Buffer.cpp
-    ${FERMION_DIR}/Renderer/FrameBuffer.cpp
+    ${FERMION_DIR}/Renderer/Framebuffer.cpp
     ${FERMION_DIR}/Renderer/VertexArray.cpp
     ${FERMION_DIR}/Renderer/Camera/OrthographicCamera.cpp
     ${FERMION_DIR}/Renderer/Camera/OrthographicCameraController.cpp
@@ -74,7 +77,7 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Renderer/Model/MeshSerializer.cpp
     ${FERMION_DIR}/Renderer/Model/ModelSerializer.cpp
 
-    ${FERMION_DIR}/Project/ProJect.cpp
+    ${FERMION_DIR}/Project/Project.cpp
     ${FERMION_DIR}/Project/ProjectSerializer.cpp
 
     ${FERMION_DIR}/Scene/Scene.cpp
@@ -116,7 +119,7 @@ set(PLATFORM_SOURCES
     ${PLATFORM_DIR}/Windows/OpenGL/OpenGLTexture.cpp
     ${PLATFORM_DIR}/Windows/OpenGL/OpenGLShader.cpp
     ${PLATFORM_DIR}/Windows/OpenGL/OpenGLPipeline.cpp
-    ${PLATFORM_DIR}/Windows/OpenGL/OpenGLFrameBuffer.cpp
+    ${PLATFORM_DIR}/Windows/OpenGL/OpenGLFramebuffer.cpp
 
     ${PLATFORM_DEPENDENCIES_SOURCE}
     ${PLATFORM_EXCLUSIVE_SOURCES}
@@ -162,6 +165,25 @@ add_custom_command(
     ${EXTERNAL_DIR}/mono/binary/mscorlib.dll
     ${BIN_DIR}/mscorlib.dll
 )
+if(WIN32)
+    # Windows 下保持不变
+    add_library(Mono STATIC IMPORTED)
+    set_target_properties(Mono PROPERTIES
+        IMPORTED_LOCATION "${EXTERNAL_DIR}/mono/lib/libmono-static-sgen.lib"
+    )
+    set(MONO_LIB Mono)
+    set(MONO_INCLUDE ${EXTERNAL_DIR}/mono/include)
+elseif(UNIX)
+    # Linux 下使用 pkg-config 自动寻找
+    find_package(PkgConfig REQUIRED)
+    # mono-2 是 Linux 上 mono 嵌入式库的标准名称
+    pkg_check_modules(MONO REQUIRED mono-2)
+    
+    set(MONO_LIB ${MONO_LIBRARIES})
+    set(MONO_INCLUDE ${MONO_INCLUDE_DIRS})
+    # Linux 链接 mono 通常需要一些额外的系统库（如 m, rt, dl, pthread）
+    # pkg_check_modules 会自动处理这些依赖
+endif()
 
 target_include_directories(engine PUBLIC
     ${FERMION_DIR}
@@ -184,36 +206,49 @@ target_include_directories(engine PUBLIC
     ${EXTERNAL_DIR}/JoltPhysics
     ${EXTERNAL_DIR}/msdf-atlas-gen/msdf-atlas-gen
     # ${EXTERNAL_DIR}/box2d/src
-    ${EXTERNAL_DIR}/mono/include
+    ${MONO_INCLUDE}
 )
 
-add_library(Mono STATIC IMPORTED)
 
-set_target_properties(Mono PROPERTIES
-    IMPORTED_LOCATION "${EXTERNAL_DIR}/mono/lib/libmono-static-sgen.lib"
-)
 
 target_link_libraries(engine PUBLIC
     spdlog::spdlog
     box2d::box2d
     Jolt
     msdf-atlas-gen::msdf-atlas-gen
-    Mono
-    ws2_32
-    bcrypt
-    version
-    iphlpapi
-    winmm
+    ${MONO_LIB}
 )
 
 
+
+if(WIN32)
+    target_link_libraries(engine PRIVATE
+        ws2_32
+        bcrypt
+        version
+        iphlpapi
+        winmm
+        opengl32
+    )
+elseif(UNIX)
+    # 查找 OpenGL 库
+    find_package(OpenGL REQUIRED)
+
+    find_package(X11 REQUIRED)
+    target_link_libraries(engine PRIVATE 
+        OpenGL::GL  # 使用 find_package 查找的 OpenGL 库
+        ${X11_LIBRARIES}
+    )
+    target_include_directories(engine PRIVATE ${X11_INCLUDE_DIR})
+endif()
+
 if(USE_GLFW)
     target_compile_definitions(engine PRIVATE FM_PLATFORM_DESKTOP)
+    
     target_link_libraries(engine PRIVATE glfw)
 endif()
 
-
-target_link_libraries(engine PRIVATE opengl32)
+# 链接其他公共库
 target_link_libraries(engine PUBLIC assimp)
 
 
