@@ -1,0 +1,22 @@
+Model:
+  Name: scene
+  Mesh: 14223078490979099088
+  Materials:
+    - Slot: 0
+      Handle: 12781860539387603530
+    - Slot: 1
+      Handle: 14341031254493671794
+    - Slot: 2
+      Handle: 16152322015530272013
+    - Slot: 3
+      Handle: 5324438855931132379
+    - Slot: 4
+      Handle: 3976462393941475427
+    - Slot: 5
+      Handle: 8783188282756086115
+    - Slot: 6
+      Handle: 8281651321282753643
+    - Slot: 7
+      Handle: 2648176084055868109
+    - Slot: 8
+      Handle: 7874514740195167066

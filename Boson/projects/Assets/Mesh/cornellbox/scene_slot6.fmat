@@ -1,0 +1,12 @@
+Material:
+  Type: 2
+  Name: shortBox
+  Albedo: [0.725, 0.71, 0.68]
+  Metallic: 0
+  Roughness: 1
+  AO: 1
+  AlbedoMap: 0
+  NormalMap: 0
+  MetallicMap: 0
+  RoughnessMap: 0
+  AOMap: 0

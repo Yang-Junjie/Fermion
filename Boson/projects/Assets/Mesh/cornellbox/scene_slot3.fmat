@@ -1,0 +1,12 @@
+Material:
+  Type: 2
+  Name: leftWall
+  Albedo: [0.63, 0.065, 0.05]
+  Metallic: 0
+  Roughness: 1
+  AO: 1
+  AlbedoMap: 0
+  NormalMap: 0
+  MetallicMap: 0
+  RoughnessMap: 0
+  AOMap: 0

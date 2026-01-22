@@ -1,5 +1,27 @@
 Scene: Name
 Entities:
+  - Entity: 12703848604684242753
+    TagComponent:
+      Tag: cube
+    TransformComponent:
+      Translation: [0.04924175, 0, 0]
+      Rotation: [-1.5707964, 0, 0]
+      Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 14223078490979099088
+      MemoryOnly: false
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 12781860539387603530
+        - 14341031254493671794
+        - 16152322015530272013
+        - 5324438855931132379
+        - 3976462393941475427
+        - 8783188282756086115
+        - 8281651321282753643
+        - 2648176084055868109
   - Entity: 13192142759119736963
     TagComponent:
       Tag: dl
@@ -7,156 +29,9 @@ Entities:
       Translation: [-0.08539449, 1.2431291, 6.080263]
       Rotation: [-0.2264573, 0.3027384, -1.951387e-08]
       Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
     DirectionalLightComponent:
       Color: [1, 1, 1]
-      Intensity: 8.7
+      Intensity: 5.3
       MainLight: true
-  - Entity: 14364034156530371027
-    TagComponent:
-      Tag: floor
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, -0, 0]
-      Scale: [19.062376, 0.32187447, 13.289282]
-    MeshComponent:
-      MeshHandle: 17106935462540021521
-      MemoryOnly: true
-      MemoryMeshType: 1
-      SubmeshMaterials:
-        - 0
-    Rigidbody3DComponent:
-      BodyType: 0
-      Mass: 1
-      LinearDamping: 0.01
-      AngularDamping: 0.05
-      UseGravity: true
-    BoxCollider3DComponent:
-      Offset: [0, 0, 0]
-      Size: [0.5, 0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      IsTrigger: false
-  - Entity: 12703848604684242753
-    TagComponent:
-      Tag: cube
-    TransformComponent:
-      Translation: [-0.055154562, 0.6965798, 2.9802322e-08]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      MeshHandle: 5054289510600044777
-      MemoryOnly: true
-      MemoryMeshType: 1
-      SubmeshMaterials:
-        - 0
-    Rigidbody3DComponent:
-      BodyType: 0
-      Mass: 1
-      LinearDamping: 0.01
-      AngularDamping: 0.05
-      UseGravity: true
-    BoxCollider3DComponent:
-      Offset: [0, 0, 0]
-      Size: [0.5, 0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      IsTrigger: false
-  - Entity: 1214625920770253982
-    TagComponent:
-      Tag: car
-    TransformComponent:
-      Translation: [-1.2395644, 0.15020162, 0]
-      Rotation: [0, 0, 0]
-      Scale: [0.0033512, 0.0033512, 0.0033512]
-    MeshComponent:
-      MeshHandle: 16584299943829371167
-      MemoryOnly: false
-      MemoryMeshType: 0
-      SubmeshMaterials:
-        - 13708443762182060531
-        - 13756135536400747486
-        - 18076589215161355240
-        - 18076589215161355240
-        - 18076589215161355240
-        - 18076589215161355240
-  - Entity: 13596458327916403171
-    TagComponent:
-      Tag: cone
-    TransformComponent:
-      Translation: [3.821211, 0.6707794, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      MeshHandle: 7663951952065666778
-      MemoryOnly: true
-      MemoryMeshType: 5
-      SubmeshMaterials:
-        - 0
-  - Entity: 16449860847702860093
-    TagComponent:
-      Tag: sphere
-    TransformComponent:
-      Translation: [1.226969, 0.62576985, 0.014943749]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      MeshHandle: 5501972909608188946
-      MemoryOnly: true
-      MemoryMeshType: 2
-      SubmeshMaterials:
-        - 0
-    Rigidbody3DComponent:
-      BodyType: 0
-      Mass: 1
-      LinearDamping: 0.01
-      AngularDamping: 0.05
-      UseGravity: true
-    CircleCollider3DComponent:
-      Offset: [0, 0, 0]
-      Radius: 0.5
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      IsTrigger: false
-  - Entity: 16081347473010776866
-    TagComponent:
-      Tag: cylinder
-    TransformComponent:
-      Translation: [2.3240802, 0.80614066, 1.4901161e-08]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      MeshHandle: 4778555284447413158
-      MemoryOnly: true
-      MemoryMeshType: 3
-      SubmeshMaterials:
-        - 0
-  - Entity: 15257039527707661464
-    TagComponent:
-      Tag: capsule
-    TransformComponent:
-      Translation: [0.5963657, 2.6910133, 0.17732707]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      MeshHandle: 891427162035657
-      MemoryOnly: true
-      MemoryMeshType: 4
-      SubmeshMaterials:
-        - 0
-    Rigidbody3DComponent:
-      BodyType: 1
-      Mass: 1
-      LinearDamping: 0.01
-      AngularDamping: 0.05
-      UseGravity: true
-    CapsuleCollider3DComponent:
-      Offset: [0, 0, 0]
-      Radius: 0.5
-      Height: 1.5
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      IsTrigger: false

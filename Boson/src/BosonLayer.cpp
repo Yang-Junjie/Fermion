@@ -889,7 +889,11 @@ namespace Fermion
         const int pixelY = static_cast<int>(size.y - local.y);
 
         int entityID = -1;
-        if (m_viewportRenderer)
+        if (m_framebuffer)
+            entityID = m_framebuffer->readPixel(1, pixelX, pixelY);
+
+        Entity hovered{static_cast<entt::entity>(entityID), m_activeScene.get()};
+        if (!hovered && m_viewportRenderer)
         {
             const auto &sceneInfo = m_viewportRenderer->getSceneInfo();
             if (sceneInfo.renderMode == SceneRenderer::RenderMode::DeferredHybrid)
@@ -897,16 +901,10 @@ namespace Fermion
                 if (auto gbuffer = m_viewportRenderer->getGBufferFramebuffer())
                 {
                     entityID = gbuffer->readPixel(static_cast<uint32_t>(SceneRenderer::GBufferAttachment::ObjectID), pixelX, pixelY);
+                    hovered = Entity{static_cast<entt::entity>(entityID), m_activeScene.get()};
                 }
             }
         }
-
-        if (entityID == -1)
-            entityID = m_framebuffer->readPixel(1, pixelX, pixelY);
-        if (entityID == -1)
-            return;
-
-        const Entity hovered{static_cast<entt::entity>(entityID), m_activeScene.get()};
 
         if (hovered.isValid())
             m_hoveredEntity = hovered;
