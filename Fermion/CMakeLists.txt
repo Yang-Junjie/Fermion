@@ -18,6 +18,10 @@ if(PLATFORM STREQUAL "Desktop")
         set(PLATFORM_EXCLUSIVE_SOURCES
             ${PLATFORM_DIR}/Windows/Window/WindowsPlatformUtils.cpp
         )
+    elseif(UNIX AND NOT APPLE)
+        set(PLATFORM_EXCLUSIVE_SOURCES
+            ${PLATFORM_DIR}/Linux/Window/LinuxPlatformUtils.cpp
+        )
     endif()
 elseif(Platform STREQUAL "Android")
     set(IMGUI_PLATFORM_SOURCE
@@ -156,18 +160,21 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
     target_compile_definitions(engine PUBLIC FERMION_DEBUG)
 endif()
 
-add_custom_command(
-    TARGET engine POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy # 使用 CMake 内置命令 copy
-    ${EXTERNAL_DIR}/mono/binary/mscorlib.dll
-    ${BIN_DIR}/mscorlib.dll
-)
+if(WIN32)
+    add_custom_command(
+        TARGET engine POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy # 使用 CMake 内置命令 copy
+        ${EXTERNAL_DIR}/mono/binary/mscorlib.dll
+        ${BIN_DIR}/mscorlib.dll
+    )
+endif()
 
 target_include_directories(engine PUBLIC
     ${FERMION_DIR}
 
     ${PLATFORM_DIR}/Windows/OpenGL
     ${PLATFORM_DIR}/Windows/Window
+    ${PLATFORM_DIR}/Linux/Window
 
 
     ${EXTERNAL_DIR}/spdlog/include
@@ -189,9 +196,17 @@ target_include_directories(engine PUBLIC
 
 add_library(Mono STATIC IMPORTED)
 
-set_target_properties(Mono PROPERTIES
-    IMPORTED_LOCATION "${EXTERNAL_DIR}/mono/lib/libmono-static-sgen.lib"
-)
+if(WIN32)
+    set_target_properties(Mono PROPERTIES
+        IMPORTED_LOCATION "${EXTERNAL_DIR}/mono/lib/libmono-static-sgen.lib"
+    )
+elseif(UNIX AND NOT APPLE)
+    # For Linux, you'll need to provide the path to the Linux Mono library
+    # This is a placeholder - adjust the path based on your actual Mono installation
+    set_target_properties(Mono PROPERTIES
+        IMPORTED_LOCATION "${EXTERNAL_DIR}/mono/lib/libmonosgen-2.0.a"
+    )
+endif()
 
 target_link_libraries(engine PUBLIC
     spdlog::spdlog
@@ -199,12 +214,22 @@ target_link_libraries(engine PUBLIC
     Jolt
     msdf-atlas-gen::msdf-atlas-gen
     Mono
-    ws2_32
-    bcrypt
-    version
-    iphlpapi
-    winmm
 )
+
+if(WIN32)
+    target_link_libraries(engine PUBLIC
+        ws2_32
+        bcrypt
+        version
+        iphlpapi
+        winmm
+    )
+elseif(UNIX AND NOT APPLE)
+    target_link_libraries(engine PUBLIC
+        pthread
+        dl
+    )
+endif()
 
 
 if(USE_GLFW)
@@ -213,7 +238,11 @@ if(USE_GLFW)
 endif()
 
 
-target_link_libraries(engine PRIVATE opengl32)
+if(WIN32)
+    target_link_libraries(engine PRIVATE opengl32)
+elseif(UNIX AND NOT APPLE)
+    target_link_libraries(engine PRIVATE GL)
+endif()
 target_link_libraries(engine PUBLIC assimp)
 
 
