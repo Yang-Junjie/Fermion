@@ -42,9 +42,8 @@ Fermion 是一款基于 C++20 自研游戏引擎。
 
 - CMake ≥ 3.16
 - 支持 C++20 的编译器
-  - Windows：Visual Studio 2019 或更新版本
-  - 其他平台：GCC / Clang（需自行提供 `PlatformUtils` 等平台适配实现，当前工程主要在 Windows 下开发与测试）
-- 已安装 Git（用于克隆子模块）
+- Windows/Linux 已经通过编译
+- Windows/Linux 需要手动安装 [Mono](https://www.mono-project.com/)
 
 ### 获取源码
 
