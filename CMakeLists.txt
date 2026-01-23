@@ -1,17 +1,15 @@
 ﻿cmake_minimum_required(VERSION 3.16)
 project(Fermion VERSION 0.1 LANGUAGES CXX C)
 
-if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-endif ()
+endif()
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
 # option(BUILD_RELEASE "Build in Release mode" ON)
-
-
 # if(BUILD_RELEASE)
 #     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type" FORCE)
 # else()
@@ -20,20 +18,20 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
 message("===== Your Platform =====")
-if (CMAKE_SYSTEM_NAME STREQUAL "Android")
+if(CMAKE_SYSTEM_NAME STREQUAL "Android")
     message("Platform: Android")
     set(PLATFORM "Android" CACHE STRING "Platform")
-else ()
+else()
     set(PLATFORM "Desktop" CACHE STRING "Platform")
     set(USE_GLFW ON CACHE BOOL "Use GLFW as window backend")
-    if (WIN32)
+    if(WIN32)
         message("Platform: Windows")
         message("Use GLFW: ${USE_GLFW}")
-    elseif (UNIX AND NOT APPLE)
+    elseif(UNIX AND NOT APPLE)
         message("Platform: Linux")
         message("Use GLFW: ${USE_GLFW}")
-    endif ()
-endif ()
+    endif()
+endif()
 message("=========================")
 
 # build boson
@@ -44,8 +42,6 @@ set(YAML_BUILD_SHARED_LIBS OFF CACHE BOOL "Build yaml-cpp as static library" FOR
 
 option(BUILD_NEUTRINO "Build Neutrino" ON)
 option(BUILD_LAUNCHER "Build Launcher" ON)
-
-# 这一行来解决yaml-cpp的dllimport问题
 add_compile_definitions(YAML_CPP_STATIC_DEFINE)
 
 # 输出目录
@@ -61,24 +57,22 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${BIN_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${BIN_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${BIN_DIR})
 
-if (USE_GLFW)
+if(USE_GLFW)
     set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
     set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
     set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
     if(UNIX AND NOT APPLE)
-        
         set(GLFW_BUILD_X11 ON CACHE BOOL "" FORCE)
-    set(GLFW_BUILD_WAYLAND ON CACHE BOOL "" FORCE)
+        set(GLFW_BUILD_WAYLAND ON CACHE BOOL "" FORCE)
     endif()
     add_subdirectory(Fermion/external/GLFW)
-endif ()
+endif()
 
 set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
 set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
 set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
 
-# Ensure third-party libraries use the same MSVC runtime as the engine.
 set(USE_STATIC_MSVC_RUNTIME_LIBRARY OFF CACHE BOOL "" FORCE)
 
 # 第三方库
@@ -88,7 +82,6 @@ add_subdirectory(Fermion/external/glm)
 add_subdirectory(Fermion/external/yaml-cpp)
 add_subdirectory(Fermion/external/box2d)
 
-# 在引入 JoltPhysics 之前设置选项，确保禁用 Vulkan 和 DX12 支持
 set(JPH_USE_VK OFF CACHE BOOL "Disable Vulkan" FORCE)
 set(JPH_USE_DX12 OFF CACHE BOOL "Disable DirectX" FORCE)
 set(JPH_USE_DXC OFF CACHE BOOL "Disable DXC shader compiler" FORCE)
@@ -96,9 +89,9 @@ set(JPH_USE_DXC OFF CACHE BOOL "Disable DXC shader compiler" FORCE)
 add_subdirectory(Fermion/external/JoltPhysics/Build)
 add_subdirectory(Fermion/external/assimp)
 add_subdirectory(Fermion/external/freetype)
-if (TARGET freetype AND NOT TARGET Freetype::Freetype)
+if(TARGET freetype AND NOT TARGET Freetype::Freetype)
     add_library(Freetype::Freetype ALIAS freetype)
-endif ()
+endif()
 
 # msdf-atlas-gen (MSDF font atlas generator)
 set(MSDF_ATLAS_BUILD_STANDALONE OFF CACHE BOOL "" FORCE)
@@ -116,19 +109,19 @@ add_subdirectory(Fermion/external/msdf-atlas-gen)
 add_subdirectory(Fermion)
 
 # Boson
-if (BUILD_BOSON)
+if(BUILD_BOSON)
     add_subdirectory(Boson)
     message("BUILD BOSON:${BUILD_BOSON}")
-endif ()
+endif()
 
 # Neutrino
-if (BUILD_NEUTRINO)
+if(BUILD_NEUTRINO)
     add_subdirectory(Neutrino)
     message("BUILD NEUTRINO:${BUILD_NEUTRINO}")
-endif ()
+endif()
 
-if (BUILD_LAUNCHER)
+if(BUILD_LAUNCHER)
     add_subdirectory(FermionLauncher)
     message("BUILD LAUNCHER" :${BUILD_LAUNCHER})
-endif ()
+endif()
 

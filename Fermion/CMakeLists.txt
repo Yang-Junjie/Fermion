@@ -19,7 +19,7 @@ if(PLATFORM STREQUAL "Desktop")
             ${PLATFORM_DIR}/Windows/Window/WindowsPlatformUtils.cpp
         )
     elseif(UNIX AND NOT APPLE)
-        set(PLATFORM_EXCLUSIVE_SOURCES 
+        set(PLATFORM_EXCLUSIVE_SOURCES
             ${PLATFORM_DIR}/Linux/Window/LinuxPlatformUtils.cpp)
     endif()
 elseif(Platform STREQUAL "Android")
@@ -159,30 +159,28 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
     target_compile_definitions(engine PUBLIC FERMION_DEBUG)
 endif()
 
-add_custom_command(
-    TARGET engine POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy # 使用 CMake 内置命令 copy
-    ${EXTERNAL_DIR}/mono/binary/mscorlib.dll
-    ${BIN_DIR}/mscorlib.dll
-)
+
+# 设置 Mono 库和包含目录
 if(WIN32)
-    # Windows 下保持不变
     add_library(Mono STATIC IMPORTED)
     set_target_properties(Mono PROPERTIES
         IMPORTED_LOCATION "${EXTERNAL_DIR}/mono/lib/libmono-static-sgen.lib"
     )
     set(MONO_LIB Mono)
     set(MONO_INCLUDE ${EXTERNAL_DIR}/mono/include)
+
+    add_custom_command(
+        TARGET engine POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${EXTERNAL_DIR}/mono/binary/mscorlib.dll
+        ${BIN_DIR}/mscorlib.dll
+    )
 elseif(UNIX)
-    # Linux 下使用 pkg-config 自动寻找
     find_package(PkgConfig REQUIRED)
-    # mono-2 是 Linux 上 mono 嵌入式库的标准名称
     pkg_check_modules(MONO REQUIRED mono-2)
-    
+
     set(MONO_LIB ${MONO_LIBRARIES})
     set(MONO_INCLUDE ${MONO_INCLUDE_DIRS})
-    # Linux 链接 mono 通常需要一些额外的系统库（如 m, rt, dl, pthread）
-    # pkg_check_modules 会自动处理这些依赖
 endif()
 
 target_include_directories(engine PUBLIC
@@ -205,7 +203,6 @@ target_include_directories(engine PUBLIC
     ${EXTERNAL_DIR}/box2d/include
     ${EXTERNAL_DIR}/JoltPhysics
     ${EXTERNAL_DIR}/msdf-atlas-gen/msdf-atlas-gen
-    # ${EXTERNAL_DIR}/box2d/src
     ${MONO_INCLUDE}
 )
 
@@ -231,12 +228,11 @@ if(WIN32)
         opengl32
     )
 elseif(UNIX)
-    # 查找 OpenGL 库
     find_package(OpenGL REQUIRED)
 
     find_package(X11 REQUIRED)
-    target_link_libraries(engine PRIVATE 
-        OpenGL::GL  # 使用 find_package 查找的 OpenGL 库
+    target_link_libraries(engine PRIVATE
+        OpenGL::GL 
         ${X11_LIBRARIES}
     )
     target_include_directories(engine PRIVATE ${X11_INCLUDE_DIR})
@@ -244,11 +240,10 @@ endif()
 
 if(USE_GLFW)
     target_compile_definitions(engine PRIVATE FM_PLATFORM_DESKTOP)
-    
+
     target_link_libraries(engine PRIVATE glfw)
 endif()
 
-# 链接其他公共库
 target_link_libraries(engine PUBLIC assimp)
 
 

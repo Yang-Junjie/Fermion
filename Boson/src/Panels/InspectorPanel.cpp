@@ -6,7 +6,6 @@
 #include "Script/ScriptManager.hpp"
 #include "Project/Project.hpp"
 
-#include <cstring>
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <entt/entt.hpp>
@@ -28,14 +27,13 @@ namespace Fermion
         AssetHandle modelHandle = editorAssets->importAsset(path);
         FERMION_ASSERT(modelHandle.isValid(), "Failed to import model asset");
         auto modelAsset = editorAssets->template getAsset<ModelAsset>(modelHandle);
-        FERMION_ASSERT(modelAsset!=nullptr, "Failed to get model asset");
+        FERMION_ASSERT(modelAsset != nullptr, "Failed to get model asset");
 
         component.meshHandle = modelAsset->mesh;
         component.memoryOnly = false;
 
-
         auto mesh = editorAssets->template getAsset<Mesh>(modelAsset->mesh);
-        FERMION_ASSERT(mesh!=nullptr, "Failed to get mesh asset");
+        FERMION_ASSERT(mesh != nullptr, "Failed to get mesh asset");
 
         const auto &subMeshes = mesh->getSubMeshes();
         component.resizeSubmeshMaterials(static_cast<uint32_t>(subMeshes.size()));
@@ -105,11 +103,16 @@ namespace Fermion
             ImGui::CloseCurrentPopup();
         };
 
-        selectMesh("Cube", [] { return MeshFactory::CreateBox(glm::vec3(1)); }, MemoryMeshType::Cube);
-        selectMesh("Sphere", [] { return MeshFactory::CreateSphere(0.5f); }, MemoryMeshType::Sphere);
-        selectMesh("Cylinder", [] { return MeshFactory::CreateCylinder(0.5f, 1.0f, 32); }, MemoryMeshType::Cylinder);
-        selectMesh("Capsule", [] { return MeshFactory::CreateCapsule(0.5f, 1.5f, 32, 8); }, MemoryMeshType::Capsule);
-        selectMesh("Cone", [] { return MeshFactory::CreateCone(0.5f, 1.0f, 32); }, MemoryMeshType::Cone);
+        selectMesh("Cube", []
+                   { return MeshFactory::CreateBox(glm::vec3(1)); }, MemoryMeshType::Cube);
+        selectMesh("Sphere", []
+                   { return MeshFactory::CreateSphere(0.5f); }, MemoryMeshType::Sphere);
+        selectMesh("Cylinder", []
+                   { return MeshFactory::CreateCylinder(0.5f, 1.0f, 32); }, MemoryMeshType::Cylinder);
+        selectMesh("Capsule", []
+                   { return MeshFactory::CreateCapsule(0.5f, 1.5f, 32, 8); }, MemoryMeshType::Capsule);
+        selectMesh("Cone", []
+                   { return MeshFactory::CreateCone(0.5f, 1.0f, 32); }, MemoryMeshType::Cone);
 
         component.memoryOnly = true;
         ImGui::EndPopup();
@@ -311,11 +314,7 @@ namespace Fermion
 
             char buffer[256];
             memset(buffer, 0, sizeof(buffer));
-#ifdef __linux__
-            strncpy(buffer, tag.c_str(), sizeof(buffer));
-#else
-            strncpy_s(buffer, tag.c_str(), sizeof(buffer));
-#endif
+            std::strncpy(buffer, tag.c_str(), sizeof(buffer));
             if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
             {
                 tag = std::string(buffer);
@@ -481,15 +480,13 @@ namespace Fermion
             ImGui::DragFloat("Tiling Factor", &component.tilingFactor, 0.1f, 0.0f, 100.0f); });
         drawComponent<MeshComponent>("Mesh", entity, [](auto &component)
                                      {
-            ImGui::Text("Mesh Handle: %llu", static_cast<uint64_t>(component.meshHandle));
+                                         ImGui::Text("Mesh Handle: %llu", static_cast<uint64_t>(component.meshHandle));
 
-            auto editorAssets = Project::getEditorAssetManager();
-            drawMeshModelDropTarget(component, editorAssets);
-            drawEngineInternalMeshPopup(component);
-            drawSubmeshMaterialsEditor(component, editorAssets);
-            
-
-        });
+                                         auto editorAssets = Project::getEditorAssetManager();
+                                         drawMeshModelDropTarget(component, editorAssets);
+                                         drawEngineInternalMeshPopup(component);
+                                         drawSubmeshMaterialsEditor(component, editorAssets);
+                                     });
         drawComponent<DirectionalLightComponent>("Directional Light", entity, [](auto &component)
                                                  {
             ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
