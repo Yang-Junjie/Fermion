@@ -9,7 +9,14 @@ layout(location = 3) in float a_Thickness;
 layout(location = 4) in float a_Fade;
 layout(location = 5) in int a_ObjectID;
 
-uniform mat4 u_ViewProjection;
+// Camera uniform buffer (binding = 0)
+layout(std140, binding = 0) uniform CameraData
+{
+	mat4 u_ViewProjection;
+	mat4 u_View;
+	mat4 u_Projection;
+	vec3 u_CameraPosition;
+};
 
 struct VertexOutput
 {

@@ -16,6 +16,7 @@ namespace Fermion
     class DebugRenderer;
     class EnvironmentRenderer;
     class ShadowMapRenderer;
+    class UniformBuffer;
 
     class SceneRenderer
     {
@@ -300,6 +301,11 @@ namespace Fermion
         std::vector<MeshDrawCommand> s_MeshDrawList;
 
         std::shared_ptr<VertexArray> m_depthViewQuadVA = nullptr;
+
+        // Uniform buffers for efficient rendering
+        std::shared_ptr<UniformBuffer> m_cameraUniformBuffer;
+        std::shared_ptr<UniformBuffer> m_modelUniformBuffer;
+        std::shared_ptr<UniformBuffer> m_lightUniformBuffer;
 
         std::shared_ptr<Pipeline> m_MeshPipeline;
         std::shared_ptr<Pipeline> m_PBRMeshPipeline;

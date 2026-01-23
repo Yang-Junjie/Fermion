@@ -8,6 +8,7 @@
 #include "Renderer/Pipeline.hpp"
 #include "Renderer/RenderDrawCommand.hpp"
 #include "Renderer/RenderGraphLegacy.hpp"
+#include "Renderer/UniformBuffer.hpp"
 #include "Scene/Scene.hpp"
 
 namespace Fermion
@@ -25,7 +26,9 @@ namespace Fermion
                      const std::shared_ptr<Framebuffer> &targetFramebuffer,
                      uint32_t viewportWidth,
                      uint32_t viewportHeight,
-                     uint32_t *shadowDrawCalls);
+                     uint32_t *shadowDrawCalls,
+                     const std::shared_ptr<UniformBuffer> &modelUniformBuffer,
+                     const std::shared_ptr<UniformBuffer> &lightUniformBuffer);
 
         const glm::mat4 &getLightSpaceMatrix() const;
         std::shared_ptr<Framebuffer> getShadowMapFramebuffer() const;

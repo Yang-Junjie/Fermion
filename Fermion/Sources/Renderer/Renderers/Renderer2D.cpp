@@ -4,6 +4,8 @@
 #include "Renderer/Shader.hpp"
 #include "Renderer/RenderCommand.hpp"
 #include "Renderer/Pipeline.hpp"
+#include "Renderer/UniformBuffer.hpp"
+#include "Renderer/UniformBufferLayout.hpp"
 #include "glad/glad.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include "Renderer.hpp"
@@ -135,6 +137,9 @@ namespace Fermion
 
         glm::mat4 m_CameraViewProj;
         glm::mat4 m_CameraView;
+
+        // Uniform buffers for efficient data transfer
+        std::shared_ptr<UniformBuffer> cameraUniformBuffer;
     };
 
     static Renderer2DData s_Data;
@@ -173,22 +178,16 @@ namespace Fermion
             s_Data.stats.quadCount++;
         }
 
-        void SetupShadersViewProj(const glm::mat4& viewProj)
+        // Update camera uniform buffer with view-projection matrix
+        void UpdateCameraUBO(const glm::mat4& viewProj, const glm::mat4& view, const glm::vec3& cameraPos)
         {
-            s_Data.QuadShader->bind();
-            s_Data.QuadShader->setMat4("u_ViewProjection", viewProj);
+            CameraData cameraData;
+            cameraData.viewProjection = viewProj;
+            cameraData.view = view;
+            cameraData.projection = glm::mat4(1.0f); // Not used in 2D, but included for consistency
+            cameraData.position = cameraPos;
 
-            s_Data.QuadInstanceShader->bind();
-            s_Data.QuadInstanceShader->setMat4("u_ViewProjection", viewProj);
-
-            s_Data.CircleShader->bind();
-            s_Data.CircleShader->setMat4("u_ViewProjection", viewProj);
-
-            s_Data.LineShader->bind();
-            s_Data.LineShader->setMat4("u_ViewProjection", viewProj);
-
-            s_Data.TextShader->bind();
-            s_Data.TextShader->setMat4("u_ViewProjection", viewProj);
+            s_Data.cameraUniformBuffer->setData(&cameraData, sizeof(CameraData));
         }
 
         void ResetBuffers()
@@ -374,6 +373,9 @@ namespace Fermion
         s_Data.QuadVertexPositions[1] = {0.5f, -0.5f, 0.0f, 1.0f};
         s_Data.QuadVertexPositions[2] = {0.5f, 0.5f, 0.0f, 1.0f};
         s_Data.QuadVertexPositions[3] = {-0.5f, 0.5f, 0.0f, 1.0f};
+
+        // Create camera uniform buffer (binding point 0)
+        s_Data.cameraUniformBuffer = UniformBuffer::create(UniformBufferBinding::Camera, CameraData::getSize());
     }
 
     void Renderer2D::shutdown()
@@ -389,7 +391,7 @@ namespace Fermion
     void Renderer2D::beginScene(const OrthographicCamera &camera)
     {
         FM_PROFILE_FUNCTION();
-        SetupShadersViewProj(camera.getViewProjectionMatrix());
+        UpdateCameraUBO(camera.getViewProjectionMatrix(), glm::mat4(1.0f), glm::vec3(0.0f));
         ResetBuffers();
     }
 
@@ -398,7 +400,7 @@ namespace Fermion
         FM_PROFILE_FUNCTION();
         s_Data.m_CameraView = camera.getViewMatrix();
         s_Data.m_CameraViewProj = camera.getViewProjection();
-        SetupShadersViewProj(s_Data.m_CameraViewProj);
+        UpdateCameraUBO(s_Data.m_CameraViewProj, s_Data.m_CameraView, camera.getPosition());
         ResetBuffers();
     }
 
@@ -407,7 +409,9 @@ namespace Fermion
         FM_PROFILE_FUNCTION();
         s_Data.m_CameraView = view;
         s_Data.m_CameraViewProj = camera.getProjection() * view;
-        SetupShadersViewProj(s_Data.m_CameraViewProj);
+        // Extract camera position from view matrix (inverse translation)
+        glm::vec3 cameraPos = glm::vec3(glm::inverse(view)[3]);
+        UpdateCameraUBO(s_Data.m_CameraViewProj, s_Data.m_CameraView, cameraPos);
         ResetBuffers();
     }
 

@@ -1,7 +1,7 @@
 // Instanced quad shader
 
 #type vertex
-#version 330 core
+#version 450 core
 
 layout(location = 0) in mat4 a_Transform;
 layout(location = 4) in vec4 a_Color;
@@ -9,7 +9,14 @@ layout(location = 5) in float a_TexIndex;
 layout(location = 6) in float a_TilingFactor;
 layout(location = 7) in int a_ObjectID;
 
-uniform mat4 u_ViewProjection;
+// Camera uniform buffer (binding = 0)
+layout(std140, binding = 0) uniform CameraData
+{
+	mat4 u_ViewProjection;
+	mat4 u_View;
+	mat4 u_Projection;
+	vec3 u_CameraPosition;
+};
 
 out vec4 v_Color;
 out vec2 v_TexCoord;
@@ -44,7 +51,7 @@ void main()
 }
 
 #type fragment
-#version 330 core
+#version 450 core
 
 layout(location = 0) out vec4 o_Color;
 layout(location = 1) out int o_ObjectID;

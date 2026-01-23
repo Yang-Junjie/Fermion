@@ -61,6 +61,7 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Renderer/Renderers/DebugRenderer.cpp
     ${FERMION_DIR}/Renderer/GraphicsContext.cpp
     ${FERMION_DIR}/Renderer/Buffer.cpp
+    ${FERMION_DIR}/Renderer/UniformBuffer.cpp
     ${FERMION_DIR}/Renderer/Framebuffer.cpp
     ${FERMION_DIR}/Renderer/VertexArray.cpp
     ${FERMION_DIR}/Renderer/Camera/OrthographicCamera.cpp
@@ -120,6 +121,7 @@ set(PLATFORM_SOURCES
     ${PLATFORM_DIR}/RenderApi/OpenGL/OpenGLRendererAPI.cpp
     ${PLATFORM_DIR}/RenderApi/OpenGL/OpenGLContext.cpp
     ${PLATFORM_DIR}/RenderApi/OpenGL/OpenGLBuffer.cpp
+    ${PLATFORM_DIR}/RenderApi/OpenGL/OpenGLUniformBuffer.cpp
     ${PLATFORM_DIR}/RenderApi/OpenGL/OpenGLVertexArray.cpp
     ${PLATFORM_DIR}/RenderApi/OpenGL/OpenGLTexture.cpp
     ${PLATFORM_DIR}/RenderApi/OpenGL/OpenGLShader.cpp

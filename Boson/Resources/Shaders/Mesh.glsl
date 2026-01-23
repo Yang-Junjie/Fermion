@@ -1,15 +1,44 @@
 #type vertex
-#version 330 core
+#version 450 core
 
 layout(location = 0) in vec3 a_Position;
 layout(location = 1) in vec3 a_Normal;
 layout(location = 2) in vec4 a_Color;
 layout(location = 3) in vec2 a_TexCoords;
 
-uniform mat4 u_Model;
-uniform mat4 u_ViewProjection;
-uniform mat4 u_LightSpaceMatrix;
-uniform int u_ObjectID;
+// Camera uniform buffer (binding = 0)
+layout(std140, binding = 0) uniform CameraData
+{
+	mat4 u_ViewProjection;
+	mat4 u_View;
+	mat4 u_Projection;
+	vec3 u_CameraPosition;
+};
+
+// Model uniform buffer (binding = 1)
+layout(std140, binding = 1) uniform ModelData
+{
+	mat4 u_Model;
+	mat4 u_NormalMatrix;
+	int u_ObjectID;
+};
+
+// Light uniform buffer (binding = 2)
+layout(std140, binding = 2) uniform LightData
+{
+	mat4 u_LightSpaceMatrix;
+	vec3 u_DirLightDirection;
+	float u_DirLightIntensity;
+	vec3 u_DirLightColor;
+	float _lightPadding0;
+	float u_ShadowBias;
+	float u_ShadowSoftness;
+	int u_EnableShadows;
+	float _lightPadding1;
+	float u_AmbientIntensity;
+	int u_NumPointLights;
+	int u_NumSpotLights;
+};
 
 out vec3 v_WorldPos;
 out vec3 v_Normal;
@@ -22,7 +51,8 @@ void main() {
     vec4 worldPos = u_Model * vec4(a_Position, 1.0);
     v_WorldPos = worldPos.xyz;
 
-    v_Normal = mat3(transpose(inverse(u_Model))) * a_Normal;
+    // Use precomputed normal matrix from UBO
+    v_Normal = mat3(u_NormalMatrix) * a_Normal;
     v_Color = a_Color;
     v_TexCoords = a_TexCoords;
     v_FragPosLightSpace = u_LightSpaceMatrix * worldPos;
@@ -32,7 +62,7 @@ void main() {
 }
 
 #type fragment
-#version 330 core
+#version 450 core
 
 layout(location = 0) out vec4 o_Color;
 layout(location = 1) out int o_ObjectID;
@@ -46,6 +76,23 @@ flat in int v_ObjectID;
 
 #define MAX_POINT_LIGHTS 16
 #define MAX_SPOT_LIGHTS 16
+
+// Light uniform buffer (binding = 2)
+layout(std140, binding = 2) uniform LightData
+{
+	mat4 u_LightSpaceMatrix;
+	vec3 u_DirLightDirection;
+	float u_DirLightIntensity;
+	vec3 u_DirLightColor;
+	float _lightPadding0;
+	float u_ShadowBias;
+	float u_ShadowSoftness;
+	int u_EnableShadows;
+	float _lightPadding1;
+	float u_AmbientIntensity;
+	int u_NumPointLights;
+	int u_NumSpotLights;
+};
 
 struct PointLight {
     vec3 position;
@@ -66,19 +113,11 @@ struct SpotLight {
     float outerConeAngle;
 };
 
-struct DirectionalLight {
-    vec3 direction;
-    vec3 color;
-    float intensity;
-};
-
 uniform int u_PointLightCount;
 uniform PointLight u_PointLights[MAX_POINT_LIGHTS];
 
 uniform int u_SpotLightCount;
 uniform SpotLight u_SpotLights[MAX_SPOT_LIGHTS];
-
-uniform DirectionalLight u_DirectionalLight; // 只支持一个
 
 uniform bool u_UseTexture;
 uniform sampler2D u_Texture;
@@ -88,10 +127,7 @@ uniform vec4 u_Ka; // ambient
 uniform bool u_FlipUV;
 
 // Shadow mapping
-uniform bool u_EnableShadows;
 uniform sampler2D u_ShadowMap;
-uniform float u_ShadowBias;
-uniform float u_ShadowSoftness;
 
 float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir)
 {
@@ -150,13 +186,13 @@ void main()
     vec3 result = u_Ka.rgb * baseColor;
 
     // Directional light with shadow
-    vec3 dirLightDir = normalize(-u_DirectionalLight.direction); // 方向光方向指向片元
+    vec3 dirLightDir = normalize(-u_DirLightDirection); // 方向光方向指向片元
     float NdotL = max(dot(normal, dirLightDir), 0.0);
     float shadow = 0.0;
-    if (u_EnableShadows) {
+    if (u_EnableShadows != 0) {
         shadow = calculateShadow(v_FragPosLightSpace, normal, dirLightDir);
     }
-    result += u_DirectionalLight.color * u_DirectionalLight.intensity * NdotL * (1.0 - shadow) * baseColor;
+    result += u_DirLightColor * u_DirLightIntensity * NdotL * (1.0 - shadow) * baseColor;
 
     // Point lights
     for(int i = 0; i < u_PointLightCount; i++)

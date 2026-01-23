@@ -3,6 +3,7 @@
 
 #include "Renderer/RenderCommand.hpp"
 #include "Renderer/Renderers/Renderer.hpp"
+#include "Renderer/UniformBufferLayout.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -28,7 +29,9 @@ namespace Fermion
                                     const std::shared_ptr<Framebuffer> &targetFramebuffer,
                                     uint32_t viewportWidth,
                                     uint32_t viewportHeight,
-                                    uint32_t *shadowDrawCalls)
+                                    uint32_t *shadowDrawCalls,
+                                    const std::shared_ptr<UniformBuffer> &modelUniformBuffer,
+                                    const std::shared_ptr<UniformBuffer> &lightUniformBuffer)
     {
         ensureFramebuffer(shadowMapSize);
         m_lightSpaceMatrix = calculateLightSpaceMatrix(light);
@@ -36,19 +39,23 @@ namespace Fermion
         LegacyRenderGraphPass pass;
         pass.Name = "ShadowPass";
         pass.Outputs = {shadowMap};
-        pass.Execute = [this, &drawList, targetFramebuffer, viewportWidth, viewportHeight, shadowDrawCalls](CommandBuffer &commandBuffer)
+        pass.Execute = [this, &drawList, targetFramebuffer, viewportWidth, viewportHeight, shadowDrawCalls, modelUniformBuffer, lightUniformBuffer](CommandBuffer &commandBuffer)
         {
-            commandBuffer.record([this, &drawList, targetFramebuffer, viewportWidth, viewportHeight, shadowDrawCalls](RendererAPI &api)
+            commandBuffer.record([this, &drawList, targetFramebuffer, viewportWidth, viewportHeight, shadowDrawCalls, modelUniformBuffer, lightUniformBuffer](RendererAPI &api)
                                  {
                 m_shadowMapFB->bind();
                 RenderCommand::clear();
 
                 m_shadowPipeline->bind();
-                auto shader = m_shadowPipeline->getShader();
-                shader->setMat4("u_LightSpaceMatrix", m_lightSpaceMatrix);
 
                 for (auto &cmd : drawList) {
-                    shader->setMat4("u_Model", cmd.transform);
+                    // Update model uniform buffer for this draw call
+                    ModelData modelData;
+                    modelData.model = cmd.transform;
+                    modelData.normalMatrix = glm::transpose(glm::inverse(cmd.transform));
+                    modelData.objectID = cmd.objectID;
+                    modelUniformBuffer->setData(&modelData, sizeof(ModelData));
+
                     RenderCommand::drawIndexed(cmd.vao, cmd.indexCount, cmd.indexOffset);
                     if (shadowDrawCalls)
                         (*shadowDrawCalls)++;

@@ -1,5 +1,5 @@
 #type vertex
-#version 330 core
+#version 450 core
 
 layout(location = 0) in vec3 a_Position;
 layout(location = 1) in vec2 a_TexCoords;
@@ -13,7 +13,7 @@ void main()
 }
 
 #type fragment
-#version 330 core
+#version 450 core
 
 layout(location = 0) out vec4 o_Color;
 
@@ -44,22 +44,37 @@ struct SpotLight {
     float outerConeAngle;
 };
 
-struct DirectionalLight {
-    vec3 direction;
-    vec3 color;
-    float intensity;
-};
-
 uniform int u_PointLightCount;
 uniform PointLight u_PointLights[MAX_POINT_LIGHTS];
 
 uniform int u_SpotLightCount;
 uniform SpotLight u_SpotLights[MAX_SPOT_LIGHTS];
 
-uniform DirectionalLight u_DirectionalLight;
+// Camera uniform buffer (binding = 0)
+layout(std140, binding = 0) uniform CameraData
+{
+	mat4 u_ViewProjection;
+	mat4 u_View;
+	mat4 u_Projection;
+	vec3 u_CameraPosition;
+};
 
-uniform vec3 u_CameraPosition;
-uniform float u_AmbientIntensity;
+// Light uniform buffer (binding = 2)
+layout(std140, binding = 2) uniform LightData
+{
+	mat4 u_LightSpaceMatrix;
+	vec3 u_DirLightDirection;
+	float u_DirLightIntensity;
+	vec3 u_DirLightColor;
+	float _lightPadding0;
+	float u_ShadowBias;
+	float u_ShadowSoftness;
+	int u_EnableShadows;
+	float _lightPadding1;
+	float u_AmbientIntensity;
+	int u_NumPointLights;
+	int u_NumSpotLights;
+};
 
 uniform sampler2D u_GBufferAlbedo;
 uniform sampler2D u_GBufferNormal;
@@ -70,13 +85,9 @@ uniform sampler2D u_SSGI;
 uniform sampler2D u_GTAO;
 
 uniform mat4 u_InverseViewProjection;
-uniform mat4 u_LightSpaceMatrix;
 
 // Shadow mapping
-uniform bool u_EnableShadows;
 uniform sampler2D u_ShadowMap;
-uniform float u_ShadowBias;
-uniform float u_ShadowSoftness;
 
 // IBL
 uniform bool u_UseIBL;
@@ -226,16 +237,16 @@ void main()
 
     // Directional light
     {
-        vec3 L = normalize(-u_DirectionalLight.direction);
+        vec3 L = normalize(-u_DirLightDirection);
         vec3 kS;
         vec3 specularBRDF = CookTorrance(normal, L, V, roughness, metallic, F0, kS);
         vec3 diffuseBRDF = LambertDiffuse(kS, albedo, metallic);
 
         float NdotL = max(dot(normal, L), 0.0);
-        vec3 radiance = u_DirectionalLight.color * u_DirectionalLight.intensity;
+        vec3 radiance = u_DirLightColor * u_DirLightIntensity;
 
         float shadow = 0.0;
-        if (u_EnableShadows)
+        if (u_EnableShadows != 0)
         {
             vec4 fragPosLightSpace = u_LightSpaceMatrix * vec4(worldPos, 1.0);
             shadow = calculateShadow(fragPosLightSpace, normal, L);

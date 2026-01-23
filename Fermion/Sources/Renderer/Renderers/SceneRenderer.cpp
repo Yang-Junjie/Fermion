@@ -2,6 +2,8 @@
 #include "Renderer2D.hpp"
 #include "Renderer/RendererBackend.hpp"
 #include "Renderer/RenderCommand.hpp"
+#include "Renderer/UniformBuffer.hpp"
+#include "Renderer/UniformBufferLayout.hpp"
 #include "EnvironmentRenderer.hpp"
 #include "ShadowMapRenderer.hpp"
 #include "Project/Project.hpp"
@@ -127,6 +129,11 @@ namespace Fermion
         m_depthViewQuadVA->addVertexBuffer(quadVB);
         m_depthViewQuadVA->setIndexBuffer(quadIB);
 
+        // Initialize uniform buffers
+        m_cameraUniformBuffer = UniformBuffer::create(UniformBufferBinding::Camera, CameraData::getSize());
+        m_modelUniformBuffer = UniformBuffer::create(UniformBufferBinding::Model, ModelData::getSize());
+        m_lightUniformBuffer = UniformBuffer::create(UniformBufferBinding::Lights, LightData::getSize());
+
         loadHDREnvironment(m_sceneData.hdrPath);
     }
 
@@ -181,20 +188,13 @@ namespace Fermion
         const glm::mat4 viewProjection = camera.camera.getProjection() * camera.view;
         const glm::vec3 cameraPosition = glm::vec3(glm::inverse(camera.view)[3]);
 
-        if (m_MeshPipeline)
-        {
-            m_MeshPipeline->bind();
-            auto meshShader = m_MeshPipeline->getShader();
-            meshShader->setMat4("u_ViewProjection", viewProjection);
-        }
-
-        if (m_PBRMeshPipeline)
-        {
-            m_PBRMeshPipeline->bind();
-            auto pbrShader = m_PBRMeshPipeline->getShader();
-            pbrShader->setMat4("u_ViewProjection", viewProjection);
-            pbrShader->setFloat3("u_CameraPosition", cameraPosition);
-        }
+        // Update camera uniform buffer (shared across all shaders)
+        CameraData cameraData;
+        cameraData.viewProjection = viewProjection;
+        cameraData.view = camera.view;
+        cameraData.projection = camera.camera.getProjection();
+        cameraData.position = cameraPosition;
+        m_cameraUniformBuffer->setData(&cameraData, sizeof(CameraData));
     }
 
     void SceneRenderer::endScene()
@@ -547,7 +547,7 @@ namespace Fermion
                     currentPipeline = desiredPipeline;
                     currentPipeline->bind();
                     auto shader = currentPipeline->getShader();
-                    shader->setMat4("u_ViewProjection", viewProjection);
+                    // Camera UBO is already bound globally
                     if (isPbr)
                     {
                         shader->setFloat("u_NormalStrength", m_sceneData.normalMapStrength);
@@ -555,12 +555,15 @@ namespace Fermion
                     }
                 }
 
-                auto shader = currentPipeline->getShader();
-                shader->setMat4("u_Model", cmd.transform);
-                shader->setInt("u_ObjectID", cmd.objectID);
+                // Update model uniform buffer for this draw call
+                ModelData modelData;
+                modelData.model = cmd.transform;
+                modelData.normalMatrix = glm::transpose(glm::inverse(cmd.transform));
+                modelData.objectID = cmd.objectID;
+                m_modelUniformBuffer->setData(&modelData, sizeof(ModelData));
 
                 if (cmd.material)
-                    cmd.material->bind(shader);
+                    cmd.material->bind(currentPipeline->getShader());
 
                 RenderCommand::drawIndexed(cmd.vao, cmd.indexCount, cmd.indexOffset);
                 m_renderer3DStatistics.geometryDrawCalls++;
@@ -646,9 +649,19 @@ namespace Fermion
         const glm::mat4 inverseViewProjection = glm::inverse(viewProjection);
         shader->setMat4("u_InverseViewProjection", inverseViewProjection);
 
-        glm::vec3 cameraPos = glm::vec3(glm::inverse(m_sceneData.sceneCamera.view)[3]);
-        shader->setFloat3("u_CameraPosition", cameraPos);
-        shader->setFloat("u_AmbientIntensity", m_sceneData.ambientIntensity);
+        // Update light uniform buffer
+        LightData lightData;
+        lightData.lightSpaceMatrix = m_shadowRenderer ? m_shadowRenderer->getLightSpaceMatrix() : glm::mat4(1.0f);
+        lightData.dirLightDirection = -m_sceneData.sceneEnvironmentLight.directionalLight.direction;
+        lightData.dirLightIntensity = m_sceneData.sceneEnvironmentLight.directionalLight.intensity;
+        lightData.dirLightColor = m_sceneData.sceneEnvironmentLight.directionalLight.color;
+        lightData.shadowBias = m_sceneData.shadowBias;
+        lightData.shadowSoftness = m_sceneData.shadowSoftness;
+        lightData.enableShadows = (m_sceneData.enableShadows && m_shadowRenderer && m_shadowRenderer->getShadowMapFramebuffer()) ? 1 : 0;
+        lightData.ambientIntensity = m_sceneData.ambientIntensity;
+        lightData.numPointLights = std::min(16u, (uint32_t)m_sceneData.sceneEnvironmentLight.pointLights.size());
+        lightData.numSpotLights = std::min(16u, (uint32_t)m_sceneData.sceneEnvironmentLight.spotLights.size());
+        m_lightUniformBuffer->setData(&lightData, sizeof(LightData));
 
         EnvironmentRenderer::IBLSettings iblSettings = {
             .useIBL = m_sceneData.useIBL,
@@ -672,26 +685,13 @@ namespace Fermion
         }
 
         bool enableShadows = m_sceneData.enableShadows && m_shadowRenderer && m_shadowRenderer->getShadowMapFramebuffer();
-        shader->setBool("u_EnableShadows", enableShadows);
         if (enableShadows)
         {
-            shader->setMat4("u_LightSpaceMatrix", m_shadowRenderer->getLightSpaceMatrix());
-            shader->setFloat("u_ShadowBias", m_sceneData.shadowBias);
-            shader->setFloat("u_ShadowSoftness", m_sceneData.shadowSoftness);
             shader->setInt("u_ShadowMap", 10);
-
             m_shadowRenderer->getShadowMapFramebuffer()->bindDepthAttachment(10);
         }
-        else
-        {
-            shader->setMat4("u_LightSpaceMatrix", glm::mat4(1.0f));
-        }
 
-        const auto &dirLight = m_sceneData.sceneEnvironmentLight.directionalLight;
-        shader->setFloat3("u_DirectionalLight.direction", -dirLight.direction);
-        shader->setFloat3("u_DirectionalLight.color", dirLight.color);
-        shader->setFloat("u_DirectionalLight.intensity", dirLight.intensity);
-
+        // Point and spot lights are still set via uniforms (not in UBO for now)
         uint32_t maxLights = 16;
         uint32_t pointCount = std::min(maxLights, (uint32_t)m_sceneData.sceneEnvironmentLight.pointLights.size());
         shader->setInt("u_PointLightCount", pointCount);
@@ -995,6 +995,20 @@ namespace Fermion
         uint32_t viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
         uint32_t viewportHeight = m_scene ? m_scene->getViewportHeight() : 0;
 
+        // Update light uniform buffer once for all forward pass draws
+        LightData lightData;
+        lightData.lightSpaceMatrix = m_shadowRenderer ? m_shadowRenderer->getLightSpaceMatrix() : glm::mat4(1.0f);
+        lightData.dirLightDirection = -m_sceneData.sceneEnvironmentLight.directionalLight.direction;
+        lightData.dirLightIntensity = m_sceneData.sceneEnvironmentLight.directionalLight.intensity;
+        lightData.dirLightColor = m_sceneData.sceneEnvironmentLight.directionalLight.color;
+        lightData.shadowBias = m_sceneData.shadowBias;
+        lightData.shadowSoftness = m_sceneData.shadowSoftness;
+        lightData.enableShadows = (m_sceneData.enableShadows && m_shadowRenderer && m_shadowRenderer->getShadowMapFramebuffer()) ? 1 : 0;
+        lightData.ambientIntensity = m_sceneData.ambientIntensity;
+        lightData.numPointLights = std::min(16u, (uint32_t)m_sceneData.sceneEnvironmentLight.pointLights.size());
+        lightData.numSpotLights = std::min(16u, (uint32_t)m_sceneData.sceneEnvironmentLight.spotLights.size());
+        m_lightUniformBuffer->setData(&lightData, sizeof(LightData));
+
         for (auto &cmd : s_MeshDrawList)
         {
             if (!cmd.visible)
@@ -1008,15 +1022,16 @@ namespace Fermion
             }
 
             auto shader = currentPipeline->getShader();
-            shader->setMat4("u_Model", cmd.transform);
-            shader->setInt("u_ObjectID", cmd.objectID);
+
+            // Update model uniform buffer for this draw call
+            ModelData modelData;
+            modelData.model = cmd.transform;
+            modelData.normalMatrix = glm::transpose(glm::inverse(cmd.transform));
+            modelData.objectID = cmd.objectID;
+            m_modelUniformBuffer->setData(&modelData, sizeof(ModelData));
 
             if (cmd.pipeline == m_PBRMeshPipeline)
             {
-                glm::vec3 cameraPos = glm::vec3(glm::inverse(m_sceneData.sceneCamera.view)[3]);
-                shader->setFloat3("u_CameraPosition", cameraPos);
-                shader->setFloat("u_AmbientIntensity", m_sceneData.ambientIntensity);
-
                 if (m_environmentRenderer)
                 {
                     m_environmentRenderer->ensureIBLInitialized(iblSettings, m_targetFramebuffer, viewportWidth, viewportHeight,
@@ -1029,24 +1044,13 @@ namespace Fermion
                 }
             }
 
-            // Shadow mapping
+            // Shadow mapping - bind shadow map texture
             bool enableShadows = m_sceneData.enableShadows && m_shadowRenderer && m_shadowRenderer->getShadowMapFramebuffer();
-            shader->setBool("u_EnableShadows", enableShadows);
             if (enableShadows)
             {
-                shader->setMat4("u_LightSpaceMatrix", m_shadowRenderer->getLightSpaceMatrix());
-                shader->setFloat("u_ShadowBias", m_sceneData.shadowBias);
-                shader->setFloat("u_ShadowSoftness", m_sceneData.shadowSoftness);
                 shader->setInt("u_ShadowMap", 10);
-
                 m_shadowRenderer->getShadowMapFramebuffer()->bindDepthAttachment(10);
             }
-
-            // Directional light
-            const auto &dirLight = m_sceneData.sceneEnvironmentLight.directionalLight;
-            shader->setFloat3("u_DirectionalLight.direction", -dirLight.direction);
-            shader->setFloat3("u_DirectionalLight.color", dirLight.color);
-            shader->setFloat("u_DirectionalLight.intensity", dirLight.intensity);
 
             // Point lights
             uint32_t maxLights = 16;
@@ -1231,7 +1235,9 @@ namespace Fermion
                                   m_targetFramebuffer,
                                   viewportWidth,
                                   viewportHeight,
-                                  &m_renderer3DStatistics.shadowDrawCalls);
+                                  &m_renderer3DStatistics.shadowDrawCalls,
+                                  m_modelUniformBuffer,
+                                  m_lightUniformBuffer);
     }
 
     void SceneRenderer::DepthViewPass(ResourceHandle sceneDepth, ResourceHandle lightingResult)
