@@ -652,12 +652,26 @@ namespace Fermion
         // Update light uniform buffer
         LightData lightData;
         lightData.lightSpaceMatrix = m_shadowRenderer ? m_shadowRenderer->getLightSpaceMatrix() : glm::mat4(1.0f);
-        lightData.dirLightDirection = -m_sceneData.sceneEnvironmentLight.directionalLight.direction;
-        lightData.dirLightIntensity = m_sceneData.sceneEnvironmentLight.directionalLight.intensity;
-        lightData.dirLightColor = m_sceneData.sceneEnvironmentLight.directionalLight.color;
+
+        // Main directional light (first one, used for shadow mapping)
+        if (!m_sceneData.sceneEnvironmentLight.directionalLights.empty())
+        {
+            const auto& mainLight = m_sceneData.sceneEnvironmentLight.directionalLights[0];
+            lightData.dirLightDirection = -mainLight.direction;
+            lightData.dirLightIntensity = mainLight.intensity;
+            lightData.dirLightColor = mainLight.color;
+        }
+        else
+        {
+            lightData.dirLightDirection = glm::vec3(0.0f, -1.0f, 0.0f);
+            lightData.dirLightIntensity = 0.0f;
+            lightData.dirLightColor = glm::vec3(0.0f);
+        }
+
         lightData.shadowBias = m_sceneData.shadowBias;
         lightData.shadowSoftness = m_sceneData.shadowSoftness;
         lightData.enableShadows = (m_sceneData.enableShadows && m_shadowRenderer && m_shadowRenderer->getShadowMapFramebuffer()) ? 1 : 0;
+        lightData.numDirLights = std::max(0, std::min(4, (int)m_sceneData.sceneEnvironmentLight.directionalLights.size() - 1));
         lightData.ambientIntensity = m_sceneData.ambientIntensity;
         lightData.numPointLights = std::min(16u, (uint32_t)m_sceneData.sceneEnvironmentLight.pointLights.size());
         lightData.numSpotLights = std::min(16u, (uint32_t)m_sceneData.sceneEnvironmentLight.spotLights.size());
@@ -689,6 +703,23 @@ namespace Fermion
         {
             shader->setInt("u_ShadowMap", 10);
             m_shadowRenderer->getShadowMapFramebuffer()->bindDepthAttachment(10);
+        }
+
+        // Additional directional lights (excluding the main one)
+        uint32_t maxDirLights = 4;
+        uint32_t dirLightCount = 0;
+        if (m_sceneData.sceneEnvironmentLight.directionalLights.size() > 1)
+        {
+            dirLightCount = std::min(maxDirLights, (uint32_t)(m_sceneData.sceneEnvironmentLight.directionalLights.size() - 1));
+        }
+        shader->setInt("u_DirLightCount", dirLightCount);
+        for (uint32_t i = 0; i < dirLightCount; i++)
+        {
+            const auto &l = m_sceneData.sceneEnvironmentLight.directionalLights[i + 1]; // Skip main light at index 0
+            std::string base = "u_DirLights[" + std::to_string(i) + "]";
+            shader->setFloat3(base + ".direction", l.direction);
+            shader->setFloat3(base + ".color", l.color);
+            shader->setFloat(base + ".intensity", l.intensity);
         }
 
         // Point and spot lights are still set via uniforms (not in UBO for now)
@@ -998,12 +1029,26 @@ namespace Fermion
         // Update light uniform buffer once for all forward pass draws
         LightData lightData;
         lightData.lightSpaceMatrix = m_shadowRenderer ? m_shadowRenderer->getLightSpaceMatrix() : glm::mat4(1.0f);
-        lightData.dirLightDirection = -m_sceneData.sceneEnvironmentLight.directionalLight.direction;
-        lightData.dirLightIntensity = m_sceneData.sceneEnvironmentLight.directionalLight.intensity;
-        lightData.dirLightColor = m_sceneData.sceneEnvironmentLight.directionalLight.color;
+
+        // Main directional light (first one, used for shadow mapping)
+        if (!m_sceneData.sceneEnvironmentLight.directionalLights.empty())
+        {
+            const auto& mainLight = m_sceneData.sceneEnvironmentLight.directionalLights[0];
+            lightData.dirLightDirection = -mainLight.direction;
+            lightData.dirLightIntensity = mainLight.intensity;
+            lightData.dirLightColor = mainLight.color;
+        }
+        else
+        {
+            lightData.dirLightDirection = glm::vec3(0.0f, -1.0f, 0.0f);
+            lightData.dirLightIntensity = 0.0f;
+            lightData.dirLightColor = glm::vec3(0.0f);
+        }
+
         lightData.shadowBias = m_sceneData.shadowBias;
         lightData.shadowSoftness = m_sceneData.shadowSoftness;
         lightData.enableShadows = (m_sceneData.enableShadows && m_shadowRenderer && m_shadowRenderer->getShadowMapFramebuffer()) ? 1 : 0;
+        lightData.numDirLights = std::max(0, std::min(4, (int)m_sceneData.sceneEnvironmentLight.directionalLights.size() - 1));
         lightData.ambientIntensity = m_sceneData.ambientIntensity;
         lightData.numPointLights = std::min(16u, (uint32_t)m_sceneData.sceneEnvironmentLight.pointLights.size());
         lightData.numSpotLights = std::min(16u, (uint32_t)m_sceneData.sceneEnvironmentLight.spotLights.size());
@@ -1050,6 +1095,23 @@ namespace Fermion
             {
                 shader->setInt("u_ShadowMap", 10);
                 m_shadowRenderer->getShadowMapFramebuffer()->bindDepthAttachment(10);
+            }
+
+            // Additional directional lights (excluding the main one)
+            uint32_t maxDirLights = 4;
+            uint32_t dirLightCount = 0;
+            if (m_sceneData.sceneEnvironmentLight.directionalLights.size() > 1)
+            {
+                dirLightCount = std::min(maxDirLights, (uint32_t)(m_sceneData.sceneEnvironmentLight.directionalLights.size() - 1));
+            }
+            shader->setInt("u_DirLightCount", dirLightCount);
+            for (uint32_t i = 0; i < dirLightCount; i++)
+            {
+                const auto &l = m_sceneData.sceneEnvironmentLight.directionalLights[i + 1]; // Skip main light at index 0
+                std::string base = "u_DirLights[" + std::to_string(i) + "]";
+                shader->setFloat3(base + ".direction", l.direction);
+                shader->setFloat3(base + ".color", l.color);
+                shader->setFloat(base + ".intensity", l.intensity);
             }
 
             // Point lights
@@ -1225,12 +1287,16 @@ namespace Fermion
         if (!m_shadowRenderer)
             return;
 
+        // Use the main directional light (first one) for shadow mapping
+        if (m_sceneData.sceneEnvironmentLight.directionalLights.empty())
+            return;
+
         uint32_t viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
         uint32_t viewportHeight = m_scene ? m_scene->getViewportHeight() : 0;
         m_shadowRenderer->addPass(m_RenderGraph,
                                   shadowMap,
                                   s_MeshDrawList,
-                                  m_sceneData.sceneEnvironmentLight.directionalLight,
+                                  m_sceneData.sceneEnvironmentLight.directionalLights[0],
                                   m_sceneData.shadowMapSize,
                                   m_targetFramebuffer,
                                   viewportWidth,

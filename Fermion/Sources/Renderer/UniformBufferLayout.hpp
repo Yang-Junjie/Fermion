@@ -43,7 +43,7 @@ namespace Fermion
     {
         glm::mat4 lightSpaceMatrix;  // 64 bytes (for shadow mapping)
 
-        // Directional light
+        // Main directional light (for shadow mapping)
         glm::vec3 dirLightDirection; // 12 bytes
         float dirLightIntensity;     // 4 bytes
         glm::vec3 dirLightColor;     // 12 bytes
@@ -53,7 +53,7 @@ namespace Fermion
         float shadowBias;            // 4 bytes
         float shadowSoftness;        // 4 bytes
         int enableShadows;           // 4 bytes (bool as int)
-        float _padding1;             // 4 bytes
+        int numDirLights;            // 4 bytes (number of directional lights)
 
         // Ambient and other settings
         float ambientIntensity;      // 4 bytes

@@ -36,7 +36,7 @@ layout(std140, binding = 2) uniform LightData
 	float u_ShadowBias;
 	float u_ShadowSoftness;
 	int u_EnableShadows;
-	float _lightPadding1;
+	int u_NumDirLights;
 	float u_AmbientIntensity;
 	int u_NumPointLights;
 	int u_NumSpotLights;
@@ -91,6 +91,7 @@ flat in int v_ObjectID;
 const float PI = 3.14159265359;
 const float F0_NON_METAL = 0.04;
 
+#define MAX_DIR_LIGHTS 4
 #define MAX_POINT_LIGHTS 16
 #define MAX_SPOT_LIGHTS 16
 
@@ -114,13 +115,19 @@ layout(std140, binding = 2) uniform LightData
 	float u_ShadowBias;
 	float u_ShadowSoftness;
 	int u_EnableShadows;
-	float _lightPadding1;
+	int u_NumDirLights;
 	float u_AmbientIntensity;
 	int u_NumPointLights;
 	int u_NumSpotLights;
 };
 
 // 光源结构
+struct DirectionalLight {
+    vec3 direction;
+    vec3 color;
+    float intensity;
+};
+
 struct PointLight {
     vec3 position;
     vec3 color;
@@ -149,6 +156,9 @@ struct Material {
 };
 
 // Uniforms
+uniform int u_DirLightCount;
+uniform DirectionalLight u_DirLights[MAX_DIR_LIGHTS];
+
 uniform int u_PointLightCount;
 uniform PointLight u_PointLights[MAX_POINT_LIGHTS];
 
@@ -391,7 +401,7 @@ void main() {
     vec3 Lo = vec3(0.0);
 
     // ========================================================================
-    // 方向光
+    // 主方向光（带阴影）
     // ========================================================================
     {
         vec3 L = normalize(-u_DirLightDirection);
@@ -410,6 +420,24 @@ void main() {
         }
 
         Lo += (diffuseBRDF + specularBRDF) * radiance * NdotL * (1.0 - shadow);
+    }
+
+    // ========================================================================
+    // 额外方向光（无阴影）
+    // ========================================================================
+    for(int i = 0; i < u_DirLightCount; i++) {
+        DirectionalLight light = u_DirLights[i];
+
+        vec3 L = normalize(-light.direction);
+
+        vec3 kS;
+        vec3 specularBRDF = CookTorrance(N, L, V, roughness, metallic, F0, kS);
+        vec3 diffuseBRDF = LambertDiffuse(kS, albedo, metallic);
+
+        float NdotL = max(dot(N, L), 0.0);
+        vec3 radiance = light.color * light.intensity;
+
+        Lo += (diffuseBRDF + specularBRDF) * radiance * NdotL;
     }
 
     // ========================================================================

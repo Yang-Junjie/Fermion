@@ -283,27 +283,46 @@ namespace Fermion
             }
 
             // Reset lighting state so removing lights takes effect immediately
-            m_environmentLight.directionalLight.color = glm::vec3(0.0f);
-            m_environmentLight.directionalLight.intensity = 0.0f;
+            m_environmentLight.directionalLights.clear();
 
             // Directional Lights
             {
                 auto directionalLights = getRegistry().group<DirectionalLightComponent>(entt::get<TransformComponent>);
+                m_environmentLight.directionalLights.reserve(directionalLights.size());
+
+                DirectionalLight mainDirLight;
+                bool hasMainLight = false;
+
                 for (auto entity : directionalLights)
                 {
                     auto &directionalLight = directionalLights.get<DirectionalLightComponent>(entity);
                     Entity sceneEntity{entity, this};
                     TransformComponent worldTransform = m_entityManager->getWorldSpaceTransform(sceneEntity);
+
+                    DirectionalLight light = {
+                        .direction = -worldTransform.getForward(),
+                        .color = directionalLight.color,
+                        .intensity = directionalLight.intensity
+                    };
+
                     if (directionalLight.mainLight)
                     {
-                        m_environmentLight.directionalLight =
-                            {
-                                .direction = -worldTransform.getForward(),
-                                .color = directionalLight.color,
-                                .intensity = directionalLight.intensity};
+                        mainDirLight = light;
+                        hasMainLight = true;
                     }
+                    else
+                    {
+                        m_environmentLight.directionalLights.push_back(light);
+                    }
+
                     renderer->drawQuadBillboard(worldTransform.translation, glm::vec2{1.0f, 1.0f}, m_lightTexture, 1.0f,
                                                 glm::vec4{directionalLight.color, 1.0f}, (int)entity);
+                }
+
+                // Insert main light at the beginning if it exists
+                if (hasMainLight)
+                {
+                    m_environmentLight.directionalLights.insert(m_environmentLight.directionalLights.begin(), mainDirLight);
                 }
             }
             // Point Lights
@@ -651,8 +670,7 @@ namespace Fermion
                 if (showRenderEntities)
                 {
                     // Reset lighting state so removing lights takes effect immediately
-                    m_environmentLight.directionalLight.color = glm::vec3(0.0f);
-                    m_environmentLight.directionalLight.intensity = 0.0f;
+                    m_environmentLight.directionalLights.clear();
 
                     {
                         auto defaultView = getRegistry().view<TransformComponent, MeshComponent>();
@@ -668,19 +686,38 @@ namespace Fermion
                     {
                         auto directionalLights = getRegistry().group<DirectionalLightComponent>(
                             entt::get<TransformComponent>);
+                        m_environmentLight.directionalLights.reserve(directionalLights.size());
+
+                        DirectionalLight mainDirLight;
+                        bool hasMainLight = false;
+
                         for (auto entity : directionalLights)
                         {
                             auto &directionalLight = directionalLights.get<DirectionalLightComponent>(entity);
                             Entity sceneEntity{entity, this};
                             TransformComponent worldTransform = m_entityManager->getWorldSpaceTransform(sceneEntity);
+
+                            DirectionalLight light = {
+                                .direction = -worldTransform.getForward(),
+                                .color = directionalLight.color,
+                                .intensity = directionalLight.intensity
+                            };
+
                             if (directionalLight.mainLight)
                             {
-                                m_environmentLight.directionalLight =
-                                    {
-                                        .direction = -worldTransform.getForward(),
-                                        .color = directionalLight.color,
-                                        .intensity = directionalLight.intensity};
+                                mainDirLight = light;
+                                hasMainLight = true;
                             }
+                            else
+                            {
+                                m_environmentLight.directionalLights.push_back(light);
+                            }
+                        }
+
+                        // Insert main light at the beginning if it exists
+                        if (hasMainLight)
+                        {
+                            m_environmentLight.directionalLights.insert(m_environmentLight.directionalLights.begin(), mainDirLight);
                         }
                     }
                     // Point Lights

@@ -47,7 +47,7 @@ namespace Fermion
 
     struct EnvironmentLight
     {
-        DirectionalLight directionalLight;
+        std::vector<DirectionalLight> directionalLights;
         std::vector<PointLight> pointLights;
         std::vector<SpotLight> spotLights;
     };

@@ -34,7 +34,7 @@ layout(std140, binding = 2) uniform LightData
 	float u_ShadowBias;
 	float u_ShadowSoftness;
 	int u_EnableShadows;
-	float _lightPadding1;
+	int u_NumDirLights;
 	float u_AmbientIntensity;
 	int u_NumPointLights;
 	int u_NumSpotLights;
@@ -74,6 +74,7 @@ in vec2 v_TexCoords;
 in vec4 v_FragPosLightSpace;
 flat in int v_ObjectID;
 
+#define MAX_DIR_LIGHTS 4
 #define MAX_POINT_LIGHTS 16
 #define MAX_SPOT_LIGHTS 16
 
@@ -94,6 +95,12 @@ layout(std140, binding = 2) uniform LightData
 	int u_NumSpotLights;
 };
 
+struct DirectionalLight {
+    vec3 direction;
+    vec3 color;
+    float intensity;
+};
+
 struct PointLight {
     vec3 position;
     vec3 color;
@@ -112,6 +119,9 @@ struct SpotLight {
     float innerConeAngle;
     float outerConeAngle;
 };
+
+uniform int u_DirLightCount;
+uniform DirectionalLight u_DirLights[MAX_DIR_LIGHTS];
 
 uniform int u_PointLightCount;
 uniform PointLight u_PointLights[MAX_POINT_LIGHTS];
@@ -185,14 +195,23 @@ void main()
     // Ambient
     vec3 result = u_Ka.rgb * baseColor;
 
-    // Directional light with shadow
-    vec3 dirLightDir = normalize(-u_DirLightDirection); // 方向光方向指向片元
+    // Main directional light with shadow
+    vec3 dirLightDir = normalize(-u_DirLightDirection);
     float NdotL = max(dot(normal, dirLightDir), 0.0);
     float shadow = 0.0;
     if (u_EnableShadows != 0) {
         shadow = calculateShadow(v_FragPosLightSpace, normal, dirLightDir);
     }
     result += u_DirLightColor * u_DirLightIntensity * NdotL * (1.0 - shadow) * baseColor;
+
+    // Additional directional lights (without shadow)
+    for(int i = 0; i < u_DirLightCount; i++)
+    {
+        DirectionalLight light = u_DirLights[i];
+        vec3 lightDir = normalize(-light.direction);
+        float NdotL = max(dot(normal, lightDir), 0.0);
+        result += light.color * light.intensity * NdotL * baseColor;
+    }
 
     // Point lights
     for(int i = 0; i < u_PointLightCount; i++)
