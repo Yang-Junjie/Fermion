@@ -9,7 +9,7 @@
 #include "Math/AABB.hpp"
 #include "Renderer/RenderDrawCommand.hpp"
 #include "Renderer/CommandBuffer.hpp"
-#include "Renderer/RenderGraph.hpp"
+#include "Renderer/RenderGraphLegacy.hpp"
 
 namespace Fermion
 {

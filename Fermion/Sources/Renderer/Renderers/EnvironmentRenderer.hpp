@@ -8,7 +8,7 @@
 #include "Renderer/Framebuffer.hpp"
 #include "Renderer/Pipeline.hpp"
 #include "Renderer/RenderDrawCommand.hpp"
-#include "Renderer/RenderGraph.hpp"
+#include "Renderer/RenderGraphLegacy.hpp"
 #include "Renderer/Shader.hpp"
 #include "Renderer/Texture/Texture.hpp"
 #include "Renderer/VertexArray.hpp"
@@ -42,7 +42,7 @@ namespace Fermion
 
         void bindIBL(const std::shared_ptr<Shader> &shader, const IBLSettings &settings) const;
 
-        void addSkyboxPass(RenderGraph &renderGraph,
+        void addSkyboxPass(RenderGraphLegacy &renderGraph,
                            const glm::mat4 &view,
                            const glm::mat4 &projection,
                            uint32_t *skyboxDrawCalls,

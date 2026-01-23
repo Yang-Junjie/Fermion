@@ -66,7 +66,7 @@ namespace Fermion
     struct Renderer2DData
     {
         // Modern rendering architecture
-        RenderGraph renderGraph;
+        RenderGraphLegacy renderGraph;
         RenderCommandQueue commandQueue;
         
         // Pipelines for different render types
@@ -935,112 +935,112 @@ namespace Fermion
 
     void Renderer2D::QuadPass()
     {
-        s_Data.renderGraph.addPass({
-            .Name = "QuadPass",
-            .Execute = [](CommandBuffer& cmd) {
-                cmd.record([](RendererAPI& api) {
+        LegacyRenderGraphPass pass;
+        pass.Name = "QuadPass";
+        pass.Execute = [](CommandBuffer& cmd) {
+            cmd.record([](RendererAPI& api) {
 
-                    uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.QuadVertexBufferPtr - (uint8_t*)s_Data.QuadVertexBufferBase);
-                    s_Data.QuadVertexBuffer->setData(s_Data.QuadVertexBufferBase, dataSize);
+                uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.QuadVertexBufferPtr - (uint8_t*)s_Data.QuadVertexBufferBase);
+                s_Data.QuadVertexBuffer->setData(s_Data.QuadVertexBufferBase, dataSize);
 
 
-                    for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
-                        s_Data.TextureSlots[i]->bind(i);
+                for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
+                    s_Data.TextureSlots[i]->bind(i);
 
-                    s_Data.quadPipeline->bind();
-                    s_Data.QuadShader->bind();
+                s_Data.quadPipeline->bind();
+                s_Data.QuadShader->bind();
 
-                    RenderCommand::drawIndexed(s_Data.QuadVertexArray, s_Data.QuadIndexCount);
-                    s_Data.stats.drawCalls++;
-                });
-            }
-        });
+                RenderCommand::drawIndexed(s_Data.QuadVertexArray, s_Data.QuadIndexCount);
+                s_Data.stats.drawCalls++;
+            });
+        };
+        s_Data.renderGraph.addPass(pass);
     }
 
     void Renderer2D::QuadInstancePass()
     {
-        s_Data.renderGraph.addPass({
-            .Name = "QuadInstancePass",
-            .Execute = [](CommandBuffer& cmd) {
-                cmd.record([](RendererAPI& api) {
+        LegacyRenderGraphPass pass;
+        pass.Name = "QuadInstancePass";
+        pass.Execute = [](CommandBuffer& cmd) {
+            cmd.record([](RendererAPI& api) {
 
-                    uint32_t dataSize = s_Data.QuadInstanceCount * sizeof(QuadInstanceData);
-                    s_Data.QuadInstanceVertexBuffer->setData(s_Data.QuadInstanceVertexBufferBase, dataSize);
+                uint32_t dataSize = s_Data.QuadInstanceCount * sizeof(QuadInstanceData);
+                s_Data.QuadInstanceVertexBuffer->setData(s_Data.QuadInstanceVertexBufferBase, dataSize);
 
-                    for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
-                        s_Data.TextureSlots[i]->bind(i);
+                for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
+                    s_Data.TextureSlots[i]->bind(i);
 
-                    s_Data.quadInstancePipeline->bind();
-                    s_Data.QuadInstanceShader->bind();
-                    
-                    RenderCommand::drawIndexedInstanced(s_Data.QuadInstanceVertexArray, 6, s_Data.QuadInstanceCount);
-                    s_Data.stats.drawCalls++;
-                });
-            }
-        });
+                s_Data.quadInstancePipeline->bind();
+                s_Data.QuadInstanceShader->bind();
+
+                RenderCommand::drawIndexedInstanced(s_Data.QuadInstanceVertexArray, 6, s_Data.QuadInstanceCount);
+                s_Data.stats.drawCalls++;
+            });
+        };
+        s_Data.renderGraph.addPass(pass);
     }
 
     void Renderer2D::CirclePass()
     {
-        s_Data.renderGraph.addPass({
-            .Name = "CirclePass",
-            .Execute = [](CommandBuffer& cmd) {
-                cmd.record([](RendererAPI& api) {
+        LegacyRenderGraphPass pass;
+        pass.Name = "CirclePass";
+        pass.Execute = [](CommandBuffer& cmd) {
+            cmd.record([](RendererAPI& api) {
 
-                    uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.CircleVertexBufferPtr - (uint8_t*)s_Data.CircleVertexBufferBase);
-                    s_Data.CircleVertexBuffer->setData(s_Data.CircleVertexBufferBase, dataSize);
+                uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.CircleVertexBufferPtr - (uint8_t*)s_Data.CircleVertexBufferBase);
+                s_Data.CircleVertexBuffer->setData(s_Data.CircleVertexBufferBase, dataSize);
 
-                    s_Data.circlePipeline->bind();
-                    s_Data.CircleShader->bind();
+                s_Data.circlePipeline->bind();
+                s_Data.CircleShader->bind();
 
-                    RenderCommand::drawIndexed(s_Data.CircleVertexArray, s_Data.CircleIndexCount);
-                    s_Data.stats.drawCalls++;
-                });
-            }
-        });
+                RenderCommand::drawIndexed(s_Data.CircleVertexArray, s_Data.CircleIndexCount);
+                s_Data.stats.drawCalls++;
+            });
+        };
+        s_Data.renderGraph.addPass(pass);
     }
 
     void Renderer2D::LinePass()
     {
-        s_Data.renderGraph.addPass({
-            .Name = "LinePass",
-            .Execute = [](CommandBuffer& cmd) {
-                cmd.record([](RendererAPI& api) {
+        LegacyRenderGraphPass pass;
+        pass.Name = "LinePass";
+        pass.Execute = [](CommandBuffer& cmd) {
+            cmd.record([](RendererAPI& api) {
 
-                    uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.LineVertexBufferPtr - (uint8_t*)s_Data.LineVertexBufferBase);
-                    s_Data.LineVertexBuffer->setData(s_Data.LineVertexBufferBase, dataSize);
+                uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.LineVertexBufferPtr - (uint8_t*)s_Data.LineVertexBufferBase);
+                s_Data.LineVertexBuffer->setData(s_Data.LineVertexBufferBase, dataSize);
 
-                    s_Data.linePipeline->bind();
-                    s_Data.LineShader->bind();
+                s_Data.linePipeline->bind();
+                s_Data.LineShader->bind();
 
-                    RenderCommand::setLineWidth(s_Data.LineWidth);
-                    RenderCommand::drawLines(s_Data.LineVertexArray, s_Data.LineVertexCount);
-                    s_Data.stats.drawCalls++;
-                });
-            }
-        });
+                RenderCommand::setLineWidth(s_Data.LineWidth);
+                RenderCommand::drawLines(s_Data.LineVertexArray, s_Data.LineVertexCount);
+                s_Data.stats.drawCalls++;
+            });
+        };
+        s_Data.renderGraph.addPass(pass);
     }
 
     void Renderer2D::TextPass()
     {
-        s_Data.renderGraph.addPass({
-            .Name = "TextPass",
-            .Execute = [](CommandBuffer& cmd) {
-                cmd.record([](RendererAPI& api) {
+        LegacyRenderGraphPass pass;
+        pass.Name = "TextPass";
+        pass.Execute = [](CommandBuffer& cmd) {
+            cmd.record([](RendererAPI& api) {
 
-                    uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.TextVertexBufferPtr - (uint8_t*)s_Data.TextVertexBufferBase);
-                    s_Data.TextVertexBuffer->setData(s_Data.TextVertexBufferBase, dataSize);
+                uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.TextVertexBufferPtr - (uint8_t*)s_Data.TextVertexBufferBase);
+                s_Data.TextVertexBuffer->setData(s_Data.TextVertexBufferBase, dataSize);
 
-                    if (s_Data.FontAtlasTexture)
-                        s_Data.FontAtlasTexture->bind(0);
+                if (s_Data.FontAtlasTexture)
+                    s_Data.FontAtlasTexture->bind(0);
 
-                    s_Data.textPipeline->bind();
-                    s_Data.TextShader->bind();
+                s_Data.textPipeline->bind();
+                s_Data.TextShader->bind();
 
-                    RenderCommand::drawIndexed(s_Data.TextVertexArray, s_Data.TextIndexCount);
-                    s_Data.stats.drawCalls++;
-                });
-            }
-        });
+                RenderCommand::drawIndexed(s_Data.TextVertexArray, s_Data.TextIndexCount);
+                s_Data.stats.drawCalls++;
+            });
+        };
+        s_Data.renderGraph.addPass(pass);
     }
 } // namespace Fermion

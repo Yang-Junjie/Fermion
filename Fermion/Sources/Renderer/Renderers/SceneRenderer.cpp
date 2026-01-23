@@ -478,25 +478,27 @@ namespace Fermion
 
     void SceneRenderer::ForwardPass(ResourceHandle shadowMap, ResourceHandle sceneDepth, ResourceHandle lightingResult)
     {
-        m_RenderGraph.addPass(
-            {.Name = "ForwardPass",
-             .Inputs = {shadowMap},
-             .Outputs = {sceneDepth, lightingResult},
-             .Execute = [this](CommandBuffer &commandBuffer)
-             {
-                 recordForwardPass(commandBuffer, false);
-             }});
+        LegacyRenderGraphPass pass;
+        pass.Name = "ForwardPass";
+        pass.Inputs = {shadowMap};
+        pass.Outputs = {sceneDepth, lightingResult};
+        pass.Execute = [this](CommandBuffer &commandBuffer)
+        {
+            recordForwardPass(commandBuffer, false);
+        };
+        m_RenderGraph.addPass(pass);
     }
 
     void SceneRenderer::GBufferPass(ResourceHandle gBuffer, ResourceHandle sceneDepth)
     {
-        m_RenderGraph.addPass(
-            {.Name = "GBufferPass",
-             .Outputs = {gBuffer, sceneDepth},
-             .Execute = [this](CommandBuffer &commandBuffer)
-             {
-                 recordGBufferPass(commandBuffer);
-             }});
+        LegacyRenderGraphPass pass;
+        pass.Name = "GBufferPass";
+        pass.Outputs = {gBuffer, sceneDepth};
+        pass.Execute = [this](CommandBuffer &commandBuffer)
+        {
+            recordGBufferPass(commandBuffer);
+        };
+        m_RenderGraph.addPass(pass);
     }
 
     void SceneRenderer::recordGBufferPass(CommandBuffer &commandBuffer)
@@ -585,14 +587,15 @@ namespace Fermion
     void SceneRenderer::LightingPass(ResourceHandle gBuffer, ResourceHandle shadowMap, ResourceHandle sceneDepth, ResourceHandle ssgi,
                                      ResourceHandle gtao, ResourceHandle lightingResult)
     {
-        m_RenderGraph.addPass(
-            {.Name = "LightingPass",
-             .Inputs = {gBuffer, shadowMap, sceneDepth, ssgi, gtao},
-             .Outputs = {lightingResult},
-             .Execute = [this](CommandBuffer &commandBuffer)
-             {
-                 recordLightingPass(commandBuffer);
-             }});
+        LegacyRenderGraphPass pass;
+        pass.Name = "LightingPass";
+        pass.Inputs = {gBuffer, shadowMap, sceneDepth, ssgi, gtao};
+        pass.Outputs = {lightingResult};
+        pass.Execute = [this](CommandBuffer &commandBuffer)
+        {
+            recordLightingPass(commandBuffer);
+        };
+        m_RenderGraph.addPass(pass);
     }
 
     void SceneRenderer::recordLightingPass(CommandBuffer &commandBuffer)
@@ -722,14 +725,15 @@ namespace Fermion
 
     void SceneRenderer::SSGIPass(ResourceHandle gBuffer, ResourceHandle sceneDepth, ResourceHandle ssgi)
     {
-        m_RenderGraph.addPass(
-            {.Name = "SSGIPass",
-             .Inputs = {gBuffer, sceneDepth},
-             .Outputs = {ssgi},
-             .Execute = [this](CommandBuffer &commandBuffer)
-             {
-                 recordSSGIPass(commandBuffer);
-             }});
+        LegacyRenderGraphPass pass;
+        pass.Name = "SSGIPass";
+        pass.Inputs = {gBuffer, sceneDepth};
+        pass.Outputs = {ssgi};
+        pass.Execute = [this](CommandBuffer &commandBuffer)
+        {
+            recordSSGIPass(commandBuffer);
+        };
+        m_RenderGraph.addPass(pass);
     }
 
     void SceneRenderer::recordSSGIPass(CommandBuffer &commandBuffer)
@@ -828,14 +832,15 @@ namespace Fermion
 
     void SceneRenderer::GTAOPass(ResourceHandle gBuffer, ResourceHandle sceneDepth, ResourceHandle gtao)
     {
-        m_RenderGraph.addPass(
-            {.Name = "GTAOPass",
-             .Inputs = {gBuffer, sceneDepth},
-             .Outputs = {gtao},
-             .Execute = [this](CommandBuffer &commandBuffer)
-             {
-                 recordGTAOPass(commandBuffer);
-             }});
+        LegacyRenderGraphPass pass;
+        pass.Name = "GTAOPass";
+        pass.Inputs = {gBuffer, sceneDepth};
+        pass.Outputs = {gtao};
+        pass.Execute = [this](CommandBuffer &commandBuffer)
+        {
+            recordGTAOPass(commandBuffer);
+        };
+        m_RenderGraph.addPass(pass);
     }
 
     void SceneRenderer::recordGTAOPass(CommandBuffer &commandBuffer)
@@ -904,13 +909,14 @@ namespace Fermion
 
     void SceneRenderer::GBufferDebugPass(ResourceHandle gBuffer, ResourceHandle sceneDepth, ResourceHandle ssgi, ResourceHandle gtao)
     {
-        m_RenderGraph.addPass(
-            {.Name = "GBufferDebugPass",
-             .Inputs = {gBuffer, sceneDepth, ssgi, gtao},
-             .Execute = [this](CommandBuffer &commandBuffer)
-             {
-                 recordGBufferDebugPass(commandBuffer);
-             }});
+        LegacyRenderGraphPass pass;
+        pass.Name = "GBufferDebugPass";
+        pass.Inputs = {gBuffer, sceneDepth, ssgi, gtao};
+        pass.Execute = [this](CommandBuffer &commandBuffer)
+        {
+            recordGBufferDebugPass(commandBuffer);
+        };
+        m_RenderGraph.addPass(pass);
     }
 
     void SceneRenderer::recordGBufferDebugPass(CommandBuffer &commandBuffer)
@@ -964,13 +970,14 @@ namespace Fermion
 
     void SceneRenderer::TransparentPass(ResourceHandle shadowMap, ResourceHandle sceneDepth, ResourceHandle lightingResult)
     {
-        m_RenderGraph.addPass(
-            {.Name = "TransparentPass",
-             .Inputs = {shadowMap, sceneDepth, lightingResult},
-             .Execute = [this](CommandBuffer &commandBuffer)
-             {
-                 recordForwardPass(commandBuffer, true);
-             }});
+        LegacyRenderGraphPass pass;
+        pass.Name = "TransparentPass";
+        pass.Inputs = {shadowMap, sceneDepth, lightingResult};
+        pass.Execute = [this](CommandBuffer &commandBuffer)
+        {
+            recordForwardPass(commandBuffer, true);
+        };
+        m_RenderGraph.addPass(pass);
     }
 
     void SceneRenderer::recordForwardPass(CommandBuffer &commandBuffer, bool drawTransparent)
@@ -1127,26 +1134,28 @@ namespace Fermion
 
         if (canUseGBuffer && !uniqueIDs.empty())
         {
-            m_RenderGraph.addPass(
-                {.Name = "OutlinePass",
-                 .Inputs = {gBuffer, sceneDepth, lightingResult},
-                 .Execute = [this, outlineIDs = std::move(uniqueIDs)](CommandBuffer &commandBuffer)
-                 {
-                     recordOutlinePostProcess(commandBuffer, outlineIDs);
-                 }});
+            LegacyRenderGraphPass pass;
+            pass.Name = "OutlinePass";
+            pass.Inputs = {gBuffer, sceneDepth, lightingResult};
+            pass.Execute = [this, outlineIDs = std::move(uniqueIDs)](CommandBuffer &commandBuffer)
+            {
+                recordOutlinePostProcess(commandBuffer, outlineIDs);
+            };
+            m_RenderGraph.addPass(pass);
             return;
         }
 
         if (!hasOutlineDrawCommands)
             return;
 
-        m_RenderGraph.addPass(
-            {.Name = "OutlinePass",
-             .Inputs = {lightingResult},
-             .Execute = [this](CommandBuffer &commandBuffer)
-             {
-                 Renderer2D::recordOutlinePass(commandBuffer, s_MeshDrawList, m_sceneData.meshOutlineColor);
-             }});
+        LegacyRenderGraphPass pass;
+        pass.Name = "OutlinePass";
+        pass.Inputs = {lightingResult};
+        pass.Execute = [this](CommandBuffer &commandBuffer)
+        {
+            Renderer2D::recordOutlinePass(commandBuffer, s_MeshDrawList, m_sceneData.meshOutlineColor);
+        };
+        m_RenderGraph.addPass(pass);
     }
 
     void SceneRenderer::recordOutlinePostProcess(CommandBuffer &commandBuffer, const std::vector<int> &outlineIDs)
@@ -1230,34 +1239,35 @@ namespace Fermion
         if (!m_targetFramebuffer)
             return;
 
-        m_RenderGraph.addPass(
-            {.Name = "DepthViewPass",
-             .Inputs = {sceneDepth, lightingResult},
-             .Execute = [this](CommandBuffer &commandBuffer)
-             {
-                 commandBuffer.record([this](RendererAPI &api)
-                                      {
-                    m_DepthViewPipeline->bind();
-                    auto shader = m_DepthViewPipeline->getShader();
+        LegacyRenderGraphPass pass;
+        pass.Name = "DepthViewPass";
+        pass.Inputs = {sceneDepth, lightingResult};
+        pass.Execute = [this](CommandBuffer &commandBuffer)
+        {
+            commandBuffer.record([this](RendererAPI &api)
+                                 {
+                m_DepthViewPipeline->bind();
+                auto shader = m_DepthViewPipeline->getShader();
 
-                    shader->setInt("u_Depth", 0);
-                    if (m_gBufferFramebuffer && m_sceneData.renderMode == RenderMode::DeferredHybrid)
-                    {
-                        m_gBufferFramebuffer->bindDepthAttachment(0);
-                    }
-                    else
-                    {
-                        m_targetFramebuffer->bindDepthAttachment(0);
-                    }
+                shader->setInt("u_Depth", 0);
+                if (m_gBufferFramebuffer && m_sceneData.renderMode == RenderMode::DeferredHybrid)
+                {
+                    m_gBufferFramebuffer->bindDepthAttachment(0);
+                }
+                else
+                {
+                    m_targetFramebuffer->bindDepthAttachment(0);
+                }
 
-                    shader->setFloat("u_Near", m_sceneData.sceneCamera.nearClip);
-                    shader->setFloat("u_Far", m_sceneData.sceneCamera.farClip);
-                    shader->setInt("u_IsPerspective", 1);
+                shader->setFloat("u_Near", m_sceneData.sceneCamera.nearClip);
+                shader->setFloat("u_Far", m_sceneData.sceneCamera.farClip);
+                shader->setInt("u_IsPerspective", 1);
 
-                    shader->setFloat("u_Power", m_sceneData.depthViewPower);
-                    
-                    RenderCommand::drawIndexed(m_depthViewQuadVA, m_depthViewQuadVA->getIndexBuffer()->getCount()); });
-             }});
+                shader->setFloat("u_Power", m_sceneData.depthViewPower);
+
+                RenderCommand::drawIndexed(m_depthViewQuadVA, m_depthViewQuadVA->getIndexBuffer()->getCount()); });
+        };
+        m_RenderGraph.addPass(pass);
     }
 
     void SceneRenderer::ensureGBuffer(uint32_t width, uint32_t height)
@@ -1345,11 +1355,11 @@ namespace Fermion
 
         ResourceHandle shadowMap = ResourceHandle{0};
         if (m_sceneData.enableShadows)
-            shadowMap = RenderGraph::createResource();
+            shadowMap = m_RenderGraph.createResource();
 
-        ResourceHandle gBuffer = RenderGraph::createResource();
-        ResourceHandle lightingResult = RenderGraph::createResource();
-        ResourceHandle sceneDepth = RenderGraph::createResource();
+        ResourceHandle gBuffer = m_RenderGraph.createResource();
+        ResourceHandle lightingResult = m_RenderGraph.createResource();
+        ResourceHandle sceneDepth = m_RenderGraph.createResource();
         ResourceHandle ssgi = ResourceHandle{0};
         ResourceHandle gtao = ResourceHandle{0};
 
@@ -1362,7 +1372,7 @@ namespace Fermion
         if (useSSGI)
         {
             ensureSSGI(viewportWidth, viewportHeight);
-            ssgi = RenderGraph::createResource();
+            ssgi = m_RenderGraph.createResource();
         }
         else
         {
@@ -1374,7 +1384,7 @@ namespace Fermion
         if (useGTAO)
         {
             ensureGTAO(viewportWidth, viewportHeight);
-            gtao = RenderGraph::createResource();
+            gtao = m_RenderGraph.createResource();
         }
 
         bool hasTransparent = false;

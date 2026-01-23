@@ -20,7 +20,7 @@ namespace Fermion
         m_shadowPipeline = Pipeline::create(shadowSpec);
     }
 
-    void ShadowMapRenderer::addPass(RenderGraph &renderGraph,
+    void ShadowMapRenderer::addPass(RenderGraphLegacy &renderGraph,
                                     ResourceHandle shadowMap,
                                     const std::vector<MeshDrawCommand> &drawList,
                                     const DirectionalLight &light,
@@ -33,35 +33,36 @@ namespace Fermion
         ensureFramebuffer(shadowMapSize);
         m_lightSpaceMatrix = calculateLightSpaceMatrix(light);
 
-        renderGraph.addPass(
-            {.Name = "ShadowPass",
-             .Outputs = {shadowMap},
-             .Execute = [this, &drawList, targetFramebuffer, viewportWidth, viewportHeight, shadowDrawCalls](CommandBuffer &commandBuffer)
-             {
-                 commandBuffer.record([this, &drawList, targetFramebuffer, viewportWidth, viewportHeight, shadowDrawCalls](RendererAPI &api)
-                                      {
-                     m_shadowMapFB->bind();
-                     RenderCommand::clear();
+        LegacyRenderGraphPass pass;
+        pass.Name = "ShadowPass";
+        pass.Outputs = {shadowMap};
+        pass.Execute = [this, &drawList, targetFramebuffer, viewportWidth, viewportHeight, shadowDrawCalls](CommandBuffer &commandBuffer)
+        {
+            commandBuffer.record([this, &drawList, targetFramebuffer, viewportWidth, viewportHeight, shadowDrawCalls](RendererAPI &api)
+                                 {
+                m_shadowMapFB->bind();
+                RenderCommand::clear();
 
-                     m_shadowPipeline->bind();
-                     auto shader = m_shadowPipeline->getShader();
-                     shader->setMat4("u_LightSpaceMatrix", m_lightSpaceMatrix);
+                m_shadowPipeline->bind();
+                auto shader = m_shadowPipeline->getShader();
+                shader->setMat4("u_LightSpaceMatrix", m_lightSpaceMatrix);
 
-                     for (auto &cmd : drawList) {
-                         shader->setMat4("u_Model", cmd.transform);
-                         RenderCommand::drawIndexed(cmd.vao, cmd.indexCount, cmd.indexOffset);
-                         if (shadowDrawCalls)
-                             (*shadowDrawCalls)++;
-                     }
+                for (auto &cmd : drawList) {
+                    shader->setMat4("u_Model", cmd.transform);
+                    RenderCommand::drawIndexed(cmd.vao, cmd.indexCount, cmd.indexOffset);
+                    if (shadowDrawCalls)
+                        (*shadowDrawCalls)++;
+                }
 
-                     if (targetFramebuffer) {
-                         targetFramebuffer->bind();
-                     } else {
-                         m_shadowMapFB->unbind();
-                         if (viewportWidth > 0 && viewportHeight > 0)
-                             RenderCommand::setViewport(0, 0, viewportWidth, viewportHeight);
-                     } });
-             }});
+                if (targetFramebuffer) {
+                    targetFramebuffer->bind();
+                } else {
+                    m_shadowMapFB->unbind();
+                    if (viewportWidth > 0 && viewportHeight > 0)
+                        RenderCommand::setViewport(0, 0, viewportWidth, viewportHeight);
+                } });
+        };
+        renderGraph.addPass(pass);
     }
 
     const glm::mat4 &ShadowMapRenderer::getLightSpaceMatrix() const

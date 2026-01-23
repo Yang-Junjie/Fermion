@@ -5,8 +5,8 @@ set(EXTERNAL_DIR ${CMAKE_SOURCE_DIR}/Fermion/external)
 
 if(PLATFORM STREQUAL "Desktop")
     set(PLATFORM_DEPENDENCIES_SOURCE
-        ${PLATFORM_DIR}/Windows/Window/GLFWWindow.cpp
-        ${PLATFORM_DIR}/Windows/Window/GLFWWindowInput.cpp
+        ${PLATFORM_DIR}/Window/GLFWWindow.cpp
+        ${PLATFORM_DIR}/Window/GLFWWindowInput.cpp
     )
     set(PLATFORM_DEPENDENCIES_INCLUDE_DIRS
         ${EXTERNAL_DIR}/GLFW/include
@@ -16,11 +16,11 @@ if(PLATFORM STREQUAL "Desktop")
     )
     if(WIN32)
         set(PLATFORM_EXCLUSIVE_SOURCES
-            ${PLATFORM_DIR}/Windows/Window/WindowsPlatformUtils.cpp
+            ${PLATFORM_DIR}/Windows/Utils/WindowsPlatformUtils.cpp
         )
     elseif(UNIX AND NOT APPLE)
         set(PLATFORM_EXCLUSIVE_SOURCES
-            ${PLATFORM_DIR}/Linux/Window/LinuxPlatformUtils.cpp)
+            ${PLATFORM_DIR}/Linux/Utils/LinuxPlatformUtils.cpp)
     endif()
 elseif(Platform STREQUAL "Android")
     set(IMGUI_PLATFORM_SOURCE
@@ -50,7 +50,12 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Renderer/Renderers/Renderer2D.cpp
     ${FERMION_DIR}/Renderer/CommandBuffer.cpp
     ${FERMION_DIR}/Renderer/RenderCommandQueue.cpp
-    ${FERMION_DIR}/Renderer/RenderGraph.cpp
+    ${FERMION_DIR}/Renderer/RenderGraph/RenderGraph.cpp
+    ${FERMION_DIR}/Renderer/RenderGraph/RenderGraphResource.cpp
+    ${FERMION_DIR}/Renderer/RenderGraph/RenderGraphResourcePool.cpp
+    ${FERMION_DIR}/Renderer/RenderGraph/RenderGraphCompiler.cpp
+    ${FERMION_DIR}/Renderer/RenderGraph/RenderGraphExecutor.cpp
+    ${FERMION_DIR}/Renderer/RenderGraphLegacy.cpp
     ${FERMION_DIR}/Renderer/RendererBackend.cpp
     ${FERMION_DIR}/Renderer/Pipeline.cpp
     ${FERMION_DIR}/Renderer/Renderers/DebugRenderer.cpp
@@ -112,14 +117,14 @@ set(CORE_SOURCES
 )
 
 set(PLATFORM_SOURCES
-    ${PLATFORM_DIR}/Windows/OpenGL/OpenGLRendererAPI.cpp
-    ${PLATFORM_DIR}/Windows/OpenGL/OpenGLContext.cpp
-    ${PLATFORM_DIR}/Windows/OpenGL/OpenGLBuffer.cpp
-    ${PLATFORM_DIR}/Windows/OpenGL/OpenGLVertexArray.cpp
-    ${PLATFORM_DIR}/Windows/OpenGL/OpenGLTexture.cpp
-    ${PLATFORM_DIR}/Windows/OpenGL/OpenGLShader.cpp
-    ${PLATFORM_DIR}/Windows/OpenGL/OpenGLPipeline.cpp
-    ${PLATFORM_DIR}/Windows/OpenGL/OpenGLFramebuffer.cpp
+    ${PLATFORM_DIR}/RenderApi/OpenGL/OpenGLRendererAPI.cpp
+    ${PLATFORM_DIR}/RenderApi/OpenGL/OpenGLContext.cpp
+    ${PLATFORM_DIR}/RenderApi/OpenGL/OpenGLBuffer.cpp
+    ${PLATFORM_DIR}/RenderApi/OpenGL/OpenGLVertexArray.cpp
+    ${PLATFORM_DIR}/RenderApi/OpenGL/OpenGLTexture.cpp
+    ${PLATFORM_DIR}/RenderApi/OpenGL/OpenGLShader.cpp
+    ${PLATFORM_DIR}/RenderApi/OpenGL/OpenGLPipeline.cpp
+    ${PLATFORM_DIR}/RenderApi/OpenGL/OpenGLFramebuffer.cpp
 
     ${PLATFORM_DEPENDENCIES_SOURCE}
     ${PLATFORM_EXCLUSIVE_SOURCES}
@@ -186,8 +191,10 @@ endif()
 target_include_directories(engine PUBLIC
     ${FERMION_DIR}
 
-    ${PLATFORM_DIR}/Windows/OpenGL
-    ${PLATFORM_DIR}/Windows/Window
+    ${PLATFORM_DIR}/RenderApi/OpenGL
+    ${PLATFORM_DIR}/Windows/Utils
+    ${PLATFORM_DIR}/Linux/Utils
+    ${PLATFORM_DIR}/Window
 
 
     ${EXTERNAL_DIR}/spdlog/include

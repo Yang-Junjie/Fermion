@@ -200,13 +200,13 @@ namespace Fermion
             m_brdfLUT->bind(13);
     }
 
-    void EnvironmentRenderer::addSkyboxPass(RenderGraph &renderGraph,
+    void EnvironmentRenderer::addSkyboxPass(RenderGraphLegacy &renderGraph,
                                             const glm::mat4 &view,
                                             const glm::mat4 &projection,
                                             uint32_t *skyboxDrawCalls,
                                             ResourceHandle dependency) const
     {
-        RenderGraphPass pass;
+        LegacyRenderGraphPass pass;
         pass.Name = "SkyboxPass";
         if (dependency.isValid())
             pass.Inputs = {dependency};

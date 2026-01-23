@@ -7,7 +7,7 @@
 #include "Renderer/Framebuffer.hpp"
 #include "Renderer/Pipeline.hpp"
 #include "Renderer/RenderDrawCommand.hpp"
-#include "Renderer/RenderGraph.hpp"
+#include "Renderer/RenderGraphLegacy.hpp"
 #include "Scene/Scene.hpp"
 
 namespace Fermion
@@ -17,7 +17,7 @@ namespace Fermion
     public:
         ShadowMapRenderer();
 
-        void addPass(RenderGraph &renderGraph,
+        void addPass(RenderGraphLegacy &renderGraph,
                      ResourceHandle shadowMap,
                      const std::vector<MeshDrawCommand> &drawList,
                      const DirectionalLight &light,

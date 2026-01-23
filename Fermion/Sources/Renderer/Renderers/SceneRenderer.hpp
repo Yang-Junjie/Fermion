@@ -5,7 +5,7 @@
 #include "Renderer/Camera/EditorCamera.hpp"
 #include "DebugRenderer.hpp"
 #include "Renderer/Framebuffer.hpp"
-#include "Renderer/RenderGraph.hpp"
+#include "Renderer/RenderGraphLegacy.hpp"
 #include "Renderer/RenderDrawCommand.hpp"
 #include <array>
 #include <vector>
@@ -327,7 +327,7 @@ namespace Fermion
         float m_lastSSGIIntensity = 0.0f;
         int m_lastSSGISampleCount = 0;
 
-        RenderGraph m_RenderGraph;
+        RenderGraphLegacy m_RenderGraph;
         RenderCommandQueue m_CommandQueue;
         SceneInfo m_sceneData;
 
