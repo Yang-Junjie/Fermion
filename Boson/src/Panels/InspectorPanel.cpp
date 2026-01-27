@@ -200,77 +200,73 @@ namespace Fermion
         ImGui::End();
     }
 
-    static bool drawVec3Control(const std::string &label, glm::vec3 &values, float resetValue = 0.0f,
-                                float columnWidth = 100.0f, float dragSpeed = 0.1f)
+    static bool drawVec3Control(const std::string &label, glm::vec3 &values, float resetValue = 0.0f, float columnWidth = 100.0f, float dragSpeed = 0.1f)
     {
-        ImGuiIO &io = ImGui::GetIO();
-        auto boldFont = io.Fonts->Fonts[0];
         bool changed = false;
-
         ImGui::PushID(label.c_str());
-        ImGui::Columns(2);
-        ImGui::SetColumnWidth(0, columnWidth);
-        ImGui::Text(label.c_str());
-        ImGui::NextColumn();
-        ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{0, 0});
 
-        float lineHeight = ImGui::GetFontSize() + GImGui->Style.FramePadding.y * 2.0f;
-        ImVec2 buttonSize = ImVec2{lineHeight + 3.0f, lineHeight};
+        ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2{0, 1});
 
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.8f, 0.1f, 0.15f, 1.0f});
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.9f, 0.2f, 0.2f, 1.0f});
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.8f, 0.1f, 0.15f, 1.0f});
-        ImGui::PushFont(boldFont);
-        if (ImGui::Button("X", buttonSize))
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{4, 1});
+
+        if (ImGui::BeginTable("##Vec3Table", 2, ImGuiTableFlags_NoSavedSettings))
         {
-            values.x = resetValue;
+            ImGui::TableSetupColumn("##label", ImGuiTableColumnFlags_WidthFixed, columnWidth);
+            ImGui::TableSetupColumn("##controls", ImGuiTableColumnFlags_WidthStretch);
+
+            ImGui::TableNextRow(ImGuiTableRowFlags_None, ImGui::GetFontSize() + 2.0f);
+
+            ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text(label.c_str());
+
+            ImGui::TableNextColumn();
+
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{0, 0});
+
+            float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
+            ImVec2 buttonSize = {lineHeight + 3.0f, lineHeight};
+            float itemWidth = (ImGui::GetContentRegionAvail().x - buttonSize.x * 3.0f) / 3.0f;
+
+            auto drawAxisControl = [&](const char *axisLabel, float &value, const ImVec4 &color, const ImVec4 &colorHovered)
+            {
+                bool axisChanged = false;
+
+                ImGui::PushStyleColor(ImGuiCol_Button, color);
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, colorHovered);
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
+
+                if (ImGui::Button(axisLabel, buttonSize))
+                {
+                    value = resetValue;
+                    axisChanged = true;
+                }
+                ImGui::PopStyleColor(3);
+
+                ImGui::SameLine();
+                ImGui::SetNextItemWidth(itemWidth);
+
+                if (ImGui::DragFloat((std::string("##") + axisLabel).c_str(), &value, dragSpeed, 0.0f, 0.0f, "%.2f"))
+                {
+                    axisChanged = true;
+                }
+                ImGui::SameLine();
+
+                return axisChanged;
+            };
+
+            changed |= drawAxisControl("X", values.x, {0.8f, 0.1f, 0.15f, 1.0f}, {0.9f, 0.2f, 0.2f, 1.0f});
+            changed |= drawAxisControl("Y", values.y, {0.2f, 0.7f, 0.2f, 1.0f}, {0.3f, 0.8f, 0.3f, 1.0f});
+            changed |= drawAxisControl("Z", values.z, {0.1f, 0.25f, 0.8f, 1.0f}, {0.2f, 0.35f, 0.9f, 1.0f});
+
+            ImGui::PopStyleVar(); 
+            ImGui::EndTable();
         }
-        ImGui::PopFont();
-        ImGui::PopStyleColor(3);
 
-        ImGui::SameLine();
-        changed |= ImGui::DragFloat("##X", &values.x, dragSpeed);
-        ImGui::PopItemWidth();
-        ImGui::SameLine();
-
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.2f, 0.7f, 0.2f, 1.0f});
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.3f, 0.8f, 0.3f, 1.0f});
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.2f, 0.7f, 0.2f, 1.0f});
-        ImGui::PushFont(boldFont);
-        if (ImGui::Button("Y", buttonSize))
-        {
-            values.y = resetValue;
-        }
-        ImGui::PopFont();
-        ImGui::PopStyleColor(3);
-
-        ImGui::SameLine();
-        changed |= ImGui::DragFloat("##Y", &values.y, dragSpeed);
-        ImGui::PopItemWidth();
-        ImGui::SameLine();
-
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.1f, 0.25f, 0.8f, 1.0f});
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.2f, 0.35f, 0.9f, 1.0f});
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.1f, 0.25f, 0.8f, 1.0f});
-        ImGui::PushFont(boldFont);
-        if (ImGui::Button("Z", buttonSize))
-        {
-            values.z = resetValue;
-        }
-        ImGui::PopFont();
-        ImGui::PopStyleColor(3);
-
-        ImGui::SameLine();
-        changed |= ImGui::DragFloat("##Z", &values.z, dragSpeed);
-        ImGui::PopItemWidth();
-        ImGui::PopStyleVar();
-
-        ImGui::Columns(1);
+        ImGui::PopStyleVar(2); 
         ImGui::PopID();
         return changed;
     }
-
     template <typename T, typename UIFunction>
     static void drawComponent(const std::string &name, Entity entity, UIFunction uiFunction)
     {
@@ -279,19 +275,23 @@ namespace Fermion
 
         auto &component = entity.getComponent<T>();
 
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{4, 4});
-        ImGui::Separator();
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{4, 2});
 
         const ImGuiTreeNodeFlags treeNodeFlags =
-            ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_FramePadding;
+            ImGuiTreeNodeFlags_DefaultOpen |
+            ImGuiTreeNodeFlags_Framed |
+            ImGuiTreeNodeFlags_SpanAvailWidth |
+            ImGuiTreeNodeFlags_FramePadding |
+            ImGuiTreeNodeFlags_AllowOverlap;
 
         bool open = ImGui::TreeNodeEx((void *)typeid(T).hash_code(), treeNodeFlags, name.c_str());
+
         ImGui::PopStyleVar();
 
         bool removeComponent = false;
         if (ImGui::BeginPopupContextItem("ComponentSettings"))
         {
-            if (ImGui::MenuItem("Remove component"))
+            if (ImGui::MenuItem("Remove Component"))
                 removeComponent = true;
             ImGui::EndPopup();
         }
@@ -305,7 +305,6 @@ namespace Fermion
         if (removeComponent)
             entity.removeComponent<T>();
     }
-
     void InspectorPanel::drawComponents(Entity entity)
     {
         if (entity.hasComponent<TagComponent>())
@@ -485,8 +484,7 @@ namespace Fermion
                                          auto editorAssets = Project::getEditorAssetManager();
                                          drawMeshModelDropTarget(component, editorAssets);
                                          drawEngineInternalMeshPopup(component);
-                                         drawSubmeshMaterialsEditor(component, editorAssets);
-                                     });
+                                         drawSubmeshMaterialsEditor(component, editorAssets); });
         drawComponent<DirectionalLightComponent>("Directional Light", entity, [](auto &component)
                                                  {
             ImGui::ColorEdit4("Color", glm::value_ptr(component.color));

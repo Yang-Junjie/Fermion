@@ -33,7 +33,6 @@ namespace Fermion
     void ContentBrowserPanel::onImGuiRender()
     {
         ImGui::Begin("Content Browser");
-
         if (ImGui::BeginTable("ContentBrowserTable", 2,
                               ImGuiTableFlags_Resizable |
                                   ImGuiTableFlags_BordersInnerV |

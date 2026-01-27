@@ -9,64 +9,107 @@
 #include "Renderer/Texture/Texture.hpp"
 #include "Project/Project.hpp"
 
-namespace Fermion {
-    void AssetManagerPanel::onImGuiRender() {
+namespace Fermion
+{
+    void AssetManagerPanel::onImGuiRender()
+    {
         ImGui::Begin("Asset Manager");
 
         auto editorAssets = Project::getEditorAssetManager();
-
         const auto &registry = AssetRegistry::getRegistry();
 
-        if (registry.empty()) {
-            ImGui::TextUnformatted("No assets registered.");
-            ImGui::End();
+ 
+        static ImGuiTextFilter filter;
+        filter.Draw("Search Assets...", ImGui::GetContentRegionAvail().x * 0.7f);
+        ImGui::SameLine();
+        if (ImGui::Button("Refresh"))
+        {
+        }
 
+        ImGui::Separator();
+
+        if (registry.empty())
+        {
+            ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "No assets registered.");
+            ImGui::End();
             return;
         }
 
-        if (ImGui::BeginTable("AssetTable", 5,
-                              ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable)) {
-            ImGui::TableSetupColumn("Handle");
-            ImGui::TableSetupColumn("Type");
-            ImGui::TableSetupColumn("Name");
-            ImGui::TableSetupColumn("Path");
-            ImGui::TableSetupColumn("Status");
+        ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
+                                ImGuiTableFlags_Resizable | ImGuiTableFlags_Sortable |
+                                ImGuiTableFlags_ScrollY;
+
+        if (ImGui::BeginTable("AssetTable", 5, flags))
+        {            
+            ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 60.0f);
+            ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("Path", ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 100.0f);
+            ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 40.0f); 
+
             ImGui::TableHeadersRow();
 
-            for (const auto &[handle, info]: registry) {
-                ImGui::TableNextRow();
+            for (const auto &[handle, info] : registry)
+            {
+                if (!filter.PassFilter(info.Name.c_str()) && !filter.PassFilter(info.FilePath.string().c_str()))
+                    continue;
 
-                ImGui::TableNextColumn();
-                ImGui::Text("%llu", (uint64_t) handle);
+                ImGui::TableNextRow();
+                ImGui::PushID((int)handle);
 
                 ImGui::TableNextColumn();
                 ImGui::TextUnformatted(GetAssetExtensionFromType(info.Type).c_str());
 
+             
                 ImGui::TableNextColumn();
-                ImGui::TextUnformatted(info.Name.c_str());
-
-                ImGui::TableNextColumn();
-                ImGui::TextUnformatted(info.FilePath.string().c_str());
-
-                ImGui::TableNextColumn();
-
-                bool loaded = editorAssets->isAssetLoaded(handle);
-                ImGui::TextUnformatted(loaded ? "Loaded" : "Unloaded");
-                ImGui::SameLine();
-
-                ImGui::PushID((int) handle);
-
-                if (loaded) {
-                    if (ImGui::SmallButton("Unload"))
-                        editorAssets->unloadAsset(handle);
-                } else {
-                    if (ImGui::SmallButton("Load"))
-                        editorAssets->getAsset<Asset>(handle);
+                bool isSelected = false; 
+                if (ImGui::Selectable(info.Name.c_str(), isSelected, ImGuiSelectableFlags_SpanAllColumns))
+                {
+                  
                 }
+
+                ImGui::TableNextColumn();
+                ImGui::TextDisabled("%s", info.FilePath.string().c_str());
+
+                ImGui::TableNextColumn();
+                bool loaded = editorAssets->isAssetLoaded(handle);
+
+                if (loaded)
+                {
+                    ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "Loaded");
+                }
+                else
+                {
+                    ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "Unloaded");
+                }
+
+                ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20); 
+                if (loaded)
+                {
+                    if (ImGui::SmallButton("U"))
+                    {
+                        editorAssets->unloadAsset(handle);
+                    }
+                    if (ImGui::IsItemHovered())
+                        ImGui::SetTooltip("Unload Asset");
+                }
+                else
+                {
+                    if (ImGui::SmallButton("L"))
+                    {
+                        editorAssets->getAsset<Asset>(handle);
+                    }
+                    if (ImGui::IsItemHovered())
+                        ImGui::SetTooltip("Load Asset");
+                }
+
+                ImGui::TableNextColumn();
+                ImGui::TextDisabled(std::to_string(info.Handle).c_str());
+                if (ImGui::IsItemHovered())
+                    ImGui::SetTooltip("%llu", (uint64_t)handle);
 
                 ImGui::PopID();
             }
-
             ImGui::EndTable();
         }
 

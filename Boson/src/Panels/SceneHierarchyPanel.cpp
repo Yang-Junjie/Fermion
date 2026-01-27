@@ -28,47 +28,47 @@ namespace Fermion
 
         if (m_contextScene)
         {
+            // static char buffer[256];
+            // memset(buffer, 0, sizeof(buffer));
+            // ImGui::InputTextWithHint("##Search", "Search...", buffer, sizeof(buffer));
+            // ImGui::Separator();
+
             auto view = m_contextScene->getRegistry().view<RelationshipComponent>();
             for (auto entityID : view)
             {
                 Entity entity{entityID, m_contextScene.get()};
-                Entity parent = m_contextScene->getEntityManager().tryGetEntityByUUID(entity.getParentUUID());
-                if (!parent)
+
+                if (!entity.getParent())
                 {
                     drawEntityNode(entity);
                 }
             }
-        }
-
-        if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered())
-        {
-            m_selectedEntity = {};
-            m_inspectorPanel.setSelectedEntity(Entity());
-        }
-
-        if (ImGui::BeginPopupContextWindow("WindowContextMenu", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
-        {
-            if (m_contextScene && ImGui::MenuItem("Create Empty Entity"))
+            if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsAnyItemHovered())
             {
-                m_contextScene->createEntity("Empty Entity");
+                m_selectedEntity = {};
+                m_inspectorPanel.setSelectedEntity({});
             }
-            ImGui::EndPopup();
-        }
 
-        if (m_editingEnabled && m_contextScene && !ImGui::IsAnyItemHovered() && ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem))
-        {
-            ImGuiWindow *window = ImGui::GetCurrentWindow();
-            ImRect dropRect(window->InnerRect.Min, window->InnerRect.Max);
-            if (ImGui::BeginDragDropTargetCustom(dropRect, window->ID))
+            if (ImGui::BeginPopupContextWindow("HierarchyContext", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
+            {
+                if (ImGui::MenuItem("Create Empty Entity"))
+                {
+                    m_contextScene->createEntity("Empty Entity");
+                }
+                ImGui::EndPopup();
+            }
+
+            if (m_editingEnabled && ImGui::BeginDragDropTarget())
             {
                 if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_ENTITY"))
                 {
                     uint64_t droppedId = *(const uint64_t *)payload->Data;
                     Entity droppedEntity = m_contextScene->getEntityManager().tryGetEntityByUUID(UUID(droppedId));
-                    if (droppedEntity)
+
+                    if (droppedEntity && droppedEntity.getParent())
                     {
                         m_contextScene->getEntityManager().convertToWorldSpace(droppedEntity);
-                        droppedEntity.setParent(Entity{});
+                        droppedEntity.setParent(Entity{}); 
                     }
                 }
                 ImGui::EndDragDropTarget();
@@ -76,6 +76,7 @@ namespace Fermion
         }
 
         ImGui::End();
+
 
         m_inspectorPanel.onImGuiRender();
     }
@@ -97,32 +98,21 @@ namespace Fermion
 
     void SceneHierarchyPanel::drawEntityNode(Entity entity)
     {
-        const char *label = "Entity";
-        if (entity.hasComponent<TagComponent>())
-        {
-            label = entity.getComponent<TagComponent>().tag.c_str();
-        }
 
-        std::vector<Entity> childEntities;
-        childEntities.reserve(entity.getChildren().size());
-        for (UUID childId : entity.getChildren())
-        {
-            Entity child = m_contextScene->getEntityManager().tryGetEntityByUUID(childId);
-            if (child)
-                childEntities.emplace_back(child);
-        }
+        const char *label = entity.hasComponent<TagComponent>()
+                                ? entity.getComponent<TagComponent>().tag.c_str()
+                                : "Unnamed Entity";
 
-        const bool hasChildren = !childEntities.empty();
-        ImGuiTreeNodeFlags flags = ((m_selectedEntity == entity) ? ImGuiTreeNodeFlags_Selected : 0) |
-                                   ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick |
-                                   ImGuiTreeNodeFlags_SpanAvailWidth;
+        const bool hasChildren = !entity.getChildren().empty();
+        ImGuiTreeNodeFlags flags = (m_selectedEntity == entity ? ImGuiTreeNodeFlags_Selected : 0);
+        flags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
+
         if (!hasChildren)
-        {
             flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
-        }
 
-        bool opend = ImGui::TreeNodeEx((void *)(uint64_t)(uint32_t)entity, flags, label);
-        if (m_editingEnabled && ImGui::IsItemClicked())
+        bool opened = ImGui::TreeNodeEx((void *)(uint64_t)entity.getUUID(), flags, "%s", label);
+
+        if (ImGui::IsItemClicked())
         {
             m_selectedEntity = entity;
             m_inspectorPanel.setSelectedEntity(entity);
@@ -130,7 +120,7 @@ namespace Fermion
 
         if (m_editingEnabled && ImGui::BeginDragDropSource())
         {
-            uint64_t entityId = static_cast<uint64_t>(entity.getUUID());
+            uint64_t entityId = (uint64_t)entity.getUUID();
             ImGui::SetDragDropPayload("FERMION_ENTITY", &entityId, sizeof(uint64_t));
             ImGui::Text("%s", label);
             ImGui::EndDragDropSource();
@@ -142,56 +132,50 @@ namespace Fermion
             {
                 uint64_t droppedId = *(const uint64_t *)payload->Data;
                 Entity droppedEntity = m_contextScene->getEntityManager().tryGetEntityByUUID(UUID(droppedId));
-                if (droppedEntity && droppedEntity != entity && !isDescendant(entity, droppedEntity))
+
+                if (droppedEntity && droppedEntity != entity &&
+                    droppedEntity.getParent() != entity && !isDescendant(entity, droppedEntity))
                 {
-                    if (droppedEntity.getParent() != entity)
-                    {
-                        m_contextScene->getEntityManager().convertToWorldSpace(droppedEntity);
-                        droppedEntity.setParent(entity);
-                        m_contextScene->getEntityManager().convertToLocalSpace(droppedEntity);
-                    }
+                    m_contextScene->getEntityManager().convertToWorldSpace(droppedEntity);
+                    droppedEntity.setParent(entity);
+                    m_contextScene->getEntityManager().convertToLocalSpace(droppedEntity);
                 }
             }
             ImGui::EndDragDropTarget();
         }
 
-        bool enetityDeleted = false;
-        bool createChildEntity = false;
+        // 6. 右键菜单
+        bool entityDeleted = false;
         if (m_editingEnabled && ImGui::BeginPopupContextItem())
         {
             if (ImGui::MenuItem("Create Child"))
-            {
-                createChildEntity = true;
-            }
+                m_contextScene->createChildEntity(entity, "Empty Entity");
+
             if (ImGui::MenuItem("Delete Entity"))
-            {
-                enetityDeleted = true;
-            }
+                entityDeleted = true;
+
             ImGui::EndPopup();
         }
-        if (opend && hasChildren)
+
+        if (opened && hasChildren)
         {
-            for (const Entity &child : childEntities)
+            for (UUID childId : entity.getChildren())
             {
-                drawEntityNode(child);
+                Entity child = m_contextScene->getEntityManager().tryGetEntityByUUID(childId);
+                if (child)
+                {
+                    drawEntityNode(child);
+                }
             }
             ImGui::TreePop();
         }
-
-        if (createChildEntity)
-        {
-            Entity child = m_contextScene->createChildEntity(entity, "Empty Entity");
-            m_selectedEntity = child;
-            m_inspectorPanel.setSelectedEntity(child);
-        }
-
-        if (enetityDeleted)
+        if (entityDeleted)
         {
             m_contextScene->getEntityManager().destroyEntity(entity);
             if (m_selectedEntity == entity)
             {
                 m_selectedEntity = {};
-                m_inspectorPanel.setSelectedEntity(Entity());
+                m_inspectorPanel.setSelectedEntity({});
             }
         }
     }

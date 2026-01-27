@@ -3,6 +3,7 @@
 #include "../BosonLayer.hpp"
 #include "Project/Project.hpp"
 #include "Project/ProjectSerializer.hpp"
+#include "ImGui/UI.hpp"
 #include "Core/Application.hpp"
 
 namespace Fermion
@@ -60,7 +61,7 @@ namespace Fermion
         //     Application::get().getWindow().setMinimized();
         // }
 
-        if (ImGui::BeginPopup("FilePopup"))
+        if (ui::BeginPopup("FilePopup"))
         {
             if (m_BosonLayer && ImGui::MenuItem("New Scene", "Ctrl+N"))
                 m_BosonLayer->newScene();
@@ -83,9 +84,9 @@ namespace Fermion
                     m_BosonLayer->saveProject();
                 Application::get().close();
             }
-            ImGui::EndPopup();
+            ui::EndPopup();
         }
-        if (ImGui::BeginPopup("CreatePopup"))
+        if (ui::BeginPopup("CreatePopup"))
         {
             const bool isOpenProject = Project::getActive() != nullptr;
             ImGui::BeginDisabled(!isOpenProject);
@@ -95,10 +96,10 @@ namespace Fermion
                     m_BosonLayer->openMaterialEditorPanel();
             }
             ImGui::EndDisabled();
-            ImGui::EndPopup();
+            ui::EndPopup();
         }
 
-        if (ImGui::BeginPopup("BuildPopup"))
+        if (ui::BeginPopup("BuildPopup"))
         {
             if (ImGui::MenuItem("Build Project"))
             {
@@ -162,14 +163,14 @@ namespace Fermion
                     }
                 }
             }
-            ImGui::EndPopup();
+            ui::EndPopup();
         }
 
-        if (ImGui::BeginPopup("HelpPopup"))
+        if (ui::BeginPopup("HelpPopup"))
         {
             if (m_BosonLayer && ImGui::MenuItem("about"))
                 m_BosonLayer->openAboutWindow();
-            ImGui::EndPopup();
+            ui::EndPopup();
         }
 
         ImGui::End();

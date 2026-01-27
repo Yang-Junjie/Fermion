@@ -128,35 +128,60 @@ namespace Fermion
 
     void ImGuiLayer::setDarkThemeColors()
     {
-        ImGuiStyle &style = ImGui::GetStyle();
+        auto &style = ImGui::GetStyle();
         auto &colors = style.Colors;
-        colors[ImGuiCol_WindowBg] = ImVec4{0.145f, 0.145f, 0.149f, 1.0f};
 
-        // Headers
-        colors[ImGuiCol_Header] = ImVec4{0.2f, 0.205f, 0.21f, 1.0f};
-        colors[ImGuiCol_HeaderHovered] = ImVec4{0.3f, 0.305f, 0.31f, 1.0f};
-        colors[ImGuiCol_HeaderActive] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
+        colors[ImGuiCol_WindowBg] = ImVec4{0.11f, 0.11f, 0.11f, 1.00f};
+        colors[ImGuiCol_ChildBg] = ImVec4{0.11f, 0.11f, 0.11f, 1.00f};
+        colors[ImGuiCol_PopupBg] = ImVec4{0.08f, 0.08f, 0.08f, 0.96f};
+        colors[ImGuiCol_Border] = ImVec4{0.17f, 0.17f, 0.18f, 1.00f};
 
-        // Buttons
-        colors[ImGuiCol_Button] = ImVec4{0.2f, 0.205f, 0.21f, 1.0f};
-        colors[ImGuiCol_ButtonHovered] = ImVec4{0.3f, 0.305f, 0.31f, 1.0f};
-        colors[ImGuiCol_ButtonActive] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
+ 
+        colors[ImGuiCol_TitleBg] = ImVec4{0.07f, 0.07f, 0.07f, 1.00f};
+        colors[ImGuiCol_TitleBgActive] = ImVec4{0.09f, 0.09f, 0.09f, 1.00f};
+        colors[ImGuiCol_TitleBgCollapsed] = ImVec4{0.07f, 0.07f, 0.07f, 1.00f};
 
-        // Frame BG
-        colors[ImGuiCol_FrameBg] = ImVec4{0.2f, 0.205f, 0.21f, 1.0f};
-        colors[ImGuiCol_FrameBgHovered] = ImVec4{0.3f, 0.305f, 0.31f, 1.0f};
-        colors[ImGuiCol_FrameBgActive] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
 
-        // Tabs
-        colors[ImGuiCol_Tab] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
-        colors[ImGuiCol_TabHovered] = ImVec4{0.38f, 0.3805f, 0.381f, 1.0f};
-        colors[ImGuiCol_TabActive] = ImVec4{0.28f, 0.2805f, 0.281f, 1.0f};
-        colors[ImGuiCol_TabUnfocused] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
-        colors[ImGuiCol_TabUnfocusedActive] = ImVec4{0.2f, 0.205f, 0.21f, 1.0f};
+        colors[ImGuiCol_FrameBg] = ImVec4{0.16f, 0.16f, 0.17f, 1.00f};
+        colors[ImGuiCol_FrameBgHovered] = ImVec4{0.22f, 0.22f, 0.23f, 1.00f};
+        colors[ImGuiCol_FrameBgActive] = ImVec4{0.13f, 0.13f, 0.14f, 1.00f};
 
-        // Title
-        colors[ImGuiCol_TitleBg] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
-        colors[ImGuiCol_TitleBgActive] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
-        colors[ImGuiCol_TitleBgCollapsed] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
+
+        const ImVec4 orangeMain = ImVec4{0.92f, 0.45f, 0.11f, 1.00f};
+        const ImVec4 orangeHovered = ImVec4{1.00f, 0.55f, 0.20f, 1.00f}; 
+        const ImVec4 orangeActive = ImVec4{0.80f, 0.38f, 0.08f, 1.00f}; 
+
+        colors[ImGuiCol_Button] = ImVec4{0.20f, 0.20f, 0.21f, 1.00f}; 
+        colors[ImGuiCol_ButtonHovered] = orangeMain;               
+        colors[ImGuiCol_ButtonActive] = orangeActive;
+
+        colors[ImGuiCol_Tab] = ImVec4{0.12f, 0.12f, 0.13f, 1.00f};
+        colors[ImGuiCol_TabHovered] = orangeHovered;
+        colors[ImGuiCol_TabActive] = orangeMain;
+        colors[ImGuiCol_TabUnfocused] = ImVec4{0.12f, 0.12f, 0.13f, 1.00f};
+        colors[ImGuiCol_TabUnfocusedActive] = ImVec4{0.18f, 0.18f, 0.19f, 1.00f};
+
+        colors[ImGuiCol_CheckMark] = orangeMain;
+        colors[ImGuiCol_SliderGrab] = orangeMain;
+        colors[ImGuiCol_SliderGrabActive] = orangeActive;
+        colors[ImGuiCol_Header] = ImVec4{0.35f, 0.20f, 0.08f, 0.50f};
+        colors[ImGuiCol_HeaderHovered] = ImVec4{0.92f, 0.45f, 0.11f, 0.30f};
+        colors[ImGuiCol_HeaderActive] = ImVec4{0.92f, 0.45f, 0.11f, 0.50f};
+
+        colors[ImGuiCol_TextSelectedBg] = ImVec4{0.92f, 0.45f, 0.11f, 0.35f};
+
+        colors[ImGuiCol_SeparatorHovered] = orangeMain;
+        colors[ImGuiCol_SeparatorActive] = orangeActive;
+        colors[ImGuiCol_ResizeGrip] = ImVec4{0.92f, 0.45f, 0.11f, 0.20f};
+        colors[ImGuiCol_ResizeGripHovered] = orangeMain;
+        colors[ImGuiCol_ResizeGripActive] = orangeActive;
+
+        style.WindowRounding = 2.0f; 
+        style.FrameRounding = 2.0f;
+        style.PopupRounding = 2.0f;
+        style.TabRounding = 2.0f;
+        style.FrameBorderSize = 0.0f;
+        style.WindowPadding = ImVec2(8, 8);
+        style.ItemSpacing = ImVec2(8, 4);
     }
 } // namespace Fermion

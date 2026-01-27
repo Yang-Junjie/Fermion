@@ -89,7 +89,7 @@ layout(std140, binding = 2) uniform LightData
 	float u_ShadowBias;
 	float u_ShadowSoftness;
 	int u_EnableShadows;
-	float _lightPadding1;
+	int u_NumDirLights;
 	float u_AmbientIntensity;
 	int u_NumPointLights;
 	int u_NumSpotLights;

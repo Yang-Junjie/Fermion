@@ -1,14 +1,27 @@
 #type vertex
-#version 330 core
+#version 450 core
 
 layout(location = 0) in vec3 a_Position;
 layout(location = 1) in vec3 a_Normal;
 layout(location = 2) in vec4 a_Color;
 layout(location = 3) in vec2 a_TexCoords;
 
-uniform mat4 u_Model;
-uniform mat4 u_ViewProjection;
-uniform int u_ObjectID;
+// Camera uniform buffer (binding = 0)
+layout(std140, binding = 0) uniform CameraData
+{
+	mat4 u_ViewProjection;
+	mat4 u_View;
+	mat4 u_Projection;
+	vec3 u_CameraPosition;
+};
+
+// Model uniform buffer (binding = 1)
+layout(std140, binding = 1) uniform ModelData
+{
+	mat4 u_Model;
+	mat4 u_NormalMatrix;
+	int u_ObjectID;
+};
 
 out vec3 v_Normal;
 out vec2 v_TexCoords;
@@ -17,7 +30,7 @@ flat out int v_ObjectID;
 void main()
 {
     vec4 worldPos = u_Model * vec4(a_Position, 1.0);
-    v_Normal = mat3(transpose(inverse(u_Model))) * a_Normal;
+    v_Normal = mat3(u_NormalMatrix) * a_Normal;
     v_TexCoords = a_TexCoords;
     v_ObjectID = u_ObjectID;
 
@@ -25,7 +38,7 @@ void main()
 }
 
 #type fragment
-#version 330 core
+#version 450 core
 
 layout(location = 0) out vec4 o_Albedo;
 layout(location = 1) out vec4 o_Normal;

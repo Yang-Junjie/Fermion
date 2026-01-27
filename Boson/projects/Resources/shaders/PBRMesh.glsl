@@ -1,5 +1,5 @@
 #type vertex
-#version 330 core
+#version 450 core
 
 layout(location = 0) in vec3 a_Position;
 layout(location = 1) in vec3 a_Normal;
@@ -8,10 +8,39 @@ layout(location = 3) in vec2 a_TexCoords;
 layout(location = 4) in vec3 a_Tangent;
 layout(location = 5) in vec3 a_Bitangent;
 
-uniform mat4 u_Model;
-uniform mat4 u_ViewProjection;
-uniform mat4 u_LightSpaceMatrix;
-uniform int u_ObjectID;
+// Camera uniform buffer (binding = 0)
+layout(std140, binding = 0) uniform CameraData
+{
+	mat4 u_ViewProjection;
+	mat4 u_View;
+	mat4 u_Projection;
+	vec3 u_CameraPosition;
+};
+
+// Model uniform buffer (binding = 1)
+layout(std140, binding = 1) uniform ModelData
+{
+	mat4 u_Model;
+	mat4 u_NormalMatrix;
+	int u_ObjectID;
+};
+
+// Light uniform buffer (binding = 2)
+layout(std140, binding = 2) uniform LightData
+{
+	mat4 u_LightSpaceMatrix;
+	vec3 u_DirLightDirection;
+	float u_DirLightIntensity;
+	vec3 u_DirLightColor;
+	float _lightPadding0;
+	float u_ShadowBias;
+	float u_ShadowSoftness;
+	int u_EnableShadows;
+	int u_NumDirLights;
+	float u_AmbientIntensity;
+	int u_NumPointLights;
+	int u_NumSpotLights;
+};
 
 out vec3 v_WorldPos;
 out vec3 v_Normal;
@@ -25,14 +54,14 @@ void main() {
     vec4 worldPos = u_Model * vec4(a_Position, 1.0);
     v_WorldPos = worldPos.xyz;
 
-    // 计算法线矩阵
-    mat3 normalMatrix = transpose(inverse(mat3(u_Model)));
+    // Use precomputed normal matrix from UBO
+    mat3 normalMatrix = mat3(u_NormalMatrix);
     v_Normal = normalize(normalMatrix * a_Normal);
 
-    // 构建TBN矩阵用于法线贴图
+    // Build TBN matrix for normal mapping
     vec3 T = normalize(normalMatrix * a_Tangent);
     vec3 N = v_Normal;
-    // 重新正交化T相对于N
+    // Re-orthogonalize T with respect to N
     T = normalize(T - dot(T, N) * N);
     vec3 B = cross(N, T);
     v_TBN = mat3(T, B, N);
@@ -46,7 +75,7 @@ void main() {
 }
 
 #type fragment
-#version 330 core
+#version 450 core
 
 layout(location = 0) out vec4 o_Color;
 layout(location = 1) out int o_ObjectID;
@@ -62,10 +91,43 @@ flat in int v_ObjectID;
 const float PI = 3.14159265359;
 const float F0_NON_METAL = 0.04;
 
+#define MAX_DIR_LIGHTS 4
 #define MAX_POINT_LIGHTS 16
 #define MAX_SPOT_LIGHTS 16
 
+// Camera uniform buffer (binding = 0)
+layout(std140, binding = 0) uniform CameraData
+{
+	mat4 u_ViewProjection;
+	mat4 u_View;
+	mat4 u_Projection;
+	vec3 u_CameraPosition;
+};
+
+// Light uniform buffer (binding = 2)
+layout(std140, binding = 2) uniform LightData
+{
+	mat4 u_LightSpaceMatrix;
+	vec3 u_DirLightDirection;
+	float u_DirLightIntensity;
+	vec3 u_DirLightColor;
+	float _lightPadding0;
+	float u_ShadowBias;
+	float u_ShadowSoftness;
+	int u_EnableShadows;
+	int u_NumDirLights;
+	float u_AmbientIntensity;
+	int u_NumPointLights;
+	int u_NumSpotLights;
+};
+
 // 光源结构
+struct DirectionalLight {
+    vec3 direction;
+    vec3 color;
+    float intensity;
+};
+
 struct PointLight {
     vec3 position;
     vec3 color;
@@ -85,12 +147,6 @@ struct SpotLight {
     float outerConeAngle;
 };
 
-struct DirectionalLight {
-    vec3 direction;
-    vec3 color;
-    float intensity;
-};
-
 // PBR材质参数
 struct Material {
     vec3 albedo;
@@ -100,17 +156,16 @@ struct Material {
 };
 
 // Uniforms
+uniform int u_DirLightCount;
+uniform DirectionalLight u_DirLights[MAX_DIR_LIGHTS];
+
 uniform int u_PointLightCount;
 uniform PointLight u_PointLights[MAX_POINT_LIGHTS];
 
 uniform int u_SpotLightCount;
 uniform SpotLight u_SpotLights[MAX_SPOT_LIGHTS];
 
-uniform DirectionalLight u_DirectionalLight;
-
 uniform Material u_Material;
-uniform vec3 u_CameraPosition;
-uniform float u_AmbientIntensity;
 
 // 纹理
 uniform bool u_UseAlbedoMap;
@@ -133,10 +188,7 @@ uniform sampler2D u_AOMap;
 uniform bool u_FlipUV;
 
 // Shadow mapping
-uniform bool u_EnableShadows;
 uniform sampler2D u_ShadowMap;
-uniform float u_ShadowBias;
-uniform float u_ShadowSoftness;
 
 // IBL
 uniform bool u_UseIBL;
@@ -349,25 +401,43 @@ void main() {
     vec3 Lo = vec3(0.0);
 
     // ========================================================================
-    // 方向光
+    // 主方向光（带阴影）
     // ========================================================================
     {
-        vec3 L = normalize(-u_DirectionalLight.direction);
+        vec3 L = normalize(-u_DirLightDirection);
 
         vec3 kS;
         vec3 specularBRDF = CookTorrance(N, L, V, roughness, metallic, F0, kS);
         vec3 diffuseBRDF = LambertDiffuse(kS, albedo, metallic);
 
         float NdotL = max(dot(N, L), 0.0);
-        vec3 radiance = u_DirectionalLight.color * u_DirectionalLight.intensity;
+        vec3 radiance = u_DirLightColor * u_DirLightIntensity;
 
         // 计算阴影
         float shadow = 0.0;
-        if(u_EnableShadows) {
+        if(u_EnableShadows != 0) {
             shadow = calculateShadow(v_FragPosLightSpace, N, L);
         }
 
         Lo += (diffuseBRDF + specularBRDF) * radiance * NdotL * (1.0 - shadow);
+    }
+
+    // ========================================================================
+    // 额外方向光（无阴影）
+    // ========================================================================
+    for(int i = 0; i < u_DirLightCount; i++) {
+        DirectionalLight light = u_DirLights[i];
+
+        vec3 L = normalize(-light.direction);
+
+        vec3 kS;
+        vec3 specularBRDF = CookTorrance(N, L, V, roughness, metallic, F0, kS);
+        vec3 diffuseBRDF = LambertDiffuse(kS, albedo, metallic);
+
+        float NdotL = max(dot(N, L), 0.0);
+        vec3 radiance = light.color * light.intensity;
+
+        Lo += (diffuseBRDF + specularBRDF) * radiance * NdotL;
     }
 
     // ========================================================================

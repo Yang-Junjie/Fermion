@@ -7,6 +7,7 @@
 #include "Panels/InspectorPanel.hpp"
 #include "Asset/SceneAsset.hpp"
 #include "Script/ScriptManager.hpp"
+#include "ImGui/ModalDialog.hpp"
 
 #include "ImGui/ConsolePanel.hpp"
 #include "Math/Math.hpp"
@@ -467,29 +468,32 @@ namespace Fermion
     {
         if (m_isAboutWindowOpen)
         {
-            ImGui::SetNextWindowSize(ImVec2(350, 0), ImGuiCond_FirstUseEver);
-
-            ImGui::Begin("About Fermion", &m_isAboutWindowOpen,
-                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoDocking);
-
-            ImGui::SeparatorText("About Fermion");
-            ImGui::Text("Fermion Engine v0.1");
-            ImGui::Text("Copyright (c) 2025, Beisent");
-            ImGui::Text("This is free and open-source software under the MIT License.");
-            ImGui::SeparatorText("From");
-            ImGui::Text("This engine was written based on TheCherno's game engine tutorial series.");
-            ImGui::Text("Hazel Engine: ");
-            ImGui::TextLinkOpenURL("https: // github.com/TheCherno/Hazel");
-            ImGui::Text("TheCherno's game engine tutorial series:");
-            ImGui::TextLinkOpenURL(
-                "https://www.youtube.com/watch?v=JxIZbV_XjAs&list=PLlrATfBNZ98dC-V-N3m0Go4deliWHPFwT");
-
-            ImGui::Spacing();
-            if (ImGui::Button("Close", ImVec2(-1, 0)))
-                m_isAboutWindowOpen = false;
-
-            ImGui::End();
+            ui::ModalDialog::Show(
+                {.Title = "About Fermion",
+                 .ShowConfirm = true,
+                 .ShowCancel = false,
+                 .ShowClose = false,
+                 .ConfirmText = "OK",
+                 .CancelText = "",
+                 .ContentFunc = [&]()
+                 {
+                    ImGui::SeparatorText("About Fermion");
+                    ImGui::Text("Fermion Engine v0.1");
+                    ImGui::Text("Copyright (c) 2025, Beisent");
+                    ImGui::Text("This is free and open-source software under the MIT License.");
+                    ImGui::SeparatorText("From");
+                    ImGui::Text("This engine was written based on TheCherno's game engine tutorial series.");
+                    ImGui::Text("Hazel Engine: ");
+                    ImGui::TextLinkOpenURL("https: // github.com/TheCherno/Hazel");
+                    ImGui::Text("TheCherno's game engine tutorial series:");
+                    ImGui::TextLinkOpenURL(
+                        "https://www.youtube.com/watch?v=JxIZbV_XjAs&list=PLlrATfBNZ98dC-V-N3m0Go4deliWHPFwT"); },
+                 .ConfirmFunc = [&]()
+                 { m_isAboutWindowOpen = false; 
+                }});
         }
+
+        ui::ModalDialog::OnImGuiRender();
     }
 
     void BosonLayer::openAboutWindow()
@@ -1084,9 +1088,7 @@ namespace Fermion
             }
 
             const int edges[12][2] = {
-                {0, 1}, {1, 2}, {2, 3}, {3, 0},
-                {4, 5}, {5, 6}, {6, 7}, {7, 4},
-                {0, 4}, {1, 5}, {2, 6}, {3, 7}};
+                {0, 1}, {1, 2}, {2, 3}, {3, 0}, {4, 5}, {5, 6}, {6, 7}, {7, 4}, {0, 4}, {1, 5}, {2, 6}, {3, 7}};
 
             for (const auto &edge : edges)
             {
