@@ -10,8 +10,38 @@ namespace Fermion
         RGB8,
         RGBA8,
         RGBA32F,
-        RGB16F,    // IBL: 辐照度贴图和预过滤贴图
-        RG16F      // IBL: BRDF查找表
+        RGB16F, // IBL: 辐照度贴图和预过滤贴图
+        RG16F   // IBL: BRDF查找表
+    };
+
+    enum class TextureFilterMode
+    {
+        Nearest,
+        Linear
+    };
+
+    enum class TextureWrapMode
+    {
+        Repeat,
+        ClampToEdge,
+        MirroredRepeat
+    };
+
+    // .ftex 纹理资源配置
+    struct TextureAssetSpecification
+    {
+        std::filesystem::path SourcePath;
+
+        bool GenerateMipmaps = true;
+
+        TextureFilterMode MinFilter = TextureFilterMode::Linear;
+        TextureFilterMode MagFilter = TextureFilterMode::Linear;
+
+        TextureWrapMode WrapS = TextureWrapMode::Repeat;
+        TextureWrapMode WrapT = TextureWrapMode::Repeat;
+
+        float Anisotropy = 1.0f;
+        bool sRGB = false;
     };
 
     struct TextureSpecification
@@ -19,7 +49,7 @@ namespace Fermion
         uint32_t Width = 1;
         uint32_t Height = 1;
         ImageFormat Format = ImageFormat::RGBA8;
-        bool GenerateMips = true;
+        bool GenerateMips = false;
     };
     class Texture : public Asset
     {
@@ -44,9 +74,10 @@ namespace Fermion
     {
     public:
         static std::unique_ptr<Texture2D> create(uint32_t width, uint32_t height, bool generateMips = false);
-        static std::unique_ptr<Texture2D> create(const std::string &path, bool generateMips = true);
+        static std::unique_ptr<Texture2D> create(const std::string &path, bool generateMips = false);
         static std::unique_ptr<Texture2D> create(const TextureSpecification &spec);
-        
+        static std::unique_ptr<Texture2D> create(const TextureAssetSpecification &assetSpec);
+
         virtual void copyFromFramebuffer(std::shared_ptr<class Framebuffer> fb, uint32_t x, uint32_t y) = 0;
     };
 
@@ -68,7 +99,7 @@ namespace Fermion
         ImageFormat format = ImageFormat::RGB8;
         bool generateMips = false;
         uint32_t maxMipLevels = 1;
-        
+
         // 从文件加载选项
         std::filesystem::path path;
         std::unordered_map<TextureCubeFace, std::string> names;
@@ -81,7 +112,7 @@ namespace Fermion
         virtual ~TextureCube() = default;
         static std::unique_ptr<TextureCube> create(const std::string &path);
         static std::unique_ptr<TextureCube> create(const TextureCubeSpecification &spec);
-        
+
         virtual void copyFromFramebuffer(std::shared_ptr<class Framebuffer> fb, uint32_t face, uint32_t mipLevel) = 0;
         virtual void generateMipmaps() = 0;
     };

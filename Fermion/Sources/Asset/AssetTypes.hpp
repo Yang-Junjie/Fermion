@@ -6,6 +6,7 @@ namespace Fermion
     {
         None = 0,
         Texture,
+        TextureSource,  // 原始图片文件 (.png, .jpg, .jpeg, .hdr)
         Scene,
         Font,
         Shader,
@@ -25,6 +26,8 @@ namespace Fermion
                 return "None";
             case AssetType::Texture:
                 return "Texture";
+            case AssetType::TextureSource:
+                return "TextureSource";
             case AssetType::Scene:
                 return "Scene";
             case AssetType::Font:
@@ -47,6 +50,8 @@ namespace Fermion
         {
             if (str == "Texture")
                 return AssetType::Texture;
+            if (str == "TextureSource")
+                return AssetType::TextureSource;
             if (str == "Scene")
                 return AssetType::Scene;
             if (str == "Font")

@@ -26,6 +26,19 @@ namespace Fermion
         }
         return nullptr;
     }
+
+    std::unique_ptr<Texture2D> Texture2D::create(const TextureAssetSpecification &assetSpec)
+    {
+        switch (Renderer::getAPI())
+        {
+        case RendererAPI::API::None:
+            return nullptr;
+        case RendererAPI::API::OpenGL:
+            return std::make_unique<OpenGLTexture2D>(assetSpec);
+        }
+        return nullptr;
+    }
+
     std::unique_ptr<Texture2D> Texture2D::create(uint32_t width, uint32_t height, bool generateMips)
     {
         switch (Renderer::getAPI())

@@ -1,0 +1,12 @@
+Material:
+  Type: 2
+  Name: breakfast_room:Frosted_Glass
+  Albedo: [0.9, 0.08, 0.01]
+  Metallic: 0
+  Roughness: 0.5
+  AO: 1
+  AlbedoMap: 0
+  NormalMap: 0
+  MetallicMap: 0
+  RoughnessMap: 0
+  AOMap: 0

@@ -1,0 +1,9 @@
+TextureAsset:
+  SourcePath: Assets/Materials/rusted_iron/Metal055C_1K-PNG_Displacement.png
+  GenerateMipmaps: true
+  MinFilter: Linear
+  MagFilter: Linear
+  WrapS: Repeat
+  WrapT: Repeat
+  Anisotropy: 1
+  sRGB: false

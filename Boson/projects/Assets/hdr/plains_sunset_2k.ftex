@@ -1,0 +1,9 @@
+TextureAsset:
+  SourcePath: Assets/hdr/plains_sunset_2k.hdr
+  GenerateMipmaps: true
+  MinFilter: Linear
+  MagFilter: Linear
+  WrapS: Repeat
+  WrapT: Repeat
+  Anisotropy: 1
+  sRGB: false

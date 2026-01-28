@@ -1,0 +1,9 @@
+TextureAsset:
+  SourcePath: Assets/hdr/cedar_bridge_2_2k.hdr
+  GenerateMipmaps: true
+  MinFilter: Linear
+  MagFilter: Linear
+  WrapS: Repeat
+  WrapT: Repeat
+  Anisotropy: 1
+  sRGB: false

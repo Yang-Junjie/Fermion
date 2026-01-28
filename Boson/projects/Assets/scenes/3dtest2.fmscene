@@ -10,28 +10,28 @@ Entities:
     RelationshipComponent:
       Parent: 0
     MeshComponent:
-      MeshHandle: 14223078490979099088
+      MeshHandle: 12742829763335144906
       MemoryOnly: false
       MemoryMeshType: 1
       SubmeshMaterials:
-        - 12781860539387603530
-        - 14341031254493671794
-        - 16152322015530272013
-        - 5324438855931132379
-        - 3976462393941475427
-        - 8783188282756086115
-        - 8281651321282753643
-        - 2648176084055868109
+        - 1681593861787139849
+        - 8828072996582463891
+        - 3657589397671674950
+        - 12430200672397466065
+        - 10467345339741458642
+        - 17328189057630196023
+        - 15288354084329951289
+        - 5800004709905524479
   - Entity: 13192142759119736963
     TagComponent:
       Tag: dl
     TransformComponent:
-      Translation: [-0.08539449, 1.2431291, 6.080263]
-      Rotation: [-0.2264573, 0.3027384, -1.951387e-08]
+      Translation: [3.3698547, 1.2130407, 1.5778769]
+      Rotation: [-1.1035376, 0.8370525, -0.8262825]
       Scale: [1, 1, 1]
     RelationshipComponent:
       Parent: 0
     DirectionalLightComponent:
-      Color: [1, 1, 1]
+      Color: [1, 0.960423, 0.75949365]
       Intensity: 5.3
       MainLight: true

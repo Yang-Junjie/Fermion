@@ -8,10 +8,13 @@ namespace Fermion {
     {
         // Scenes
         {".fmscene", AssetType::Scene},
+        {".ftex", AssetType::Texture},
+
         // Textures
-        {".png", AssetType::Texture},
-        {".jpg", AssetType::Texture},
-        {".jpeg", AssetType::Texture},
+        {".png", AssetType::TextureSource},
+        {".jpg", AssetType::TextureSource},
+        {".jpeg", AssetType::TextureSource},
+        {".hdr", AssetType::TextureSource},
         // Fonts
         {".ttf", AssetType::Font},
         {".ttc", AssetType::Font},
@@ -26,7 +29,7 @@ namespace Fermion {
         {".glb", AssetType::ModelSource},
         {".gltf", AssetType::ModelSource},
 
-        
+
         //mesh
         {".fmesh",AssetType::Mesh},
         // model

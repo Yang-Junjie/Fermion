@@ -67,29 +67,46 @@ namespace Fermion
             if (type == AssetType::None)
                 continue;
 
+            // 特殊处理 TextureSource：自动生成 .ftex 配置文件
+            if (type == AssetType::TextureSource)
+            {
+                auto assetAbsolutePath = std::filesystem::absolute(p.path());
+
+                // 检查是否已经存在对应的 .ftex 文件
+                auto expectedFtexPath = p.path();
+                expectedFtexPath.replace_extension(".ftex");
+
+                if (!std::filesystem::exists(expectedFtexPath))
+                {
+                    // 自动生成默认的 .ftex 配置
+                    TextureImporter::generateDefaultFtex(assetAbsolutePath);
+                }
+                continue; // 不为原始图片文件创建 meta
+            }
+
             // 特殊处理 ModelSource：自动导入生成 .fmodel/.fmesh/.fmat
             if (type == AssetType::ModelSource)
             {
                 auto metaPath = GetMetaPath(p.path());
                 auto assetAbsolutePath = std::filesystem::absolute(p.path());
-                
+
                 // 检查是否已经导入过（检查对应的 .fmodel 文件是否存在）
                 auto expectedModelPath = p.path().parent_path() / p.path().stem();
                 expectedModelPath.replace_extension(".fmodel");
-                
+
                 if (!std::filesystem::exists(expectedModelPath))
                 {
                     // 第一次遇到该 ModelSource，执行自动导入
-                    
+
                     auto importer = std::make_unique<ModelSourceImporter>();
                     AssetMetadata modelMeta = importer->importAsset(assetAbsolutePath);
-                    
+
                     if (modelMeta.Type == AssetType::Model)
                     {
                         // 将生成的 Model 写入元数据并注册
                         importer->writeMetadata(modelMeta);
                         AssetRegistry::set(modelMeta.Handle, modelMeta);
-                        
+
                     }
 
                 }
@@ -185,6 +202,22 @@ namespace Fermion
         AssetType type = GetAssetTypeFromPath(absolutePath);
         if (type == AssetType::None)
             return AssetHandle(0);
+
+        // 特殊处理 TextureSource：自动生成 .ftex 并导入
+        if (type == AssetType::TextureSource)
+        {
+            auto ftexPath = absolutePath;
+            ftexPath.replace_extension(".ftex");
+
+            // 如果 .ftex 不存在，生成默认配置
+            if (!std::filesystem::exists(ftexPath))
+            {
+                TextureImporter::generateDefaultFtex(absolutePath);
+            }
+
+            // 递归调用导入 .ftex 文件
+            return importAsset(ftexPath);
+        }
 
         auto metaPath = GetMetaPath(absolutePath);
 

@@ -1,0 +1,9 @@
+TextureAsset:
+  SourcePath: Assets/Mesh/Sponza/332936164838540657.jpg
+  GenerateMipmaps: true
+  MinFilter: Linear
+  MagFilter: Linear
+  WrapS: Repeat
+  WrapT: Repeat
+  Anisotropy: 1
+  sRGB: false

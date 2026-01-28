@@ -13,6 +13,7 @@ public:
     OpenGLTexture2D(const TextureSpecification &specification, bool generateMipmap = false);
     OpenGLTexture2D(uint32_t width, uint32_t height, bool generateMipmap = false);
     OpenGLTexture2D(const std::string &path, bool generateMipmap = false);
+    OpenGLTexture2D(const TextureAssetSpecification &assetSpec);
     virtual ~OpenGLTexture2D();
 
     virtual const TextureSpecification &getSpecification() const override {

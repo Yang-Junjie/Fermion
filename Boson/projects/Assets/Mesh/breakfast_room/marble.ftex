@@ -1,0 +1,9 @@
+TextureAsset:
+  SourcePath: Assets/Mesh/breakfast_room/marble.jpg
+  GenerateMipmaps: true
+  MinFilter: Linear
+  MagFilter: Linear
+  WrapS: Repeat
+  WrapT: Repeat
+  Anisotropy: 1
+  sRGB: false

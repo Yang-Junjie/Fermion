@@ -96,7 +96,7 @@ namespace Fermion
                     const Texture2D *icon = nullptr;
                     const Texture2D *textureIcon = nullptr;
 
-                    if (extension == AssetType::Texture)
+                    if (extension == AssetType::TextureSource)
                         textureIcon = getOrCreateThumbnail(path);
 
                     if (!isDirectory)
@@ -109,7 +109,7 @@ namespace Fermion
                         case AssetType::Font:
                             icon = m_fileIcon.get();
                             break;
-                        case AssetType::Texture:
+                        case AssetType::TextureSource:
                             icon = textureIcon ? textureIcon : m_textureFileIcon.get();
                             break;
                         case AssetType::Shader:

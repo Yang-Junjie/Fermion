@@ -156,6 +156,113 @@ OpenGLTexture2D::OpenGLTexture2D(const std::string &path, bool generateMipmap) :
     stbi_image_free(data);
 }
 
+namespace {
+    GLenum toGLFilter(TextureFilterMode mode, bool mipmap, bool isMin) {
+        if (isMin && mipmap) {
+            return mode == TextureFilterMode::Nearest ? GL_NEAREST_MIPMAP_LINEAR : GL_LINEAR_MIPMAP_LINEAR;
+        }
+        return mode == TextureFilterMode::Nearest ? GL_NEAREST : GL_LINEAR;
+    }
+
+    GLenum toGLWrap(TextureWrapMode mode) {
+        switch (mode) {
+        case TextureWrapMode::Repeat: return GL_REPEAT;
+        case TextureWrapMode::ClampToEdge: return GL_CLAMP_TO_EDGE;
+        case TextureWrapMode::MirroredRepeat: return GL_MIRRORED_REPEAT;
+        }
+        return GL_REPEAT;
+    }
+}
+
+OpenGLTexture2D::OpenGLTexture2D(const TextureAssetSpecification &assetSpec)
+    : m_path(assetSpec.SourcePath.string()), m_generateMipmap(assetSpec.GenerateMipmaps) {
+    int width, height, channels;
+
+    stbi_set_flip_vertically_on_load(1);
+
+    std::string sourcePath = assetSpec.SourcePath.string();
+    bool isHDR = stbi_is_hdr(sourcePath.c_str());
+    void *data = nullptr;
+    GLenum dataType = GL_UNSIGNED_BYTE;
+
+    if (isHDR) {
+        float *hdrData = stbi_loadf(sourcePath.c_str(), &width, &height, &channels, 0);
+        if (!hdrData) {
+            Log::Error(std::format("Failed to load HDR texture image: {}, reason: {}", sourcePath, std::string(stbi_failure_reason())));
+            return;
+        }
+        data = hdrData;
+        dataType = GL_FLOAT;
+
+        if (channels == 3) {
+            m_internalFormat = GL_RGB16F;
+            m_dataFormat = GL_RGB;
+        } else if (channels == 4) {
+            m_internalFormat = GL_RGBA32F;
+            m_dataFormat = GL_RGBA;
+        } else {
+            Log::Error(std::format("Unsupported HDR channel count: {}", channels));
+            stbi_image_free(hdrData);
+            return;
+        }
+    } else {
+        stbi_uc *ldrData = stbi_load(sourcePath.c_str(), &width, &height, &channels, 4);
+        if (!ldrData) {
+            Log::Error(std::format("Failed to load texture image: {}, reason: {}", sourcePath, std::string(stbi_failure_reason())));
+            return;
+        }
+        data = ldrData;
+        dataType = GL_UNSIGNED_BYTE;
+        // sRGB 颜色空间处理
+        m_internalFormat = assetSpec.sRGB ? GL_SRGB8_ALPHA8 : GL_RGBA8;
+        m_dataFormat = GL_RGBA;
+    }
+
+    m_isLoaded = true;
+    m_width = width;
+    m_height = height;
+
+    int levels = assetSpec.GenerateMipmaps ? 1 + (int)std::floor(std::log2(std::max(m_width, m_height))) : 1;
+
+    glCreateTextures(GL_TEXTURE_2D, 1, &m_rendererID);
+    glTextureStorage2D(m_rendererID, levels, m_internalFormat, m_width, m_height);
+
+    GLint previousAlignment;
+    glGetIntegerv(GL_UNPACK_ALIGNMENT, &previousAlignment);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    glTextureSubImage2D(
+        m_rendererID, 0,
+        0, 0,
+        m_width, m_height,
+        m_dataFormat,
+        dataType,
+        data);
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, previousAlignment);
+
+    // 应用过滤模式
+    glTextureParameteri(m_rendererID, GL_TEXTURE_MIN_FILTER, toGLFilter(assetSpec.MinFilter, assetSpec.GenerateMipmaps, true));
+    glTextureParameteri(m_rendererID, GL_TEXTURE_MAG_FILTER, toGLFilter(assetSpec.MagFilter, false, false));
+
+    // 应用包裹模式
+    glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_S, toGLWrap(assetSpec.WrapS));
+    glTextureParameteri(m_rendererID, GL_TEXTURE_WRAP_T, toGLWrap(assetSpec.WrapT));
+
+    // 各向异性过滤
+    if (assetSpec.Anisotropy > 1.0f) {
+        GLfloat maxAniso = 1.0f;
+        glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &maxAniso);
+        float aniso = std::min(assetSpec.Anisotropy, maxAniso);
+        glTextureParameterf(m_rendererID, GL_TEXTURE_MAX_ANISOTROPY, aniso);
+    }
+
+    if (assetSpec.GenerateMipmaps)
+        glGenerateTextureMipmap(m_rendererID);
+
+    stbi_image_free(data);
+}
+
 OpenGLTexture2D::~OpenGLTexture2D() {
     FM_PROFILE_FUNCTION();
 

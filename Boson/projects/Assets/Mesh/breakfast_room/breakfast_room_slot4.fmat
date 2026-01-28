@@ -1,0 +1,12 @@
+Material:
+  Type: 2
+  Name: breakfast_room:Ceramic_001
+  Albedo: [0.5, 0.5, 0.5]
+  Metallic: 0
+  Roughness: 0.5
+  AO: 1
+  AlbedoMap: 0
+  NormalMap: 0
+  MetallicMap: 0
+  RoughnessMap: 0
+  AOMap: 0

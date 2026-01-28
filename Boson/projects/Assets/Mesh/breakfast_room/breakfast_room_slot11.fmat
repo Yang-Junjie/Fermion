@@ -1,0 +1,12 @@
+Material:
+  Type: 2
+  Name: breakfast_room:Paint___Black_Satin
+  Albedo: [0, 0, 0]
+  Metallic: 0
+  Roughness: 0.5
+  AO: 1
+  AlbedoMap: 0
+  NormalMap: 0
+  MetallicMap: 0
+  RoughnessMap: 0
+  AOMap: 0
