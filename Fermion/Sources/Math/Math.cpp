@@ -77,5 +77,40 @@ namespace Fermion::Math
 
         return true;
     }
+    std::array<glm::vec4, 6> ExtractFrustumPlanes(const glm::mat4 &viewProjection)
+    {
+        glm::mat4 m = glm::transpose(viewProjection);
+        std::array<glm::vec4, 6> planes = {
+            m[3] + m[0],
+            m[3] - m[0],
+            m[3] + m[1],
+            m[3] - m[1],
+            m[3] + m[2],
+            m[3] - m[2]};
 
+        for (auto &plane : planes)
+        {
+            float length = glm::length(glm::vec3(plane));
+            if (length > 0.0f)
+                plane /= length;
+        }
+
+        return planes;
+    }
+    bool IsAABBInsideFrustum(const std::array<glm::vec4, 6> &planes, const AABB &aabb)
+    {
+        for (const auto &plane : planes)
+        {
+            const glm::vec3 normal(plane.x, plane.y, plane.z);
+            const glm::vec3 positive = {
+                normal.x >= 0.0f ? aabb.max.x : aabb.min.x,
+                normal.y >= 0.0f ? aabb.max.y : aabb.min.y,
+                normal.z >= 0.0f ? aabb.max.z : aabb.min.z};
+
+            if (glm::dot(normal, positive) + plane.w < 0.0f)
+                return false;
+        }
+
+        return true;
+    }
 } // namespace Fermion::Math

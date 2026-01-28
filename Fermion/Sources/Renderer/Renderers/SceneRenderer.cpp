@@ -6,6 +6,13 @@
 #include "Renderer/UniformBufferLayout.hpp"
 #include "EnvironmentRenderer.hpp"
 #include "ShadowMapRenderer.hpp"
+#include "GBufferRenderer.hpp"
+#include "SSGIRenderer.hpp"
+#include "GTAORenderer.hpp"
+#include "DeferredLightingRenderer.hpp"
+#include "ForwardRenderer.hpp"
+#include "OutlineRenderer.hpp"
+#include "PostProcessRenderer.hpp"
 #include "Project/Project.hpp"
 #include "Renderer.hpp"
 #include <cfloat>
@@ -15,68 +22,6 @@ namespace Fermion
 {
     namespace
     {
-        std::array<glm::vec4, 6> ExtractFrustumPlanes(const glm::mat4 &viewProjection)
-        {
-            glm::mat4 m = glm::transpose(viewProjection);
-            std::array<glm::vec4, 6> planes = {
-                m[3] + m[0],
-                m[3] - m[0],
-                m[3] + m[1],
-                m[3] - m[1],
-                m[3] + m[2],
-                m[3] - m[2]};
-
-            for (auto &plane : planes)
-            {
-                float length = glm::length(glm::vec3(plane));
-                if (length > 0.0f)
-                    plane /= length;
-            }
-
-            return planes;
-        }
-
-        AABB TransformAABB(const AABB &aabb, const glm::mat4 &transform)
-        {
-            glm::vec3 min(FLT_MAX);
-            glm::vec3 max(-FLT_MAX);
-
-            const glm::vec3 corners[8] = {
-                {aabb.min.x, aabb.min.y, aabb.min.z},
-                {aabb.max.x, aabb.min.y, aabb.min.z},
-                {aabb.min.x, aabb.max.y, aabb.min.z},
-                {aabb.max.x, aabb.max.y, aabb.min.z},
-                {aabb.min.x, aabb.min.y, aabb.max.z},
-                {aabb.max.x, aabb.min.y, aabb.max.z},
-                {aabb.min.x, aabb.max.y, aabb.max.z},
-                {aabb.max.x, aabb.max.y, aabb.max.z}};
-
-            for (const auto &corner : corners)
-            {
-                glm::vec3 world = glm::vec3(transform * glm::vec4(corner, 1.0f));
-                min = glm::min(min, world);
-                max = glm::max(max, world);
-            }
-
-            return {min, max};
-        }
-
-        bool IsAABBInsideFrustum(const std::array<glm::vec4, 6> &planes, const AABB &aabb)
-        {
-            for (const auto &plane : planes)
-            {
-                const glm::vec3 normal(plane.x, plane.y, plane.z);
-                const glm::vec3 positive = {
-                    normal.x >= 0.0f ? aabb.max.x : aabb.min.x,
-                    normal.y >= 0.0f ? aabb.max.y : aabb.min.y,
-                    normal.z >= 0.0f ? aabb.max.z : aabb.min.z};
-
-                if (glm::dot(normal, positive) + plane.w < 0.0f)
-                    return false;
-            }
-
-            return true;
-        }
 
         bool IsTransparentMaterial(const std::shared_ptr<Material> &material)
         {
@@ -88,53 +33,29 @@ namespace Fermion
 
             return false;
         }
-
-        bool HasMatrixChanged(const glm::mat4 &a, const glm::mat4 &b, float epsilon)
-        {
-            for (int col = 0; col < 4; ++col)
-            {
-                for (int row = 0; row < 4; ++row)
-                {
-                    if (std::abs(a[col][row] - b[col][row]) > epsilon)
-                        return true;
-                }
-            }
-            return false;
-        }
-
     }
+
     SceneRenderer::SceneRenderer()
     {
         m_debugRenderer = std::make_shared<DebugRenderer>();
-
-        createPipelines();
-
-        // Fullscreen quad for depth view
-        float quadVertices[] = {
-            // positions        // texture coords
-            -1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-            -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-            1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-            1.0f, 1.0f, 0.0f, 1.0f, 1.0f};
-
-        uint32_t quadIndices[] = {0, 1, 2, 2, 3, 0};
-
-        auto quadVB = VertexBuffer::create(quadVertices, sizeof(quadVertices));
-        quadVB->setLayout({{ShaderDataType::Float3, "a_Position"},
-                           {ShaderDataType::Float2, "a_TexCoords"}});
-
-        auto quadIB = IndexBuffer::create(quadIndices, sizeof(quadIndices) / sizeof(uint32_t));
-
-        m_depthViewQuadVA = VertexArray::create();
-        m_depthViewQuadVA->addVertexBuffer(quadVB);
-        m_depthViewQuadVA->setIndexBuffer(quadIB);
 
         // Initialize uniform buffers
         m_cameraUniformBuffer = UniformBuffer::create(UniformBufferBinding::Camera, CameraData::getSize());
         m_modelUniformBuffer = UniformBuffer::create(UniformBufferBinding::Model, ModelData::getSize());
         m_lightUniformBuffer = UniformBuffer::create(UniformBufferBinding::Lights, LightData::getSize());
 
-        loadHDREnvironment(m_sceneData.hdrPath);
+        // Initialize sub-renderers
+        m_gBufferRenderer = std::make_unique<GBufferRenderer>();
+        m_ssgiRenderer = std::make_unique<SSGIRenderer>();
+        m_gtaoRenderer = std::make_unique<GTAORenderer>();
+        m_lightingRenderer = std::make_unique<DeferredLightingRenderer>();
+        m_forwardRenderer = std::make_unique<ForwardRenderer>();
+        m_outlineRenderer = std::make_unique<OutlineRenderer>();
+        m_postProcessRenderer = std::make_unique<PostProcessRenderer>();
+        m_environmentRenderer = std::make_unique<EnvironmentRenderer>();
+        m_shadowRenderer = std::make_unique<ShadowMapRenderer>();
+
+        loadHDREnvironment(m_sceneData.defaultHdrPath);
     }
 
     SceneRenderer::~SceneRenderer() = default;
@@ -158,7 +79,7 @@ namespace Fermion
     {
         m_sceneData.sceneCamera = camera;
         m_sceneData.sceneEnvironmentLight = m_scene->m_environmentLight;
-        m_cameraFrustumPlanes = ExtractFrustumPlanes(camera.camera.getProjection() * camera.view);
+        m_cameraFrustumPlanes = Math::ExtractFrustumPlanes(camera.camera.getProjection() * camera.view);
         m_hasCameraFrustum = true;
         Renderer2D::beginScene(camera.camera, camera.view);
         updateViewState(camera);
@@ -177,7 +98,7 @@ namespace Fermion
     void SceneRenderer::beginOverlay(const SceneRendererCamera &camera)
     {
         m_sceneData.sceneCamera = camera;
-        m_cameraFrustumPlanes = ExtractFrustumPlanes(camera.camera.getProjection() * camera.view);
+        m_cameraFrustumPlanes = Math::ExtractFrustumPlanes(camera.camera.getProjection() * camera.view);
         m_hasCameraFrustum = true;
         Renderer2D::beginScene(camera.camera, camera.view);
         updateViewState(camera);
@@ -197,6 +118,29 @@ namespace Fermion
         m_cameraUniformBuffer->setData(&cameraData, sizeof(CameraData));
     }
 
+    void SceneRenderer::updateRenderContext()
+    {
+        m_renderContext.cameraUBO = m_cameraUniformBuffer;
+        m_renderContext.modelUBO = m_modelUniformBuffer;
+        m_renderContext.lightUBO = m_lightUniformBuffer;
+        m_renderContext.camera = m_sceneData.sceneCamera;
+        m_renderContext.environmentLight = m_sceneData.sceneEnvironmentLight;
+        m_renderContext.viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
+        m_renderContext.viewportHeight = m_scene ? m_scene->getViewportHeight() : 0;
+        m_renderContext.targetFramebuffer = m_targetFramebuffer;
+        m_renderContext.ambientIntensity = m_sceneData.ambientIntensity;
+        m_renderContext.enableShadows = m_sceneData.enableShadows;
+        m_renderContext.shadowBias = m_sceneData.shadowBias;
+        m_renderContext.shadowSoftness = m_sceneData.shadowSoftness;
+        m_renderContext.normalMapStrength = m_sceneData.normalMapStrength;
+        m_renderContext.toksvigStrength = m_sceneData.toksvigStrength;
+        m_renderContext.useIBL = m_sceneData.useIBL;
+        m_renderContext.irradianceMapSize = m_sceneData.irradianceMapSize;
+        m_renderContext.prefilterMapSize = m_sceneData.prefilterMapSize;
+        m_renderContext.brdfLUTSize = m_sceneData.brdfLUTSize;
+        m_renderContext.prefilterMaxMipLevels = m_sceneData.prefilterMaxMipLevels;
+    }
+
     void SceneRenderer::endScene()
     {
         FlushDrawList();
@@ -205,12 +149,12 @@ namespace Fermion
 
     void SceneRenderer::endOverlay()
     {
-        for (auto &cmd : s_MeshDrawList)
+        for (auto &cmd : m_meshDrawList)
         {
             if (cmd.drawOutline && cmd.visible)
                 Renderer2D::drawAABB(cmd.aabb, cmd.transform, m_sceneData.meshOutlineColor, cmd.objectID);
         }
-        s_MeshDrawList.clear();
+        m_meshDrawList.clear();
 
         Renderer2D::endScene();
     }
@@ -278,8 +222,8 @@ namespace Fermion
                 bool visible = true;
                 if (m_hasCameraFrustum)
                 {
-                    const AABB worldAabb = TransformAABB(mesh->getBoundingBox(), transform);
-                    visible = IsAABBInsideFrustum(m_cameraFrustumPlanes, worldAabb);
+                    const AABB worldAabb = AABB::TransformAABB(mesh->getBoundingBox(), transform);
+                    visible = Math::IsAABBInsideFrustum(m_cameraFrustumPlanes, worldAabb);
                 }
                 for (size_t i = 0; i < submeshes.size(); i++)
                 {
@@ -302,10 +246,10 @@ namespace Fermion
                         material->setAO(1.0f);
                     }
 
-                    // 创建绘制命令
+                    // Create draw command using forward renderer pipelines
                     MaterialType matType = material->getType();
                     MeshDrawCommand cmd;
-                    cmd.pipeline = (matType == MaterialType::PBR) ? m_PBRMeshPipeline : m_MeshPipeline;
+                    cmd.pipeline = (matType == MaterialType::PBR) ? m_forwardRenderer->getPBRPipeline() : m_forwardRenderer->getPhongPipeline();
                     cmd.vao = vao;
                     cmd.material = material;
                     cmd.transform = transform;
@@ -317,7 +261,7 @@ namespace Fermion
                     cmd.transparent = IsTransparentMaterial(material);
                     cmd.aabb = mesh->getBoundingBox();
 
-                    s_MeshDrawList.emplace_back(std::move(cmd));
+                    m_meshDrawList.emplace_back(std::move(cmd));
                 }
             }
         }
@@ -351,924 +295,33 @@ namespace Fermion
         result.renderer3D = m_renderer3DStatistics;
         return result;
     }
+    void SceneRenderer::FlushDrawList()
+    {
+        m_renderGraph.reset();
+        updateRenderContext();
+
+        m_renderer3DStatistics.meshCount += static_cast<uint32_t>(m_meshDrawList.size());
+
+        const FrameFlags flags = PrepareFrameFlags();
+        const FrameResources resources = PrepareResources(flags);
+        PrepareEnvironmentAndShadows(resources);
+
+        if (flags.useDeferred)
+            RenderDeferredPath(resources, flags);
+        else
+            RenderForwardPath(resources, flags);
+
+        AddPostProcessingPasses(resources, flags);
+
+        RendererBackend backend(RenderCommand::GetRendererAPI());
+        m_renderGraph.execute(m_commandQueue, backend);
+        m_meshDrawList.clear();
+        m_outlineIDs.clear();
+    }
 
     void SceneRenderer::setOutlineIDs(const std::vector<int> &ids)
     {
         m_outlineIDs = ids;
-    }
-
-    void SceneRenderer::createPipelines()
-    {
-        // Phong Mesh Pipeline
-        {
-            PipelineSpecification meshSpec;
-            meshSpec.shader = Renderer::getShaderLibrary()->get("Mesh");
-            meshSpec.depthTest = true;
-            meshSpec.depthWrite = true;
-            meshSpec.depthOperator = DepthCompareOperator::Less;
-            meshSpec.cull = CullMode::Back;
-
-            m_MeshPipeline = Pipeline::create(meshSpec);
-        }
-
-        // PBR Mesh Pipeline
-        {
-            PipelineSpecification pbrSpec;
-            pbrSpec.shader = Renderer::getShaderLibrary()->get("PBRMesh");
-            pbrSpec.depthTest = true;
-            pbrSpec.depthWrite = true;
-            pbrSpec.depthOperator = DepthCompareOperator::Less;
-            pbrSpec.cull = CullMode::Back;
-
-            m_PBRMeshPipeline = Pipeline::create(pbrSpec);
-        }
-
-        // G-Buffer Mesh Pipeline (Phong)
-        {
-            PipelineSpecification gbufferSpec;
-            gbufferSpec.shader = Renderer::getShaderLibrary()->get("GBufferMesh");
-            gbufferSpec.depthTest = true;
-            gbufferSpec.depthWrite = true;
-            gbufferSpec.depthOperator = DepthCompareOperator::Less;
-            gbufferSpec.cull = CullMode::Back;
-
-            m_GBufferMeshPipeline = Pipeline::create(gbufferSpec);
-        }
-
-        // G-Buffer Mesh Pipeline (PBR)
-        {
-            PipelineSpecification gbufferPbrSpec;
-            gbufferPbrSpec.shader = Renderer::getShaderLibrary()->get("GBufferPBRMesh");
-            gbufferPbrSpec.depthTest = true;
-            gbufferPbrSpec.depthWrite = true;
-            gbufferPbrSpec.depthOperator = DepthCompareOperator::Less;
-            gbufferPbrSpec.cull = CullMode::Back;
-
-            m_GBufferPBRMeshPipeline = Pipeline::create(gbufferPbrSpec);
-        }
-
-        // Deferred Lighting Pipeline
-        {
-            PipelineSpecification lightingSpec;
-            lightingSpec.shader = Renderer::getShaderLibrary()->get("DeferredLighting");
-            lightingSpec.depthTest = false;
-            lightingSpec.depthWrite = false;
-            lightingSpec.cull = CullMode::None;
-
-            m_DeferredLightingPipeline = Pipeline::create(lightingSpec);
-        }
-
-        // G-Buffer Debug Pipeline
-        {
-            PipelineSpecification debugSpec;
-            debugSpec.shader = Renderer::getShaderLibrary()->get("GBufferDebug");
-            debugSpec.depthTest = false;
-            debugSpec.depthWrite = false;
-            debugSpec.cull = CullMode::None;
-
-            m_GBufferDebugPipeline = Pipeline::create(debugSpec);
-        }
-
-        // G-Buffer Outline Pipeline
-        {
-            PipelineSpecification outlineSpec;
-            outlineSpec.shader = Renderer::getShaderLibrary()->get("GBufferOutline");
-            outlineSpec.depthTest = false;
-            outlineSpec.depthWrite = false;
-            outlineSpec.cull = CullMode::None;
-
-            m_GBufferOutlinePipeline = Pipeline::create(outlineSpec);
-        }
-
-        // SSGI Pipeline
-        {
-            PipelineSpecification ssgiSpec;
-            ssgiSpec.shader = Renderer::getShaderLibrary()->get("SSGI");
-            ssgiSpec.depthTest = false;
-            ssgiSpec.depthWrite = false;
-            ssgiSpec.cull = CullMode::None;
-
-            m_SSGIPipeline = Pipeline::create(ssgiSpec);
-        }
-
-        // GTAO Pipeline
-        {
-            PipelineSpecification gtaoSpec;
-            gtaoSpec.shader = Renderer::getShaderLibrary()->get("GTAO");
-            gtaoSpec.depthTest = false;
-            gtaoSpec.depthWrite = false;
-            gtaoSpec.cull = CullMode::None;
-
-            m_GTAOPipeline = Pipeline::create(gtaoSpec);
-        }
-
-        m_environmentRenderer = std::make_unique<EnvironmentRenderer>();
-        m_shadowRenderer = std::make_unique<ShadowMapRenderer>();
-
-        // DepthView Pipeline
-        {
-            PipelineSpecification depthViewSpec;
-            depthViewSpec.shader = Renderer::getShaderLibrary()->get("DepthView");
-            depthViewSpec.depthTest = false;
-            depthViewSpec.depthWrite = false;
-            depthViewSpec.cull = CullMode::None;
-            m_DepthViewPipeline = Pipeline::create(depthViewSpec);
-        }
-    }
-
-    void SceneRenderer::ForwardPass(ResourceHandle shadowMap, ResourceHandle sceneDepth, ResourceHandle lightingResult)
-    {
-        LegacyRenderGraphPass pass;
-        pass.Name = "ForwardPass";
-        pass.Inputs = {shadowMap};
-        pass.Outputs = {sceneDepth, lightingResult};
-        pass.Execute = [this](CommandBuffer &commandBuffer)
-        {
-            recordForwardPass(commandBuffer, false);
-        };
-        m_RenderGraph.addPass(pass);
-    }
-
-    void SceneRenderer::GBufferPass(ResourceHandle gBuffer, ResourceHandle sceneDepth)
-    {
-        LegacyRenderGraphPass pass;
-        pass.Name = "GBufferPass";
-        pass.Outputs = {gBuffer, sceneDepth};
-        pass.Execute = [this](CommandBuffer &commandBuffer)
-        {
-            recordGBufferPass(commandBuffer);
-        };
-        m_RenderGraph.addPass(pass);
-    }
-
-    void SceneRenderer::recordGBufferPass(CommandBuffer &commandBuffer)
-    {
-        commandBuffer.record([this](RendererAPI &api)
-                             {
-            if (!m_gBufferFramebuffer)
-                return;
-
-            m_gBufferFramebuffer->bind();
-            RenderCommand::setBlendEnabled(false);
-            RenderCommand::setClearColor({0.0f, 0.0f, 0.0f, 1.0f});
-            RenderCommand::clear();
-            m_gBufferFramebuffer->clearAttachment(static_cast<uint32_t>(GBufferAttachment::ObjectID), -1);
-
-            std::shared_ptr<Pipeline> currentPipeline = nullptr;
-            const glm::mat4 viewProjection = m_sceneData.sceneCamera.camera.getProjection() * m_sceneData.sceneCamera.view;
-            EnvironmentRenderer::IBLSettings iblSettings = {
-                .useIBL = m_sceneData.useIBL,
-                .irradianceMapSize = m_sceneData.irradianceMapSize,
-                .prefilterMapSize = m_sceneData.prefilterMapSize,
-                .brdfLUTSize = m_sceneData.brdfLUTSize,
-                .prefilterMaxMipLevels = m_sceneData.prefilterMaxMipLevels
-            };
-            uint32_t viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
-            uint32_t viewportHeight = m_scene ? m_scene->getViewportHeight() : 0;
-
-            if (m_environmentRenderer)
-            {
-                m_environmentRenderer->ensureIBLInitialized(iblSettings, m_targetFramebuffer, viewportWidth, viewportHeight,
-                                                            &m_renderer3DStatistics.iblDrawCalls);
-            }
-
-            for (auto &cmd : s_MeshDrawList)
-            {
-                if (!cmd.visible || cmd.transparent)
-                    continue;
-
-                const bool isPbr = cmd.pipeline == m_PBRMeshPipeline;
-                auto desiredPipeline = isPbr ? m_GBufferPBRMeshPipeline : m_GBufferMeshPipeline;
-                if (!desiredPipeline)
-                    continue;
-
-                if (currentPipeline != desiredPipeline)
-                {
-                    currentPipeline = desiredPipeline;
-                    currentPipeline->bind();
-                    auto shader = currentPipeline->getShader();
-                    // Camera UBO is already bound globally
-                    if (isPbr)
-                    {
-                        shader->setFloat("u_NormalStrength", m_sceneData.normalMapStrength);
-                        shader->setFloat("u_ToksvigStrength", m_sceneData.toksvigStrength);
-                    }
-                }
-
-                // Update model uniform buffer for this draw call
-                ModelData modelData;
-                modelData.model = cmd.transform;
-                modelData.normalMatrix = glm::transpose(glm::inverse(cmd.transform));
-                modelData.objectID = cmd.objectID;
-                m_modelUniformBuffer->setData(&modelData, sizeof(ModelData));
-
-                if (cmd.material)
-                    cmd.material->bind(currentPipeline->getShader());
-
-                RenderCommand::drawIndexed(cmd.vao, cmd.indexCount, cmd.indexOffset);
-                m_renderer3DStatistics.geometryDrawCalls++;
-            }
-
-            if (m_targetFramebuffer)
-            {
-                Framebuffer::blit(m_gBufferFramebuffer, m_targetFramebuffer, {
-                    .mask = FramebufferBlitMask::Depth
-                });
-                m_targetFramebuffer->bind();
-            }
-            else
-            {
-                m_gBufferFramebuffer->unbind();
-                uint32_t viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
-                uint32_t viewportHeight = m_scene ? m_scene->getViewportHeight() : 0;
-                if (viewportWidth > 0 && viewportHeight > 0)
-                    RenderCommand::setViewport(0, 0, viewportWidth, viewportHeight);
-            RenderCommand::setBlendEnabled(true);
-            } });
-    }
-
-    void SceneRenderer::LightingPass(ResourceHandle gBuffer, ResourceHandle shadowMap, ResourceHandle sceneDepth, ResourceHandle ssgi,
-                                     ResourceHandle gtao, ResourceHandle lightingResult)
-    {
-        LegacyRenderGraphPass pass;
-        pass.Name = "LightingPass";
-        pass.Inputs = {gBuffer, shadowMap, sceneDepth, ssgi, gtao};
-        pass.Outputs = {lightingResult};
-        pass.Execute = [this](CommandBuffer &commandBuffer)
-        {
-            recordLightingPass(commandBuffer);
-        };
-        m_RenderGraph.addPass(pass);
-    }
-
-    void SceneRenderer::recordLightingPass(CommandBuffer &commandBuffer)
-    {
-        commandBuffer.record([this](RendererAPI &api)
-                             {
-        if (!m_gBufferFramebuffer || !m_DeferredLightingPipeline)
-            return;
-
-        if (m_targetFramebuffer)
-        {
-            m_targetFramebuffer->bind();
-        }
-        else
-        {
-            uint32_t viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
-            uint32_t viewportHeight = m_scene ? m_scene->getViewportHeight() : 0;
-            if (viewportWidth > 0 && viewportHeight > 0)
-                RenderCommand::setViewport(0, 0, viewportWidth, viewportHeight);
-        }
-
-        m_DeferredLightingPipeline->bind();
-        auto shader = m_DeferredLightingPipeline->getShader();
-
-        shader->setInt("u_GBufferAlbedo", 0);
-        shader->setInt("u_GBufferNormal", 1);
-        shader->setInt("u_GBufferMaterial", 2);
-        shader->setInt("u_GBufferEmissive", 3);
-        shader->setInt("u_GBufferDepth", 4);
-        shader->setInt("u_SSGI", 5);
-        shader->setInt("u_GTAO", 6);
-
-        m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Albedo), 0);
-        m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Normal), 1);
-        m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Material), 2);
-        m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Emissive), 3);
-        m_gBufferFramebuffer->bindDepthAttachment(4);
-        const bool useSSGI = m_sceneData.enableSSGI && m_ssgiFramebuffer;
-        shader->setBool("u_EnableSSGI", useSSGI);
-        if (useSSGI)
-            m_ssgiFramebuffer->bindColorAttachment(0, 5);
-        const bool useGTAO = m_sceneData.enableGTAO && m_gtaoFramebuffer;
-        shader->setBool("u_EnableGTAO", useGTAO);
-        if (useGTAO)
-            m_gtaoFramebuffer->bindColorAttachment(0, 6);
-
-        const glm::mat4 viewProjection = m_sceneData.sceneCamera.camera.getProjection() * m_sceneData.sceneCamera.view;
-        const glm::mat4 inverseViewProjection = glm::inverse(viewProjection);
-        shader->setMat4("u_InverseViewProjection", inverseViewProjection);
-
-        // Update light uniform buffer
-        LightData lightData;
-        lightData.lightSpaceMatrix = m_shadowRenderer ? m_shadowRenderer->getLightSpaceMatrix() : glm::mat4(1.0f);
-
-        // Main directional light (first one, used for shadow mapping)
-        if (!m_sceneData.sceneEnvironmentLight.directionalLights.empty())
-        {
-            const auto& mainLight = m_sceneData.sceneEnvironmentLight.directionalLights[0];
-            lightData.dirLightDirection = -mainLight.direction;
-            lightData.dirLightIntensity = mainLight.intensity;
-            lightData.dirLightColor = mainLight.color;
-        }
-        else
-        {
-            lightData.dirLightDirection = glm::vec3(0.0f, -1.0f, 0.0f);
-            lightData.dirLightIntensity = 0.0f;
-            lightData.dirLightColor = glm::vec3(0.0f);
-        }
-
-        lightData.shadowBias = m_sceneData.shadowBias;
-        lightData.shadowSoftness = m_sceneData.shadowSoftness;
-        lightData.enableShadows = (m_sceneData.enableShadows && m_shadowRenderer && m_shadowRenderer->getShadowMapFramebuffer()) ? 1 : 0;
-        lightData.numDirLights = std::max(0, std::min(4, (int)m_sceneData.sceneEnvironmentLight.directionalLights.size() - 1));
-        lightData.ambientIntensity = m_sceneData.ambientIntensity;
-        lightData.numPointLights = std::min(16u, (uint32_t)m_sceneData.sceneEnvironmentLight.pointLights.size());
-        lightData.numSpotLights = std::min(16u, (uint32_t)m_sceneData.sceneEnvironmentLight.spotLights.size());
-        m_lightUniformBuffer->setData(&lightData, sizeof(LightData));
-
-        EnvironmentRenderer::IBLSettings iblSettings = {
-            .useIBL = m_sceneData.useIBL,
-            .irradianceMapSize = m_sceneData.irradianceMapSize,
-            .prefilterMapSize = m_sceneData.prefilterMapSize,
-            .brdfLUTSize = m_sceneData.brdfLUTSize,
-            .prefilterMaxMipLevels = m_sceneData.prefilterMaxMipLevels
-        };
-        uint32_t viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
-        uint32_t viewportHeight = m_scene ? m_scene->getViewportHeight() : 0;
-
-        if (m_environmentRenderer)
-        {
-            m_environmentRenderer->ensureIBLInitialized(iblSettings, m_targetFramebuffer, viewportWidth, viewportHeight,
-                                                        &m_renderer3DStatistics.iblDrawCalls);
-            m_environmentRenderer->bindIBL(shader, iblSettings);
-        }
-        else
-        {
-            shader->setBool("u_UseIBL", false);
-        }
-
-        bool enableShadows = m_sceneData.enableShadows && m_shadowRenderer && m_shadowRenderer->getShadowMapFramebuffer();
-        if (enableShadows)
-        {
-            shader->setInt("u_ShadowMap", 10);
-            m_shadowRenderer->getShadowMapFramebuffer()->bindDepthAttachment(10);
-        }
-
-        // Additional directional lights (excluding the main one)
-        uint32_t maxDirLights = 4;
-        uint32_t dirLightCount = 0;
-        if (m_sceneData.sceneEnvironmentLight.directionalLights.size() > 1)
-        {
-            dirLightCount = std::min(maxDirLights, (uint32_t)(m_sceneData.sceneEnvironmentLight.directionalLights.size() - 1));
-        }
-        shader->setInt("u_DirLightCount", dirLightCount);
-        for (uint32_t i = 0; i < dirLightCount; i++)
-        {
-            const auto &l = m_sceneData.sceneEnvironmentLight.directionalLights[i + 1]; // Skip main light at index 0
-            std::string base = "u_DirLights[" + std::to_string(i) + "]";
-            shader->setFloat3(base + ".direction", l.direction);
-            shader->setFloat3(base + ".color", l.color);
-            shader->setFloat(base + ".intensity", l.intensity);
-        }
-
-        // Point and spot lights are still set via uniforms (not in UBO for now)
-        uint32_t maxLights = 16;
-        uint32_t pointCount = std::min(maxLights, (uint32_t)m_sceneData.sceneEnvironmentLight.pointLights.size());
-        shader->setInt("u_PointLightCount", pointCount);
-        for (uint32_t i = 0; i < pointCount; i++)
-        {
-            const auto &l = m_sceneData.sceneEnvironmentLight.pointLights[i];
-            std::string base = "u_PointLights[" + std::to_string(i) + "]";
-            shader->setFloat3(base + ".position", l.position);
-            shader->setFloat3(base + ".color", l.color);
-            shader->setFloat(base + ".intensity", l.intensity);
-            shader->setFloat(base + ".range", l.range);
-        }
-
-        uint32_t spotCount = std::min(maxLights, (uint32_t)m_sceneData.sceneEnvironmentLight.spotLights.size());
-        shader->setInt("u_SpotLightCount", spotCount);
-        for (uint32_t i = 0; i < spotCount; i++)
-        {
-            const auto &l = m_sceneData.sceneEnvironmentLight.spotLights[i];
-            std::string base = "u_SpotLights[" + std::to_string(i) + "]";
-            shader->setFloat3(base + ".position", l.position);
-            shader->setFloat3(base + ".direction", glm::normalize(l.direction));
-            shader->setFloat3(base + ".color", l.color);
-            shader->setFloat(base + ".intensity", l.intensity);
-            shader->setFloat(base + ".range", l.range);
-            shader->setFloat(base + ".innerConeAngle", l.innerConeAngle);
-            shader->setFloat(base + ".outerConeAngle", l.outerConeAngle);
-        }
-
-        RenderCommand::drawIndexed(m_depthViewQuadVA, m_depthViewQuadVA->getIndexBuffer()->getCount()); });
-    }
-
-    void SceneRenderer::SSGIPass(ResourceHandle gBuffer, ResourceHandle sceneDepth, ResourceHandle ssgi)
-    {
-        LegacyRenderGraphPass pass;
-        pass.Name = "SSGIPass";
-        pass.Inputs = {gBuffer, sceneDepth};
-        pass.Outputs = {ssgi};
-        pass.Execute = [this](CommandBuffer &commandBuffer)
-        {
-            recordSSGIPass(commandBuffer);
-        };
-        m_RenderGraph.addPass(pass);
-    }
-
-    void SceneRenderer::recordSSGIPass(CommandBuffer &commandBuffer)
-    {
-        auto gBufferFramebuffer = m_gBufferFramebuffer;
-        auto ssgiPipeline = m_SSGIPipeline;
-        auto depthViewQuadVA = m_depthViewQuadVA;
-        if (!gBufferFramebuffer || !ssgiPipeline || !depthViewQuadVA || !m_ssgiFramebuffers[0] || !m_ssgiFramebuffers[1])
-            return;
-
-        const glm::mat4 viewProjection = m_sceneData.sceneCamera.camera.getProjection() * m_sceneData.sceneCamera.view;
-        const glm::mat4 inverseViewProjection = glm::inverse(viewProjection);
-
-        bool resetAccumulation = !m_ssgiHistoryValid || !m_ssgiWasEnabled;
-        const float epsilon = 1e-4f;
-        if (!resetAccumulation && HasMatrixChanged(viewProjection, m_lastSSGIViewProjection, epsilon))
-            resetAccumulation = true;
-        if (!resetAccumulation)
-        {
-            if (std::abs(m_sceneData.ssgiRadius - m_lastSSGIRadius) > epsilon ||
-                std::abs(m_sceneData.ssgiBias - m_lastSSGIBias) > epsilon ||
-                std::abs(m_sceneData.ssgiIntensity - m_lastSSGIIntensity) > epsilon ||
-                m_sceneData.ssgiSampleCount != m_lastSSGISampleCount)
-                resetAccumulation = true;
-        }
-
-        if (resetAccumulation)
-            m_ssgiFrameIndex = 0;
-
-        int sampleCount = m_sceneData.ssgiSampleCount;
-        if (sampleCount < 1)
-            sampleCount = 1;
-        if (sampleCount > 64)
-            sampleCount = 64;
-
-        const uint32_t historyIndex = m_ssgiHistoryIndex;
-        const uint32_t currentIndex = (historyIndex + 1) % 2;
-        auto historyFramebuffer = m_ssgiFramebuffers[historyIndex];
-        auto currentFramebuffer = m_ssgiFramebuffers[currentIndex];
-        if (!historyFramebuffer || !currentFramebuffer)
-            return;
-
-        const int frameIndex = static_cast<int>(m_ssgiFrameIndex);
-        const float radius = m_sceneData.ssgiRadius;
-        const float bias = m_sceneData.ssgiBias;
-        const float intensity = m_sceneData.ssgiIntensity;
-
-        commandBuffer.record([gBufferFramebuffer, ssgiPipeline, depthViewQuadVA, currentFramebuffer, historyFramebuffer,
-                              viewProjection, inverseViewProjection, sampleCount, radius, bias, intensity, frameIndex](RendererAPI &api)
-                             {
-            if (!gBufferFramebuffer || !ssgiPipeline || !currentFramebuffer || !depthViewQuadVA)
-                return;
-
-            currentFramebuffer->bind();
-            RenderCommand::setBlendEnabled(false);
-            RenderCommand::setClearColor({0.0f, 0.0f, 0.0f, 1.0f});
-            RenderCommand::clear();
-
-            ssgiPipeline->bind();
-            auto shader = ssgiPipeline->getShader();
-
-            shader->setInt("u_GBufferAlbedo", 0);
-            shader->setInt("u_GBufferNormal", 1);
-            shader->setInt("u_GBufferDepth", 2);
-            shader->setInt("u_SSGIHistory", 3);
-
-            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Albedo), 0);
-            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Normal), 1);
-            gBufferFramebuffer->bindDepthAttachment(2);
-            historyFramebuffer->bindColorAttachment(0, 3);
-
-            shader->setMat4("u_ViewProjection", viewProjection);
-            shader->setMat4("u_InverseViewProjection", inverseViewProjection);
-
-            shader->setInt("u_SSGISampleCount", sampleCount);
-            shader->setFloat("u_SSGIRadius", radius);
-            shader->setFloat("u_SSGIBias", bias);
-            shader->setFloat("u_SSGIIntensity", intensity);
-            shader->setInt("u_FrameIndex", frameIndex);
-
-            RenderCommand::drawIndexed(depthViewQuadVA, depthViewQuadVA->getIndexBuffer()->getCount());
-            RenderCommand::setBlendEnabled(true); });
-
-        m_ssgiFramebuffer = currentFramebuffer;
-        m_ssgiHistoryIndex = currentIndex;
-        m_ssgiHistoryValid = true;
-        m_ssgiWasEnabled = true;
-        m_lastSSGIViewProjection = viewProjection;
-        m_lastSSGIRadius = radius;
-        m_lastSSGIBias = bias;
-        m_lastSSGIIntensity = intensity;
-        m_lastSSGISampleCount = sampleCount;
-
-        m_ssgiFrameIndex++;
-    }
-
-    void SceneRenderer::GTAOPass(ResourceHandle gBuffer, ResourceHandle sceneDepth, ResourceHandle gtao)
-    {
-        LegacyRenderGraphPass pass;
-        pass.Name = "GTAOPass";
-        pass.Inputs = {gBuffer, sceneDepth};
-        pass.Outputs = {gtao};
-        pass.Execute = [this](CommandBuffer &commandBuffer)
-        {
-            recordGTAOPass(commandBuffer);
-        };
-        m_RenderGraph.addPass(pass);
-    }
-
-    void SceneRenderer::recordGTAOPass(CommandBuffer &commandBuffer)
-    {
-        auto gBufferFramebuffer = m_gBufferFramebuffer;
-        auto gtaoPipeline = m_GTAOPipeline;
-        auto depthViewQuadVA = m_depthViewQuadVA;
-        auto gtaoFramebuffer = m_gtaoFramebuffer;
-        if (!gBufferFramebuffer || !gtaoPipeline || !depthViewQuadVA || !gtaoFramebuffer)
-            return;
-
-        const glm::mat4 projection = m_sceneData.sceneCamera.camera.getProjection();
-        const glm::mat4 inverseProjection = glm::inverse(projection);
-        const glm::mat4 view = m_sceneData.sceneCamera.view;
-
-        int sliceCount = m_sceneData.gtaoSliceCount;
-        if (sliceCount < 1)
-            sliceCount = 1;
-        if (sliceCount > 12)
-            sliceCount = 12;
-
-        int stepCount = m_sceneData.gtaoStepCount;
-        if (stepCount < 1)
-            stepCount = 1;
-        if (stepCount > 16)
-            stepCount = 16;
-
-        const float radius = m_sceneData.gtaoRadius;
-        const float bias = m_sceneData.gtaoBias;
-        const float power = m_sceneData.gtaoPower;
-        const float intensity = m_sceneData.gtaoIntensity;
-
-        commandBuffer.record([gBufferFramebuffer, gtaoPipeline, depthViewQuadVA, gtaoFramebuffer,
-                              projection, inverseProjection, view, sliceCount, stepCount, radius, bias, power, intensity](RendererAPI &api)
-                             {
-            if (!gBufferFramebuffer || !gtaoPipeline || !gtaoFramebuffer || !depthViewQuadVA)
-                return;
-
-            gtaoFramebuffer->bind();
-            RenderCommand::setBlendEnabled(false);
-            RenderCommand::setClearColor({1.0f, 1.0f, 1.0f, 1.0f});
-            RenderCommand::clear();
-
-            gtaoPipeline->bind();
-            auto shader = gtaoPipeline->getShader();
-
-            shader->setInt("u_GBufferNormal", 0);
-            shader->setInt("u_GBufferDepth", 1);
-
-            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Normal), 0);
-            gBufferFramebuffer->bindDepthAttachment(1);
-
-            shader->setMat4("u_Projection", projection);
-            shader->setMat4("u_InverseProjection", inverseProjection);
-            shader->setMat4("u_View", view);
-            shader->setFloat("u_GTAORadius", radius);
-            shader->setFloat("u_GTAOBias", bias);
-            shader->setFloat("u_GTAOPower", power);
-            shader->setFloat("u_GTAOIntensity", intensity);
-            shader->setInt("u_GTAOSliceCount", sliceCount);
-            shader->setInt("u_GTAOStepCount", stepCount);
-
-            RenderCommand::drawIndexed(depthViewQuadVA, depthViewQuadVA->getIndexBuffer()->getCount());
-            RenderCommand::setBlendEnabled(true); });
-    }
-
-    void SceneRenderer::GBufferDebugPass(ResourceHandle gBuffer, ResourceHandle sceneDepth, ResourceHandle ssgi, ResourceHandle gtao)
-    {
-        LegacyRenderGraphPass pass;
-        pass.Name = "GBufferDebugPass";
-        pass.Inputs = {gBuffer, sceneDepth, ssgi, gtao};
-        pass.Execute = [this](CommandBuffer &commandBuffer)
-        {
-            recordGBufferDebugPass(commandBuffer);
-        };
-        m_RenderGraph.addPass(pass);
-    }
-
-    void SceneRenderer::recordGBufferDebugPass(CommandBuffer &commandBuffer)
-    {
-        commandBuffer.record([this](RendererAPI &api)
-                             {
-        if (!m_gBufferFramebuffer || !m_GBufferDebugPipeline)
-            return;
-
-        if (m_targetFramebuffer)
-        {
-            m_targetFramebuffer->bind();
-        }
-        else
-        {
-            uint32_t viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
-            uint32_t viewportHeight = m_scene ? m_scene->getViewportHeight() : 0;
-            if (viewportWidth > 0 && viewportHeight > 0)
-                RenderCommand::setViewport(0, 0, viewportWidth, viewportHeight);
-        }
-
-        m_GBufferDebugPipeline->bind();
-        auto shader = m_GBufferDebugPipeline->getShader();
-
-        shader->setInt("u_GBufferAlbedo", 0);
-        shader->setInt("u_GBufferNormal", 1);
-        shader->setInt("u_GBufferMaterial", 2);
-        shader->setInt("u_GBufferEmissive", 3);
-        shader->setInt("u_GBufferObjectID", 4);
-        shader->setInt("u_GBufferDepth", 5);
-        shader->setInt("u_SSGI", 6);
-        shader->setInt("u_GTAO", 7);
-        shader->setInt("u_Mode", static_cast<int>(m_sceneData.gbufferDebug));
-        shader->setFloat("u_Near", m_sceneData.sceneCamera.nearClip);
-        shader->setFloat("u_Far", m_sceneData.sceneCamera.farClip);
-        shader->setFloat("u_DepthPower", m_sceneData.depthViewPower);
-
-        m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Albedo), 0);
-        m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Normal), 1);
-        m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Material), 2);
-        m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Emissive), 3);
-        m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::ObjectID), 4);
-        m_gBufferFramebuffer->bindDepthAttachment(5);
-        if (m_ssgiFramebuffer)
-            m_ssgiFramebuffer->bindColorAttachment(0, 6);
-        if (m_gtaoFramebuffer)
-            m_gtaoFramebuffer->bindColorAttachment(0, 7);
-
-        RenderCommand::drawIndexed(m_depthViewQuadVA, m_depthViewQuadVA->getIndexBuffer()->getCount()); });
-    }
-
-    void SceneRenderer::TransparentPass(ResourceHandle shadowMap, ResourceHandle sceneDepth, ResourceHandle lightingResult)
-    {
-        LegacyRenderGraphPass pass;
-        pass.Name = "TransparentPass";
-        pass.Inputs = {shadowMap, sceneDepth, lightingResult};
-        pass.Execute = [this](CommandBuffer &commandBuffer)
-        {
-            recordForwardPass(commandBuffer, true);
-        };
-        m_RenderGraph.addPass(pass);
-    }
-
-    void SceneRenderer::recordForwardPass(CommandBuffer &commandBuffer, bool drawTransparent)
-    {
-        commandBuffer.record([this, drawTransparent](RendererAPI &api)
-                             {
-        std::shared_ptr<Pipeline> currentPipeline = nullptr;
-        EnvironmentRenderer::IBLSettings iblSettings = {
-            .useIBL = m_sceneData.useIBL,
-            .irradianceMapSize = m_sceneData.irradianceMapSize,
-            .prefilterMapSize = m_sceneData.prefilterMapSize,
-            .brdfLUTSize = m_sceneData.brdfLUTSize,
-            .prefilterMaxMipLevels = m_sceneData.prefilterMaxMipLevels
-        };
-        uint32_t viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
-        uint32_t viewportHeight = m_scene ? m_scene->getViewportHeight() : 0;
-
-        // Update light uniform buffer once for all forward pass draws
-        LightData lightData;
-        lightData.lightSpaceMatrix = m_shadowRenderer ? m_shadowRenderer->getLightSpaceMatrix() : glm::mat4(1.0f);
-
-        // Main directional light (first one, used for shadow mapping)
-        if (!m_sceneData.sceneEnvironmentLight.directionalLights.empty())
-        {
-            const auto& mainLight = m_sceneData.sceneEnvironmentLight.directionalLights[0];
-            lightData.dirLightDirection = -mainLight.direction;
-            lightData.dirLightIntensity = mainLight.intensity;
-            lightData.dirLightColor = mainLight.color;
-        }
-        else
-        {
-            lightData.dirLightDirection = glm::vec3(0.0f, -1.0f, 0.0f);
-            lightData.dirLightIntensity = 0.0f;
-            lightData.dirLightColor = glm::vec3(0.0f);
-        }
-
-        lightData.shadowBias = m_sceneData.shadowBias;
-        lightData.shadowSoftness = m_sceneData.shadowSoftness;
-        lightData.enableShadows = (m_sceneData.enableShadows && m_shadowRenderer && m_shadowRenderer->getShadowMapFramebuffer()) ? 1 : 0;
-        lightData.numDirLights = std::max(0, std::min(4, (int)m_sceneData.sceneEnvironmentLight.directionalLights.size() - 1));
-        lightData.ambientIntensity = m_sceneData.ambientIntensity;
-        lightData.numPointLights = std::min(16u, (uint32_t)m_sceneData.sceneEnvironmentLight.pointLights.size());
-        lightData.numSpotLights = std::min(16u, (uint32_t)m_sceneData.sceneEnvironmentLight.spotLights.size());
-        m_lightUniformBuffer->setData(&lightData, sizeof(LightData));
-
-        for (auto &cmd : s_MeshDrawList)
-        {
-            if (!cmd.visible)
-                continue;
-            if (cmd.transparent != drawTransparent)
-                continue;
-            if (currentPipeline != cmd.pipeline)
-            {
-                currentPipeline = cmd.pipeline;
-                currentPipeline->bind();
-            }
-
-            auto shader = currentPipeline->getShader();
-
-            // Update model uniform buffer for this draw call
-            ModelData modelData;
-            modelData.model = cmd.transform;
-            modelData.normalMatrix = glm::transpose(glm::inverse(cmd.transform));
-            modelData.objectID = cmd.objectID;
-            m_modelUniformBuffer->setData(&modelData, sizeof(ModelData));
-
-            if (cmd.pipeline == m_PBRMeshPipeline)
-            {
-                if (m_environmentRenderer)
-                {
-                    m_environmentRenderer->ensureIBLInitialized(iblSettings, m_targetFramebuffer, viewportWidth, viewportHeight,
-                                                                &m_renderer3DStatistics.iblDrawCalls);
-                    m_environmentRenderer->bindIBL(shader, iblSettings);
-                }
-                else
-                {
-                    shader->setBool("u_UseIBL", false);
-                }
-            }
-
-            // Shadow mapping - bind shadow map texture
-            bool enableShadows = m_sceneData.enableShadows && m_shadowRenderer && m_shadowRenderer->getShadowMapFramebuffer();
-            if (enableShadows)
-            {
-                shader->setInt("u_ShadowMap", 10);
-                m_shadowRenderer->getShadowMapFramebuffer()->bindDepthAttachment(10);
-            }
-
-            // Additional directional lights (excluding the main one)
-            uint32_t maxDirLights = 4;
-            uint32_t dirLightCount = 0;
-            if (m_sceneData.sceneEnvironmentLight.directionalLights.size() > 1)
-            {
-                dirLightCount = std::min(maxDirLights, (uint32_t)(m_sceneData.sceneEnvironmentLight.directionalLights.size() - 1));
-            }
-            shader->setInt("u_DirLightCount", dirLightCount);
-            for (uint32_t i = 0; i < dirLightCount; i++)
-            {
-                const auto &l = m_sceneData.sceneEnvironmentLight.directionalLights[i + 1]; // Skip main light at index 0
-                std::string base = "u_DirLights[" + std::to_string(i) + "]";
-                shader->setFloat3(base + ".direction", l.direction);
-                shader->setFloat3(base + ".color", l.color);
-                shader->setFloat(base + ".intensity", l.intensity);
-            }
-
-            // Point lights
-            uint32_t maxLights = 16;
-            uint32_t pointCount = std::min(maxLights, (uint32_t)m_sceneData.sceneEnvironmentLight.pointLights.size());
-            shader->setInt("u_PointLightCount", pointCount);
-            for (uint32_t i = 0; i < pointCount; i++)
-            {
-                const auto &l = m_sceneData.sceneEnvironmentLight.pointLights[i];
-                std::string base = "u_PointLights[" + std::to_string(i) + "]";
-                shader->setFloat3(base + ".position", l.position);
-                shader->setFloat3(base + ".color", l.color);
-                shader->setFloat(base + ".intensity", l.intensity);
-                shader->setFloat(base + ".range", l.range);
-            }
-
-            // Spot lights
-            uint32_t spotCount = std::min(maxLights, (uint32_t)m_sceneData.sceneEnvironmentLight.spotLights.size());
-            shader->setInt("u_SpotLightCount", spotCount);
-            for (uint32_t i = 0; i < spotCount; i++)
-            {
-                const auto &l = m_sceneData.sceneEnvironmentLight.spotLights[i];
-                std::string base = "u_SpotLights[" + std::to_string(i) + "]";
-                shader->setFloat3(base + ".position", l.position);
-                shader->setFloat3(base + ".direction", glm::normalize(l.direction));
-                shader->setFloat3(base + ".color", l.color);
-                shader->setFloat(base + ".intensity", l.intensity);
-                shader->setFloat(base + ".range", l.range);
-                shader->setFloat(base + ".innerConeAngle", l.innerConeAngle);
-                shader->setFloat(base + ".outerConeAngle", l.outerConeAngle);
-            }
-
-            // Normal map strength
-            shader->setFloat("u_NormalStrength", m_sceneData.normalMapStrength);
-            shader->setFloat("u_ToksvigStrength", m_sceneData.toksvigStrength);
-
-            if (cmd.material)
-                cmd.material->bind(shader);
-
-            RenderCommand::drawIndexed(cmd.vao, cmd.indexCount, cmd.indexOffset);
-            m_renderer3DStatistics.geometryDrawCalls++;
-        } });
-    }
-
-    void SceneRenderer::OutlinePass(ResourceHandle gBuffer, ResourceHandle sceneDepth, ResourceHandle lightingResult)
-    {
-        std::vector<int> outlineIDs = m_outlineIDs;
-        bool hasOutlineDrawCommands = false;
-        for (const auto &cmd : s_MeshDrawList)
-        {
-            if (cmd.drawOutline && cmd.visible)
-            {
-                hasOutlineDrawCommands = true;
-                outlineIDs.push_back(cmd.objectID);
-            }
-        }
-
-        std::vector<int> uniqueIDs;
-        uniqueIDs.reserve(outlineIDs.size());
-        const size_t maxOutlineIDs = 32;
-        for (int id : outlineIDs)
-        {
-            if (id < 0)
-                continue;
-
-            bool exists = false;
-            for (int existing : uniqueIDs)
-            {
-                if (existing == id)
-                {
-                    exists = true;
-                    break;
-                }
-            }
-
-            if (!exists)
-                uniqueIDs.push_back(id);
-
-            if (uniqueIDs.size() >= maxOutlineIDs)
-                break;
-        }
-
-        const bool canUseGBuffer = m_sceneData.renderMode == RenderMode::DeferredHybrid &&
-                                   m_gBufferFramebuffer &&
-                                   m_GBufferOutlinePipeline;
-
-        if (canUseGBuffer && !uniqueIDs.empty())
-        {
-            LegacyRenderGraphPass pass;
-            pass.Name = "OutlinePass";
-            pass.Inputs = {gBuffer, sceneDepth, lightingResult};
-            pass.Execute = [this, outlineIDs = std::move(uniqueIDs)](CommandBuffer &commandBuffer)
-            {
-                recordOutlinePostProcess(commandBuffer, outlineIDs);
-            };
-            m_RenderGraph.addPass(pass);
-            return;
-        }
-
-        if (!hasOutlineDrawCommands)
-            return;
-
-        LegacyRenderGraphPass pass;
-        pass.Name = "OutlinePass";
-        pass.Inputs = {lightingResult};
-        pass.Execute = [this](CommandBuffer &commandBuffer)
-        {
-            Renderer2D::recordOutlinePass(commandBuffer, s_MeshDrawList, m_sceneData.meshOutlineColor);
-        };
-        m_RenderGraph.addPass(pass);
-    }
-
-    void SceneRenderer::recordOutlinePostProcess(CommandBuffer &commandBuffer, const std::vector<int> &outlineIDs)
-    {
-        commandBuffer.record([this, outlineIDs](RendererAPI &api)
-                             {
-            if (!m_gBufferFramebuffer || !m_GBufferOutlinePipeline || outlineIDs.empty())
-                return;
-
-            if (m_targetFramebuffer)
-            {
-                m_targetFramebuffer->bind();
-            }
-            else
-            {
-                uint32_t viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
-                uint32_t viewportHeight = m_scene ? m_scene->getViewportHeight() : 0;
-                if (viewportWidth > 0 && viewportHeight > 0)
-                    RenderCommand::setViewport(0, 0, viewportWidth, viewportHeight);
-            }
-
-            m_GBufferOutlinePipeline->bind();
-            auto shader = m_GBufferOutlinePipeline->getShader();
-
-            shader->setInt("u_GBufferNormal", 0);
-            shader->setInt("u_GBufferDepth", 1);
-            shader->setInt("u_GBufferObjectID", 2);
-
-            m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::Normal), 0);
-            m_gBufferFramebuffer->bindDepthAttachment(1);
-            m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferAttachment::ObjectID), 2);
-
-            shader->setFloat4("u_OutlineColor", m_sceneData.meshOutlineColor);
-            int outlineCount = static_cast<int>(outlineIDs.size());
-            if (outlineCount > 32)
-                outlineCount = 32;
-            shader->setInt("u_OutlineIDCount", outlineCount);
-            if (outlineCount > 0)
-                shader->setIntArray("u_OutlineIDs", const_cast<int *>(outlineIDs.data()), outlineCount);
-
-            shader->setFloat("u_Near", m_sceneData.sceneCamera.nearClip);
-            shader->setFloat("u_Far", m_sceneData.sceneCamera.farClip);
-            shader->setFloat("u_DepthThreshold", m_sceneData.outlineDepthThreshold);
-            shader->setFloat("u_NormalThreshold", m_sceneData.outlineNormalThreshold);
-            shader->setFloat("u_Thickness", m_sceneData.outlineThickness);
-
-            RenderCommand::drawIndexed(m_depthViewQuadVA, m_depthViewQuadVA->getIndexBuffer()->getCount()); });
     }
 
     void SceneRenderer::SkyboxPass(ResourceHandle lightingResult)
@@ -1276,12 +329,13 @@ namespace Fermion
         if (!m_environmentRenderer)
             return;
 
-        m_environmentRenderer->addSkyboxPass(m_RenderGraph,
+        m_environmentRenderer->addSkyboxPass(m_renderGraph,
                                              m_sceneData.sceneCamera.view,
                                              m_sceneData.sceneCamera.camera.getProjection(),
                                              &m_renderer3DStatistics.skyboxDrawCalls,
                                              lightingResult);
     }
+
     void SceneRenderer::ShadowPass(ResourceHandle shadowMap)
     {
         if (!m_shadowRenderer)
@@ -1293,174 +347,30 @@ namespace Fermion
 
         uint32_t viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
         uint32_t viewportHeight = m_scene ? m_scene->getViewportHeight() : 0;
-        m_shadowRenderer->addPass(m_RenderGraph,
-                                  shadowMap,
-                                  s_MeshDrawList,
-                                  m_sceneData.sceneEnvironmentLight.directionalLights[0],
-                                  m_sceneData.shadowMapSize,
-                                  m_targetFramebuffer,
-                                  viewportWidth,
-                                  viewportHeight,
-                                  &m_renderer3DStatistics.shadowDrawCalls,
-                                  m_modelUniformBuffer,
-                                  m_lightUniformBuffer);
+        m_shadowRenderer->addPass(
+            m_renderGraph,
+            shadowMap,
+            m_meshDrawList,
+            m_sceneData.sceneEnvironmentLight.directionalLights[0],
+            m_sceneData.shadowMapSize,
+            m_targetFramebuffer,
+            viewportWidth,
+            viewportHeight,
+            &m_renderer3DStatistics.shadowDrawCalls,
+            m_modelUniformBuffer,
+            m_lightUniformBuffer);
     }
 
-    void SceneRenderer::DepthViewPass(ResourceHandle sceneDepth, ResourceHandle lightingResult)
+    SceneRenderer::FrameFlags SceneRenderer::PrepareFrameFlags() const
     {
-        if (!m_targetFramebuffer)
-            return;
-
-        LegacyRenderGraphPass pass;
-        pass.Name = "DepthViewPass";
-        pass.Inputs = {sceneDepth, lightingResult};
-        pass.Execute = [this](CommandBuffer &commandBuffer)
-        {
-            commandBuffer.record([this](RendererAPI &api)
-                                 {
-                m_DepthViewPipeline->bind();
-                auto shader = m_DepthViewPipeline->getShader();
-
-                shader->setInt("u_Depth", 0);
-                if (m_gBufferFramebuffer && m_sceneData.renderMode == RenderMode::DeferredHybrid)
-                {
-                    m_gBufferFramebuffer->bindDepthAttachment(0);
-                }
-                else
-                {
-                    m_targetFramebuffer->bindDepthAttachment(0);
-                }
-
-                shader->setFloat("u_Near", m_sceneData.sceneCamera.nearClip);
-                shader->setFloat("u_Far", m_sceneData.sceneCamera.farClip);
-                shader->setInt("u_IsPerspective", 1);
-
-                shader->setFloat("u_Power", m_sceneData.depthViewPower);
-
-                RenderCommand::drawIndexed(m_depthViewQuadVA, m_depthViewQuadVA->getIndexBuffer()->getCount()); });
-        };
-        m_RenderGraph.addPass(pass);
-    }
-
-    void SceneRenderer::ensureGBuffer(uint32_t width, uint32_t height)
-    {
-        if (width == 0 || height == 0)
-            return;
-
-        if (m_gBufferFramebuffer &&
-            m_gBufferFramebuffer->getSpecification().width == width &&
-            m_gBufferFramebuffer->getSpecification().height == height)
-        {
-            return;
-        }
-
-        FramebufferSpecification gBufferSpec;
-        gBufferSpec.width = width;
-        gBufferSpec.height = height;
-        gBufferSpec.attachments = {
-            FramebufferTextureFormat::RGBA8,       // Albedo
-            FramebufferTextureFormat::RGB16F,      // Normal
-            FramebufferTextureFormat::RGB16F,      // Material (Roughness/Metallic/AO)
-            FramebufferTextureFormat::RGB16F,      // Emissive
-            FramebufferTextureFormat::RED_INTEGER, // ObjectID
-            FramebufferTextureFormat::Depth        // Depth
-        };
-        gBufferSpec.swapChainTarget = false;
-
-        m_gBufferFramebuffer = Framebuffer::create(gBufferSpec);
-    }
-
-    void SceneRenderer::ensureSSGI(uint32_t width, uint32_t height)
-    {
-        if (width == 0 || height == 0)
-            return;
-
-        const bool hasFramebuffers = m_ssgiFramebuffers[0] && m_ssgiFramebuffers[1];
-        if (hasFramebuffers &&
-            m_ssgiFramebuffers[0]->getSpecification().width == width &&
-            m_ssgiFramebuffers[0]->getSpecification().height == height)
-            return;
-
-        FramebufferSpecification ssgiSpec;
-        ssgiSpec.width = width;
-        ssgiSpec.height = height;
-        ssgiSpec.attachments = {
-            FramebufferTextureFormat::RGB16F};
-        ssgiSpec.swapChainTarget = false;
-
-        m_ssgiFramebuffers[0] = Framebuffer::create(ssgiSpec);
-        m_ssgiFramebuffers[1] = Framebuffer::create(ssgiSpec);
-        m_ssgiFramebuffer = m_ssgiFramebuffers[0];
-        m_ssgiHistoryIndex = 0;
-        m_ssgiFrameIndex = 0;
-        m_ssgiHistoryValid = false;
-        m_ssgiWasEnabled = false;
-    }
-
-    void SceneRenderer::ensureGTAO(uint32_t width, uint32_t height)
-    {
-        if (width == 0 || height == 0)
-            return;
-
-        if (m_gtaoFramebuffer &&
-            m_gtaoFramebuffer->getSpecification().width == width &&
-            m_gtaoFramebuffer->getSpecification().height == height)
-        {
-            return;
-        }
-
-        FramebufferSpecification gtaoSpec;
-        gtaoSpec.width = width;
-        gtaoSpec.height = height;
-        gtaoSpec.attachments = {
-            FramebufferTextureFormat::RG16F};
-        gtaoSpec.swapChainTarget = false;
-
-        m_gtaoFramebuffer = Framebuffer::create(gtaoSpec);
-    }
-
-    void SceneRenderer::FlushDrawList()
-    {
-        m_RenderGraph.reset();
-
-        m_renderer3DStatistics.meshCount += static_cast<uint32_t>(s_MeshDrawList.size());
-
-        ResourceHandle shadowMap = ResourceHandle{0};
-        if (m_sceneData.enableShadows)
-            shadowMap = m_RenderGraph.createResource();
-
-        ResourceHandle gBuffer = m_RenderGraph.createResource();
-        ResourceHandle lightingResult = m_RenderGraph.createResource();
-        ResourceHandle sceneDepth = m_RenderGraph.createResource();
-        ResourceHandle ssgi = ResourceHandle{0};
-        ResourceHandle gtao = ResourceHandle{0};
-
-        uint32_t viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
-        uint32_t viewportHeight = m_scene ? m_scene->getViewportHeight() : 0;
-        const bool useDeferred = m_sceneData.renderMode == RenderMode::DeferredHybrid;
-        if (useDeferred)
-            ensureGBuffer(viewportWidth, viewportHeight);
-        const bool useSSGI = useDeferred && (m_sceneData.enableSSGI || m_sceneData.gbufferDebug == GBufferDebugMode::SSGI);
-        if (useSSGI)
-        {
-            ensureSSGI(viewportWidth, viewportHeight);
-            ssgi = m_RenderGraph.createResource();
-        }
-        else
-        {
-            m_ssgiWasEnabled = false;
-            m_ssgiHistoryValid = false;
-            m_ssgiFrameIndex = 0;
-        }
-        const bool useGTAO = useDeferred && (m_sceneData.enableGTAO || m_sceneData.gbufferDebug == GBufferDebugMode::GTAO);
-        if (useGTAO)
-        {
-            ensureGTAO(viewportWidth, viewportHeight);
-            gtao = m_RenderGraph.createResource();
-        }
+        FrameFlags flags;
+        flags.useDeferred = m_sceneData.renderMode == RenderMode::DeferredHybrid;
+        flags.useSSGI = flags.useDeferred && (m_sceneData.enableSSGI || m_sceneData.gbufferDebug == GBufferDebugMode::SSGI);
+        flags.useGTAO = flags.useDeferred && (m_sceneData.enableGTAO || m_sceneData.gbufferDebug == GBufferDebugMode::GTAO);
+        flags.showGBufferDebug = flags.useDeferred && (m_sceneData.gbufferDebug != GBufferDebugMode::None);
 
         bool hasTransparent = false;
-        for (const auto &cmd : s_MeshDrawList)
+        for (const auto &cmd : m_meshDrawList)
         {
             if (cmd.transparent)
             {
@@ -1468,56 +378,211 @@ namespace Fermion
                 break;
             }
         }
+        flags.hasTransparent = hasTransparent;
+
+        return flags;
+    }
+
+    SceneRenderer::FrameResources SceneRenderer::PrepareResources(const FrameFlags &flags)
+    {
+        FrameResources resources;
 
         if (m_sceneData.enableShadows)
-            ShadowPass(shadowMap);
+            resources.shadowMap = m_renderGraph.createResource();
 
-        const bool showGBufferDebug = useDeferred && (m_sceneData.gbufferDebug != GBufferDebugMode::None);
+        resources.gBuffer = m_renderGraph.createResource();
+        resources.lightingResult = m_renderGraph.createResource();
+        resources.sceneDepth = m_renderGraph.createResource();
 
-        if (useDeferred)
+        const uint32_t viewportWidth = m_renderContext.viewportWidth;
+        const uint32_t viewportHeight = m_renderContext.viewportHeight;
+
+        if (flags.useDeferred)
+            m_gBufferRenderer->ensureFramebuffer(viewportWidth, viewportHeight);
+
+        if (flags.useSSGI)
         {
-            GBufferPass(gBuffer, sceneDepth);
-
-            if (useSSGI)
-                SSGIPass(gBuffer, sceneDepth, ssgi);
-            if (useGTAO)
-                GTAOPass(gBuffer, sceneDepth, gtao);
-
-            if (showGBufferDebug)
-            {
-                GBufferDebugPass(gBuffer, sceneDepth, ssgi, gtao);
-            }
-            else
-            {
-                LightingPass(gBuffer, shadowMap, sceneDepth, ssgi, gtao, lightingResult);
-
-                if (m_sceneData.showSkybox)
-                    SkyboxPass(lightingResult);
-
-                if (hasTransparent)
-                    TransparentPass(shadowMap, sceneDepth, lightingResult);
-            }
+            m_ssgiRenderer->ensureFramebuffers(viewportWidth, viewportHeight);
+            resources.ssgi = m_renderGraph.createResource();
         }
         else
         {
-            ForwardPass(shadowMap, sceneDepth, lightingResult);
-
-            if (m_sceneData.showSkybox)
-                SkyboxPass(lightingResult);
-
-            if (hasTransparent)
-                TransparentPass(shadowMap, sceneDepth, lightingResult);
+            m_ssgiRenderer->setEnabled(false);
+            m_ssgiRenderer->resetAccumulation();
         }
 
-        if (m_sceneData.enableDepthView && !showGBufferDebug)
-            DepthViewPass(sceneDepth, lightingResult);
+        if (flags.useGTAO)
+        {
+            m_gtaoRenderer->ensureFramebuffer(viewportWidth, viewportHeight);
+            resources.gtao = m_renderGraph.createResource();
+        }
 
-        OutlinePass(gBuffer, sceneDepth, lightingResult);
+        return resources;
+    }
 
-        RendererBackend backend(RenderCommand::GetRendererAPI());
-        m_RenderGraph.execute(m_CommandQueue, backend);
-        s_MeshDrawList.clear();
-        m_outlineIDs.clear();
+    void SceneRenderer::PrepareEnvironmentAndShadows(const FrameResources &resources)
+    {
+        if (m_sceneData.enableShadows)
+            ShadowPass(resources.shadowMap);
+    }
+
+    void SceneRenderer::RenderDeferredPath(const FrameResources &resources, const FrameFlags &flags)
+    {
+        // GBuffer Pass
+        m_gBufferRenderer->addPass(
+            m_renderGraph,
+            m_renderContext,
+            m_meshDrawList,
+            m_forwardRenderer->getPBRPipeline(),
+            m_environmentRenderer.get(),
+            resources.gBuffer,
+            resources.sceneDepth,
+            &m_renderer3DStatistics.geometryDrawCalls,
+            &m_renderer3DStatistics.iblDrawCalls);
+
+        // SSGI Pass
+        if (flags.useSSGI)
+        {
+            SSGIRenderer::Settings ssgiSettings;
+            ssgiSettings.intensity = m_sceneData.ssgiIntensity;
+            ssgiSettings.radius = m_sceneData.ssgiRadius;
+            ssgiSettings.bias = m_sceneData.ssgiBias;
+            ssgiSettings.sampleCount = m_sceneData.ssgiSampleCount;
+            m_ssgiRenderer->addPass(m_renderGraph, m_renderContext, *m_gBufferRenderer, resources.ssgi, ssgiSettings);
+        }
+
+        // GTAO Pass
+        if (flags.useGTAO)
+        {
+            GTAORenderer::Settings gtaoSettings;
+            gtaoSettings.intensity = m_sceneData.gtaoIntensity;
+            gtaoSettings.radius = m_sceneData.gtaoRadius;
+            gtaoSettings.bias = m_sceneData.gtaoBias;
+            gtaoSettings.power = m_sceneData.gtaoPower;
+            gtaoSettings.sliceCount = m_sceneData.gtaoSliceCount;
+            gtaoSettings.stepCount = m_sceneData.gtaoStepCount;
+            m_gtaoRenderer->addPass(m_renderGraph, m_renderContext, *m_gBufferRenderer, resources.gtao, gtaoSettings);
+        }
+
+        if (flags.showGBufferDebug)
+        {
+            // GBuffer Debug Pass
+            m_postProcessRenderer->addGBufferDebugPass(
+                m_renderGraph,
+                m_renderContext,
+                *m_gBufferRenderer,
+                m_ssgiRenderer.get(),
+                m_gtaoRenderer.get(),
+                static_cast<PostProcessRenderer::GBufferDebugMode>(m_sceneData.gbufferDebug),
+                m_sceneData.depthViewPower,
+                resources.gBuffer,
+                resources.sceneDepth,
+                resources.ssgi,
+                resources.gtao);
+        }
+        else
+        {
+            // Deferred Lighting Pass
+            m_lightingRenderer->addPass(
+                m_renderGraph,
+                m_renderContext,
+                *m_gBufferRenderer,
+                m_shadowRenderer.get(),
+                m_ssgiRenderer.get(),
+                m_gtaoRenderer.get(),
+                m_environmentRenderer.get(),
+                resources.lightingResult,
+                m_sceneData.enableSSGI,
+                m_sceneData.enableGTAO);
+
+            if (m_sceneData.showSkybox)
+                SkyboxPass(resources.lightingResult);
+
+            if (flags.hasTransparent)
+            {
+                m_forwardRenderer->addPass(
+                    m_renderGraph,
+                    m_renderContext,
+                    m_meshDrawList,
+                    m_shadowRenderer.get(),
+                    m_environmentRenderer.get(),
+                    resources.shadowMap,
+                    resources.sceneDepth,
+                    resources.lightingResult,
+                    true, // transparentOnly
+                    &m_renderer3DStatistics.geometryDrawCalls,
+                    &m_renderer3DStatistics.iblDrawCalls);
+            }
+        }
+    }
+
+    void SceneRenderer::RenderForwardPath(const FrameResources &resources, const FrameFlags &flags)
+    {
+        // Forward Pass
+        m_forwardRenderer->addPass(
+            m_renderGraph,
+            m_renderContext,
+            m_meshDrawList,
+            m_shadowRenderer.get(),
+            m_environmentRenderer.get(),
+            resources.shadowMap,
+            resources.sceneDepth,
+            resources.lightingResult,
+            false, // transparentOnly
+            &m_renderer3DStatistics.geometryDrawCalls,
+            &m_renderer3DStatistics.iblDrawCalls);
+
+        if (m_sceneData.showSkybox)
+            SkyboxPass(resources.lightingResult);
+
+        if (flags.hasTransparent)
+        {
+            m_forwardRenderer->addPass(
+                m_renderGraph,
+                m_renderContext,
+                m_meshDrawList,
+                m_shadowRenderer.get(),
+                m_environmentRenderer.get(),
+                resources.shadowMap,
+                resources.sceneDepth,
+                resources.lightingResult,
+                true, // transparentOnly
+                &m_renderer3DStatistics.geometryDrawCalls,
+                &m_renderer3DStatistics.iblDrawCalls);
+        }
+    }
+
+    void SceneRenderer::AddPostProcessingPasses(const FrameResources &resources, const FrameFlags &flags)
+    {
+        // Depth View Pass
+        if (m_sceneData.enableDepthView && !flags.showGBufferDebug)
+        {
+            m_postProcessRenderer->addDepthViewPass(
+                m_renderGraph,
+                m_renderContext,
+                m_gBufferRenderer.get(),
+                flags.useDeferred,
+                m_sceneData.depthViewPower,
+                resources.sceneDepth,
+                resources.lightingResult);
+        }
+
+        // Outline Pass
+        OutlineRenderer::Settings outlineSettings;
+        outlineSettings.color = m_sceneData.meshOutlineColor;
+        outlineSettings.depthThreshold = m_sceneData.outlineDepthThreshold;
+        outlineSettings.normalThreshold = m_sceneData.outlineNormalThreshold;
+        outlineSettings.thickness = m_sceneData.outlineThickness;
+        m_outlineRenderer->addPass(
+            m_renderGraph,
+            m_renderContext,
+            flags.useDeferred ? m_gBufferRenderer.get() : nullptr,
+            m_meshDrawList,
+            m_outlineIDs,
+            outlineSettings,
+            resources.gBuffer,
+            resources.sceneDepth,
+            resources.lightingResult);
     }
 
     void SceneRenderer::loadHDREnvironment(const std::string &hdrPath)
@@ -1528,6 +593,24 @@ namespace Fermion
         uint32_t viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
         uint32_t viewportHeight = m_scene ? m_scene->getViewportHeight() : 0;
         m_environmentRenderer->loadHDR(hdrPath, m_targetFramebuffer, viewportWidth, viewportHeight);
+    }
+
+    std::shared_ptr<Framebuffer> SceneRenderer::getGBufferFramebuffer() const
+    {
+        return m_gBufferRenderer ? m_gBufferRenderer->getFramebuffer() : nullptr;
+    }
+
+    uint32_t SceneRenderer::getGBufferAttachmentRendererID(GBufferAttachment attachment) const
+    {
+        if (!m_gBufferRenderer)
+            return 0;
+        return m_gBufferRenderer->getAttachmentRendererID(static_cast<GBufferRenderer::Attachment>(attachment));
+    }
+
+    void SceneRenderer::bindGBufferAttachment(GBufferAttachment attachment, uint32_t slot) const
+    {
+        if (m_gBufferRenderer)
+            m_gBufferRenderer->bindAttachment(static_cast<GBufferRenderer::Attachment>(attachment), slot);
     }
 
 } // namespace Fermion

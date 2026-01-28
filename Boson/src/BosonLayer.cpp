@@ -489,8 +489,7 @@ namespace Fermion
                     ImGui::TextLinkOpenURL(
                         "https://www.youtube.com/watch?v=JxIZbV_XjAs&list=PLlrATfBNZ98dC-V-N3m0Go4deliWHPFwT"); },
                  .ConfirmFunc = [&]()
-                 { m_isAboutWindowOpen = false; 
-                }});
+                 { m_isAboutWindowOpen = false; }});
         }
 
         ui::ModalDialog::OnImGuiRender();
@@ -569,9 +568,11 @@ namespace Fermion
                 }
                 ImGui::EndDragDropTarget();
             }
-            ImGui::TextWrapped("HDR: %s", hdrPath
-                                              ? hdrPath
-                                              : std::filesystem::path(m_viewportRenderer->getSceneInfo().hdrPath).filename().string().c_str());
+
+            ImGui::TextWrapped("HDR: %s",
+                               hdrPath
+                                   ? hdrPath
+                                   : std::filesystem::path(m_viewportRenderer->getSceneInfo().defaultHdrPath).filename().string().c_str());
             ImGui::Checkbox("showSkybox", &m_viewportRenderer->getSceneInfo().showSkybox);
             ImGui::Checkbox("enable shadows", &m_viewportRenderer->getSceneInfo().enableShadows);
             ImGui::Checkbox("use IBL", &m_viewportRenderer->getSceneInfo().useIBL);

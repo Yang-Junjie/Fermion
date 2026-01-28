@@ -1,9 +1,10 @@
-﻿#pragma once
+#pragma once
 #include "Scene/Components.hpp"
 #include "Scene/Scene.hpp"
 #include "Renderer/Camera/Camera.hpp"
 #include "Renderer/Camera/EditorCamera.hpp"
 #include "DebugRenderer.hpp"
+#include "RenderContext.hpp"
 #include "Renderer/Framebuffer.hpp"
 #include "Renderer/RenderGraphLegacy.hpp"
 #include "Renderer/RenderDrawCommand.hpp"
@@ -16,6 +17,13 @@ namespace Fermion
     class DebugRenderer;
     class EnvironmentRenderer;
     class ShadowMapRenderer;
+    class GBufferRenderer;
+    class SSGIRenderer;
+    class GTAORenderer;
+    class DeferredLightingRenderer;
+    class ForwardRenderer;
+    class OutlineRenderer;
+    class PostProcessRenderer;
     class UniformBuffer;
 
     class SceneRenderer
@@ -50,14 +58,6 @@ namespace Fermion
             ObjectID = 9,
             SSGI = 10,
             GTAO = 11
-        };
-
-        struct SceneRendererCamera
-        {
-            Camera camera;
-            glm::mat4 view;
-            float farClip = 0.0f;
-            float nearClip = 0.1f;
         };
 
         struct SceneInfo
@@ -103,7 +103,7 @@ namespace Fermion
             uint32_t brdfLUTSize = 512;
             uint32_t prefilterMaxMipLevels = 5;
 
-            std::string hdrPath = "../Boson/projects/Assets/hdr/cedar_bridge_2_2k.hdr";
+            std::string defaultHdrPath = "../Boson/projects/Assets/hdr/cedar_bridge_2_2k.hdr";
         };
 
         struct RenderStatistics
@@ -236,105 +236,74 @@ namespace Fermion
 
         void loadHDREnvironment(const std::string &hdrPath);
 
-        std::shared_ptr<Framebuffer> getGBufferFramebuffer() const
-        {
-            return m_gBufferFramebuffer;
-        }
+        std::shared_ptr<Framebuffer> getGBufferFramebuffer() const;
 
-        uint32_t getGBufferAttachmentRendererID(GBufferAttachment attachment) const
-        {
-            return m_gBufferFramebuffer ? m_gBufferFramebuffer->getColorAttachmentRendererID(static_cast<uint32_t>(attachment)) : 0;
-        }
+        uint32_t getGBufferAttachmentRendererID(GBufferAttachment attachment) const;
 
-        void bindGBufferAttachment(GBufferAttachment attachment, uint32_t slot = 0) const
-        {
-            if (m_gBufferFramebuffer)
-                m_gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(attachment), slot);
-        }
+        void bindGBufferAttachment(GBufferAttachment attachment, uint32_t slot = 0) const;
 
     private:
+        struct FrameResources
+        {
+            ResourceHandle shadowMap = ResourceHandle{0};
+            ResourceHandle gBuffer = ResourceHandle{0};
+            ResourceHandle lightingResult = ResourceHandle{0};
+            ResourceHandle sceneDepth = ResourceHandle{0};
+            ResourceHandle ssgi = ResourceHandle{0};
+            ResourceHandle gtao = ResourceHandle{0};
+        };
 
-        void createPipelines();
+        struct FrameFlags
+        {
+            bool useDeferred = false;
+            bool useSSGI = false;
+            bool useGTAO = false;
+            bool showGBufferDebug = false;
+            bool hasTransparent = false;
+        };
+
+        void updateRenderContext();
         void updateViewState(const SceneRendererCamera &camera);
+        void FlushDrawList();
 
-        void ForwardPass(ResourceHandle shadowMap, ResourceHandle sceneDepth, ResourceHandle lightingResult);
-
-        void GBufferPass(ResourceHandle gBuffer, ResourceHandle sceneDepth);
-        void recordGBufferPass(CommandBuffer &commandBuffer);
-
-        void LightingPass(ResourceHandle gBuffer, ResourceHandle shadowMap, ResourceHandle sceneDepth, ResourceHandle ssgi, ResourceHandle gtao,
-                          ResourceHandle lightingResult);
-        void recordLightingPass(CommandBuffer &commandBuffer);
-
-        void SSGIPass(ResourceHandle gBuffer, ResourceHandle sceneDepth, ResourceHandle ssgi);
-        void recordSSGIPass(CommandBuffer &commandBuffer);
-
-        void GTAOPass(ResourceHandle gBuffer, ResourceHandle sceneDepth, ResourceHandle gtao);
-        void recordGTAOPass(CommandBuffer &commandBuffer);
-
-        void GBufferDebugPass(ResourceHandle gBuffer, ResourceHandle sceneDepth, ResourceHandle ssgi, ResourceHandle gtao);
-        void recordGBufferDebugPass(CommandBuffer &commandBuffer);
-
-        void TransparentPass(ResourceHandle shadowMap, ResourceHandle sceneDepth, ResourceHandle lightingResult);
-        void recordForwardPass(CommandBuffer &commandBuffer, bool drawTransparent);
-
-        void OutlinePass(ResourceHandle gBuffer, ResourceHandle sceneDepth, ResourceHandle lightingResult);
-        void recordOutlinePostProcess(CommandBuffer &commandBuffer, const std::vector<int> &outlineIDs);
+        FrameFlags PrepareFrameFlags() const;
+        FrameResources PrepareResources(const FrameFlags &flags);
+        void PrepareEnvironmentAndShadows(const FrameResources &resources);
+        void RenderDeferredPath(const FrameResources &resources, const FrameFlags &flags);
+        void RenderForwardPath(const FrameResources &resources, const FrameFlags &flags);
+        void AddPostProcessingPasses(const FrameResources &resources, const FrameFlags &flags);
 
         void SkyboxPass(ResourceHandle lightingResult);
         void ShadowPass(ResourceHandle shadowMap);
-        void DepthViewPass(ResourceHandle sceneDepth, ResourceHandle lightingResult);
 
-        void FlushDrawList();
-
-        void ensureGBuffer(uint32_t width, uint32_t height);
-        void ensureSSGI(uint32_t width, uint32_t height);
-        void ensureGTAO(uint32_t width, uint32_t height);
 
     private:
         std::shared_ptr<DebugRenderer> m_debugRenderer;
+
+        std::unique_ptr<GBufferRenderer> m_gBufferRenderer;
+        std::unique_ptr<DeferredLightingRenderer> m_lightingRenderer;
+        std::unique_ptr<SSGIRenderer> m_ssgiRenderer;
+        std::unique_ptr<GTAORenderer> m_gtaoRenderer;
+        std::unique_ptr<ForwardRenderer> m_forwardRenderer;
+        std::unique_ptr<OutlineRenderer> m_outlineRenderer;
+        std::unique_ptr<PostProcessRenderer> m_postProcessRenderer;
         std::unique_ptr<EnvironmentRenderer> m_environmentRenderer;
         std::unique_ptr<ShadowMapRenderer> m_shadowRenderer;
 
         std::shared_ptr<Scene> m_scene;
 
-        std::vector<MeshDrawCommand> s_MeshDrawList;
+        std::vector<MeshDrawCommand> m_meshDrawList;
 
-        std::shared_ptr<VertexArray> m_depthViewQuadVA = nullptr;
+        RenderContext m_renderContext;
 
-        // Uniform buffers for efficient rendering
         std::shared_ptr<UniformBuffer> m_cameraUniformBuffer;
         std::shared_ptr<UniformBuffer> m_modelUniformBuffer;
         std::shared_ptr<UniformBuffer> m_lightUniformBuffer;
 
-        std::shared_ptr<Pipeline> m_MeshPipeline;
-        std::shared_ptr<Pipeline> m_PBRMeshPipeline;
-        std::shared_ptr<Pipeline> m_GBufferMeshPipeline;
-        std::shared_ptr<Pipeline> m_GBufferPBRMeshPipeline;
-        std::shared_ptr<Pipeline> m_DeferredLightingPipeline;
-        std::shared_ptr<Pipeline> m_GBufferDebugPipeline;
-        std::shared_ptr<Pipeline> m_GBufferOutlinePipeline;
-        std::shared_ptr<Pipeline> m_SSGIPipeline;
-        std::shared_ptr<Pipeline> m_GTAOPipeline;
-        std::shared_ptr<Pipeline> m_DepthViewPipeline;
         std::shared_ptr<Framebuffer> m_targetFramebuffer;
-        std::shared_ptr<Framebuffer> m_gBufferFramebuffer;
-        std::shared_ptr<Framebuffer> m_ssgiFramebuffer;
-        std::shared_ptr<Framebuffer> m_gtaoFramebuffer;
-        std::array<std::shared_ptr<Framebuffer>, 2> m_ssgiFramebuffers;
 
-        uint32_t m_ssgiHistoryIndex = 0;
-        uint32_t m_ssgiFrameIndex = 0;
-        bool m_ssgiHistoryValid = false;
-        bool m_ssgiWasEnabled = false;
-        glm::mat4 m_lastSSGIViewProjection = glm::mat4(1.0f);
-        float m_lastSSGIRadius = 0.0f;
-        float m_lastSSGIBias = 0.0f;
-        float m_lastSSGIIntensity = 0.0f;
-        int m_lastSSGISampleCount = 0;
-
-        RenderGraphLegacy m_RenderGraph;
-        RenderCommandQueue m_CommandQueue;
+        RenderGraphLegacy m_renderGraph;
+        RenderCommandQueue m_commandQueue;
         SceneInfo m_sceneData;
 
         RenderStatistics::Renderer3DStatistics m_renderer3DStatistics;

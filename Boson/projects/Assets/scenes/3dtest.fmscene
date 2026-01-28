@@ -10,7 +10,7 @@ Entities:
     RelationshipComponent:
       Parent: 0
     MeshComponent:
-      MeshHandle: 16677543400440830030
+      MeshHandle: 4041660147637224216
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:
@@ -39,7 +39,7 @@ Entities:
     RelationshipComponent:
       Parent: 0
     MeshComponent:
-      MeshHandle: 5919073924716625918
+      MeshHandle: 7945331593801904528
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:
@@ -68,7 +68,7 @@ Entities:
     RelationshipComponent:
       Parent: 0
     MeshComponent:
-      MeshHandle: 12382942045098589007
+      MeshHandle: 7394655993473971560
       MemoryOnly: true
       MemoryMeshType: 2
       SubmeshMaterials:
@@ -97,7 +97,7 @@ Entities:
     RelationshipComponent:
       Parent: 0
     MeshComponent:
-      MeshHandle: 8990126068187609009
+      MeshHandle: 15864284726072773090
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:
@@ -120,7 +120,7 @@ Entities:
     TagComponent:
       Tag: player
     TransformComponent:
-      Translation: [0, 2.2590547, 3.840527]
+      Translation: [-3.727092, 2.2590547, 3.840527]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     RelationshipComponent:
@@ -129,7 +129,7 @@ Entities:
         - 7383789325647833737
         - 3536735286335801191
     MeshComponent:
-      MeshHandle: 8053553734912337327
+      MeshHandle: 4109851668803639015
       MemoryOnly: true
       MemoryMeshType: 4
       SubmeshMaterials:
@@ -191,7 +191,7 @@ Entities:
     RelationshipComponent:
       Parent: 0
     MeshComponent:
-      MeshHandle: 2475049038964427873
+      MeshHandle: 12214308092190370828
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:
@@ -235,7 +235,7 @@ Entities:
     RelationshipComponent:
       Parent: 0
     MeshComponent:
-      MeshHandle: 7739333389463834484
+      MeshHandle: 5009616670154160313
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:
@@ -264,7 +264,7 @@ Entities:
     RelationshipComponent:
       Parent: 0
     MeshComponent:
-      MeshHandle: 10279054430937984919
+      MeshHandle: 4452216948282062260
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:
@@ -290,13 +290,13 @@ Entities:
     TagComponent:
       Tag: wall boll
     TransformComponent:
-      Translation: [0, 0.34971267, 1.4901161e-08]
+      Translation: [0, 2.7650614, -5.3654394]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     RelationshipComponent:
       Parent: 0
     MeshComponent:
-      MeshHandle: 15229432081261189846
+      MeshHandle: 15873319512640361018
       MemoryOnly: true
       MemoryMeshType: 2
       SubmeshMaterials:
@@ -345,7 +345,7 @@ Entities:
     RelationshipComponent:
       Parent: 0
     MeshComponent:
-      MeshHandle: 9247061260602014957
+      MeshHandle: 14268600209903118873
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:
@@ -374,7 +374,7 @@ Entities:
     RelationshipComponent:
       Parent: 0
     MeshComponent:
-      MeshHandle: 15018188698229302205
+      MeshHandle: 14129840917596362364
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:
@@ -403,7 +403,7 @@ Entities:
     RelationshipComponent:
       Parent: 0
     MeshComponent:
-      MeshHandle: 10164375326866874955
+      MeshHandle: 8390720898644165864
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:

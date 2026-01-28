@@ -71,6 +71,13 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Renderer/Renderers/SceneRenderer.cpp
     ${FERMION_DIR}/Renderer/Renderers/EnvironmentRenderer.cpp
     ${FERMION_DIR}/Renderer/Renderers/ShadowMapRenderer.cpp
+    ${FERMION_DIR}/Renderer/Renderers/GBufferRenderer.cpp
+    ${FERMION_DIR}/Renderer/Renderers/SSGIRenderer.cpp
+    ${FERMION_DIR}/Renderer/Renderers/GTAORenderer.cpp
+    ${FERMION_DIR}/Renderer/Renderers/DeferredLightingRenderer.cpp
+    ${FERMION_DIR}/Renderer/Renderers/ForwardRenderer.cpp
+    ${FERMION_DIR}/Renderer/Renderers/OutlineRenderer.cpp
+    ${FERMION_DIR}/Renderer/Renderers/PostProcessRenderer.cpp
     ${FERMION_DIR}/Renderer/Shader.cpp
     ${FERMION_DIR}/Renderer/Texture/Texture.cpp
     ${FERMION_DIR}/Renderer/Texture/SubTexture2D.cpp
