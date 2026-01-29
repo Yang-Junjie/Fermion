@@ -7,9 +7,11 @@
 #include "Panels/InspectorPanel.hpp"
 #include "Asset/SceneAsset.hpp"
 #include "Script/ScriptManager.hpp"
-#include "ImGui/ModalDialog.hpp"
 
+#include "ImGui/ModalDialog.hpp"
 #include "ImGui/ConsolePanel.hpp"
+#include "ImGui/UI.hpp"
+
 #include "Math/Math.hpp"
 
 #include <format>
@@ -58,8 +60,7 @@ namespace
 namespace Fermion
 {
     static std::shared_ptr<Font> s_Font; // TODO:  Temporary
-    BosonLayer::BosonLayer(const std::string &name,
-                           std::filesystem::path initialProjectPath)
+    BosonLayer::BosonLayer(const std::string &name, std::filesystem::path initialProjectPath)
         : Layer(name),
           m_pendingProjectPath(std::move(initialProjectPath))
     {
@@ -245,7 +246,6 @@ namespace Fermion
                 style.WindowMinSize.x = minWinSizeX;
                 ImGui::End();
             }
-            // Scene Hierarchy
 
             m_sceneHierarchyPanel.onImGuiRender();
             m_contentBrowserPanel.onImGuiRender();
@@ -255,7 +255,6 @@ namespace Fermion
             ConsolePanel::get().onImGuiRender();
             // ImGui::ShowDemoWindow();
 
-            onUIToolPanel();
             onHelpPanel();
             onSettingsPanel();
             onViewportPanel();
@@ -357,111 +356,6 @@ namespace Fermion
                         : Entity());
         }
         return false;
-    }
-
-    void BosonLayer::onUIToolPanel()
-    {
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4{0.117f, 0.117f, 0.117f, 1.0f});
-
-        const auto &colors = ImGui::GetStyle().Colors;
-        const auto &buttonHovered = colors[ImGuiCol_ButtonHovered];
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(buttonHovered.x, buttonHovered.y, buttonHovered.z, 0.5f));
-        const auto &buttonActive = colors[ImGuiCol_ButtonActive];
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(buttonActive.x, buttonActive.y, buttonActive.z, 0.5f));
-
-        ImGui::Begin("toolbar", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-        const Texture2D *icon = m_sceneState == SceneState::Edit ? m_iconPlay.get() : m_iconStop.get();
-        const bool toolbarEnabled = static_cast<bool>(m_activeScene);
-
-        ImVec4 tintColor = ImVec4(1, 1, 1, 1);
-        if (!toolbarEnabled)
-            tintColor.w = 0.5f;
-
-        const float size = ImGui::GetWindowHeight() - 10.0f;
-        ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
-
-        const bool hasPlayButton = m_sceneState == SceneState::Edit || m_sceneState == SceneState::Play;
-        const bool hasSimulateButton = m_sceneState == SceneState::Edit || m_sceneState == SceneState::Simulate;
-        const bool hasPauseButton = m_sceneState != SceneState::Edit && m_sceneState != SceneState::Play;
-
-        if (hasPlayButton)
-        {
-            const Texture2D *icon = (m_sceneState == SceneState::Edit || m_sceneState == SceneState::Simulate)
-                                        ? m_iconPlay.get()
-                                        : m_iconStop.get();
-            if (ImGui::ImageButton("##toolbar_playbtn",
-                                   (ImTextureID) static_cast<uint64_t>(icon->getRendererID()),
-                                   ImVec2(size, size),
-                                   ImVec2(0, 0), ImVec2(1, 1),
-                                   ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor))
-            {
-                if (m_sceneState == SceneState::Edit || m_sceneState == SceneState::Simulate)
-                    onScenePlay();
-                else if (m_sceneState == SceneState::Play)
-                    onSceneStop();
-            }
-        }
-
-        if (hasSimulateButton)
-        {
-            if (hasPlayButton)
-                ImGui::SameLine();
-
-            const Texture2D *icon = (m_sceneState == SceneState::Edit || m_sceneState == SceneState::Play)
-                                        ? m_iconSimulate.get()
-                                        : m_iconStop.get();
-            if (ImGui::ImageButton("##toolbar_simulatebtn",
-                                   (ImTextureID)(uint64_t)icon->getRendererID(),
-                                   ImVec2(size, size),
-                                   ImVec2(0, 0), ImVec2(1, 1),
-                                   ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor))
-            {
-                if (m_sceneState == SceneState::Edit || m_sceneState == SceneState::Play)
-                    onSceneSimulate();
-                else if (m_sceneState == SceneState::Simulate)
-                    onSceneStop();
-            }
-        }
-        if (hasPauseButton)
-        {
-            bool isPaused = m_activeScene->isPaused();
-            ImGui::SameLine();
-            {
-                const Texture2D *icon = m_iconPause.get();
-                if (ImGui::ImageButton("##toolbar_pausebtn",
-                                       (ImTextureID) static_cast<uint64_t>(icon->getRendererID()),
-                                       ImVec2(size, size),
-                                       ImVec2(0, 0), ImVec2(1, 1),
-                                       ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor))
-                {
-                    m_activeScene->setPaused(!isPaused);
-                }
-            }
-
-            // Step button
-            if (isPaused)
-            {
-                ImGui::SameLine();
-                {
-                    const Texture2D *icon = m_iconStep.get();
-                    bool isPaused = m_activeScene->isPaused();
-                    if (ImGui::ImageButton("##toolbar_stepbtn",
-                                           (ImTextureID) static_cast<uint64_t>(icon->getRendererID()),
-                                           ImVec2(size, size),
-                                           ImVec2(0, 0), ImVec2(1, 1),
-                                           ImVec4(0.0f, 0.0f, 0.0f, 0.0f), tintColor))
-                    {
-                        m_activeScene->step();
-                    }
-                }
-            }
-        }
-        ImGui::PopStyleVar(2);
-        ImGui::PopStyleColor(4);
-        ImGui::End();
     }
 
     void BosonLayer::onHelpPanel()
@@ -812,67 +706,140 @@ namespace Fermion
                 }
             }
         }
+        onOverlayViewportUI();
 
-        if (m_editorCamera.isFPSMode())
-        {
-            float centerY = m_viewport.size().y / 2.0f;
-            float leftPadding = 10.0f;
-            ImGui::SetCursorPos(ImVec2(leftPadding, centerY));
-
-            verticalProgressBar(m_editorCamera.getFPSSpeed(), 0.0f, 30.0f, ImVec2(20, 300.0f));
-        }
         ImGui::End();
         ImGui::PopStyleColor();
         ImGui::PopStyleVar();
     }
-
-    void BosonLayer::verticalProgressBar(float value, float minValue, float maxValue, ImVec2 size)
+    void BosonLayer::onOverlayViewportUI()
     {
-        ImDrawList *drawList = ImGui::GetWindowDrawList();
-        ImVec2 pos = ImGui::GetCursorScreenPos();
+        const float iconSize = 28.0f;
+        const float padding = 6.0f;
+        const ImU32 backgroundColor = IM_COL32(30, 30, 30, 140);
+        const ImVec4 orangeMain = ImVec4(0.92f, 0.45f, 0.11f, 0.8f);
 
-        ImU32 bg = IM_COL32(40, 40, 40, 255);
-        ImU32 fill = IM_COL32(100, 220, 100, 255);
-        ImU32 border = IM_COL32(200, 200, 200, 255);
-
-        if (maxValue <= minValue)
-            maxValue = minValue + 0.0001f;
-
-        float fraction = (value - minValue) / (maxValue - minValue);
-
-        if (fraction < 0.0f)
-            fraction = 0.0f;
-        if (fraction > 1.0f)
-            fraction = 1.0f;
-
-        ImVec2 maxPos(pos.x + size.x, pos.y + size.y);
-
-        drawList->AddRectFilled(pos, maxPos, bg);
-        drawList->AddRect(pos, maxPos, border);
-
-        float h = size.y * fraction;
-
-        if (h > 0.0f)
+        if (m_editorCamera.isFPSMode())
         {
-            float topY = pos.y + size.y - h;
-
-            float minY = pos.y + 2;
-            float maxY = pos.y + size.y - 2;
-
-            if (topY < minY)
-                topY = minY;
-            if (topY > maxY)
-                topY = maxY;
-
-            drawList->AddRectFilled(
-                ImVec2(pos.x + 2, topY),
-                ImVec2(pos.x + size.x - 2, maxY),
-                fill);
+            float centerY = m_viewport.size().y / 2.0f;
+            ImGui::SetCursorPos(ImVec2(12.0f, centerY - 150.0f));
+            ui::verticalProgressBar(m_editorCamera.getFPSSpeed(), 0.0f, 30.0f, ImVec2(12, 300.0f));
         }
 
-        ImGui::Dummy(size);
-    }
+        ImGuiChildFlags child_flags = ImGuiChildFlags_AlwaysAutoResize | ImGuiChildFlags_AutoResizeX | ImGuiChildFlags_AutoResizeY;
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings |
+                                        ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav |
+                                        ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground;
 
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(padding, padding));
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 0));
+
+        ImGui::SetCursorPos(ImVec2(10.0f, 10.0f));
+        if (ImGui::BeginChild("GizmoToolbar", ImVec2(0, 0), child_flags, window_flags))
+        {
+            ImDrawList *draw_list = ImGui::GetWindowDrawList();
+            draw_list->AddRectFilled(ImGui::GetWindowPos(),
+                                     ImVec2(ImGui::GetWindowPos().x + ImGui::GetWindowWidth(), ImGui::GetWindowPos().y + ImGui::GetWindowHeight()),
+                                     backgroundColor, 6.0f);
+
+            auto drawGizmoBtn = [&](const char *label, int type, const char *tooltip)
+            {
+                bool isActive = (m_gizmoType == type);
+                if (isActive)
+                    ImGui::PushStyleColor(ImGuiCol_Button, orangeMain);
+                else
+                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+
+                if (ImGui::Button(label, ImVec2(iconSize, iconSize)))
+                    m_gizmoType = type;
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort))
+                    ImGui::SetTooltip("%s", tooltip);
+                ImGui::PopStyleColor();
+            };
+
+            drawGizmoBtn("Q", -1, "Select (Q)");
+            ImGui::SameLine();
+            drawGizmoBtn("W", (int)ImGuizmo::TRANSLATE, "Translate (W)");
+            ImGui::SameLine();
+            drawGizmoBtn("E", (int)ImGuizmo::ROTATE, "Rotate (E)");
+            ImGui::SameLine();
+            drawGizmoBtn("R", (int)ImGuizmo::SCALE, "Scale (R)");
+        }
+        ImGui::EndChild();
+
+        ImGui::SetCursorPos(ImVec2((m_viewport.size().x * 0.5f) - 60.0f, 10.0f));
+
+        if (ImGui::BeginChild("SceneControl", ImVec2(0, 0), child_flags, window_flags))
+        {
+            ImDrawList *draw_list = ImGui::GetWindowDrawList();
+            draw_list->AddRectFilled(ImGui::GetWindowPos(),
+                                     ImVec2(ImGui::GetWindowPos().x + ImGui::GetWindowWidth(), ImGui::GetWindowPos().y + ImGui::GetWindowHeight()),
+                                     backgroundColor, 6.0f);
+
+            const bool toolbarEnabled = (bool)m_activeScene;
+            ImVec4 tintColor = toolbarEnabled ? ImVec4(1, 1, 1, 1) : ImVec4(1, 1, 1, 0.5f);
+
+            bool isEdit = m_sceneState == SceneState::Edit;
+            bool isPlay = m_sceneState == SceneState::Play;
+            bool isSim = m_sceneState == SceneState::Simulate;
+
+            auto drawImgBtn = [&](const char *id, auto &iconRef, ImVec4 bg, auto func)
+            {
+                ImGui::PushStyleColor(ImGuiCol_Button, bg);
+
+                auto textureID = (ImTextureID)(uintptr_t)iconRef->getRendererID();
+                if (ImGui::ImageButton(id, textureID, ImVec2(iconSize - 6, iconSize - 6), {0, 0}, {1, 1}, {0, 0, 0, 0}, tintColor))
+                {
+                    if (toolbarEnabled)
+                        func();
+                }
+                ImGui::PopStyleColor();
+            };
+
+            if (isEdit)
+            {
+                drawImgBtn("##Play", m_iconPlay, ImVec4(0, 0, 0, 0), [this]()
+                           { onScenePlay(); });
+            }
+            else if (isPlay)
+            {
+                drawImgBtn("##Stop", m_iconStop, ImVec4(0.8f, 0.1f, 0.1f, 0.6f), [this]()
+                           { onSceneStop(); });
+            }
+
+            ImGui::SameLine();
+
+            if (isEdit)
+            {
+                drawImgBtn("##Sim", m_iconSimulate, ImVec4(0, 0, 0, 0), [this]()
+                           { onSceneSimulate(); });
+            }
+            else if (isSim)
+            {
+                drawImgBtn("##StopSim", m_iconStop, ImVec4(0.8f, 0.1f, 0.1f, 0.6f), [this]()
+                           { onSceneStop(); });
+            }
+
+            if (isSim && m_activeScene)
+            {
+                ImGui::SameLine();
+                bool isPaused = m_activeScene->isPaused();
+                drawImgBtn("##Pause", m_iconPause, isPaused ? orangeMain : ImVec4(0, 0, 0, 0), [this, isPaused]()
+                           { m_activeScene->setPaused(!isPaused); });
+
+                if (isPaused)
+                {
+                    ImGui::SameLine();
+                    drawImgBtn("##Step", m_iconStep, ImVec4(0, 0, 0, 0), [this]()
+                               { m_activeScene->step(); });
+                }
+            }
+        }
+        ImGui::EndChild();
+
+        ImGui::PopStyleVar(3);
+    }
     void BosonLayer::updateMousePicking()
     {
         m_hoveredEntity = {};

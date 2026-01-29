@@ -68,7 +68,6 @@ namespace Fermion
         void onDuplicateEntity();
 
         // ImGui Panels
-        void onUIToolPanel();
 
         void onHelpPanel();
 
@@ -78,8 +77,9 @@ namespace Fermion
         void onSettingsPanel();
         void onViewportPanel();
 
-        void verticalProgressBar(float value, float minValue, float maxValue, ImVec2 size);
+        void onOverlayViewportUI();
 
+       
         void updateMousePicking();
 
     private:
