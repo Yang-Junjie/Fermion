@@ -79,7 +79,6 @@ namespace Fermion
 
         void onOverlayViewportUI();
 
-       
         void updateMousePicking();
 
     private:
@@ -119,7 +118,6 @@ namespace Fermion
         bool m_isMaterialEditorOpen = false;
 
         std::shared_ptr<Framebuffer> m_framebuffer;
-
 
         glm::vec2 m_viewportSize{0.0f, 0.0f};
 

@@ -62,8 +62,11 @@ namespace Fermion
             if (!m_isFpsMode)
             {
                 m_isFpsMode = true;
+                m_savedCursorPosition = mouse;
+                m_hasSavedCursorPosition = true;
                 m_initialMousePosition = mouse;
                 Input::setCursorMode(CursorMode::Disabled);
+                Input::setRawMouseMotion(true);
             }
 
             glm::vec2 delta = (mouse - m_initialMousePosition) * 0.002f;
@@ -82,6 +85,13 @@ namespace Fermion
             m_isFpsMode = false;
             m_focalPoint = m_position + getForwardDirection() * m_distance;
             Input::setCursorMode(CursorMode::Normal);
+            Input::setRawMouseMotion(false);
+            if (m_hasSavedCursorPosition)
+            {
+                Input::setMousePosition(m_savedCursorPosition.x, m_savedCursorPosition.y);
+                m_initialMousePosition = m_savedCursorPosition;
+                m_hasSavedCursorPosition = false;
+            }
         }
 
         if (Input::isKeyPressed(KeyCode::LeftAlt))

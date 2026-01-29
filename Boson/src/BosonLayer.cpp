@@ -597,13 +597,29 @@ namespace Fermion
         m_viewportFocused = ImGui::IsWindowFocused();
         m_viewportHovered = ImGui::IsWindowHovered();
 
+        const bool fpsMode = m_editorCamera.isFPSMode();
+        if (fpsMode)
+        {
+            m_viewportFocused = true;
+            m_viewportHovered = true;
+        }
+
         if (m_viewportHovered)
         {
             ImGui::SetWindowFocus();
         }
         ImGuiIO &io = ImGui::GetIO();
 
-        Application::get().getImGuiLayer()->blockEvents(!m_viewportFocused || !m_viewportHovered);
+        if (fpsMode)
+        {
+            io.ConfigFlags |= ImGuiConfigFlags_NoMouse;
+            Application::get().getImGuiLayer()->blockEvents(false);
+        }
+        else
+        {
+            io.ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
+            Application::get().getImGuiLayer()->blockEvents(!m_viewportFocused || !m_viewportHovered);
+        }
 
         ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
 

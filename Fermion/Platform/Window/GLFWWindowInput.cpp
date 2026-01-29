@@ -52,6 +52,21 @@ namespace Fermion
         glfwSetInputMode(window, GLFW_CURSOR, ConvertFMCursorModeToGLFW(mode));
     }
 
+    void Input::setMousePosition(float x, float y)
+    {
+        auto *window = static_cast<GLFWwindow *>(Application::get().getWindow().getNativeWindow());
+        glfwSetCursorPos(window, static_cast<double>(x), static_cast<double>(y));
+    }
+
+    void Input::setRawMouseMotion(bool enabled)
+    {
+        auto *window = static_cast<GLFWwindow *>(Application::get().getWindow().getNativeWindow());
+        if (glfwRawMouseMotionSupported())
+        {
+            glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, enabled ? GLFW_TRUE : GLFW_FALSE);
+        }
+    }
+
     float Input::getMouseX()
     {
         return getMousePosition().x;

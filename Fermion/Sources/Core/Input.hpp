@@ -24,6 +24,9 @@ namespace Fermion
 
         static void setCursorMode(CursorMode mode);
 
+        static void setMousePosition(float x, float y);
+        static void setRawMouseMotion(bool enabled);
+
         static float getMouseX();
 
         static float getMouseY();
