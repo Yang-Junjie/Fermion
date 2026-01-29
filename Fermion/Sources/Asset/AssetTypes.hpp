@@ -6,7 +6,7 @@ namespace Fermion
     {
         None = 0,
         Texture,
-        TextureSource,  // 原始图片文件 (.png, .jpg, .jpeg, .hdr)
+        TextureSource, 
         Scene,
         Font,
         Shader,

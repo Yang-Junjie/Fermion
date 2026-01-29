@@ -37,9 +37,6 @@ namespace Fermion
         return result;
     }
 
-    // Convert filter format from Windows style to zenity style
-    // Windows: "Scene Files (*.fermion)\0*.fermion\0"
-    // Zenity: --file-filter='Scene Files (*.fermion) | *.fermion'
     static std::string convertFilterToZenity(const char* filter)
     {
         if (!filter || filter[0] == '\0')
@@ -140,38 +137,28 @@ namespace Fermion
 
         if (pid < 0)
         {
-            // Fork failed
             return false;
         }
         else if (pid == 0)
         {
-            // Child process
             std::vector<char*> argv;
 
-            // Add executable path
             std::string exePath = executablePath.string();
             argv.push_back(const_cast<char*>(exePath.c_str()));
 
-            // Add arguments
             std::vector<std::string> argStrings = arguments;
             for (auto& arg : argStrings)
             {
                 argv.push_back(const_cast<char*>(arg.c_str()));
             }
-
-            // Null terminator
             argv.push_back(nullptr);
 
-            // Execute the program
             execv(exePath.c_str(), argv.data());
 
-            // If execv returns, it failed
             exit(1);
         }
         else
         {
-            // Parent process
-            // Detach the child process
             return true;
         }
     }

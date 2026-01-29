@@ -18,12 +18,32 @@ namespace Fermion
         auto editorAssets = Project::getEditorAssetManager();
         const auto &registry = AssetRegistry::getRegistry();
 
- 
+    
         static ImGuiTextFilter filter;
-        filter.Draw("Search Assets...", ImGui::GetContentRegionAvail().x * 0.7f);
+        static AssetType selectedType = AssetType::None; 
+
+        filter.Draw("Search...", ImGui::GetContentRegionAvail().x * 0.4f);
+        ImGui::SameLine();
+
+        ImGui::SetNextItemWidth(150);
+        if (ImGui::BeginCombo("##TypeFilter", AssetUtils::AssetTypeToString(selectedType)))
+        {
+            for (int i = 0; i <= (int)AssetType::ModelSource; i++)
+            {
+                AssetType type = (AssetType)i;
+                bool isSelected = (selectedType == type);
+                if (ImGui::Selectable(AssetUtils::AssetTypeToString(type), isSelected))
+                    selectedType = type;
+
+                if (isSelected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
+        }
+
         ImGui::SameLine();
         if (ImGui::Button("Refresh"))
-        {
+        { 
         }
 
         ImGui::Separator();
@@ -40,32 +60,37 @@ namespace Fermion
                                 ImGuiTableFlags_ScrollY;
 
         if (ImGui::BeginTable("AssetTable", 5, flags))
-        {            
+        {
             ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 60.0f);
             ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
             ImGui::TableSetupColumn("Path", ImGuiTableColumnFlags_WidthStretch);
             ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 100.0f);
-            ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 40.0f); 
+            ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 40.0f);
 
             ImGui::TableHeadersRow();
 
             for (const auto &[handle, info] : registry)
             {
-                if (!filter.PassFilter(info.Name.c_str()) && !filter.PassFilter(info.FilePath.string().c_str()))
+
+                bool matchesSearch = filter.PassFilter(info.Name.c_str()) ||
+                                     filter.PassFilter(info.FilePath.string().c_str());
+
+               
+                bool matchesType = (selectedType == AssetType::None) || (info.Type == selectedType);
+
+                if (!matchesSearch || !matchesType)
                     continue;
 
                 ImGui::TableNextRow();
                 ImGui::PushID((int)handle);
 
                 ImGui::TableNextColumn();
-                ImGui::TextUnformatted(GetAssetExtensionFromType(info.Type).c_str());
+                ImGui::TextUnformatted(AssetUtils::AssetTypeToString(info.Type));
 
-             
                 ImGui::TableNextColumn();
-                bool isSelected = false; 
+                bool isSelected = false;
                 if (ImGui::Selectable(info.Name.c_str(), isSelected, ImGuiSelectableFlags_SpanAllColumns))
                 {
-                  
                 }
 
                 ImGui::TableNextColumn();
@@ -83,7 +108,7 @@ namespace Fermion
                     ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "Unloaded");
                 }
 
-                ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20); 
+                ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
                 if (loaded)
                 {
                     if (ImGui::SmallButton("U"))
