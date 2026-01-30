@@ -33,6 +33,10 @@ namespace Fermion
         internal static extern void TransformComponent_GetTranslation(ulong entityID, out Vector3 translation);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void TransformComponent_SetTranslation(ulong entityID, ref Vector3 translation);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void TransformComponent_GetRotation(ulong entityID, out Vector3 rotation);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void TransformComponent_SetRotation(ulong entityID, ref Vector3 rotation);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void SpriteRendererComponent_SetColor(ulong entityID, ref Vector4 translation);
@@ -93,6 +97,13 @@ namespace Fermion
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern bool Input_IsKeyDown(KeyCode keycode);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Input_SetCursorMode(CursorMode mode);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Input_SetMousePosition(float x, float y);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Input_GetMousePosition(out float x, out float y);
+
 
 
         [MethodImpl(MethodImplOptions.InternalCall)]

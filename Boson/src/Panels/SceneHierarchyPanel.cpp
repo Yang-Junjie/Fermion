@@ -144,7 +144,6 @@ namespace Fermion
             ImGui::EndDragDropTarget();
         }
 
-        // 6. 右键菜单
         bool entityDeleted = false;
         if (m_editingEnabled && ImGui::BeginPopupContextItem())
         {

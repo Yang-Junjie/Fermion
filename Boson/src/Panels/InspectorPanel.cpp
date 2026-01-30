@@ -264,6 +264,91 @@ namespace Fermion
         ImGui::PopID();
         return changed;
     }
+    static bool drawVec2Control(const std::string &label,
+                                glm::vec2 &values,
+                                float resetValue = 0.0f,
+                                float columnWidth = 100.0f,
+                                float dragSpeed = 0.1f)
+    {
+        bool changed = false;
+        ImGui::PushID(label.c_str());
+
+        ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2{0, 1});
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{4, 1});
+
+        if (ImGui::BeginTable("##Vec2Table", 2, ImGuiTableFlags_NoSavedSettings))
+        {
+            ImGui::TableSetupColumn("##label", ImGuiTableColumnFlags_WidthFixed, columnWidth);
+            ImGui::TableSetupColumn("##controls", ImGuiTableColumnFlags_WidthStretch);
+
+            ImGui::TableNextRow(ImGuiTableRowFlags_None, ImGui::GetFontSize() + 2.0f);
+
+            // Label
+            ImGui::TableNextColumn();
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("%s", label.c_str());
+
+            // Controls
+            ImGui::TableNextColumn();
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{0, 0});
+
+            float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
+            ImVec2 buttonSize = {lineHeight + 3.0f, lineHeight};
+            float itemWidth =
+                (ImGui::GetContentRegionAvail().x - buttonSize.x * 2.0f) / 2.0f;
+
+            auto drawAxisControl = [&](const char *axisLabel,
+                                       float &value,
+                                       const ImVec4 &color,
+                                       const ImVec4 &colorHovered)
+            {
+                bool axisChanged = false;
+
+                ImGui::PushStyleColor(ImGuiCol_Button, color);
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, colorHovered);
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, color);
+
+                if (ImGui::Button(axisLabel, buttonSize))
+                {
+                    value = resetValue;
+                    axisChanged = true;
+                }
+                ImGui::PopStyleColor(3);
+
+                ImGui::SameLine();
+                ImGui::SetNextItemWidth(itemWidth);
+
+                if (ImGui::DragFloat((std::string("##") + axisLabel).c_str(),
+                                     &value,
+                                     dragSpeed,
+                                     0.0f,
+                                     0.0f,
+                                     "%.2f"))
+                {
+                    axisChanged = true;
+                }
+
+                ImGui::SameLine();
+                return axisChanged;
+            };
+
+            changed |= drawAxisControl("X", values.x,
+                                       {0.8f, 0.1f, 0.15f, 1.0f},
+                                       {0.9f, 0.2f, 0.2f, 1.0f});
+
+            changed |= drawAxisControl("Y", values.y,
+                                       {0.2f, 0.7f, 0.2f, 1.0f},
+                                       {0.3f, 0.8f, 0.3f, 1.0f});
+
+            ImGui::PopStyleVar();
+            ImGui::EndTable();
+        }
+
+        ImGui::PopStyleVar(2);
+        ImGui::PopID();
+        return changed;
+    }
+
     template <typename T, typename UIFunction>
     static void drawComponent(const std::string &name, Entity entity, UIFunction uiFunction)
     {
@@ -637,15 +722,15 @@ namespace Fermion
 
         drawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](auto &component)
                                               {
-            ImGui::DragFloat2("Offset", glm::value_ptr(component.offset));
-            ImGui::DragFloat2("Size", glm::value_ptr(component.size));
+            drawVec2Control("Offset",component.offset,0.0f,100.0f,0.1f); 
+            drawVec2Control("Size",component.size,0.0f,100.0f,0.1f);
             ImGui::DragFloat("Density", &component.density, 0.01f, 0.0f, 1.0f);
             ImGui::DragFloat("Friction", &component.friction, 0.01f, 0.0f, 1.0f);
             ImGui::DragFloat("Restitution", &component.restitution, 0.01f, 0.0f, 1.0f);
             ImGui::DragFloat("Restitution Threshold", &component.restitutionThreshold, 0.01f, 0.0f); });
         drawComponent<CircleCollider2DComponent>("Circle Collider 2D", entity, [](auto &component)
                                                  {
-            ImGui::DragFloat2("Offset", glm::value_ptr(component.offset));
+            drawVec2Control("Offset",component.offset,0.0f,100.0f,0.1f); 
             ImGui::DragFloat("Radius", &component.radius);
             ImGui::DragFloat("Density", &component.density, 0.01f, 0.0f, 1.0f);
             ImGui::DragFloat("Friction", &component.friction, 0.01f, 0.0f, 1.0f);
@@ -653,8 +738,8 @@ namespace Fermion
             ImGui::DragFloat("Restitution Threshold", &component.restitutionThreshold, 0.01f, 0.0f); });
         drawComponent<BoxSensor2DComponent>("Box Sensor 2D", entity, [](auto &component)
                                             {
-            ImGui::DragFloat2("Offset", glm::value_ptr(component.offset), 0.01f);
-            ImGui::DragFloat2("Size", glm::value_ptr(component.size), 0.01f); });
+            drawVec2Control("Offset",component.offset,0.0f,100.0f,0.1f); 
+            drawVec2Control("Size",component.size,0.0f,100.0f,0.1f); });
         drawComponent<Rigidbody3DComponent>("Rigidbody 3D", entity, [](auto &component)
                                             {
             const char *bodyTypeStrings[] = {"Static", "Dynamic", "Kinematic"};
@@ -679,15 +764,15 @@ namespace Fermion
             ImGui::Checkbox("Fixed Rotation##3d", &component.fixedRotation); });
         drawComponent<BoxCollider3DComponent>("Box Collider 3D", entity, [](auto &component)
                                               {
-            ImGui::DragFloat3("Offset##3d", glm::value_ptr(component.offset), 0.01f);
-            ImGui::DragFloat3("Size##3d", glm::value_ptr(component.size), 0.01f);
+            drawVec3Control("Offset",component.offset,0.0f,100.0f,0.1f);
+            drawVec3Control("Size",component.size,0.0f,100.0f,0.1f);
             ImGui::DragFloat("Density##3d", &component.density, 0.01f, 0.0f, 10.0f);
             ImGui::DragFloat("Friction##3d", &component.friction, 0.01f, 0.0f, 1.0f);
             ImGui::DragFloat("Restitution##3d", &component.restitution, 0.01f, 0.0f, 1.0f);
             ImGui::Checkbox("Trigger##3d", &component.isTrigger); });
         drawComponent<CircleCollider3DComponent>("Circle Collider 3D", entity, [](auto &component)
                                                  {
-            ImGui::DragFloat3("Offset##circle3d", glm::value_ptr(component.offset), 0.01f);
+            drawVec3Control("Offset",component.offset,0.0f,100.0f,0.1f);
             ImGui::DragFloat("Radius##circle3d", &component.radius, 0.01f, 0.01f, 100.0f);
             ImGui::DragFloat("Density##circle3d", &component.density, 0.01f, 0.0f, 10.0f);
             ImGui::DragFloat("Friction##circle3d", &component.friction, 0.01f, 0.0f, 1.0f);
@@ -695,7 +780,7 @@ namespace Fermion
             ImGui::Checkbox("Trigger##circle3d", &component.isTrigger); });
         drawComponent<CapsuleCollider3DComponent>("Capsule Collider 3D", entity, [](auto &component)
                                                   {
-            ImGui::DragFloat3("Offset##capsule3d", glm::value_ptr(component.offset), 0.01f);
+            drawVec3Control("Offset",component.offset,0.0f,100.0f,0.1f);
             ImGui::DragFloat("Radius##capsule3d", &component.radius, 0.01f, 0.01f, 100.0f);
             ImGui::DragFloat("Height##capsule3d", &component.height, 0.01f, 0.01f, 100.0f);
             ImGui::DragFloat("Density##capsule3d", &component.density, 0.01f, 0.0f, 10.0f);

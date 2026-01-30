@@ -5,6 +5,9 @@
 ../Boson/projects/Assets/scripts/PressureTest.cs ^
 ../Boson/projects/Assets/scripts/ObjController.cs ^
 ../Boson/projects/Assets/scripts/XAxisMove.cs ^
-../Boson/projects/Assets/scripts/Rigidbody3DController.cs
+../Boson/projects/Assets/scripts/Rigidbody3DController.cs ^
+../Boson/projects/Assets/scripts/FPSCameraController.cs ^
+../Boson/projects/Assets/scripts/FPSCharacterController.cs ^
+../Boson/projects/Assets/scripts/CameraRotationTest.cs
 
 

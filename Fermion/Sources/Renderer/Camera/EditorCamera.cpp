@@ -65,7 +65,7 @@ namespace Fermion
                 m_savedCursorPosition = mouse;
                 m_hasSavedCursorPosition = true;
                 m_initialMousePosition = mouse;
-                Input::setCursorMode(CursorMode::Disabled);
+                Input::setCursorMode(CursorMode::Locked);
                 Input::setRawMouseMotion(true);
             }
 

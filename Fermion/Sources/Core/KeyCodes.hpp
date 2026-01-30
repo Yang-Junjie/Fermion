@@ -54,4 +54,10 @@ namespace Fermion
         Z = 90
 
     };
+    enum class CursorMode
+    {
+        Normal = 0,
+        Hidden = 1,
+        Locked = 2
+    };
 }

@@ -1,5 +1,6 @@
 ﻿#include "fmpch.hpp"
 #include "Core/Input.hpp"
+#include "Core/KeyCodes.hpp"
 
 #include "Core/Application.hpp"
 #include <GLFW/glfw3.h>
@@ -16,7 +17,7 @@ namespace Fermion
             return GLFW_CURSOR_NORMAL;
         case CursorMode::Hidden:
             return GLFW_CURSOR_HIDDEN;
-        case CursorMode::Disabled:
+        case CursorMode::Locked:
             return GLFW_CURSOR_DISABLED;
         default:
             return GLFW_CURSOR_NORMAL;

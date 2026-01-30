@@ -761,6 +761,7 @@ namespace Fermion
         for (size_t i = 0; i < 4; i++)
             lineVertices[i] = transform * s_Data.QuadVertexPositions[i];
 
+        setLineWidth(1.0f);
         drawLine(lineVertices[0], lineVertices[1], color, objectID);
         drawLine(lineVertices[1], lineVertices[2], color, objectID);
         drawLine(lineVertices[2], lineVertices[3], color, objectID);
