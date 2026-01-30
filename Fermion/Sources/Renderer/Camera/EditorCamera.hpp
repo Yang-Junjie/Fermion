@@ -70,6 +70,8 @@ namespace Fermion
         float getFPSSpeed() const { return m_fpsMoveSpeed; }
         bool isFPSMode() const { return m_isFpsMode; }
 
+        void setCanEnterFpsMode(bool canEnter) { m_canEnterFpsMode = canEnter; }
+
     private:
         void updateProjection();
         void updateView();
@@ -105,6 +107,7 @@ namespace Fermion
 
         bool m_isFpsMode = false;
         float m_fpsMoveSpeed = 5.0f;
+        bool m_canEnterFpsMode = true;
     };
 
 } // namespace Fermion

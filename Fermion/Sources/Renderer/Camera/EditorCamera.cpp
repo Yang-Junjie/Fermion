@@ -57,7 +57,7 @@ namespace Fermion
         glm::vec2 mouse{Input::getMouseX(), Input::getMouseY()};
 
         // FPS MODE
-        if (Input::isMouseButtonPressed(MouseCode::Right))
+        if (Input::isMouseButtonPressed(MouseCode::Right) && (m_isFpsMode || m_canEnterFpsMode))
         {
             if (!m_isFpsMode)
             {

@@ -171,11 +171,13 @@ namespace Fermion
         }
         else if (m_sceneState == SceneState::Simulate)
         {
+            m_editorCamera.setCanEnterFpsMode(m_viewportHovered);
             m_editorCamera.onUpdate(dt);
             m_activeScene->onUpdateSimulation(m_viewportRenderer, dt, m_editorCamera, m_showRenderEntities);
         }
         else
         {
+            m_editorCamera.setCanEnterFpsMode(m_viewportHovered);
             m_editorCamera.onUpdate(dt);
             m_activeScene->onUpdateEditor(m_viewportRenderer, dt, m_editorCamera, m_showRenderEntities);
         }

@@ -8,15 +8,18 @@
 #include <filesystem>
 #include <memory>
 
-namespace Fermion {
-    class AssetManager {
+namespace Fermion
+{
+    class AssetManager
+    {
     public:
         static void init(const std::filesystem::path &assetDirectory);
 
         static void shutdown();
 
-        template<typename T>
-        static std::shared_ptr<T> getAsset(AssetHandle handle) {
+        template <typename T>
+        static std::shared_ptr<T> getAsset(AssetHandle handle)
+        {
             auto it = s_loadedAssets.find(handle);
             if (it != s_loadedAssets.end())
                 return std::dynamic_pointer_cast<T>(it->second);
@@ -41,14 +44,16 @@ namespace Fermion {
         static AssetHandle importAsset(const std::filesystem::path &path);
 
         static AssetHandle addMemoryOnlyAsset(std::shared_ptr<Asset> asset);
-        
+
         static void registerLoadedAsset(AssetHandle handle, std::shared_ptr<Asset> asset);
 
         static std::shared_ptr<Asset> getAssetMetadata(AssetHandle handle);
 
     private:
-        struct AssetTypeHash {
-            std::size_t operator()(AssetType type) const noexcept {
+        struct AssetTypeHash
+        {
+            std::size_t operator()(AssetType type) const noexcept
+            {
                 return static_cast<std::size_t>(type);
             }
         };
@@ -57,7 +62,7 @@ namespace Fermion {
 
         static std::shared_ptr<Asset> loadAssetInternal(AssetHandle handle);
 
-        static std::unordered_map<AssetHandle, std::shared_ptr<Asset> > s_loadedAssets;
+        static std::unordered_map<AssetHandle, std::shared_ptr<Asset>> s_loadedAssets;
         static std::unordered_map<AssetType, std::unique_ptr<AssetLoader>, AssetTypeHash> s_assetLoaders;
         static std::filesystem::path s_assetDirectory;
     };
