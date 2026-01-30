@@ -151,5 +151,6 @@ namespace Fermion
 
         bool m_isInitialized = false;
         std::filesystem::path m_pendingProjectPath;
+        float m_viewportTabBarHeight = 0.0f;
     };
 } // namespace Fermion

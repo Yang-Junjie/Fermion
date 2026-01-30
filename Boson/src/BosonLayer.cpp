@@ -596,6 +596,7 @@ namespace Fermion
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4{0.117f, 0.117f, 0.117f, 1.0f});
         ImGui::Begin("Viewport");
         const auto viewportOffset = ImGui::GetCursorPos();
+        m_viewportTabBarHeight = viewportOffset.y;
         m_viewportFocused = ImGui::IsWindowFocused();
         m_viewportHovered = ImGui::IsWindowHovered();
 
@@ -753,7 +754,7 @@ namespace Fermion
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(padding, padding));
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 0));
 
-        ImGui::SetCursorPos(ImVec2(10.0f, 10.0f));
+        ImGui::SetCursorPos(ImVec2(10.0f, m_viewportTabBarHeight + 10.0f));
         if (ImGui::BeginChild("GizmoToolbar", ImVec2(0, 0), child_flags, window_flags))
         {
             ImDrawList *draw_list = ImGui::GetWindowDrawList();
@@ -786,7 +787,7 @@ namespace Fermion
         }
         ImGui::EndChild();
 
-        ImGui::SetCursorPos(ImVec2((m_viewport.size().x * 0.5f) - 60.0f, 10.0f));
+        ImGui::SetCursorPos(ImVec2(m_viewport.size().x - 120.0f, m_viewportTabBarHeight + 10.0f));
 
         if (ImGui::BeginChild("SceneControl", ImVec2(0, 0), child_flags, window_flags))
         {
