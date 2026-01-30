@@ -22,6 +22,7 @@ namespace Fermion
     std::unordered_map<AssetHandle, std::shared_ptr<Asset>> AssetManager::s_loadedAssets;
     std::filesystem::path AssetManager::s_assetDirectory;
     std::unordered_map<AssetType, std::unique_ptr<AssetLoader>, AssetManager::AssetTypeHash> AssetManager::s_assetLoaders;
+    std::unordered_map<AssetType, std::shared_ptr<Asset>> AssetManager::s_defaultAssets;
     void AssetManager::ensureDefaultLoaders()
     {
         if (!s_assetLoaders.empty())
@@ -128,6 +129,17 @@ namespace Fermion
 
             AssetRegistry::set(meta.Handle, meta);
         }
+
+        uint32_t p = 0xFFF527D6;
+        uint32_t w = 0xFFFFFFFF;
+
+        std::vector<uint32_t> data = {
+            w, p,
+            p, w};
+
+        std::shared_ptr<Texture2D> defaultTexture = Texture2D::create(2, 2);
+        defaultTexture->setData(data.data(), sizeof(uint32_t) * data.size());
+        s_defaultAssets[AssetType::Texture] = defaultTexture;
     }
 
     void AssetManager::shutdown()
@@ -290,6 +302,11 @@ namespace Fermion
     std::shared_ptr<Asset> AssetManager::getAssetMetadata(AssetHandle handle)
     {
         return std::shared_ptr<Asset>();
+    }
+
+    std::shared_ptr<Asset> AssetManager::getDefaultAsset(AssetType type)
+    {
+        return s_defaultAssets[type];
     }
 
     std::shared_ptr<Asset> AssetManager::loadAssetInternal(AssetHandle handle)

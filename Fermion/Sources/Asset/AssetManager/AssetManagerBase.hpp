@@ -37,5 +37,10 @@ public:
     AssetHandle importAsset(const std::filesystem::path &path) {
         return AssetManager::importAsset(path);
     }
+
+    template <typename T>
+    std::shared_ptr<T> getDefaultAssetForType() {
+        return AssetManager::getDefaultAssetForType<T>();
+    }
 };
 } // namespace Fermion

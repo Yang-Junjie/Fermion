@@ -48,7 +48,7 @@ Entities:
         - 7383789325647833737
         - 3536735286335801191
     MeshComponent:
-      MeshHandle: 12240720634530709829
+      MeshHandle: 509914290590521448
       MemoryOnly: true
       MemoryMeshType: 4
       SubmeshMaterials:
@@ -81,7 +81,7 @@ Entities:
     RelationshipComponent:
       Parent: 0
     MeshComponent:
-      MeshHandle: 15446771115373625818
+      MeshHandle: 14422042990600852661
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:
@@ -123,7 +123,7 @@ Entities:
     RelationshipComponent:
       Parent: 0
     MeshComponent:
-      MeshHandle: 6508867824591572010
+      MeshHandle: 122898624391177219
       MemoryOnly: true
       MemoryMeshType: 2
       SubmeshMaterials:
@@ -145,3 +145,15 @@ Entities:
     ScriptContainerComponent:
       ScriptClassNames:
         - Sandbox.XAxisMove
+  - Entity: 18373876131094040349
+    TagComponent:
+      Tag: 2d
+    TransformComponent:
+      Translation: [1.4900513, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TextureHandle: 6251455698749993369

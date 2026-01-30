@@ -397,7 +397,7 @@ namespace Fermion
                     if (auto n = spriteRendererComponent["TextureHandle"]; n)
                     {
                         uint64_t handleValue = n.as<uint64_t>();
-                        if (handleValue != 0)
+                        if (handleValue != 0 )
                         {
                             src.textureHandle = AssetHandle(handleValue);
                             // auto runtimeAssets = Project::getRuntimeAssetManager();

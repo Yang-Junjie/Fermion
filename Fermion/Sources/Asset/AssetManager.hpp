@@ -10,6 +10,8 @@
 
 namespace Fermion
 {
+    class Texture2D;
+
     class AssetManager
     {
     public:
@@ -25,11 +27,21 @@ namespace Fermion
                 return std::dynamic_pointer_cast<T>(it->second);
 
             if (!AssetRegistry::exists(handle))
+            {
+                auto defaultAsset = getDefaultAssetForType<T>();
+                if (defaultAsset)
+                    return defaultAsset;
                 return nullptr;
+            }
 
             auto asset = loadAssetInternal(handle);
             if (!asset)
+            {
+                auto defaultAsset = getDefaultAssetForType<T>();
+                if (defaultAsset)
+                    return defaultAsset;
                 return nullptr;
+            }
 
             s_loadedAssets[handle] = asset;
             return std::dynamic_pointer_cast<T>(asset);
@@ -49,6 +61,19 @@ namespace Fermion
 
         static std::shared_ptr<Asset> getAssetMetadata(AssetHandle handle);
 
+        static std::shared_ptr<Asset> getDefaultAsset(AssetType type);
+
+        template <typename T>
+        static std::shared_ptr<T> getDefaultAssetForType()
+        {
+            if constexpr (std::is_same_v<T, Texture2D>)
+            {
+                auto defaultAsset = getDefaultAsset(AssetType::Texture);
+                return std::dynamic_pointer_cast<T>(defaultAsset);
+            }
+            return nullptr;
+        }
+
     private:
         struct AssetTypeHash
         {
@@ -63,6 +88,7 @@ namespace Fermion
         static std::shared_ptr<Asset> loadAssetInternal(AssetHandle handle);
 
         static std::unordered_map<AssetHandle, std::shared_ptr<Asset>> s_loadedAssets;
+        static std::unordered_map<AssetType, std::shared_ptr<Asset>> s_defaultAssets;
         static std::unordered_map<AssetType, std::unique_ptr<AssetLoader>, AssetTypeHash> s_assetLoaders;
         static std::filesystem::path s_assetDirectory;
     };

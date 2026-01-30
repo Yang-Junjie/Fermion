@@ -164,8 +164,10 @@ namespace Fermion
         if (static_cast<uint64_t>(sprite.textureHandle) != 0)
         {
             auto texture = Project::getRuntimeAssetManager()->getAsset<Texture2D>(sprite.textureHandle);
-            Renderer2D::drawQuad(transform, texture,
-                                 sprite.tilingFactor, sprite.color, objectID);
+            if (texture)
+            {
+                Renderer2D::drawQuad(transform, texture, sprite.tilingFactor, sprite.color, objectID);
+            }
         }
         else
         {

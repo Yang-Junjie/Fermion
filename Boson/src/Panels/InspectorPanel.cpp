@@ -185,9 +185,6 @@ namespace Fermion
 
     InspectorPanel::InspectorPanel()
     {
-        m_spriteComponentDefaultTexture = Texture2D::create(1, 1);
-        uint32_t white = 0xffffffff;
-        m_spriteComponentDefaultTexture->setData(&white, sizeof(uint32_t));
     }
 
     void InspectorPanel::onImGuiRender()
@@ -259,11 +256,11 @@ namespace Fermion
             changed |= drawAxisControl("Y", values.y, {0.2f, 0.7f, 0.2f, 1.0f}, {0.3f, 0.8f, 0.3f, 1.0f});
             changed |= drawAxisControl("Z", values.z, {0.1f, 0.25f, 0.8f, 1.0f}, {0.2f, 0.35f, 0.9f, 1.0f});
 
-            ImGui::PopStyleVar(); 
+            ImGui::PopStyleVar();
             ImGui::EndTable();
         }
 
-        ImGui::PopStyleVar(2); 
+        ImGui::PopStyleVar(2);
         ImGui::PopID();
         return changed;
     }
@@ -432,12 +429,17 @@ namespace Fermion
 
                 ImGui::Checkbox("Fixed Aspect Ratio", &component.fixedAspectRatio);
             } });
-        drawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [this](auto &component)
+        drawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [](auto &component)
                                                {
             ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
 
+            auto editorAssets = Project::getEditorAssetManager();
 
-            ImTextureID textureID = (ImTextureID) (uintptr_t) m_spriteComponentDefaultTexture->getRendererID();
+            if (static_cast<uint64_t>(component.textureHandle) != 0 && !component.texture) {
+                component.texture = editorAssets->getAsset<Texture2D>(component.textureHandle);
+            }
+
+            ImTextureID textureID = (ImTextureID)0;
             ImVec2 imageSize = ImVec2(64.0f, 64.0f);
 
             ImGui::Text("Texture");
@@ -451,14 +453,19 @@ namespace Fermion
                     float scale = std::min(maxSize / texW, maxSize / texH);
                     imageSize = ImVec2(texW * scale, texH * scale);
                 }
-            } else if (m_spriteComponentDefaultTexture && m_spriteComponentDefaultTexture->isLoaded()) {
-                textureID = (ImTextureID) (uintptr_t) m_spriteComponentDefaultTexture->getRendererID();
+            } else {
+                auto defaultTexture = editorAssets->template getDefaultAssetForType<Texture2D>();
+                if (defaultTexture && defaultTexture->isLoaded()) {
+                    textureID = (ImTextureID) (uintptr_t) defaultTexture->getRendererID();
+                }
             }
 
 
             ImGui::SameLine();
             if (textureID)
                 ImGui::Image(textureID, imageSize, ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
+            else
+                ImGui::Text("[No Texture]");
 
             // Drag & drop to assign texture
             if (ImGui::BeginDragDropTarget()) {
