@@ -10,6 +10,12 @@ namespace Fermion
         m_isOpenned = state;
     }
 
+    void MaterialEditorPanel::clearData()
+    {
+        m_MaterialInfo = MaterialInfo{};
+        m_useTexture = false;
+    }
+
     void MaterialEditorPanel::onImGuiRender()
     {
         if (!m_isOpenned)
@@ -45,10 +51,28 @@ namespace Fermion
                             m_MaterialInfo.Metallic = material->getMetallic();
                             m_MaterialInfo.Roughness = material->getRoughness();
                             m_MaterialInfo.AO = material->getAO();
+                            m_MaterialInfo.Maps.AlbedoMapHandle = material->getAlbedoMap();
+                            m_MaterialInfo.Maps.NormalMapHandle = material->getNormalMap();
+                            m_MaterialInfo.Maps.MetallicMapHandle = material->getMetallicMap();
+                            m_MaterialInfo.Maps.RoughnessMapHandle = material->getRoughnessMap();
+                            m_MaterialInfo.Maps.AOMapHandle = material->getAOMap();
+                            m_useTexture = true;
                         }
                     }
                 }
                 ImGui::EndDragDropTarget();
+            }
+
+            // 显示加载的 material 的 albedo 贴图预览
+            if (static_cast<uint64_t>(m_MaterialInfo.Maps.AlbedoMapHandle) != 0)
+            {
+                auto texture = Project::getEditorAssetManager()->getAsset<Texture2D>(m_MaterialInfo.Maps.AlbedoMapHandle);
+                if (texture && texture->isLoaded())
+                {
+                    ImTextureID textureID = (ImTextureID)(uintptr_t)texture->getRendererID();
+                    ImGui::Text("Material Preview:");
+                    ImGui::Image(textureID, ImVec2(128, 128), ImVec2(0, 1), ImVec2(1, 0));
+                }
             }
         }
 
@@ -83,6 +107,11 @@ namespace Fermion
         }
         if (static_cast<uint64_t>(m_MaterialInfo.Maps.AlbedoMapHandle) != 0)
         {
+            ImGui::SameLine();
+            if (ImGui::Button("Clear##albedo"))
+            {
+                m_MaterialInfo.Maps.AlbedoMapHandle = AssetHandle(0);
+            }
             ImGui::SameLine();
             ImGui::Text("(%llu)", static_cast<uint64_t>(m_MaterialInfo.Maps.AlbedoMapHandle));
 
@@ -119,6 +148,11 @@ namespace Fermion
         if (static_cast<uint64_t>(m_MaterialInfo.Maps.NormalMapHandle) != 0)
         {
             ImGui::SameLine();
+            if (ImGui::Button("Clear##normal"))
+            {
+                m_MaterialInfo.Maps.NormalMapHandle = AssetHandle(0);
+            }
+            ImGui::SameLine();
             ImGui::Text("(%llu)", static_cast<uint64_t>(m_MaterialInfo.Maps.NormalMapHandle));
 
             auto texture = Project::getEditorAssetManager()->getAsset<Texture2D>(m_MaterialInfo.Maps.NormalMapHandle);
@@ -153,6 +187,11 @@ namespace Fermion
         }
         if (static_cast<uint64_t>(m_MaterialInfo.Maps.MetallicMapHandle) != 0)
         {
+            ImGui::SameLine();
+            if (ImGui::Button("Clear##metallic"))
+            {
+                m_MaterialInfo.Maps.MetallicMapHandle = AssetHandle(0);
+            }
             ImGui::SameLine();
             ImGui::Text("(%llu)", static_cast<uint64_t>(m_MaterialInfo.Maps.MetallicMapHandle));
 
@@ -189,6 +228,11 @@ namespace Fermion
         if (static_cast<uint64_t>(m_MaterialInfo.Maps.RoughnessMapHandle) != 0)
         {
             ImGui::SameLine();
+            if (ImGui::Button("Clear##roughness"))
+            {
+                m_MaterialInfo.Maps.RoughnessMapHandle = AssetHandle(0);
+            }
+            ImGui::SameLine();
             ImGui::Text("(%llu)", static_cast<uint64_t>(m_MaterialInfo.Maps.RoughnessMapHandle));
 
             auto texture = Project::getEditorAssetManager()->getAsset<Texture2D>(m_MaterialInfo.Maps.RoughnessMapHandle);
@@ -223,6 +267,11 @@ namespace Fermion
         }
         if (static_cast<uint64_t>(m_MaterialInfo.Maps.AOMapHandle) != 0)
         {
+            ImGui::SameLine();
+            if (ImGui::Button("Clear##ao"))
+            {
+                m_MaterialInfo.Maps.AOMapHandle = AssetHandle(0);
+            }
             ImGui::SameLine();
             ImGui::Text("(%llu)", static_cast<uint64_t>(m_MaterialInfo.Maps.AOMapHandle));
 
@@ -295,7 +344,19 @@ namespace Fermion
 
         if (static_cast<uint64_t>(m_MaterialInfo.DiffuseTextureHandle) != 0)
         {
+            ImGui::SameLine();
+            if (ImGui::Button("Clear##phong"))
+            {
+                m_MaterialInfo.DiffuseTextureHandle = AssetHandle(0);
+            }
             ImGui::Text("Handle: %llu", static_cast<uint64_t>(m_MaterialInfo.DiffuseTextureHandle));
+
+            auto texture = Project::getEditorAssetManager()->getAsset<Texture2D>(m_MaterialInfo.DiffuseTextureHandle);
+            if (texture && texture->isLoaded())
+            {
+                ImTextureID textureID = (ImTextureID)(uintptr_t)texture->getRendererID();
+                ImGui::Image(textureID, ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
+            }
         }
         if (ImGui::Button("Create Phong Material"))
         {
@@ -307,5 +368,12 @@ namespace Fermion
         }
         ImGui::EndDisabled();
         ImGui::End();
+
+        // 如果窗口被关闭，清空所有数据
+        if (!m_isOpenned)
+        {
+            m_MaterialInfo = MaterialInfo{};
+            m_useTexture = false;
+        }
     }
 }

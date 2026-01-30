@@ -1,0 +1,12 @@
+Material:
+  Type: 2
+  Name: wall
+  Albedo: [1, 1, 1]
+  Metallic: 0
+  Roughness: 0.5
+  AO: 1
+  AlbedoMap: 8009784382005201766
+  NormalMap: 3118528635742906549
+  MetallicMap: 8615071434903555699
+  RoughnessMap: 14372199478054622638
+  AOMap: 2307258443479421007

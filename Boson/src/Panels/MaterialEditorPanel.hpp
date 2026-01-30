@@ -13,6 +13,7 @@ namespace Fermion
         ~MaterialEditorPanel() = default;
 
         void setPanelOpenState(bool state);
+        void clearData();
 
         void onImGuiRender();
 

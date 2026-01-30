@@ -398,6 +398,7 @@ namespace Fermion
 
     void BosonLayer::openMaterialEditorPanel()
     {
+        m_materialEditorPanel.clearData();
         m_materialEditorPanel.setPanelOpenState(true);
     }
 
