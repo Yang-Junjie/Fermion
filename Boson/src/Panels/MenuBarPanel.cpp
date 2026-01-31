@@ -1,9 +1,9 @@
 #include "MenuBarPanel.hpp"
 #include "fmpch.hpp"
 #include "../BosonLayer.hpp"
-#include "Project/Project.hpp"
+
 #include "Project/ProjectSerializer.hpp"
-#include "ImGui/UI.hpp"
+#include "ImGui/BosonUI.hpp"
 #include "Core/Application.hpp"
 
 namespace Fermion
@@ -103,64 +103,13 @@ namespace Fermion
         {
             if (ImGui::MenuItem("Build Project"))
             {
-                auto project = Project::getActive();
-                FERMION_ASSERT(project != nullptr, "No active project to build!");
-
-                const auto projectFile = project->getProjectPath();
-                const auto projectDir = projectFile.parent_path();
-
+                if (auto project = Project::getActive())
                 {
-                    ProjectSerializer serializer(project);
-                    const auto runtimeFile = projectDir / "Project.fdat";
-                    serializer.sertializeRuntime(runtimeFile);
+                    buildProject(project);
                 }
-
+                else
                 {
-                    std::filesystem::path shaderSrcDir = "../Boson/Resources/shaders";
-                    std::filesystem::path shaderDstDir = projectDir / "Resources" / "shaders";
-
-                    std::error_code ec;
-
-                    std::filesystem::create_directories(shaderDstDir, ec);
-                    if (ec)
-                    {
-                        Log::Error(std::format("Failed to create shader output dir: {} ({})",
-                                               shaderDstDir.string(), ec.message()));
-                    }
-                    else
-                    {
-                        if (!std::filesystem::exists(shaderSrcDir) || !std::filesystem::is_directory(shaderSrcDir))
-                        {
-                            Log::Error(std::format("Shader source dir not found: {}",
-                                                   shaderSrcDir.string()));
-                        }
-                        else
-                        {
-                            for (const auto &entry : std::filesystem::directory_iterator(shaderSrcDir))
-                            {
-                                if (!entry.is_regular_file())
-                                    continue;
-
-                                const auto &srcPath = entry.path();
-                                auto dstPath = shaderDstDir / srcPath.filename();
-
-                                std::filesystem::copy_file(
-                                    srcPath,
-                                    dstPath,
-                                    std::filesystem::copy_options::overwrite_existing,
-                                    ec);
-
-                                if (ec)
-                                {
-                                    Log::Error(std::format("Failed to copy shader {} -> {}: {}",
-                                                           srcPath.string(),
-                                                           dstPath.string(),
-                                                           ec.message()));
-                                    ec.clear();
-                                }
-                            }
-                        }
-                    }
+                    Log::Error("No active project found!");
                 }
             }
             ui::EndPopup();
@@ -177,6 +126,47 @@ namespace Fermion
         ImGui::PopStyleVar();
     }
 
+    void MenuBarPanel::buildProject(const std::shared_ptr<Project> &project)
+    {
+        FERMION_ASSERT(project != nullptr, "No active project to build!");
+
+        const auto projectDir = project->getProjectPath().parent_path();
+        std::error_code ec;
+
+        ProjectSerializer(project).sertializeRuntime(projectDir / "Project.fdat");
+
+        const std::filesystem::path shaderSrcDir = "../Boson/Resources/shaders";
+        const std::filesystem::path shaderDstDir = projectDir / "Resources" / "shaders";
+
+        std::filesystem::create_directories(shaderDstDir, ec);
+        if (ec)
+        {
+            Log::Error(std::format("Failed to create shader output dir: {} ({})", shaderDstDir.string(), ec.message()));
+            return;
+        }
+
+        if (!std::filesystem::exists(shaderSrcDir))
+        {
+            Log::Error(std::format("Shader source dir not found: {}", shaderSrcDir.string()));
+            return;
+        }
+
+        for (const auto &entry : std::filesystem::directory_iterator(shaderSrcDir))
+        {
+            if (!entry.is_regular_file())
+                continue;
+
+            const auto &srcPath = entry.path();
+            const auto dstPath = shaderDstDir / srcPath.filename();
+
+            std::filesystem::copy_file(srcPath, dstPath, std::filesystem::copy_options::overwrite_existing, ec);
+            if (ec)
+            {
+                Log::Error(std::format("Failed to copy shader {} -> {}: {}", srcPath.string(), dstPath.string(), ec.message()));
+                ec.clear();
+            }
+        }
+    }
     void MenuBarPanel::DrawMenuItem(const char *label,
                                     const char *popupName,
                                     float &leftX,

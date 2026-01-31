@@ -10,7 +10,7 @@
 
 #include "ImGui/ModalDialog.hpp"
 #include "ImGui/ConsolePanel.hpp"
-#include "ImGui/UI.hpp"
+#include "ImGui/BosonUI.hpp"
 
 #include "Math/Math.hpp"
 
@@ -375,7 +375,7 @@ namespace Fermion
                  {
                     ImGui::SeparatorText("About Fermion");
                     ImGui::Text("Fermion Engine v0.1");
-                    ImGui::Text("Copyright (c) 2025, Beisent");
+                    ImGui::Text("Copyright (c) 2025-2026, Beisent");
                     ImGui::Text("This is free and open-source software under the MIT License.");
                     ImGui::SeparatorText("From");
                     ImGui::Text("This engine was written based on TheCherno's game engine tutorial series.");

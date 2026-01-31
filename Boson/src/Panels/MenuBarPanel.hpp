@@ -1,6 +1,7 @@
 #pragma once
 #include "fmpch.hpp"
 #include "Renderer/Texture/Texture.hpp"
+#include "Project/Project.hpp"
 #include <imgui.h>
 
 namespace Fermion {
@@ -22,6 +23,7 @@ namespace Fermion {
         }
 
     private:
+        void buildProject(const std::shared_ptr<Project> &project);
         void DrawMenuItem(const char *label, const char *popupName, float &leftX, float y, float itemWidth,
                           float itemHeight) const;
 
