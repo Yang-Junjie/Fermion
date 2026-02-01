@@ -11,6 +11,7 @@
 #include <array>
 #include <vector>
 #include "Renderer/RenderCommandQueue.hpp"
+#include "ProceduralSkyGenerator.hpp"
 
 namespace Fermion
 {
@@ -103,7 +104,10 @@ namespace Fermion
             uint32_t brdfLUTSize = 512;
             uint32_t prefilterMaxMipLevels = 5;
 
-            std::string defaultHdrPath = "../Boson/projects/Assets/hdr/cedar_bridge_2_2k.hdr";
+            ProceduralSkyGenerator::SkySettings skySettings;
+
+            
+            std::string defaultHdrPath;
         };
 
         struct RenderStatistics
@@ -236,6 +240,15 @@ namespace Fermion
 
         void loadHDREnvironment(const std::string &hdrPath);
 
+        /**
+         * @brief Generate a procedural sky and use it as the environment
+         *
+         * Creates a procedural sky cubemap using the current skySettings and
+         * injects it into the IBL pipeline. Call this when no HDR environment
+         * is available or when you want to switch to procedural sky.
+         */
+        void generateProceduralSky();
+
         std::shared_ptr<Framebuffer> getGBufferFramebuffer() const;
 
         uint32_t getGBufferAttachmentRendererID(GBufferAttachment attachment) const;
@@ -289,6 +302,7 @@ namespace Fermion
         std::unique_ptr<PostProcessRenderer> m_postProcessRenderer;
         std::unique_ptr<EnvironmentRenderer> m_environmentRenderer;
         std::unique_ptr<ShadowMapRenderer> m_shadowRenderer;
+        std::unique_ptr<ProceduralSkyGenerator> m_proceduralSkyGenerator;
 
         std::shared_ptr<Scene> m_scene;
 

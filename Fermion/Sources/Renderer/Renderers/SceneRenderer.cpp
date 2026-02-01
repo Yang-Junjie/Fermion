@@ -13,6 +13,7 @@
 #include "ForwardRenderer.hpp"
 #include "OutlineRenderer.hpp"
 #include "PostProcessRenderer.hpp"
+#include "ProceduralSkyGenerator.hpp"
 #include "Project/Project.hpp"
 #include "Renderer.hpp"
 #include <cfloat>
@@ -54,8 +55,10 @@ namespace Fermion
         m_postProcessRenderer = std::make_unique<PostProcessRenderer>();
         m_environmentRenderer = std::make_unique<EnvironmentRenderer>();
         m_shadowRenderer = std::make_unique<ShadowMapRenderer>();
+        m_proceduralSkyGenerator = std::make_unique<ProceduralSkyGenerator>();
 
-        loadHDREnvironment(m_sceneData.defaultHdrPath);
+        // Use procedural sky as default environment
+        generateProceduralSky();
     }
 
     SceneRenderer::~SceneRenderer() = default;
@@ -595,6 +598,23 @@ namespace Fermion
         uint32_t viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
         uint32_t viewportHeight = m_scene ? m_scene->getViewportHeight() : 0;
         m_environmentRenderer->loadHDR(hdrPath, m_targetFramebuffer, viewportWidth, viewportHeight);
+    }
+
+    void SceneRenderer::generateProceduralSky()
+    {
+        if (!m_environmentRenderer || !m_proceduralSkyGenerator)
+            return;
+
+        uint32_t viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
+        uint32_t viewportHeight = m_scene ? m_scene->getViewportHeight() : 0;
+
+        auto cubemap = m_proceduralSkyGenerator->generate(
+            m_sceneData.skySettings,
+            m_targetFramebuffer,
+            viewportWidth,
+            viewportHeight);
+
+        m_environmentRenderer->setEnvironmentCubemap(std::move(cubemap));
     }
 
     std::shared_ptr<Framebuffer> SceneRenderer::getGBufferFramebuffer() const

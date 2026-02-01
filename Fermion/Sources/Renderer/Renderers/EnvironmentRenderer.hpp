@@ -51,6 +51,8 @@ namespace Fermion
         TextureCube *getEnvironmentCubemap() const;
         bool hasEnvironment() const;
 
+        void setEnvironmentCubemap(std::unique_ptr<TextureCube> cubemap);
+
     private:
         void convertEquirectangularToCubemap(const std::shared_ptr<Framebuffer> &targetFramebuffer,
                                              uint32_t viewportWidth,

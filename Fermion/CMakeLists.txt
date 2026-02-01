@@ -78,6 +78,7 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Renderer/Renderers/ForwardRenderer.cpp
     ${FERMION_DIR}/Renderer/Renderers/OutlineRenderer.cpp
     ${FERMION_DIR}/Renderer/Renderers/PostProcessRenderer.cpp
+    ${FERMION_DIR}/Renderer/Renderers/ProceduralSkyGenerator.cpp
     ${FERMION_DIR}/Renderer/Shader.cpp
     ${FERMION_DIR}/Renderer/Texture/Texture.cpp
     ${FERMION_DIR}/Renderer/Texture/SubTexture2D.cpp

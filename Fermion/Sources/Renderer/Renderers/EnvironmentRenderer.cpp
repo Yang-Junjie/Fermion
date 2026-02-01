@@ -241,6 +241,22 @@ namespace Fermion
         return m_environmentLoaded && m_environmentCubemap != nullptr;
     }
 
+    void EnvironmentRenderer::setEnvironmentCubemap(std::unique_ptr<TextureCube> cubemap)
+    {
+        if (!cubemap)
+        {
+            Log::Error("Cannot set null environment cubemap");
+            return;
+        }
+
+        Log::Info("Setting external environment cubemap");
+
+        m_environmentCubemap = std::move(cubemap);
+        m_hdrEnvironment = nullptr;  // No HDR source for procedural sky
+        m_environmentLoaded = true;
+        m_iblInitialized = false;    // Trigger IBL regeneration on next frame
+    }
+
     void EnvironmentRenderer::convertEquirectangularToCubemap(const std::shared_ptr<Framebuffer> &targetFramebuffer,
                                                               uint32_t viewportWidth,
                                                               uint32_t viewportHeight)
