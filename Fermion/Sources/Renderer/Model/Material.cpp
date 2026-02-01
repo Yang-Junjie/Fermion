@@ -123,6 +123,8 @@ namespace Fermion
         m_Maps.MetallicMapHandle = other.m_Maps.MetallicMapHandle;
         m_Maps.RoughnessMapHandle = other.m_Maps.RoughnessMapHandle;
         m_Maps.AOMapHandle = other.m_Maps.AOMapHandle;
+
+        m_EditorData = other.m_EditorData;
     }
 
     // Getters
@@ -154,6 +156,16 @@ namespace Fermion
     AssetType Material::getAssetsType() const
     {
         return AssetType::Material;
+    }
+
+    const MaterialNodeEditorData &Material::getEditorData() const
+    {
+        return m_EditorData;
+    }
+
+    void Material::setEditorData(const MaterialNodeEditorData &data)
+    {
+        m_EditorData = data;
     }
 
     void Material::bindPhong(const std::shared_ptr<Shader> &shader, int slot) const

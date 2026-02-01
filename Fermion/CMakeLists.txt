@@ -158,14 +158,22 @@ set(THIRD_PARTY_SOURCES
 
 )
 
+
 file(GLOB YAML_CPP_SOURCES "${EXTERNAL_DIR}/yaml-cpp/src/*.cpp")
 file(GLOB IMGUIZMO_CPP_SOURCES "${EXTERNAL_DIR}/ImGuizmo/*.cpp")
+file(GLOB IMGUI_NODE_EDITOR_SOURCES "${EXTERNAL_DIR}/ImguiNodeEditor/*.cpp")
+set(IMGUI_NODE_EDITOR_UTILITIES_SOURCES
+    ${EXTERNAL_DIR}/ImguiNodeEditor/examples/blueprints-example/utilities/drawing.cpp
+    ${EXTERNAL_DIR}/ImguiNodeEditor/examples/blueprints-example/utilities/widgets.cpp
+)
 set(ENGINE_SOURCES
     ${CORE_SOURCES}
     ${PLATFORM_SOURCES}
     ${THIRD_PARTY_SOURCES}
     ${YAML_CPP_SOURCES}
     ${IMGUIZMO_CPP_SOURCES}
+    ${IMGUI_NODE_EDITOR_SOURCES}
+    ${IMGUI_NODE_EDITOR_UTILITIES_SOURCES}
 )
 
 
@@ -219,6 +227,8 @@ target_include_directories(engine PUBLIC
     ${EXTERNAL_DIR}/stb
     ${EXTERNAL_DIR}/yaml-cpp/include
     ${EXTERNAL_DIR}/ImGuizmo
+    ${EXTERNAL_DIR}/ImguiNodeEditor
+    ${EXTERNAL_DIR}/ImguiNodeEditor/examples/blueprints-example/utilities
     ${EXTERNAL_DIR}/box2d/include
     ${EXTERNAL_DIR}/JoltPhysics
     ${EXTERNAL_DIR}/msdf-atlas-gen/msdf-atlas-gen

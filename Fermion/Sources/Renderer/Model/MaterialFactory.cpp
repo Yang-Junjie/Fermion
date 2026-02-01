@@ -135,4 +135,56 @@ namespace Fermion
 
         return handle;
     }
+
+    AssetHandle MaterialFactory::createMaterial(std::string name, const MapAssets &mapAssets, const glm::vec3 &albedo, float metallic, float roughness, float AO, const MaterialNodeEditorData &editorData)
+    {
+        auto material = std::make_shared<Material>();
+        material->setMaterialType(MaterialType::PBR);
+        material->setName(name);
+
+        material->setAlbedo(albedo);
+        material->setMetallic(metallic);
+        material->setRoughness(roughness);
+        material->setAO(AO);
+
+        material->setAlbedoMap(mapAssets.AlbedoMapHandle);
+        material->setNormalMap(mapAssets.NormalMapHandle);
+        material->setMetallicMap(mapAssets.MetallicMapHandle);
+        material->setRoughnessMap(mapAssets.RoughnessMapHandle);
+        material->setAOMap(mapAssets.AOMapHandle);
+
+        material->setEditorData(editorData);
+
+        material->handle = AssetHandle();
+
+        auto project = Project::getActive();
+        if (!project)
+        {
+            return AssetHandle(0);
+        }
+
+        auto &config = project->getConfig();
+        std::filesystem::path materialsDir = config.assetDirectory / "Materials";
+
+        if (!std::filesystem::exists(materialsDir))
+        {
+            std::filesystem::create_directories(materialsDir);
+        }
+
+        std::string materialName = name;
+        std::filesystem::path materialPath = materialsDir / (materialName + ".fmat");
+
+        MaterialSerializeOptions options;
+        options.includePBRMaps = true;
+        options.includeEditorData = true;
+        if (!MaterialSerializer::serialize(materialPath, *material, options))
+            return AssetHandle(0);
+
+        AssetHandle handle = AssetManager::importAsset(materialPath);
+
+        material->handle = handle;
+        AssetManager::registerLoadedAsset(handle, material);
+
+        return handle;
+    }
 }

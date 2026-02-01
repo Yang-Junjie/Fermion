@@ -34,3 +34,7 @@
 [submodule "Fermion/external/JoltPhysics"]
 	path = Fermion/external/JoltPhysics
 	url = https://github.com/jrouwe/JoltPhysics.git
+[submodule "Fermion/external/ImguiNodeEditor"]
+	path = Fermion/external/ImguiNodeEditor
+	url = https://github.com/thedmd/imgui-node-editor.git
+	branch = develop

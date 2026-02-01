@@ -8,6 +8,7 @@ namespace Fermion {
 
 struct MaterialSerializeOptions {
     bool includePBRMaps = false;
+    bool includeEditorData = false;
 };
 
 class MaterialSerializer {

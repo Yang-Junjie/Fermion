@@ -19,6 +19,30 @@ namespace Fermion
         AssetHandle RoughnessMapHandle = AssetHandle(0);
         AssetHandle AOMapHandle = AssetHandle(0);
     };
+
+    struct MaterialNodeEditorData
+    {
+        struct NodeData
+        {
+            int ID = 0;
+            int Type = 0; // 0 = PBROutput, 1 = Texture2D
+            float PosX = 0.0f;
+            float PosY = 0.0f;
+            AssetHandle TextureHandle = AssetHandle(0);
+        };
+
+        struct LinkData
+        {
+            int ID = 0;
+            int StartPinID = 0;
+            int EndPinID = 0;
+        };
+
+        std::vector<NodeData> Nodes;
+        std::vector<LinkData> Links;
+        int NextNodeID = 2;
+        int NextLinkID = 1;
+    };
     class Material : public Asset
     {
     public:
@@ -73,6 +97,9 @@ namespace Fermion
         AssetHandle &getAOMap();
         AssetType getAssetsType() const override;
 
+        const MaterialNodeEditorData &getEditorData() const;
+        void setEditorData(const MaterialNodeEditorData &data);
+
     private:
         void bindPhong(const std::shared_ptr<Shader> &shader, int slot) const;
         void bindPBR(const std::shared_ptr<Shader> &shader, int slot) const;
@@ -93,6 +120,7 @@ namespace Fermion
         float AO;
 
         MapAssets m_Maps;
+        MaterialNodeEditorData m_EditorData;
     };
 
 } // namespace Fermion

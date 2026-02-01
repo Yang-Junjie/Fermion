@@ -50,6 +50,48 @@ namespace Fermion
 
             out << YAML::EndMap;
         }
+
+        if (options.includeEditorData)
+        {
+            const auto &editorData = material.getEditorData();
+            out << YAML::Key << "Editor" << YAML::Value;
+            out << YAML::BeginMap;
+            out << YAML::Key << "NextNodeID" << YAML::Value << editorData.NextNodeID;
+            out << YAML::Key << "NextLinkID" << YAML::Value << editorData.NextLinkID;
+
+            out << YAML::Key << "Nodes" << YAML::Value;
+            out << YAML::BeginSeq;
+            for (const auto &node : editorData.Nodes)
+            {
+                out << YAML::BeginMap;
+                out << YAML::Key << "ID" << YAML::Value << node.ID;
+                out << YAML::Key << "Type" << YAML::Value << node.Type;
+                out << YAML::Key << "Position" << YAML::Value << YAML::Flow
+                    << YAML::BeginSeq << node.PosX << node.PosY << YAML::EndSeq;
+                if (node.Type == 1)
+                {
+                    out << YAML::Key << "TextureHandle" << YAML::Value
+                        << static_cast<uint64_t>(node.TextureHandle);
+                }
+                out << YAML::EndMap;
+            }
+            out << YAML::EndSeq;
+
+            out << YAML::Key << "Links" << YAML::Value;
+            out << YAML::BeginSeq;
+            for (const auto &link : editorData.Links)
+            {
+                out << YAML::BeginMap;
+                out << YAML::Key << "ID" << YAML::Value << link.ID;
+                out << YAML::Key << "StartPin" << YAML::Value << link.StartPinID;
+                out << YAML::Key << "EndPin" << YAML::Value << link.EndPinID;
+                out << YAML::EndMap;
+            }
+            out << YAML::EndSeq;
+
+            out << YAML::EndMap;
+        }
+
         out << YAML::EndMap;
 
         std::ofstream fout(filepath);
@@ -123,6 +165,53 @@ namespace Fermion
             }
 
             material->handle = handle;
+
+            if (auto editorNode = data["Editor"]; editorNode)
+            {
+                MaterialNodeEditorData editorData;
+                if (auto n = editorNode["NextNodeID"]; n)
+                    editorData.NextNodeID = n.as<int>();
+                if (auto n = editorNode["NextLinkID"]; n)
+                    editorData.NextLinkID = n.as<int>();
+
+                if (auto nodesNode = editorNode["Nodes"]; nodesNode && nodesNode.IsSequence())
+                {
+                    for (const auto &nodeNode : nodesNode)
+                    {
+                        MaterialNodeEditorData::NodeData nd;
+                        if (nodeNode["ID"])
+                            nd.ID = nodeNode["ID"].as<int>();
+                        if (nodeNode["Type"])
+                            nd.Type = nodeNode["Type"].as<int>();
+                        if (auto pos = nodeNode["Position"]; pos && pos.IsSequence() && pos.size() == 2)
+                        {
+                            nd.PosX = pos[0].as<float>();
+                            nd.PosY = pos[1].as<float>();
+                        }
+                        if (nd.Type == 1 && nodeNode["TextureHandle"])
+                            nd.TextureHandle = AssetHandle(nodeNode["TextureHandle"].as<uint64_t>());
+                        editorData.Nodes.push_back(nd);
+                    }
+                }
+
+                if (auto linksNode = editorNode["Links"]; linksNode && linksNode.IsSequence())
+                {
+                    for (const auto &linkNode : linksNode)
+                    {
+                        MaterialNodeEditorData::LinkData ld;
+                        if (linkNode["ID"])
+                            ld.ID = linkNode["ID"].as<int>();
+                        if (linkNode["StartPin"])
+                            ld.StartPinID = linkNode["StartPin"].as<int>();
+                        if (linkNode["EndPin"])
+                            ld.EndPinID = linkNode["EndPin"].as<int>();
+                        editorData.Links.push_back(ld);
+                    }
+                }
+
+                material->setEditorData(editorData);
+            }
+
             return material;
         }
         catch (...)

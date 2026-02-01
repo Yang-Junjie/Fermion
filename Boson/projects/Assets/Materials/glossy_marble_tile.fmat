@@ -1,0 +1,55 @@
+Material:
+  Type: 2
+  Name: glossy_marble_tile
+  Albedo: [1, 1, 1]
+  Metallic: 0
+  Roughness: 0.5
+  AO: 1
+  AlbedoMap: 4968056908347194399
+  NormalMap: 5726340743369280181
+  MetallicMap: 16545717996311288158
+  RoughnessMap: 9392734656557482557
+  AOMap: 2446549069330934023
+Editor:
+  NextNodeID: 7
+  NextLinkID: 6
+  Nodes:
+    - ID: 1
+      Type: 0
+      Position: [492, 174]
+    - ID: 2
+      Type: 1
+      Position: [55, -14]
+      TextureHandle: 4968056908347194399
+    - ID: 3
+      Type: 1
+      Position: [55, 162]
+      TextureHandle: 5726340743369280181
+    - ID: 4
+      Type: 1
+      Position: [55, 338]
+      TextureHandle: 16545717996311288158
+    - ID: 5
+      Type: 1
+      Position: [50, 510]
+      TextureHandle: 9392734656557482557
+    - ID: 6
+      Type: 1
+      Position: [50, 680]
+      TextureHandle: 2446549069330934023
+  Links:
+    - ID: 1
+      StartPin: 201
+      EndPin: 101
+    - ID: 2
+      StartPin: 301
+      EndPin: 102
+    - ID: 3
+      StartPin: 401
+      EndPin: 103
+    - ID: 4
+      StartPin: 501
+      EndPin: 104
+    - ID: 5
+      StartPin: 601
+      EndPin: 105
