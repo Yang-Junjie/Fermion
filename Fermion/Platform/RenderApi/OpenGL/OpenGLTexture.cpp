@@ -518,7 +518,8 @@ void OpenGLTextureCube::generateMipmaps() {
 }
 
 void OpenGLTexture2D::copyFromFramebuffer(std::shared_ptr<Framebuffer> fb, uint32_t x, uint32_t y) {
-    fb->bind();
+    // Use bindForRead() to bind the resolve FBO for MSAA framebuffers
+    fb->bindForRead();
 
     glBindTexture(GL_TEXTURE_2D, m_rendererID);
 

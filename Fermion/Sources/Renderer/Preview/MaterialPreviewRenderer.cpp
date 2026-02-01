@@ -139,7 +139,7 @@ namespace Fermion
         spec.attachments = {
             FramebufferTextureFormat::RGBA8,
             FramebufferTextureFormat::Depth};
-        spec.samples = 1;
+        spec.samples = 4; // 4x MSAA
 
         m_framebuffer = Framebuffer::create(spec);
     }
@@ -219,11 +219,11 @@ namespace Fermion
         vertexArray->bind();
         RenderCommand::drawIndexed(vertexArray);
 
-        // copy framebuffer to texture
+        m_framebuffer->resolve();
+
         auto resultTexture = Texture2D::create(settings.width, settings.height, false);
         resultTexture->copyFromFramebuffer(m_framebuffer, 0, 0);
 
-        // Unbind framebuffer
         m_framebuffer->unbind();
 
         return resultTexture;

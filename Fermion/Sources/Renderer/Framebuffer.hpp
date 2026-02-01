@@ -96,6 +96,9 @@ namespace Fermion
         virtual void bind() = 0;
         virtual void unbind() = 0;
 
+        // Binds the framebuffer for reading (uses resolve FBO for MSAA)
+        virtual void bindForRead() = 0;
+
         virtual void resize(uint32_t width, uint32_t height) = 0;
         virtual int readPixel(uint32_t attachmentIndex, int x, int y) = 0;
 
@@ -110,6 +113,10 @@ namespace Fermion
         virtual void bindDepthAttachment(uint32_t slot = 0) const = 0;
 
         virtual void blitTo(const std::shared_ptr<Framebuffer> &target, const FramebufferBlitSpecification &spec) const = 0;
+
+        virtual void resolve() = 0;
+
+        virtual bool isMultisampled() const { return getSpecification().samples > 1; }
 
         virtual const FramebufferSpecification &getSpecification() const = 0;
 
