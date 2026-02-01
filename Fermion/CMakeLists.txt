@@ -89,6 +89,8 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Renderer/Model/MaterialFactory.cpp
     ${FERMION_DIR}/Renderer/Model/MeshSerializer.cpp
     ${FERMION_DIR}/Renderer/Model/ModelSerializer.cpp
+    ${FERMION_DIR}/Renderer/Preview/MaterialPreviewRenderer.cpp
+    ${FERMION_DIR}/Renderer/Thumbnail/MaterialThumbnailProvider.cpp
 
     ${FERMION_DIR}/Project/Project.cpp
     ${FERMION_DIR}/Project/ProjectSerializer.cpp

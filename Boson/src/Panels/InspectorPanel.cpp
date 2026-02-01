@@ -7,6 +7,12 @@
 #include "Project/Project.hpp"
 #include "ImGui/BosonUI.hpp"
 
+#include "Renderer/Model/MeshFactory.hpp"
+#include "Renderer/Model/MaterialFactory.hpp"
+#include "Renderer/Model/MaterialSerializer.hpp"
+#include "Renderer/Preview/MaterialPreviewRenderer.hpp"
+
+
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <entt/entt.hpp>
@@ -16,11 +22,18 @@
 #include <optional>
 #include <string_view>
 
-#include "Renderer/Model/MeshFactory.hpp"
-#include "Renderer/Model/MaterialFactory.hpp"
 
 namespace Fermion
 {
+    static std::unique_ptr<MaterialPreviewRenderer> s_materialPreviewRenderer;
+    static std::unordered_map<uint64_t, std::unique_ptr<Texture2D>> s_materialPreviewCache;
+
+    static MaterialPreviewRenderer &getMaterialPreviewRenderer()
+    {
+        if (!s_materialPreviewRenderer)
+            s_materialPreviewRenderer = std::make_unique<MaterialPreviewRenderer>();
+        return *s_materialPreviewRenderer;
+    }
     template <typename AssetManagerT>
     static void applyModelAssetToMeshComponent(MeshComponent &component, AssetManagerT &editorAssets,
                                                const std::filesystem::path &path)
@@ -175,6 +188,57 @@ namespace Fermion
 
             AssetHandle currentMaterial = component.getSubmeshMaterial(selectedSubmeshIndex);
             ImGui::Text("Material Handle: %llu", static_cast<uint64_t>(currentMaterial));
+
+            // Material preview thumbnail
+            {
+                std::shared_ptr<Material> material;
+                uint64_t key = 0;
+
+                if (static_cast<uint64_t>(currentMaterial) != 0)
+                {
+                    material = editorAssets->template getAsset<Material>(currentMaterial);
+                    key = static_cast<uint64_t>(currentMaterial);
+                }
+
+                if (!material)
+                {
+                    key = 1; // Use a constant key for default material
+                    static auto defaultMaterial = []()
+                    {
+                        auto mat = std::make_shared<Material>();
+                        mat->setMaterialType(MaterialType::PBR);
+                        mat->setAlbedo(glm::vec3(1.0f));
+                        mat->setMetallic(0.0f);
+                        mat->setRoughness(1.0f);
+                        mat->setAO(1.0f);
+                        return mat;
+                    }();
+                    material = defaultMaterial;
+                }
+
+                auto it = s_materialPreviewCache.find(key);
+
+                if (it == s_materialPreviewCache.end())
+                {
+                    auto &renderer = getMaterialPreviewRenderer();
+                    if (renderer.isInitialized())
+                    {
+                        auto preview = renderer.renderPreview(material);
+                        if (preview && preview->isLoaded())
+                            s_materialPreviewCache[key] = std::move(preview);
+                    }
+                    it = s_materialPreviewCache.find(key);
+                }
+
+                if (it != s_materialPreviewCache.end() && it->second && it->second->isLoaded())
+                {
+                    float previewSize = 128.0f;
+                    ImGui::Image(
+                        (ImTextureID)(uintptr_t)it->second->getRendererID(),
+                        ImVec2(previewSize, previewSize),
+                        ImVec2(0, 1), ImVec2(1, 0));
+                }
+            }
 
             ImGui::Button("Drag Material Here", ImVec2(-1, 40));
             if (ImGui::BeginDragDropTarget())

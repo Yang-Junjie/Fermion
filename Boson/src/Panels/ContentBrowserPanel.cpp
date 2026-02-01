@@ -28,6 +28,9 @@ namespace Fermion
         m_fileIcon = Texture2D::create("../Boson/Resources/Icons/ContentBrowser/FileIcon.png");
         m_meshFileIcon = Texture2D::create("../Boson/Resources/Icons/ContentBrowser/MeshFileIcon.png");
         m_textureFileIcon = Texture2D::create("../Boson/Resources/Icons/ContentBrowser/TextureFileIcon.png");
+        m_MaterialFileIcon = Texture2D::create("../Boson/Resources/Icons/ContentBrowser/MaterialFileIcon.png");
+
+        m_materialThumbnailProvider = std::make_unique<MaterialThumbnailProvider>();
     }
 
     void ContentBrowserPanel::onImGuiRender()
@@ -95,9 +98,13 @@ namespace Fermion
 
                     const Texture2D *icon = nullptr;
                     const Texture2D *textureIcon = nullptr;
+                    const Texture2D *materialIcon = nullptr;
 
                     if (extension == AssetType::TextureSource)
-                        textureIcon = getOrCreateThumbnail(path);
+                        textureIcon = getOrCreateThumbnail(path, AssetType::TextureSource);
+
+                    if (extension == AssetType::Material)
+                        materialIcon = getOrCreateThumbnail(path, AssetType::Material);
 
                     if (!isDirectory)
                     {
@@ -117,6 +124,9 @@ namespace Fermion
                             break;
                         case AssetType::Scene:
                             icon = m_fileIcon.get();
+                            break;
+                        case AssetType::Material:
+                            icon = materialIcon ? materialIcon : m_MaterialFileIcon.get();
                             break;
                         default:
                             icon = m_fileIcon.get();
@@ -295,15 +305,43 @@ namespace Fermion
             ImGui::TreePop();
         }
     }
-    const Texture2D *ContentBrowserPanel::getOrCreateThumbnail(const std::filesystem::path &path)
+    const Texture2D *ContentBrowserPanel::getOrCreateThumbnail(const std::filesystem::path &path, AssetType type)
     {
         auto key = path.string();
 
-        auto &slot = m_thumbnailCache[key];
-        if (!slot)
-            slot = Texture2D::create(key);
+        auto it = m_thumbnailCache.find(key);
+        if (it != m_thumbnailCache.end())
+        {
+            return it->second.get();
+        }
 
-        return slot.get();
+        std::unique_ptr<Texture2D> thumbnail = nullptr;
+
+        switch (type)
+        {
+        case AssetType::TextureSource:
+            thumbnail = Texture2D::create(key);
+            break;
+
+        case AssetType::Material:
+            if (m_materialThumbnailProvider)
+            {
+                thumbnail = m_materialThumbnailProvider->generateThumbnail(path);
+            }
+            break;
+
+        default:
+            return nullptr;
+        }
+
+        if (thumbnail && thumbnail->isLoaded())
+        {
+            auto *ptr = thumbnail.get();
+            m_thumbnailCache[key] = std::move(thumbnail);
+            return ptr;
+        }
+
+        return nullptr;
     }
 
 } // namespace Fermion

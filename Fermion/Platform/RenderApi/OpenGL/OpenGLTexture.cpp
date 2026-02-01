@@ -519,9 +519,9 @@ void OpenGLTextureCube::generateMipmaps() {
 
 void OpenGLTexture2D::copyFromFramebuffer(std::shared_ptr<Framebuffer> fb, uint32_t x, uint32_t y) {
     fb->bind();
-    
+
     glBindTexture(GL_TEXTURE_2D, m_rendererID);
-    
+
     glCopyTexSubImage2D(
         GL_TEXTURE_2D,
         0,
@@ -536,6 +536,8 @@ void OpenGLTexture2D::copyFromFramebuffer(std::shared_ptr<Framebuffer> fb, uint3
 
     if (m_generateMipmap)
         glGenerateTextureMipmap(m_rendererID);
+
+    m_isLoaded = true;
 }
 
 } // namespace Fermion
