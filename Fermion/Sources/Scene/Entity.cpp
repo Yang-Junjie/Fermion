@@ -1,6 +1,5 @@
 #include "Scene/Entity.hpp"
 #include "Scene/EntityManager.hpp"
-#include "Components.hpp"
 
 namespace Fermion
 {

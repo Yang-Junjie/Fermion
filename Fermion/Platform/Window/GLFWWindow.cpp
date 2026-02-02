@@ -1,8 +1,6 @@
 ﻿#include "GLFWWindow.hpp"
 
 #include "Core/Log.hpp"
-#include "Core/KeyCodes.hpp"
-#include "Core/MouseCodes.hpp"
 #include "GLFWKeyCodes.hpp"
 #include "GLFWMouseCodes.hpp"
 

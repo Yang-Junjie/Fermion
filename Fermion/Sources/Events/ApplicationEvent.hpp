@@ -1,7 +1,4 @@
-﻿/*
-    本文件是Fermion引擎处理窗口的事件系统
-*/
-#pragma once
+﻿#pragma once
 #include "Events/Event.hpp"
 
 namespace Fermion

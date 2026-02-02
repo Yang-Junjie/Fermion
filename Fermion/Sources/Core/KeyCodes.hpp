@@ -1,8 +1,4 @@
-﻿/*
-    KeyCodes.hpp
-    本文件定义了键盘按键的枚举类型
-*/
-#pragma once
+﻿#pragma once
 namespace Fermion
 {
     enum class KeyCode : int

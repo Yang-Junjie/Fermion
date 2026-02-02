@@ -1,4 +1,6 @@
-﻿#include "ScriptEngine.hpp"
+﻿#pragma once
+
+#include "ScriptEngine.hpp"
 #include "CSharp/CSharpScriptEngine.hpp"
 
 namespace Fermion {

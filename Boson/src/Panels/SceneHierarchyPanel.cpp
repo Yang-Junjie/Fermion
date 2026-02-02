@@ -4,8 +4,6 @@
 #include "Scene/EntityManager.hpp"
 
 #include <imgui.h>
-#include <imgui_internal.h>
-#include <entt/entt.hpp>
 
 namespace Fermion
 {

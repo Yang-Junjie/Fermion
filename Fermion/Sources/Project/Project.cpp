@@ -3,8 +3,20 @@
 
 #include "ProjectSerializer.hpp"
 #include "Script/ScriptManager.hpp"
+#include "Asset/AssetManager/EditorAssetManager.hpp"
+#include "Asset/AssetManager/RuntimeAssetManager.hpp"
+
 namespace Fermion
 {
+    std::shared_ptr<EditorAssetManager> Project::getEditorAssetManager()
+    {
+        return std::dynamic_pointer_cast<EditorAssetManager>(s_assetManager);
+    }
+
+    std::shared_ptr<RuntimeAssetManager> Project::getRuntimeAssetManager()
+    {
+        return std::dynamic_pointer_cast<RuntimeAssetManager>(s_assetManager);
+    }
 
     std::shared_ptr<Project> Project::newProject()
     {

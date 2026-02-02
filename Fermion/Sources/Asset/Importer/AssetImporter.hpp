@@ -1,8 +1,6 @@
 ﻿#pragma once
 #include "Asset/AssetMetadata.hpp"
 
-#include <filesystem>
-
 namespace Fermion {
 class AssetImporter {
 public:

@@ -1,6 +1,5 @@
 #pragma once
 #include "fmpch.hpp"
-#include "../VertexArray.hpp"
 #include "Asset/Asset.hpp"
 #include "Math/AABB.hpp"
 #include <assimp/Importer.hpp>
@@ -8,6 +7,7 @@
 
 namespace Fermion
 {
+    class VertexArray;
     struct Vertex
     {
         glm::vec3 Position;
@@ -18,7 +18,7 @@ namespace Fermion
 
     struct SubMesh
     {
-        uint32_t MaterialSlotIndex = 0;  // 材质槽位索引
+        uint32_t MaterialSlotIndex = 0; // 材质槽位索引
         uint32_t IndexOffset = 0;
         uint32_t IndexCount = 0;
     };
@@ -57,10 +57,7 @@ namespace Fermion
 
         ~Mesh() = default;
 
-        std::shared_ptr<VertexArray> getVertexArray() const
-        {
-            return m_VAO;
-        }
+        std::shared_ptr<VertexArray> getVertexArray() const;
 
         const std::vector<Vertex> &getVertices() const
         {
@@ -71,7 +68,6 @@ namespace Fermion
         {
             return m_indices;
         }
-
 
         const std::vector<SubMesh> &getSubMeshes() const
         {
@@ -94,7 +90,7 @@ namespace Fermion
         std::vector<Vertex> m_vertices;
         std::vector<uint32_t> m_indices;
         std::vector<SubMesh> m_SubMeshes;
-        
+
         std::string m_ModelPath;
         AABB m_BoundingBox;
 

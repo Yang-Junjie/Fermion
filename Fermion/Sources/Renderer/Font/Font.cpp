@@ -1,5 +1,7 @@
 #include "fmpch.hpp"
 #include "Font.hpp"
+#include "../Texture/Texture.hpp"
+#include "Renderer/Font/MSDFData.hpp"
 
 #include <stb_image_write.h>
 #undef INFINITE
@@ -7,7 +9,6 @@
 #include <FontGeometry.h>
 #include <GlyphGeometry.h>
 
-#include "Renderer/Font/MSDFData.hpp"
 
 namespace Fermion
 {
@@ -191,5 +192,9 @@ namespace Fermion
                 Font>("../Boson/Resources/assets/fonts/Play-Regular.ttf");
 
         return DefaultFont;
+    }
+    std::shared_ptr<Texture2D> Font::getAtlasTexture() const
+    {
+        return m_atlasTexture;
     }
 } // namespace Fermion

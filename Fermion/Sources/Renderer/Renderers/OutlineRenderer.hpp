@@ -1,9 +1,7 @@
 #pragma once
 #include "RenderContext.hpp"
-#include "Renderer/Pipeline.hpp"
 #include "Renderer/RenderDrawCommand.hpp"
 #include "Renderer/RenderGraphLegacy.hpp"
-#include "Renderer/VertexArray.hpp"
 #include <glm/glm.hpp>
 #include <memory>
 #include <vector>
@@ -11,6 +9,8 @@
 namespace Fermion
 {
     class GBufferRenderer;
+    class Pipeline;
+    class VertexArray;
 
     class OutlineRenderer
     {

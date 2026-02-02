@@ -1,8 +1,4 @@
-﻿/*
-    OpenGLRendererAPI.hpp - OpenGL 渲染接口类
-    本头文件定义了 OpenGL 渲染接口类，继承自 Engine 中 RendererAPI 类。
-    用于提供 OpenGL 渲染接口。
-*/
+﻿
 #pragma once
 #include "Renderer/RendererAPI.hpp"
 

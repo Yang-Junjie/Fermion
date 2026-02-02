@@ -4,11 +4,12 @@
 #include <memory>
 #include <filesystem>
 
-#include "Asset/AssetManager/EditorAssetManager.hpp"
-#include "Asset/AssetManager/RuntimeAssetManager.hpp"
-
 namespace Fermion
 {
+    class AssetManagerBase;
+    class EditorAssetManager;
+    class RuntimeAssetManager;
+
     struct ProjectConfig
     {
         std::string name = "Untitled";
@@ -59,15 +60,9 @@ namespace Fermion
             return s_assetManager;
         }
 
-        inline static std::shared_ptr<EditorAssetManager> getEditorAssetManager()
-        {
-            return std::dynamic_pointer_cast<EditorAssetManager>(s_assetManager);
-        }
+        static std::shared_ptr<EditorAssetManager> getEditorAssetManager();
 
-        inline static std::shared_ptr<RuntimeAssetManager> getRuntimeAssetManager()
-        {
-            return std::dynamic_pointer_cast<RuntimeAssetManager>(s_assetManager);
-        }
+        static std::shared_ptr<RuntimeAssetManager> getRuntimeAssetManager();
 
     private:
         ProjectConfig m_config;

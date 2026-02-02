@@ -1,7 +1,6 @@
 #pragma once
 #include "RenderContext.hpp"
 #include "Renderer/Framebuffer.hpp"
-#include "Renderer/Pipeline.hpp"
 #include "Renderer/RenderDrawCommand.hpp"
 #include "Renderer/RenderGraphLegacy.hpp"
 #include <memory>
@@ -10,6 +9,7 @@
 namespace Fermion
 {
     class EnvironmentRenderer;
+    class Pipeline;
 
     class GBufferRenderer
     {

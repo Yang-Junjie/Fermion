@@ -2,6 +2,7 @@
 #include "Entity.hpp"
 #include "Components.hpp"
 #include "Project/Project.hpp"
+#include "Asset/AssetManager/RuntimeAssetManager.hpp"
 #include "Renderer/Model/MeshFactory.hpp"
 #include "yaml-cpp/emittermanip.h"
 

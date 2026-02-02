@@ -1,9 +1,10 @@
 #pragma once
 #include "Asset/Asset.hpp"
+#include "Mesh.hpp"
+
 #include <glm/glm.hpp>
 #include <unordered_map>
 
-#include "Mesh.hpp"
 
 namespace Fermion {
     enum MemoryMeshType : uint16_t;

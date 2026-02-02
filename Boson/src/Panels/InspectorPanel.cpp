@@ -1,21 +1,20 @@
 ﻿#include "InspectorPanel.hpp"
 #include "Renderer/Model/Mesh.hpp"
+#include "Renderer/Model/Material.hpp"
 #include "Renderer/Model/ModelAsset.hpp"
 #include "Scene/Scene.hpp"
 #include "Scene/Components.hpp"
 #include "Script/ScriptManager.hpp"
 #include "Project/Project.hpp"
+#include "Asset/AssetManager/EditorAssetManager.hpp"
 #include "ImGui/BosonUI.hpp"
 
 #include "Renderer/Model/MeshFactory.hpp"
-#include "Renderer/Model/MaterialFactory.hpp"
-#include "Renderer/Model/MaterialSerializer.hpp"
 #include "Renderer/Preview/MaterialPreviewRenderer.hpp"
 
 
 #include <imgui.h>
 #include <imgui_internal.h>
-#include <entt/entt.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <filesystem>

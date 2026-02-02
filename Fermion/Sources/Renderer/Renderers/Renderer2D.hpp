@@ -1,18 +1,22 @@
-﻿    #pragma once
-#include "Renderer/Texture/Texture.hpp"
-#include "Renderer/Texture/SubTexture2D.hpp"
-#include "Renderer/Camera/OrthographicCameraController.hpp"
-#include "Renderer/Camera/Camera.hpp"
-#include "Renderer/Camera/EditorCamera.hpp"
-#include "Renderer/Font/Font.hpp"
+﻿#pragma once
 #include "Renderer/RendererConfig.hpp"
 #include "Math/AABB.hpp"
 #include "Renderer/RenderDrawCommand.hpp"
-#include "Renderer/CommandBuffer.hpp"
-#include "Renderer/RenderGraphLegacy.hpp"
+#include <glm/glm.hpp>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace Fermion
 {
+    class Texture2D;
+    class SubTexture2D;
+    class OrthographicCamera;
+    class Camera;
+    class EditorCamera;
+    class Font;
+    class CommandBuffer;
+
     class Renderer2D
     {
     public:

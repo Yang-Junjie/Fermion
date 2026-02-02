@@ -1,7 +1,11 @@
 #include "MaterialPreviewRenderer.hpp"
 #include "Renderer/RenderCommand.hpp"
 #include "Renderer/Pipeline.hpp"
+#include "Renderer/Framebuffer.hpp"
+#include "Renderer/Model/Material.hpp"
+#include "Renderer/Model/Mesh.hpp"
 
+#include "Renderer/Texture/Texture.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/constants.hpp>
 

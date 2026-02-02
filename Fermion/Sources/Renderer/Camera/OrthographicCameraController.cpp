@@ -1,6 +1,7 @@
 #include "fmpch.hpp"
 #include "OrthographicCameraController.hpp"
-
+#include "Events/ApplicationEvent.hpp"
+#include "Events/MouseEvent.hpp"
 #include "Core/Input.hpp"
 #include "Core/KeyCodes.hpp"
 

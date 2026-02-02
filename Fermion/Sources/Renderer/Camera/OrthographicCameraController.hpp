@@ -3,11 +3,13 @@
 #include "OrthographicCamera.hpp"
 #include "Core/Timestep.hpp"
 
-#include "Events/ApplicationEvent.hpp"
-#include "Events/MouseEvent.hpp"
+
 
 namespace Fermion
 {
+    class IEvent;
+    class MouseScrolledEvent;
+    class WindowResizeEvent;
     class OrthographicCameraController
     {
     public:

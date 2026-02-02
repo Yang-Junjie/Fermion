@@ -2,7 +2,9 @@
 #include "GBufferRenderer.hpp"
 #include "Renderer.hpp"
 #include "Renderer/RenderCommand.hpp"
-#include <cmath>
+#include "Renderer/Framebuffer.hpp"
+#include "Renderer/Pipeline.hpp"
+#include "Renderer/VertexArray.hpp"
 
 namespace Fermion
 {

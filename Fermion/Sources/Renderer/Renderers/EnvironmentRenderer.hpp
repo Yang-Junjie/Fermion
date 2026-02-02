@@ -1,20 +1,23 @@
 #pragma once
-#include <cstdint>
+
 #include <memory>
 #include <string>
 
 #include <glm/glm.hpp>
 
-#include "Renderer/Framebuffer.hpp"
-#include "Renderer/Pipeline.hpp"
-#include "Renderer/RenderDrawCommand.hpp"
 #include "Renderer/RenderGraphLegacy.hpp"
-#include "Renderer/Shader.hpp"
-#include "Renderer/Texture/Texture.hpp"
-#include "Renderer/VertexArray.hpp"
+
 
 namespace Fermion
 {
+    class VertexArray;
+    class Pipeline;
+    class Texture2D;
+    class TextureCube;
+    class Framebuffer;
+    class Shader;
+
+
     class EnvironmentRenderer
     {
     public:

@@ -1,11 +1,12 @@
 #pragma once
 #include "fmpch.hpp"
-#include "Renderer/Shader.hpp"
 #include "Asset/Asset.hpp"
+#include "glm/glm.hpp"
 
 namespace Fermion
 {
 
+    class Shader;
     enum class MaterialType : uint8_t
     {
         Phong = 1,

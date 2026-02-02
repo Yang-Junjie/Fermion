@@ -4,6 +4,9 @@
 #include "Renderer/RenderCommand.hpp"
 #include "Renderer/Renderers/Renderer.hpp"
 #include "Renderer/UniformBufferLayout.hpp"
+#include "Renderer/Framebuffer.hpp"
+#include "Renderer/Pipeline.hpp"
+#include "Renderer/UniformBuffer.hpp"
 
 #include <glm/gtc/matrix_transform.hpp>
 

@@ -1,14 +1,15 @@
 #pragma once
 #include "fmpch.hpp"
-#include "Renderer/Framebuffer.hpp"
-#include "Renderer/Pipeline.hpp"
-#include "Renderer/Texture/Texture.hpp"
-#include "Renderer/Model/Material.hpp"
-#include "Renderer/Model/Mesh.hpp"
+
 #include <glm/glm.hpp>
 
 namespace Fermion
 {
+    class Framebuffer;
+    class Pipeline;
+    class Texture2D;
+    class Material;
+    class Mesh;
 
     class MaterialPreviewRenderer
     {

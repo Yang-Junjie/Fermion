@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include "fmpch.hpp"
 #include "AssetManagerBase.hpp"
 
 namespace Fermion {

@@ -1,10 +1,9 @@
 #include "fmpch.hpp"
 #include "Utils/PlatformUtils.hpp"
 #include "Core/Application.hpp"
+#include "Core/Window.hpp"
 #include <windows.h>
-#include <prsht.h>
 #include <shobjidl.h>
-#include <commdlg.h>
 #include <process.h>
 #include <GLFW/glfw3.h>
 #define GLFW_EXPOSE_NATIVE_WIN32

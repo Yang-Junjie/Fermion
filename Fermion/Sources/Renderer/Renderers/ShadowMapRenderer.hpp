@@ -4,15 +4,16 @@
 
 #include <glm/glm.hpp>
 
-#include "Renderer/Framebuffer.hpp"
-#include "Renderer/Pipeline.hpp"
 #include "Renderer/RenderDrawCommand.hpp"
 #include "Renderer/RenderGraphLegacy.hpp"
-#include "Renderer/UniformBuffer.hpp"
 #include "Scene/Scene.hpp"
 
 namespace Fermion
 {
+    class Framebuffer;
+    class Pipeline;
+    class UniformBuffer;
+
     class ShadowMapRenderer
     {
     public:

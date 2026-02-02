@@ -1,5 +1,8 @@
 #include "fmpch.hpp"
+
 #include "ProjectSerializer.hpp"
+
+#include "Project.hpp"
 
 #include <fstream>
 #include <yaml-cpp/yaml.h>

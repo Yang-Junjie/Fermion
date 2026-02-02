@@ -1,6 +1,5 @@
 #pragma once
 #include "Scene/Scene.hpp"
-#include <entt/entt.hpp>
 #include "fmpch.hpp"
 #include <type_traits>
 #include "Core/UUID.hpp"

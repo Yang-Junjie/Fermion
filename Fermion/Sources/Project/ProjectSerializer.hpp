@@ -1,9 +1,8 @@
 #pragma once
 
-#include "Project.hpp"
-
 namespace Fermion
 {
+    class Project;
     class ProjectSerializer
     {
     public:

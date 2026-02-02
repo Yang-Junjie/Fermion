@@ -1,6 +1,10 @@
 ﻿#include "LayerStack.hpp"
+#include "Layer.hpp"
+
 namespace Fermion
 {
+    LayerStack::~LayerStack() = default;
+
     void LayerStack::pushLayer(std::unique_ptr<Layer> layer)
     {
         m_layers.emplace(m_layers.begin() + m_layerInsertIndex, std::move(layer));

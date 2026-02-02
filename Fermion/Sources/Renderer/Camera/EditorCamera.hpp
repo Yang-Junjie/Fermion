@@ -2,14 +2,14 @@
 
 #include "Camera.hpp"
 #include "Core/Timestep.hpp"
-#include "Events/Event.hpp"
+
 #include "Events/MouseEvent.hpp"
 
 #include <glm/glm.hpp>
 
 namespace Fermion
 {
-
+    class IEvent;
     class EditorCamera : public Camera
     {
     public:

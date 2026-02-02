@@ -6,6 +6,7 @@
 #include "Renderer/Model/MaterialFactory.hpp"
 #include "Renderer/Texture/Texture.hpp"
 #include "Project/Project.hpp"
+#include "Asset/AssetManager/EditorAssetManager.hpp"
 #include <algorithm>
 #include "widgets.h"
 

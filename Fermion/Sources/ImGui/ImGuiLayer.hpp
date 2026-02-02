@@ -1,7 +1,4 @@
-﻿/*
-    本文件是ImGui层
-*/
-#pragma once
+﻿#pragma once
 
 #include "Core/Layer.hpp"
 #include "Events/Event.hpp"

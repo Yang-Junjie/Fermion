@@ -1,8 +1,4 @@
-﻿/*
-    Window.hpp
-    本文件定义了窗口接口类
-*/
-#pragma once
+﻿#pragma once
 #include "Events/Event.hpp"
 #include "Renderer/GraphicsContext.hpp"
 #include "fmpch.hpp"

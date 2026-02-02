@@ -1,7 +1,6 @@
 #pragma once
 #include "RenderGraphResource.hpp"
 #include "Renderer/CommandBuffer.hpp"
-#include <functional>
 #include <memory>
 #include <unordered_map>
 

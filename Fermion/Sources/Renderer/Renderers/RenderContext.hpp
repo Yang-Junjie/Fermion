@@ -1,13 +1,14 @@
 #pragma once
 #include "Renderer/Camera/Camera.hpp"
-#include "Renderer/Framebuffer.hpp"
-#include "Renderer/UniformBuffer.hpp"
 #include "Scene/Scene.hpp"
 #include <glm/glm.hpp>
 #include <memory>
 
 namespace Fermion
 {
+    class Framebuffer;
+    class UniformBuffer;
+
     struct SceneRendererCamera
     {
         Camera camera;

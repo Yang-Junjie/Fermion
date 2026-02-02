@@ -1,4 +1,3 @@
-// 生成二进制格式的.fmesh文件
 #include "MeshSerializer.hpp"
 #include <fstream>
 

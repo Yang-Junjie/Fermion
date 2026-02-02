@@ -4,6 +4,8 @@
 #include "GTAORenderer.hpp"
 #include "Renderer.hpp"
 #include "Renderer/RenderCommand.hpp"
+#include "Renderer/Pipeline.hpp"
+#include "Renderer/VertexArray.hpp"
 
 namespace Fermion
 {

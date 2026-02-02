@@ -1,13 +1,15 @@
 ﻿#pragma once
-#include "Layer.hpp"
 #include "fmpch.hpp"
+
 namespace Fermion
 {
+    class Layer;
+
     class LayerStack
     {
     public:
         LayerStack() = default;
-        ~LayerStack() = default;
+        ~LayerStack();
 
         void pushLayer(std::unique_ptr<Layer> layer);
         void pushOverlay(std::unique_ptr<Layer> overlay);

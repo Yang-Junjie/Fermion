@@ -1,4 +1,6 @@
 #include "DebugRenderer.hpp"
+#include "SceneRenderer.hpp"
+#include "Renderer/Camera/EditorCamera.hpp"
 #include "Renderer2D.hpp"
 namespace Fermion
 {

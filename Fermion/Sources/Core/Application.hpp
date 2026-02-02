@@ -1,19 +1,18 @@
 ﻿#pragma once
 #include "fmpch.hpp"
 
-#include "Core/Window.hpp"
-
-#include "Core/LayerStack.hpp"
-#include "Core/Layer.hpp"
+#include "Core/Timestep.hpp"
 #include "Renderer/RendererConfig.hpp"
-
-#include "Events/Event.hpp"
-#include "Events/ApplicationEvent.hpp"
-
-#include "ImGui/ImGuiLayer.hpp"
 
 namespace Fermion
 {
+    class IWindow;
+    class LayerStack;
+    class Layer;
+    class ImGuiLayer;
+    class IEvent;
+    class WindowResizeEvent;
+    class WindowCloseEvent;
 
     struct ApplicationSpecification
     {
@@ -22,6 +21,7 @@ namespace Fermion
         RendererConfig rendererConfig = {""};
         bool maximized = false;
     };
+
     class Application
     {
     public:
@@ -69,7 +69,7 @@ namespace Fermion
 
         std::unique_ptr<ImGuiLayer> m_imGuiLayer; // 管理生命周期
         ImGuiLayer *m_imGuiLayerRaw = nullptr;    // 供开发者访问
-        LayerStack m_layerStack;
+        std::unique_ptr<LayerStack> m_layerStack;
 
         Timestep m_timestep;
         float m_lastFrameTime = 0.0f;

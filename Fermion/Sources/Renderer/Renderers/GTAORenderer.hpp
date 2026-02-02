@@ -1,14 +1,14 @@
 #pragma once
 #include "RenderContext.hpp"
-#include "Renderer/Framebuffer.hpp"
-#include "Renderer/Pipeline.hpp"
 #include "Renderer/RenderGraphLegacy.hpp"
-#include "Renderer/VertexArray.hpp"
 #include <memory>
 
 namespace Fermion
 {
     class GBufferRenderer;
+    class Framebuffer;
+    class Pipeline;
+    class VertexArray;
 
     class GTAORenderer
     {

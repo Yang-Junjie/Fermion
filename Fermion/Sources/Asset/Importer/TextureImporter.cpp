@@ -1,5 +1,6 @@
 #include "TextureImporter.hpp"
 #include "Core/UUID.hpp"
+#include "Renderer/Texture/Texture.hpp"
 #include "Asset/AssetSerializer.hpp"
 #include "Project/Project.hpp"
 #include <yaml-cpp/yaml.h>

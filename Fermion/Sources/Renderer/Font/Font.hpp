@@ -1,14 +1,11 @@
 ﻿#pragma once
-
-#include <filesystem>
-
-#include "../Texture/Texture.hpp"
 #include "Asset/Asset.hpp"
+#include <filesystem>
 
 namespace Fermion
 {
     struct MSDFData;
-
+    class Texture2D;
     class Font : public Asset
     {
     public:
@@ -21,10 +18,7 @@ namespace Fermion
             return m_data;
         }
 
-        std::shared_ptr<Texture2D> getAtlasTexture() const
-        {
-            return m_atlasTexture;
-        }
+        std::shared_ptr<Texture2D> getAtlasTexture() const;
 
         static std::shared_ptr<Font> getDefault();
 

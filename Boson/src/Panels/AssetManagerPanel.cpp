@@ -6,8 +6,8 @@
 #include "Asset/AssetTypes.hpp"
 #include "Asset/AssetExtensions.hpp"
 #include "Asset/Asset.hpp"
-#include "Renderer/Texture/Texture.hpp"
 #include "Project/Project.hpp"
+#include "Asset/AssetManager/EditorAssetManager.hpp"
 
 namespace Fermion
 {

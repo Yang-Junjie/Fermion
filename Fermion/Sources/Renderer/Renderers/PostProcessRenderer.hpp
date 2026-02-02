@@ -1,8 +1,6 @@
 #pragma once
 #include "RenderContext.hpp"
-#include "Renderer/Pipeline.hpp"
 #include "Renderer/RenderGraphLegacy.hpp"
-#include "Renderer/VertexArray.hpp"
 #include <memory>
 
 namespace Fermion
@@ -10,6 +8,8 @@ namespace Fermion
     class GBufferRenderer;
     class SSGIRenderer;
     class GTAORenderer;
+    class Pipeline;
+    class VertexArray;
 
     class PostProcessRenderer
     {

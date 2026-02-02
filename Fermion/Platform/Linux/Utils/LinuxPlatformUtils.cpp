@@ -1,12 +1,9 @@
 #include "fmpch.hpp"
 #include "Utils/PlatformUtils.hpp"
-#include "Core/Application.hpp"
 #include <GLFW/glfw3.h>
 #include <unistd.h>
 #include <sys/wait.h>
 #include <cstdlib>
-#include <cstring>
-
 namespace Fermion
 {
 

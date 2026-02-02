@@ -1,9 +1,14 @@
 #include "fmpch.hpp"
 #include "EnvironmentRenderer.hpp"
-
+#include "Renderer/VertexArray.hpp"
+#include "Renderer/Pipeline.hpp"
+#include "Renderer/RenderDrawCommand.hpp"
 #include "Core/Log.hpp"
 #include "Renderer/RenderCommand.hpp"
 #include "Renderer/Renderers/Renderer.hpp"
+#include "Renderer/Texture/Texture.hpp"
+#include "Renderer/Framebuffer.hpp"
+#include "Renderer/Shader.hpp"
 
 #include <cmath>
 #include <glm/gtc/matrix_transform.hpp>

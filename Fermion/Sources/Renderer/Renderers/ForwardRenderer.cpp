@@ -4,7 +4,8 @@
 #include "Renderer.hpp"
 #include "Renderer/RenderCommand.hpp"
 #include "Renderer/UniformBufferLayout.hpp"
-
+#include "Renderer/UniformBuffer.hpp"
+#include "Renderer/Pipeline.hpp"
 namespace Fermion
 {
     ForwardRenderer::ForwardRenderer()

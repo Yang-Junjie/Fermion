@@ -1,6 +1,6 @@
 #include "fmpch.hpp"
 #include "EditorCamera.hpp"
-
+#include "Events/Event.hpp"
 #include "Core/Input.hpp"
 #include "Core/KeyCodes.hpp"
 #include "Core/MouseCodes.hpp"

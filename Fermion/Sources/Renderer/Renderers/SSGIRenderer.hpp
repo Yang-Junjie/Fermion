@@ -1,15 +1,16 @@
 #pragma once
 #include "RenderContext.hpp"
-#include "Renderer/Framebuffer.hpp"
-#include "Renderer/Pipeline.hpp"
 #include "Renderer/RenderGraphLegacy.hpp"
-#include "Renderer/VertexArray.hpp"
 #include <array>
 #include <memory>
+#include <glm/glm.hpp>
 
 namespace Fermion
 {
     class GBufferRenderer;
+    class Framebuffer;
+    class Pipeline;
+    class VertexArray;
 
     class SSGIRenderer
     {

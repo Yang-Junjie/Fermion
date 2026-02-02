@@ -1,8 +1,4 @@
-﻿/*
-    Event.hpp
-    本文件描述了事件系统
-*/
-#pragma once
+﻿#pragma once
 #include <string>
 namespace Fermion
 {

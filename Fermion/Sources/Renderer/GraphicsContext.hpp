@@ -1,8 +1,4 @@
-﻿
-/*
-    本文件抽象了图形上下文，并定义了创建图形上下文函数
-*/
-#pragma once
+﻿#pragma once
 #include "fmpch.hpp"
 namespace Fermion
 {

@@ -1,5 +1,7 @@
 #include "Material.hpp"
+#include "../Shader.hpp"
 #include "Project/Project.hpp"
+#include "Asset/AssetManager/RuntimeAssetManager.hpp"
 #include "../Texture/Texture.hpp"
 
 namespace Fermion

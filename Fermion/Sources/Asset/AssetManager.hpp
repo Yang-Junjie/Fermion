@@ -2,15 +2,14 @@
 #include "fmpch.hpp"
 #include "Asset.hpp"
 #include "AssetRegistry.hpp"
-#include "Loader/AssetLoader.hpp"
+#include "AssetTypes.hpp"
 
-#include <unordered_map>
-#include <filesystem>
-#include <memory>
 
 namespace Fermion
 {
     class Texture2D;
+    class AssetLoader;
+
 
     class AssetManager
     {

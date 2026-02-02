@@ -1,8 +1,12 @@
 #pragma once
-#include "SceneRenderer.hpp"
+#include "fmpch.hpp"
+#include <glm/glm.hpp>
 
 namespace Fermion
 {
+    class SceneRenderer;
+    class EditorCamera;
+
     class DebugRenderer
     {
     public:

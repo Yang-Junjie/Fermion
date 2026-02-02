@@ -1,5 +1,12 @@
 ﻿#include "Core/Application.hpp"
-#include "Core/Timestep.hpp"
+
+#include "Core/Window.hpp"
+#include "Core/LayerStack.hpp"
+#include "Core/Layer.hpp"
+#include "Events/Event.hpp"
+#include "Events/ApplicationEvent.hpp"
+#include "ImGui/ImGuiLayer.hpp"
+
 #include "Script/ScriptManager.hpp"
 #include "Renderer/Model/MeshFactory.hpp"
 #include "Renderer/Renderers/Renderer.hpp"
@@ -28,6 +35,7 @@ namespace Fermion
         Renderer::init();
         ScriptManager::init();
         MeshFactory::Init();
+        m_layerStack = std::make_unique<LayerStack>();
         m_imGuiLayer = std::make_unique<ImGuiLayer>(m_window->getNativeWindow());
         m_imGuiLayerRaw = m_imGuiLayer.get();
         pushOverlay(std::move(m_imGuiLayer));
@@ -55,13 +63,13 @@ namespace Fermion
             {
                 {
                     FM_PROFILE_SCOPE("LayerStack OnUpdate");
-                    for (auto &layer : m_layerStack)
+                    for (auto &layer : *m_layerStack)
                         layer->onUpdate(m_timestep);
                 }
                 m_imGuiLayerRaw->begin();
                 {
                     FM_PROFILE_SCOPE("LayerStack OnImGuiRender");
-                    for (auto &layer : m_layerStack)
+                    for (auto &layer : *m_layerStack)
                         layer->onImGuiRender();
                 }
                 m_imGuiLayerRaw->end();
@@ -74,14 +82,14 @@ namespace Fermion
     {
         FM_PROFILE_FUNCTION();
         layer->onAttach();
-        m_layerStack.pushLayer(std::move(layer));
+        m_layerStack->pushLayer(std::move(layer));
     }
 
     void Application::pushOverlay(std::unique_ptr<Layer> overlay)
     {
         FM_PROFILE_FUNCTION();
         overlay->onAttach();
-        m_layerStack.pushOverlay(std::move(overlay));
+        m_layerStack->pushOverlay(std::move(overlay));
     }
 
     void Application::onEvent(IEvent &event)
@@ -94,7 +102,7 @@ namespace Fermion
         dispatcher.dispatch<WindowCloseEvent>([this](WindowCloseEvent &e)
                                               { return this->onWindowClose(e); });
 
-        for (auto it = m_layerStack.rbegin(); it != m_layerStack.rend(); ++it)
+        for (auto it = m_layerStack->rbegin(); it != m_layerStack->rend(); ++it)
         {
             if (event.handled)
                 break;
