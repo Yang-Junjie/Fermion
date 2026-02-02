@@ -25,6 +25,7 @@ namespace Fermion
     class ForwardRenderer;
     class OutlineRenderer;
     class PostProcessRenderer;
+    class InfiniteGridRenderer;
     class UniformBuffer;
 
     class SceneRenderer
@@ -106,7 +107,16 @@ namespace Fermion
 
             ProceduralSkyGenerator::SkySettings skySettings;
 
-            
+            // Infinite Grid settings
+            bool showInfiniteGrid = true;
+            int gridPlane = 0;  // 0 = XZ, 1 = XY, 2 = YZ
+            float gridScale = 3.0f;
+            float gridFadeDistance = 500.0f;
+            glm::vec4 gridColorThin = glm::vec4(0.5f, 0.5f, 0.5f, 0.4f);
+            glm::vec4 gridColorThick = glm::vec4(0.5f, 0.5f, 0.5f, 0.6f);
+            glm::vec4 gridAxisColorX = glm::vec4(0.9f, 0.2f, 0.2f, 1.0f);
+            glm::vec4 gridAxisColorZ = glm::vec4(0.2f, 0.2f, 0.9f, 1.0f);
+
             std::string defaultHdrPath;
         };
 
@@ -303,6 +313,7 @@ namespace Fermion
         std::unique_ptr<EnvironmentRenderer> m_environmentRenderer;
         std::unique_ptr<ShadowMapRenderer> m_shadowRenderer;
         std::unique_ptr<ProceduralSkyGenerator> m_proceduralSkyGenerator;
+        std::unique_ptr<InfiniteGridRenderer> m_infiniteGridRenderer;
 
         std::shared_ptr<Scene> m_scene;
 

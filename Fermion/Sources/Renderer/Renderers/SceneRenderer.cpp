@@ -15,6 +15,7 @@
 #include "OutlineRenderer.hpp"
 #include "PostProcessRenderer.hpp"
 #include "ProceduralSkyGenerator.hpp"
+#include "InfiniteGridRenderer.hpp"
 #include "Project/Project.hpp"
 #include "Asset/AssetManager/RuntimeAssetManager.hpp"
 
@@ -56,6 +57,7 @@ namespace Fermion
         m_environmentRenderer = std::make_unique<EnvironmentRenderer>();
         m_shadowRenderer = std::make_unique<ShadowMapRenderer>();
         m_proceduralSkyGenerator = std::make_unique<ProceduralSkyGenerator>();
+        m_infiniteGridRenderer = std::make_unique<InfiniteGridRenderer>();
 
         // Use procedural sky as default environment
         generateProceduralSky();
@@ -559,6 +561,27 @@ namespace Fermion
 
     void SceneRenderer::AddPostProcessingPasses(const FrameResources &resources, const FrameFlags &flags)
     {
+        // Infinite Grid Pass
+        if (m_sceneData.showInfiniteGrid && m_infiniteGridRenderer)
+        {
+            InfiniteGridRenderer::Settings gridSettings;
+            gridSettings.enabled = m_sceneData.showInfiniteGrid;
+            gridSettings.plane = static_cast<GridPlane>(m_sceneData.gridPlane);
+            gridSettings.gridScale = m_sceneData.gridScale;
+            gridSettings.fadeDistance = m_sceneData.gridFadeDistance;
+            gridSettings.gridColorThin = m_sceneData.gridColorThin;
+            gridSettings.gridColorThick = m_sceneData.gridColorThick;
+            gridSettings.axisColorX = m_sceneData.gridAxisColorX;
+            gridSettings.axisColorZ = m_sceneData.gridAxisColorZ;
+
+            m_infiniteGridRenderer->addPass(
+                m_renderGraph,
+                m_renderContext,
+                gridSettings,
+                resources.lightingResult,
+                resources.sceneDepth);
+        }
+
         // Depth View Pass
         if (m_sceneData.enableDepthView && !flags.showGBufferDebug)
         {

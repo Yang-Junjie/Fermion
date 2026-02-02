@@ -582,6 +582,22 @@ namespace Fermion
             ImGui::Checkbox("showPhysicsColliders", &m_showPhysicsColliders);
             ImGui::Checkbox("showRenderEntities", &m_showRenderEntities);
 
+            ImGui::SeparatorText("Infinite Grid Settings");
+            ImGui::Checkbox("Show Infinite Grid", &sceneInfo.showInfiniteGrid);
+            if (sceneInfo.showInfiniteGrid)
+            {
+                ImGui::Indent();
+                const char* planeNames[] = { "XZ (Horizontal)", "XY (Front)", "YZ (Side)" };
+                ImGui::Combo("Grid Plane", &sceneInfo.gridPlane, planeNames, 3);
+                // ImGui::DragFloat("Grid Scale", &sceneInfo.gridScale, 0.1f, 0.1f, 10.0f);
+                // ImGui::DragFloat("Fade Distance", &sceneInfo.gridFadeDistance, 1.0f, 10.0f, 500.0f);
+                // ImGui::ColorEdit4("Grid Color Thin", glm::value_ptr(sceneInfo.gridColorThin));
+                // ImGui::ColorEdit4("Grid Color Thick", glm::value_ptr(sceneInfo.gridColorThick));
+                // ImGui::ColorEdit4("X Axis Color", glm::value_ptr(sceneInfo.gridAxisColorX));
+                // ImGui::ColorEdit4("Z Axis Color", glm::value_ptr(sceneInfo.gridAxisColorZ));
+                ImGui::Unindent();
+            }
+
             ImGui::SeparatorText("Outline Settings");
             ImGui::ColorEdit4("Outline Color", glm::value_ptr(sceneInfo.meshOutlineColor));
             ImGui::Separator();
