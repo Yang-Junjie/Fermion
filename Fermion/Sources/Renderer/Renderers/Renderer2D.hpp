@@ -1,7 +1,11 @@
 ﻿#pragma once
 #include "Renderer/RendererConfig.hpp"
-#include "Math/AABB.hpp"
+#include "Renderer/Batch/QuadBatch.hpp"
+#include "Renderer/Batch/CircleBatch.hpp"
+#include "Renderer/Batch/LineBatch.hpp"
+#include "Renderer/Batch/TextBatch.hpp"
 #include "Renderer/RenderDrawCommand.hpp"
+#include "Math/AABB.hpp"
 #include <glm/glm.hpp>
 #include <memory>
 #include <string>
@@ -16,113 +20,128 @@ namespace Fermion
     class EditorCamera;
     class Font;
     class CommandBuffer;
+    class Pipeline;
+    class Shader;
+    class UniformBuffer;
+    class RenderGraphLegacy;
+    class RenderCommandQueue;
+    class RendererBackend;
+
 
     class Renderer2D
     {
     public:
-        static void init(const RendererConfig &config);
+        Renderer2D();
+        ~Renderer2D();
 
-        static void shutdown();
+        Renderer2D(const Renderer2D&) = delete;
+        Renderer2D& operator=(const Renderer2D&) = delete;
 
-        static void beginScene(const OrthographicCamera &camera);
+   
+        void init(const RendererConfig& config);
 
-        static void beginScene(const EditorCamera &camera);
+    
+        void shutdown();
 
-        static void beginScene(const Camera &camera, const glm::mat4 &Transform);
 
-        static void endScene();
+        void beginScene(const OrthographicCamera& camera);
+        void beginScene(const EditorCamera& camera);
+        void beginScene(const Camera& camera, const glm::mat4& view);
 
-        static void flush();
+        void endScene();
+        void flush();
 
-        static void drawQuad(const glm::vec2 &position, const glm::vec2 &size, const glm::vec4 &color);
 
-        static void drawQuad(const glm::vec3 &position, const glm::vec2 &size, const glm::vec4 &color);
 
-        static void drawQuad(const glm::vec2 &position, const glm::vec2 &size,
-                             const std::shared_ptr<Texture2D> &texture, float tilingFactor = 1.0f,
-                             glm::vec4 tintColor = glm::vec4(1.0f));
+        void drawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& color);
+        void drawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color);
 
-        static void drawQuad(const glm::vec3 &position, const glm::vec2 &size,
-                             const std::shared_ptr<Texture2D> &texture, float tilingFactor = 1.0f,
-                             glm::vec4 tintColor = glm::vec4(1.0f));
+        void drawQuad(const glm::vec2& position, const glm::vec2& size,
+                     const std::shared_ptr<Texture2D>& texture, float tilingFactor = 1.0f,
+                     glm::vec4 tintColor = glm::vec4(1.0f));
+        void drawQuad(const glm::vec3& position, const glm::vec2& size,
+                     const std::shared_ptr<Texture2D>& texture, float tilingFactor = 1.0f,
+                     glm::vec4 tintColor = glm::vec4(1.0f));
 
-        static void drawQuad(const glm::vec2 &position, const glm::vec2 &size,
-                             const std::shared_ptr<SubTexture2D> &subTexture, float tilingFactor = 1.0f,
-                             glm::vec4 tintColor = glm::vec4(1.0f));
+        void drawQuad(const glm::vec2& position, const glm::vec2& size,
+                     const std::shared_ptr<SubTexture2D>& subTexture, float tilingFactor = 1.0f,
+                     glm::vec4 tintColor = glm::vec4(1.0f));
+        void drawQuad(const glm::vec3& position, const glm::vec2& size,
+                     const std::shared_ptr<SubTexture2D>& subTexture, float tilingFactor = 1.0f,
+                     glm::vec4 tintColor = glm::vec4(1.0f));
 
-        static void drawQuad(const glm::vec3 &position, const glm::vec2 &size,
-                             const std::shared_ptr<SubTexture2D> &subTexture, float tilingFactor = 1.0f,
-                             glm::vec4 tintColor = glm::vec4(1.0f));
+        void drawQuad(const glm::mat4& transform, const glm::vec4& color, int objectId = -1);
+        void drawQuad(const glm::mat4& transform, const std::shared_ptr<Texture2D>& texture,
+                     float tilingFactor = 1.0f, glm::vec4 tintColor = glm::vec4(1.0f), int objectId = -1);
+        void drawQuad(const glm::mat4& transform, const std::shared_ptr<SubTexture2D>& subTexture,
+                     float tilingFactor = 1.0f, glm::vec4 tintColor = glm::vec4(1.0f));
 
-        static void drawQuad(const glm::mat4 &transform, const glm::vec4 &color, int objectId = -1);
 
-        static void drawQuad(const glm::mat4 &transform, const std::shared_ptr<Texture2D> &texture,
-                             float tilingFactor = 1.0f, glm::vec4 tintColor = glm::vec4(1.0f), int objectId = -1);
 
-        static void drawQuadBillboard(const glm::vec3 &position, const glm::vec2 &size, const glm::vec4 &color,
-                                      int objectId = -1);
+        void drawQuadBillboard(const glm::vec3& position, const glm::vec2& size,
+                              const glm::vec4& color, int objectId = -1);
+        void drawQuadBillboard(const glm::vec3& position, const glm::vec2& size,
+                              const std::shared_ptr<Texture2D>& texture, float tilingFactor = 1.0f,
+                              const glm::vec4& tintColor = glm::vec4(1.0f), int objectId = -1);
 
-        static void drawQuadBillboard(const glm::vec3 &position, const glm::vec2 &size,
-                                      const std::shared_ptr<Texture2D> &texture, float tilingFactor = 1.0f,
-                                      const glm::vec4 &tintColor = glm::vec4(1.0f), int objectId = -1);
 
-        static void drawAABB(const AABB &aabb, const glm::mat4 &transform, const glm::vec4 &color, int objectId = -1);
+        void drawAABB(const AABB& aabb, const glm::mat4& transform,
+                     const glm::vec4& color, int objectId = -1);
 
-        static void drawQuad(const glm::mat4 &transform, const std::shared_ptr<SubTexture2D> &subTexture,
-                             float tilingFactor = 1.0f, glm::vec4 tintColor = glm::vec4(1.0f));
 
-        static void drawQuadInstanced(const glm::mat4 &transform, const glm::vec4 &color,
-                                      const std::shared_ptr<Texture2D> &texture, float tilingFactor, int objectID);
 
-        static void drawQuadInstanced(const glm::mat4 &transform, const glm::vec4 &color, int objectID = -1);
+        void drawQuadInstanced(const glm::mat4& transform, const glm::vec4& color,
+                              const std::shared_ptr<Texture2D>& texture, float tilingFactor, int objectID);
+        void drawQuadInstanced(const glm::mat4& transform, const glm::vec4& color, int objectID = -1);
 
-        static void drawRotatedQuad(const glm::vec2 &position, const glm::vec2 &size, float radians,
-                                    const glm::vec4 &color);
+        void drawRotatedQuad(const glm::vec2& position, const glm::vec2& size, float radians,
+                            const glm::vec4& color);
+        void drawRotatedQuad(const glm::vec3& position, const glm::vec2& size, float radians,
+                            const glm::vec4& color);
 
-        static void drawRotatedQuad(const glm::vec3 &position, const glm::vec2 &size, float radians,
-                                    const glm::vec4 &color);
+        void drawRotatedQuad(const glm::vec2& position, const glm::vec2& size, float radians,
+                            const std::shared_ptr<Texture2D>& texture, float tilingFactor = 1.0f,
+                            glm::vec4 tintColor = glm::vec4(1.0f));
+        void drawRotatedQuad(const glm::vec3& position, const glm::vec2& size, float radians,
+                            const std::shared_ptr<Texture2D>& texture, float tilingFactor = 1.0f,
+                            glm::vec4 tintColor = glm::vec4(1.0f));
 
-        static void drawRotatedQuad(const glm::vec2 &position, const glm::vec2 &size, float radians,
-                                    const std::shared_ptr<Texture2D> &texture, float tilingFactor = 1.0f,
-                                    glm::vec4 tintColor = glm::vec4(1.0f));
+        void drawRotatedQuad(const glm::vec2& position, const glm::vec2& size, float radians,
+                            const std::shared_ptr<SubTexture2D>& subTexture, float tilingFactor = 1.0f,
+                            glm::vec4 tintColor = glm::vec4(1.0f));
+        void drawRotatedQuad(const glm::vec3& position, const glm::vec2& size, float radians,
+                            const std::shared_ptr<SubTexture2D>& subTexture, float tilingFactor = 1.0f,
+                            glm::vec4 tintColor = glm::vec4(1.0f));
 
-        static void drawRotatedQuad(const glm::vec3 &position, const glm::vec2 &size, float radians,
-                                    const std::shared_ptr<Texture2D> &texture, float tilingFactor = 1.0f,
-                                    glm::vec4 tintColor = glm::vec4(1.0f));
 
-        static void drawRotatedQuad(const glm::vec2 &position, const glm::vec2 &size, float radians,
-                                    const std::shared_ptr<SubTexture2D> &subTexture, float tilingFactor = 1.0f,
-                                    glm::vec4 tintColor = glm::vec4(1.0f));
 
-        static void drawRotatedQuad(const glm::vec3 &position, const glm::vec2 &size, float radians,
-                                    const std::shared_ptr<SubTexture2D> &subTexture, float tilingFactor = 1.0f,
-                                    glm::vec4 tintColor = glm::vec4(1.0f));
+        void drawCircle(const glm::mat4& transform, const glm::vec4& color,
+                        float thickness = 1.0f, float fade = 0.005f, int objectId = -1);
 
-        static void drawCircle(const glm::mat4 &transform, const glm::vec4 &color, float thickness = 1.0f,
-                               float fade = 0.005f, int objectId = -1);
 
-        static void drawLine(const glm::vec3 &p0, const glm::vec3 &p1, const glm::vec4 &color, int objectId = -1);
+        void drawLine(const glm::vec3& p0, const glm::vec3& p1,
+                     const glm::vec4& color, int objectId = -1);
 
-        static void drawRect(const glm::vec3 &position, const glm::vec2 &size, const glm::vec4 &color,
-                             int objectId = -1);
+        void drawRect(const glm::vec3& position, const glm::vec2& size,
+                     const glm::vec4& color, int objectId = -1);
+        void drawRect(const glm::mat4& transform, const glm::vec4& color, int objectId = -1);
 
-        static void drawRect(const glm::mat4 &transform, const glm::vec4 &color, int objectId = -1);
+        float getLineWidth();
+        void setLineWidth(float width);
 
-        static float getLineWidth();
 
-        static void setLineWidth(float width);
 
-        static void recordOutlinePass(CommandBuffer &commandBuffer, const std::vector<MeshDrawCommand> &drawCommands, const glm::vec4 &outlineColor);
+        void recordOutlinePass(CommandBuffer& commandBuffer,
+                              const std::vector<MeshDrawCommand>& drawCommands,
+                              const glm::vec4& outlineColor);
 
-        struct TextParams
-        {
-            glm::vec4 color{1.0f};
-            float kerning = 0.0f;
-            float lineSpacing = 0.0f;
-        };
+        using TextParams = Fermion::TextParams;
 
-        static void drawString(const std::string &string, std::shared_ptr<Font> font, const glm::mat4 &transform,
-                               const TextParams &textParams, int objectId = -1);
+        void drawString(const std::string& string, std::shared_ptr<Font> font,
+                       const glm::mat4& transform, const TextParams& textParams,
+                       int objectId = -1);
+
+
 
         struct Satistics
         {
@@ -142,16 +161,56 @@ namespace Fermion
             }
         };
 
-        static void resetStatistics();
-
-        static Satistics getStatistics();
+        void resetStatistics();
+        Satistics getStatistics() const;
 
     private:
-        static void flushAndReset();
-        static void QuadPass();
-        static void QuadInstancePass();
-        static void CirclePass();
-        static void LinePass();
-        static void TextPass();
+        void flushAndReset();
+
+        // Render pass methods
+        void quadPass();
+        void quadInstancePass();
+        void circlePass();
+        void linePass();
+        void textPass();
+
+        // Camera uniform buffer update
+        void updateCameraUBO(const glm::mat4& viewProj, const glm::mat4& view,
+                            const glm::vec3& cameraPos);
+        void resetBuffers();
+
+    private:
+        // Batch renderers
+        std::unique_ptr<QuadBatch> m_QuadBatch;
+        std::unique_ptr<CircleBatch> m_CircleBatch;
+        std::unique_ptr<LineBatch> m_LineBatch;
+        std::unique_ptr<TextBatch> m_TextBatch;
+
+        // Pipelines
+        std::shared_ptr<Pipeline> m_QuadPipeline;
+        std::shared_ptr<Pipeline> m_QuadInstancePipeline;
+        std::shared_ptr<Pipeline> m_CirclePipeline;
+        std::shared_ptr<Pipeline> m_LinePipeline;
+        std::shared_ptr<Pipeline> m_TextPipeline;
+
+        // Shaders
+        std::shared_ptr<Shader> m_QuadShader;
+        std::shared_ptr<Shader> m_QuadInstanceShader;
+        std::shared_ptr<Shader> m_CircleShader;
+        std::shared_ptr<Shader> m_LineShader;
+        std::shared_ptr<Shader> m_TextShader;
+
+        // Camera state
+        std::shared_ptr<UniformBuffer> m_CameraUBO;
+        glm::mat4 m_CameraViewProj{1.0f};
+        glm::mat4 m_CameraView{1.0f};
+
+        // Render graph
+        std::unique_ptr<RenderGraphLegacy> m_RenderGraph;
+        std::unique_ptr<RenderCommandQueue> m_CommandQueue;
+
+        // Statistics
+        Satistics m_Stats;
     };
+
 } // namespace Fermion

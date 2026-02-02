@@ -4,7 +4,7 @@
 #include "Renderer/RenderCommand.hpp"
 #include "Renderer/Pipeline.hpp"
 #include "Renderer/VertexArray.hpp"
-#include "Renderer2D.hpp"
+#include "Renderer2DCompat.hpp"
 
 namespace Fermion
 {
@@ -155,7 +155,7 @@ namespace Fermion
         pass.Inputs = {lightingResult};
         pass.Execute = [&drawList, settings](CommandBuffer& commandBuffer)
         {
-            Renderer2D::recordOutlinePass(commandBuffer, drawList, settings.color);
+            Renderer2DCompat::recordOutlinePass(commandBuffer, drawList, settings.color);
         };
         renderGraph.addPass(pass);
     }

@@ -1,6 +1,6 @@
 ﻿
 #include "Renderer/Renderers/Renderer.hpp"
-#include "Renderer/Renderers/Renderer2D.hpp"
+#include "Renderer/Renderers/Renderer2DCompat.hpp"
 #include "OpenGLShader.hpp"
 namespace Fermion
 {
@@ -39,7 +39,7 @@ namespace Fermion
         s_shaderLibrary->load(s_config.ShaderPath + "Line.glsl");
         s_shaderLibrary->load(s_config.ShaderPath + "Text.glsl");
 
-        Renderer2D::init(s_config);
+        Renderer2DCompat::init(s_config);
     }
 
     void Renderer::setConfig(const RendererConfig &config)

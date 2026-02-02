@@ -1,5 +1,5 @@
 ﻿#include "SceneRenderer.hpp"
-#include "Renderer2D.hpp"
+#include "Renderer2DCompat.hpp"
 #include "Renderer/RendererBackend.hpp"
 #include "Renderer/RenderCommand.hpp"
 #include "Renderer/Framebuffer.hpp"
@@ -84,7 +84,7 @@ namespace Fermion
         m_sceneData.sceneEnvironmentLight = m_scene->m_environmentLight;
         m_cameraFrustumPlanes = Math::ExtractFrustumPlanes(camera.camera.getProjection() * camera.view);
         m_hasCameraFrustum = true;
-        Renderer2D::beginScene(camera.camera, camera.view);
+        Renderer2DCompat::beginScene(camera.camera, camera.view);
         updateViewState(camera);
     }
 
@@ -103,7 +103,7 @@ namespace Fermion
         m_sceneData.sceneCamera = camera;
         m_cameraFrustumPlanes = Math::ExtractFrustumPlanes(camera.camera.getProjection() * camera.view);
         m_hasCameraFrustum = true;
-        Renderer2D::beginScene(camera.camera, camera.view);
+        Renderer2DCompat::beginScene(camera.camera, camera.view);
         updateViewState(camera);
     }
 
@@ -147,7 +147,7 @@ namespace Fermion
     void SceneRenderer::endScene()
     {
         FlushDrawList();
-        Renderer2D::endScene();
+        Renderer2DCompat::endScene();
     }
 
     void SceneRenderer::endOverlay()
@@ -155,11 +155,11 @@ namespace Fermion
         for (auto &cmd : m_meshDrawList)
         {
             if (cmd.drawOutline && cmd.visible)
-                Renderer2D::drawAABB(cmd.aabb, cmd.transform, m_sceneData.meshOutlineColor, cmd.objectID);
+                Renderer2DCompat::drawAABB(cmd.aabb, cmd.transform, m_sceneData.meshOutlineColor, cmd.objectID);
         }
         m_meshDrawList.clear();
 
-        Renderer2D::endScene();
+        Renderer2DCompat::endScene();
     }
 
     void SceneRenderer::drawSprite(const glm::mat4 &transform, SpriteRendererComponent &sprite, int objectID)
@@ -169,49 +169,49 @@ namespace Fermion
             auto texture = Project::getRuntimeAssetManager()->getAsset<Texture2D>(sprite.textureHandle);
             if (texture)
             {
-                Renderer2D::drawQuad(transform, texture, sprite.tilingFactor, sprite.color, objectID);
+                Renderer2DCompat::drawQuad(transform, texture, sprite.tilingFactor, sprite.color, objectID);
             }
         }
         else
         {
-            Renderer2D::drawQuad(transform, sprite.color, objectID);
+            Renderer2DCompat::drawQuad(transform, sprite.color, objectID);
         }
     }
 
     void SceneRenderer::drawString(const std::string &string, const glm::mat4 &transform,
                                    const TextComponent &component, int objectID)
     {
-        Renderer2D::drawString(string, component.fontAsset, transform,
+        Renderer2DCompat::drawString(string, component.fontAsset, transform,
                                {component.color, component.kerning, component.lineSpacing}, objectID);
     }
 
     void SceneRenderer::drawCircle(const glm::mat4 &transform, const glm::vec4 &color, float thickness, float fade,
                                    int objectID)
     {
-        Renderer2D::drawCircle(transform, color, thickness, fade, objectID);
+        Renderer2DCompat::drawCircle(transform, color, thickness, fade, objectID);
     }
 
     void SceneRenderer::drawRect(const glm::vec3 &position, const glm::vec2 &size, const glm::vec4 &color,
                                  int objectId)
     {
-        Renderer2D::drawRect(position, size, color, objectId);
+        Renderer2DCompat::drawRect(position, size, color, objectId);
     }
 
     void SceneRenderer::drawRect(const glm::mat4 &transform, const glm::vec4 &color, int objectId)
     {
-        Renderer2D::drawRect(transform, color, objectId);
+        Renderer2DCompat::drawRect(transform, color, objectId);
     }
 
     void SceneRenderer::drawQuadBillboard(const glm::vec3 &translation, const glm::vec2 &size, const glm::vec4 &color,
                                           int objectId)
     {
-        Renderer2D::drawQuadBillboard(translation, size, color, objectId);
+        Renderer2DCompat::drawQuadBillboard(translation, size, color, objectId);
     }
     void SceneRenderer::drawQuadBillboard(const glm::vec3 &translation, const glm::vec2 &size,
                                           const std::shared_ptr<Texture2D> &texture, float tilingFactor,
                                           const glm::vec4 &tintColor, int objectId)
     {
-        Renderer2D::drawQuadBillboard(translation, size, texture, tilingFactor, tintColor, objectId);
+        Renderer2DCompat::drawQuadBillboard(translation, size, texture, tilingFactor, tintColor, objectId);
     }
 
     void SceneRenderer::submitMesh(MeshComponent &meshComponent, glm::mat4 transform, int objectId, bool drawOutline)
@@ -277,21 +277,21 @@ namespace Fermion
 
         glm::vec3 p0 = point - direction * big;
         glm::vec3 p1 = point + direction * big;
-        Renderer2D::drawLine(p0, p1, color);
+        Renderer2DCompat::drawLine(p0, p1, color);
     }
     void SceneRenderer::drawLine(const glm::vec3 &start, const glm::vec3 &end, const glm::vec4 &color)
     {
-        Renderer2D::drawLine(start, end, color);
+        Renderer2DCompat::drawLine(start, end, color);
     }
 
     void SceneRenderer::setLineWidth(float thickness)
     {
-        Renderer2D::setLineWidth(thickness);
+        Renderer2DCompat::setLineWidth(thickness);
     }
 
     SceneRenderer::RenderStatistics SceneRenderer::getStatistics() const
     {
-        Renderer2D::Satistics stats2D = Renderer2D::getStatistics();
+        Renderer2DCompat::Satistics stats2D = Renderer2DCompat::getStatistics();
         RenderStatistics result;
         result.renderer2D.drawCalls = stats2D.drawCalls;
         result.renderer2D.quadCount = stats2D.quadCount;

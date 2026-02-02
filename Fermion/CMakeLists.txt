@@ -48,6 +48,10 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Renderer/RendererAPI.cpp
     ${FERMION_DIR}/Renderer/RenderCommand.cpp
     ${FERMION_DIR}/Renderer/Renderers/Renderer2D.cpp
+    ${FERMION_DIR}/Renderer/Batch/QuadBatch.cpp
+    ${FERMION_DIR}/Renderer/Batch/CircleBatch.cpp
+    ${FERMION_DIR}/Renderer/Batch/LineBatch.cpp
+    ${FERMION_DIR}/Renderer/Batch/TextBatch.cpp
     ${FERMION_DIR}/Renderer/CommandBuffer.cpp
     ${FERMION_DIR}/Renderer/RenderCommandQueue.cpp
     ${FERMION_DIR}/Renderer/RenderGraph/RenderGraph.cpp
