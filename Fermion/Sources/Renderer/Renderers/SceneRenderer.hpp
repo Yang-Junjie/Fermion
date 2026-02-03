@@ -249,14 +249,7 @@ namespace Fermion
         RenderStatistics getStatistics() const;
 
         void loadHDREnvironment(const std::string &hdrPath);
-
-        /**
-         * @brief Generate a procedural sky and use it as the environment
-         *
-         * Creates a procedural sky cubemap using the current skySettings and
-         * injects it into the IBL pipeline. Call this when no HDR environment
-         * is available or when you want to switch to procedural sky.
-         */
+        
         void generateProceduralSky();
 
         std::shared_ptr<Framebuffer> getGBufferFramebuffer() const;

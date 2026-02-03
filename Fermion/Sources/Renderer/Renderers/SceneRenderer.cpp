@@ -562,7 +562,7 @@ namespace Fermion
     void SceneRenderer::AddPostProcessingPasses(const FrameResources &resources, const FrameFlags &flags)
     {
         // Infinite Grid Pass
-        if (m_sceneData.showInfiniteGrid && m_infiniteGridRenderer)
+        if (m_sceneData.showInfiniteGrid && m_infiniteGridRenderer && !getScene()->isRunning())
         {
             InfiniteGridRenderer::Settings gridSettings;
             gridSettings.enabled = m_sceneData.showInfiniteGrid;

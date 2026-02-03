@@ -3,6 +3,7 @@
 #include "Renderer/VertexArray.hpp"
 #include "Renderer/Buffer.hpp"
 #include "Renderer/Shader.hpp"
+#include "Renderer.hpp"
 #include "Renderer/Pipeline.hpp"
 #include "Renderer/RenderCommand.hpp"
 #include "Renderer/RenderDrawCommand.hpp"
@@ -46,7 +47,7 @@ namespace Fermion
 
         // Create pipeline
         PipelineSpecification pipelineSpec;
-        pipelineSpec.shader = Shader::create("../Boson/Resources/Shaders/InfiniteGrid.glsl");
+        pipelineSpec.shader = Renderer::getShaderLibrary()->get("InfiniteGrid");
         pipelineSpec.depthTest = true;
         pipelineSpec.depthWrite = false;  // Transparent grid should not write to depth buffer
         pipelineSpec.cull = CullMode::None;

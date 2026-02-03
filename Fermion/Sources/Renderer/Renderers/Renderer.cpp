@@ -24,7 +24,8 @@ namespace Fermion
         s_shaderLibrary->load(s_config.ShaderPath + "GTAO.glsl");
         s_shaderLibrary->load(s_config.ShaderPath + "Skybox.glsl");
         s_shaderLibrary->load(s_config.ShaderPath + "Shadow.glsl");
-        
+        s_shaderLibrary->load(s_config.ShaderPath + "InfiniteGrid.glsl");
+  
         // IBL shaders
         s_shaderLibrary->load(s_config.ShaderPath + "IBLPreprocess.glsl");
         s_shaderLibrary->load(s_config.ShaderPath + "IBLPrefilter.glsl");
