@@ -5,7 +5,7 @@
 #include "EnvironmentRenderer.hpp"
 #include "ShadowMapRenderer.hpp"
 #include "Renderer.hpp"
-#include "Renderer/RenderCommand.hpp"
+#include "Renderer/RenderCommands.hpp"
 #include "Renderer/UniformBufferLayout.hpp"
 #include "Renderer/UniformBuffer.hpp"
 #include "Renderer/VertexArray.hpp"
@@ -61,23 +61,85 @@ namespace Fermion
         pass.Name = "LightingPass";
         pass.Inputs = {};  // Dependencies are accessed via references
         pass.Outputs = {lightingResult};
-        pass.Execute = [this, &context, &gBuffer, shadowRenderer, ssgiRenderer, gtaoRenderer, envRenderer, enableSSGI, enableGTAO](CommandBuffer& commandBuffer)
+        pass.Execute = [this, &context, &gBuffer, shadowRenderer, ssgiRenderer, gtaoRenderer, envRenderer, enableSSGI, enableGTAO](RenderCommandQueue& queue)
         {
-            commandBuffer.record([this, &context, &gBuffer, shadowRenderer, ssgiRenderer, gtaoRenderer, envRenderer, enableSSGI, enableGTAO](RendererAPI& api)
-            {
-                auto gBufferFramebuffer = gBuffer.getFramebuffer();
-                if (!gBufferFramebuffer || !m_pipeline)
-                    return;
+            auto gBufferFramebuffer = gBuffer.getFramebuffer();
+            if (!gBufferFramebuffer || !m_pipeline)
+                return;
 
-                if (context.targetFramebuffer)
-                {
-                    context.targetFramebuffer->bind();
-                }
-                else
-                {
-                    if (context.viewportWidth > 0 && context.viewportHeight > 0)
-                        RenderCommand::setViewport(0, 0, context.viewportWidth, context.viewportHeight);
-                }
+            if (context.targetFramebuffer)
+            {
+                queue.submit(CmdBindFramebuffer{context.targetFramebuffer});
+            }
+            else
+            {
+                if (context.viewportWidth > 0 && context.viewportHeight > 0)
+                    queue.submit(CmdSetViewport{0, 0, context.viewportWidth, context.viewportHeight});
+            }
+
+            const glm::mat4 viewProjection = context.camera.camera.getProjection() * context.camera.view;
+            const glm::mat4 inverseViewProjection = glm::inverse(viewProjection);
+
+            // Update light uniform buffer
+            LightData lightData;
+            lightData.lightSpaceMatrix = shadowRenderer ? shadowRenderer->getLightSpaceMatrix() : glm::mat4(1.0f);
+
+            // Main directional light (first one, used for shadow mapping)
+            if (!context.environmentLight.directionalLights.empty())
+            {
+                const auto& mainLight = context.environmentLight.directionalLights[0];
+                lightData.dirLightDirection = -mainLight.direction;
+                lightData.dirLightIntensity = mainLight.intensity;
+                lightData.dirLightColor = mainLight.color;
+            }
+            else
+            {
+                lightData.dirLightDirection = glm::vec3(0.0f, -1.0f, 0.0f);
+                lightData.dirLightIntensity = 0.0f;
+                lightData.dirLightColor = glm::vec3(0.0f);
+            }
+
+            lightData.shadowBias = context.shadowBias;
+            lightData.shadowSoftness = context.shadowSoftness;
+            lightData.enableShadows = (context.enableShadows && shadowRenderer && shadowRenderer->getShadowMapFramebuffer()) ? 1 : 0;
+            lightData.numDirLights = std::max(0, std::min(4, (int)context.environmentLight.directionalLights.size() - 1));
+            lightData.ambientIntensity = context.ambientIntensity;
+            lightData.numPointLights = std::min(16u, (uint32_t)context.environmentLight.pointLights.size());
+            lightData.numSpotLights = std::min(16u, (uint32_t)context.environmentLight.spotLights.size());
+
+            EnvironmentRenderer::IBLSettings iblSettings = {
+                .useIBL = context.useIBL,
+                .irradianceMapSize = context.irradianceMapSize,
+                .prefilterMapSize = context.prefilterMapSize,
+                .brdfLUTSize = context.brdfLUTSize,
+                .prefilterMaxMipLevels = context.prefilterMaxMipLevels
+            };
+
+            const bool useSSGI = enableSSGI && ssgiRenderer && ssgiRenderer->getResultFramebuffer();
+            const bool useGTAO = enableGTAO && gtaoRenderer && gtaoRenderer->getResultFramebuffer();
+            bool enableShadows = context.enableShadows && shadowRenderer && shadowRenderer->getShadowMapFramebuffer();
+
+            // Additional directional lights (excluding the main one)
+            uint32_t maxDirLights = 4;
+            uint32_t dirLightCount = 0;
+            if (context.environmentLight.directionalLights.size() > 1)
+            {
+                dirLightCount = std::min(maxDirLights, (uint32_t)(context.environmentLight.directionalLights.size() - 1));
+            }
+
+            auto envLight = context.environmentLight;
+            auto ssgiResultFB = useSSGI ? ssgiRenderer->getResultFramebuffer() : nullptr;
+            auto gtaoResultFB = useGTAO ? gtaoRenderer->getResultFramebuffer() : nullptr;
+            auto shadowFB = enableShadows ? shadowRenderer->getShadowMapFramebuffer() : nullptr;
+
+            queue.submit(CmdCustom{[this, lightUBO = context.lightUBO, lightData,
+                                    gBufferFramebuffer, inverseViewProjection,
+                                    useSSGI, ssgiResultFB,
+                                    useGTAO, gtaoResultFB,
+                                    envRenderer, iblSettings,
+                                    enableShadows, shadowFB,
+                                    dirLightCount, envLight]() {
+                lightUBO->setData(&lightData, sizeof(LightData));
 
                 m_pipeline->bind();
                 auto shader = m_pipeline->getShader();
@@ -96,55 +158,15 @@ namespace Fermion
                 gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Emissive), 3);
                 gBufferFramebuffer->bindDepthAttachment(4);
 
-                const bool useSSGI = enableSSGI && ssgiRenderer && ssgiRenderer->getResultFramebuffer();
                 shader->setBool("u_EnableSSGI", useSSGI);
                 if (useSSGI)
-                    ssgiRenderer->getResultFramebuffer()->bindColorAttachment(0, 5);
+                    ssgiResultFB->bindColorAttachment(0, 5);
 
-                const bool useGTAO = enableGTAO && gtaoRenderer && gtaoRenderer->getResultFramebuffer();
                 shader->setBool("u_EnableGTAO", useGTAO);
                 if (useGTAO)
-                    gtaoRenderer->getResultFramebuffer()->bindColorAttachment(0, 6);
+                    gtaoResultFB->bindColorAttachment(0, 6);
 
-                const glm::mat4 viewProjection = context.camera.camera.getProjection() * context.camera.view;
-                const glm::mat4 inverseViewProjection = glm::inverse(viewProjection);
                 shader->setMat4("u_InverseViewProjection", inverseViewProjection);
-
-                // Update light uniform buffer
-                LightData lightData;
-                lightData.lightSpaceMatrix = shadowRenderer ? shadowRenderer->getLightSpaceMatrix() : glm::mat4(1.0f);
-
-                // Main directional light (first one, used for shadow mapping)
-                if (!context.environmentLight.directionalLights.empty())
-                {
-                    const auto& mainLight = context.environmentLight.directionalLights[0];
-                    lightData.dirLightDirection = -mainLight.direction;
-                    lightData.dirLightIntensity = mainLight.intensity;
-                    lightData.dirLightColor = mainLight.color;
-                }
-                else
-                {
-                    lightData.dirLightDirection = glm::vec3(0.0f, -1.0f, 0.0f);
-                    lightData.dirLightIntensity = 0.0f;
-                    lightData.dirLightColor = glm::vec3(0.0f);
-                }
-
-                lightData.shadowBias = context.shadowBias;
-                lightData.shadowSoftness = context.shadowSoftness;
-                lightData.enableShadows = (context.enableShadows && shadowRenderer && shadowRenderer->getShadowMapFramebuffer()) ? 1 : 0;
-                lightData.numDirLights = std::max(0, std::min(4, (int)context.environmentLight.directionalLights.size() - 1));
-                lightData.ambientIntensity = context.ambientIntensity;
-                lightData.numPointLights = std::min(16u, (uint32_t)context.environmentLight.pointLights.size());
-                lightData.numSpotLights = std::min(16u, (uint32_t)context.environmentLight.spotLights.size());
-                context.lightUBO->setData(&lightData, sizeof(LightData));
-
-                EnvironmentRenderer::IBLSettings iblSettings = {
-                    .useIBL = context.useIBL,
-                    .irradianceMapSize = context.irradianceMapSize,
-                    .prefilterMapSize = context.prefilterMapSize,
-                    .brdfLUTSize = context.brdfLUTSize,
-                    .prefilterMaxMipLevels = context.prefilterMaxMipLevels
-                };
 
                 if (envRenderer)
                 {
@@ -155,24 +177,16 @@ namespace Fermion
                     shader->setBool("u_UseIBL", false);
                 }
 
-                bool enableShadows = context.enableShadows && shadowRenderer && shadowRenderer->getShadowMapFramebuffer();
                 if (enableShadows)
                 {
                     shader->setInt("u_ShadowMap", 10);
-                    shadowRenderer->getShadowMapFramebuffer()->bindDepthAttachment(10);
+                    shadowFB->bindDepthAttachment(10);
                 }
 
-                // Additional directional lights (excluding the main one)
-                uint32_t maxDirLights = 4;
-                uint32_t dirLightCount = 0;
-                if (context.environmentLight.directionalLights.size() > 1)
-                {
-                    dirLightCount = std::min(maxDirLights, (uint32_t)(context.environmentLight.directionalLights.size() - 1));
-                }
                 shader->setInt("u_DirLightCount", dirLightCount);
                 for (uint32_t i = 0; i < dirLightCount; i++)
                 {
-                    const auto& l = context.environmentLight.directionalLights[i + 1]; // Skip main light at index 0
+                    const auto& l = envLight.directionalLights[i + 1]; // Skip main light at index 0
                     std::string base = "u_DirLights[" + std::to_string(i) + "]";
                     shader->setFloat3(base + ".direction", l.direction);
                     shader->setFloat3(base + ".color", l.color);
@@ -181,11 +195,11 @@ namespace Fermion
 
                 // Point and spot lights
                 uint32_t maxLights = 16;
-                uint32_t pointCount = std::min(maxLights, (uint32_t)context.environmentLight.pointLights.size());
+                uint32_t pointCount = std::min(maxLights, (uint32_t)envLight.pointLights.size());
                 shader->setInt("u_PointLightCount", pointCount);
                 for (uint32_t i = 0; i < pointCount; i++)
                 {
-                    const auto& l = context.environmentLight.pointLights[i];
+                    const auto& l = envLight.pointLights[i];
                     std::string base = "u_PointLights[" + std::to_string(i) + "]";
                     shader->setFloat3(base + ".position", l.position);
                     shader->setFloat3(base + ".color", l.color);
@@ -193,11 +207,11 @@ namespace Fermion
                     shader->setFloat(base + ".range", l.range);
                 }
 
-                uint32_t spotCount = std::min(maxLights, (uint32_t)context.environmentLight.spotLights.size());
+                uint32_t spotCount = std::min(maxLights, (uint32_t)envLight.spotLights.size());
                 shader->setInt("u_SpotLightCount", spotCount);
                 for (uint32_t i = 0; i < spotCount; i++)
                 {
-                    const auto& l = context.environmentLight.spotLights[i];
+                    const auto& l = envLight.spotLights[i];
                     std::string base = "u_SpotLights[" + std::to_string(i) + "]";
                     shader->setFloat3(base + ".position", l.position);
                     shader->setFloat3(base + ".direction", glm::normalize(l.direction));
@@ -207,9 +221,9 @@ namespace Fermion
                     shader->setFloat(base + ".innerConeAngle", l.innerConeAngle);
                     shader->setFloat(base + ".outerConeAngle", l.outerConeAngle);
                 }
+            }});
 
-                RenderCommand::drawIndexed(m_quadVA, m_quadVA->getIndexBuffer()->getCount());
-            });
+            queue.submit(CmdDrawIndexed{m_quadVA, m_quadVA->getIndexBuffer()->getCount()});
         };
         renderGraph.addPass(pass);
     }

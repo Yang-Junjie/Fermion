@@ -1,6 +1,6 @@
 #pragma once
 #include "RenderGraphResource.hpp"
-#include "Renderer/CommandBuffer.hpp"
+#include "Renderer/RenderCommandQueue.hpp"
 #include <memory>
 #include <unordered_map>
 
@@ -9,11 +9,11 @@ namespace Fermion
     class PassContext
     {
     public:
-        CommandBuffer &commands;
+        RenderCommandQueue &commandQueue;
 
-        PassContext(CommandBuffer &cmd,
+        PassContext(RenderCommandQueue &queue,
                     std::unordered_map<RenderGraphResourceHandle, std::shared_ptr<Framebuffer>> &resources)
-            : commands(cmd), m_Resources(resources)
+            : commandQueue(queue), m_Resources(resources)
         {
         }
 

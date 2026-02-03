@@ -3,7 +3,6 @@
 #include "RenderGraphResource.hpp"
 #include "RenderGraphResourcePool.hpp"
 #include "Renderer/RenderCommandQueue.hpp"
-#include "Renderer/RendererBackend.hpp"
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -19,7 +18,7 @@ namespace Fermion
             std::unordered_map<RenderGraphResourceHandle, std::shared_ptr<RenderGraphResource>> &resources,
             RenderGraphResourcePool &resourcePool,
             RenderCommandQueue &commandQueue,
-            RendererBackend &backend);
+            RendererAPI &api);
 
     private:
         void allocateResources(

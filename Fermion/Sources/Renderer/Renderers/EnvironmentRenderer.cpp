@@ -4,7 +4,7 @@
 #include "Renderer/Pipeline.hpp"
 #include "Renderer/RenderDrawCommand.hpp"
 #include "Core/Log.hpp"
-#include "Renderer/RenderCommand.hpp"
+#include "Renderer/RenderCommands.hpp"
 #include "Renderer/Renderers/Renderer.hpp"
 #include "Renderer/Texture/Texture.hpp"
 #include "Renderer/Framebuffer.hpp"
@@ -76,23 +76,27 @@ namespace Fermion
             return value == 0 ? 1 : value;
         }
 
-        void RecordSkyboxPass(CommandBuffer &commandBuffer, const SkyboxDrawCommand &drawCommand)
+        void RecordSkyboxPass(RenderCommandQueue& queue, const SkyboxDrawCommand &drawCommand)
         {
-            commandBuffer.record([drawCommand](RendererAPI &)
-                                 {
-                                     if (!drawCommand.pipeline || !drawCommand.vao || !drawCommand.cubemap)
-                                         return;
+            if (!drawCommand.pipeline || !drawCommand.vao || !drawCommand.cubemap)
+                return;
 
-                                     drawCommand.pipeline->bind();
-                                     auto shader = drawCommand.pipeline->getShader();
-                                     shader->bind();
-                                     shader->setMat4("u_View", glm::mat4(glm::mat3(drawCommand.view)));
-                                     shader->setMat4("u_Projection", drawCommand.projection);
+            queue.submit(CmdCustom{[pipeline = drawCommand.pipeline,
+                                    vao = drawCommand.vao,
+                                    cubemap = drawCommand.cubemap,
+                                    view = drawCommand.view,
+                                    projection = drawCommand.projection]() {
+                pipeline->bind();
+                auto shader = pipeline->getShader();
+                shader->bind();
+                shader->setMat4("u_View", glm::mat4(glm::mat3(view)));
+                shader->setMat4("u_Projection", projection);
 
-                                     drawCommand.cubemap->bind(0);
-                                     shader->setInt("u_Cubemap", 0);
+                cubemap->bind(0);
+                shader->setInt("u_Cubemap", 0);
+            }});
 
-                                     RenderCommand::drawIndexed(drawCommand.vao, 36); });
+            queue.submit(CmdDrawIndexed{drawCommand.vao, 36});
         }
     }
 
@@ -215,7 +219,7 @@ namespace Fermion
         pass.Name = "SkyboxPass";
         if (dependency.isValid())
             pass.Inputs = {dependency};
-        pass.Execute = [this, view, projection, skyboxDrawCalls](CommandBuffer &commandBuffer)
+        pass.Execute = [this, view, projection, skyboxDrawCalls](RenderCommandQueue& queue)
         {
             if (!m_environmentCubemap)
                 return;
@@ -230,7 +234,7 @@ namespace Fermion
             if (cmd.pipeline && cmd.vao && cmd.cubemap && skyboxDrawCalls)
                 (*skyboxDrawCalls)++;
 
-            RecordSkyboxPass(commandBuffer, cmd);
+            RecordSkyboxPass(queue, cmd);
         };
 
         renderGraph.addPass(pass);
@@ -309,9 +313,9 @@ namespace Fermion
         {
             shader->setMat4("u_View", captureViews[i]);
             captureFB->bind();
-            RenderCommand::setViewport(0, 0, cubemapSize, cubemapSize);
-            RenderCommand::clear();
-            RenderCommand::drawIndexed(m_cubeVA, m_cubeVA->getIndexBuffer()->getCount());
+            Renderer::getRendererAPI().setViewport(0, 0, cubemapSize, cubemapSize);
+            Renderer::getRendererAPI().clear();
+            Renderer::getRendererAPI().drawIndexed(m_cubeVA, m_cubeVA->getIndexBuffer()->getCount());
 
             m_environmentCubemap->copyFromFramebuffer(captureFB, i, 0);
         }
@@ -368,9 +372,9 @@ namespace Fermion
         {
             shader->setMat4("u_View", captureViews[i]);
             captureFB->bind();
-            RenderCommand::setViewport(0, 0, settings.irradianceMapSize, settings.irradianceMapSize);
-            RenderCommand::clear();
-            RenderCommand::drawIndexed(m_cubeVA, m_cubeVA->getIndexBuffer()->getCount());
+            Renderer::getRendererAPI().setViewport(0, 0, settings.irradianceMapSize, settings.irradianceMapSize);
+            Renderer::getRendererAPI().clear();
+            Renderer::getRendererAPI().drawIndexed(m_cubeVA, m_cubeVA->getIndexBuffer()->getCount());
             if (iblDrawCalls)
                 (*iblDrawCalls)++;
 
@@ -432,9 +436,9 @@ namespace Fermion
             {
                 shader->setMat4("u_View", captureViews[i]);
                 captureFB->bind();
-                RenderCommand::setViewport(0, 0, fbSpec.width, fbSpec.height);
-                RenderCommand::clear();
-                RenderCommand::drawIndexed(m_cubeVA, m_cubeVA->getIndexBuffer()->getCount());
+                Renderer::getRendererAPI().setViewport(0, 0, fbSpec.width, fbSpec.height);
+                Renderer::getRendererAPI().clear();
+                Renderer::getRendererAPI().drawIndexed(m_cubeVA, m_cubeVA->getIndexBuffer()->getCount());
                 if (iblDrawCalls)
                     (*iblDrawCalls)++;
 
@@ -468,11 +472,11 @@ namespace Fermion
         auto captureFB = Framebuffer::create(fbSpec);
 
         captureFB->bind();
-        RenderCommand::setViewport(0, 0, settings.brdfLUTSize, settings.brdfLUTSize);
+        Renderer::getRendererAPI().setViewport(0, 0, settings.brdfLUTSize, settings.brdfLUTSize);
 
         m_iblBrdfPipeline->bind();
-        RenderCommand::clear();
-        RenderCommand::drawIndexed(m_quadVA, m_quadVA->getIndexBuffer()->getCount());
+        Renderer::getRendererAPI().clear();
+        Renderer::getRendererAPI().drawIndexed(m_quadVA, m_quadVA->getIndexBuffer()->getCount());
         if (iblDrawCalls)
             (*iblDrawCalls)++;
 
@@ -493,6 +497,6 @@ namespace Fermion
         }
 
         if (viewportWidth > 0 && viewportHeight > 0)
-            RenderCommand::setViewport(0, 0, viewportWidth, viewportHeight);
+            Renderer::getRendererAPI().setViewport(0, 0, viewportWidth, viewportHeight);
     }
 } // namespace Fermion

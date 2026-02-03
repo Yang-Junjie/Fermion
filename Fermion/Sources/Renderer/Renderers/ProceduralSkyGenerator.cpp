@@ -4,7 +4,6 @@
 #include "Core/Log.hpp"
 #include "Renderer/Framebuffer.hpp"
 #include "Renderer/Pipeline.hpp"
-#include "Renderer/RenderCommand.hpp"
 #include "Renderer/Renderers/Renderer.hpp"
 #include "Renderer/Texture/Texture.hpp"
 #include "Renderer/VertexArray.hpp"
@@ -115,9 +114,9 @@ namespace Fermion
             shader->setMat4("u_View", captureViews[i]);
 
             captureFB->bind();
-            RenderCommand::setViewport(0, 0, settings.cubemapSize, settings.cubemapSize);
-            RenderCommand::clear();
-            RenderCommand::drawIndexed(m_cubeVA, m_cubeVA->getIndexBuffer()->getCount());
+            Renderer::getRendererAPI().setViewport(0, 0, settings.cubemapSize, settings.cubemapSize);
+            Renderer::getRendererAPI().clear();
+            Renderer::getRendererAPI().drawIndexed(m_cubeVA, m_cubeVA->getIndexBuffer()->getCount());
 
             cubemap->copyFromFramebuffer(captureFB, i, 0);
         }
@@ -132,7 +131,7 @@ namespace Fermion
         }
         else if (viewportWidth > 0 && viewportHeight > 0)
         {
-            RenderCommand::setViewport(0, 0, viewportWidth, viewportHeight);
+            Renderer::getRendererAPI().setViewport(0, 0, viewportWidth, viewportHeight);
         }
 
         Log::Info("Procedural sky cubemap generation completed");

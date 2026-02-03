@@ -1,5 +1,5 @@
 #include "MaterialPreviewRenderer.hpp"
-#include "Renderer/RenderCommand.hpp"
+#include "Renderer/Renderers/Renderer.hpp"
 #include "Renderer/Pipeline.hpp"
 #include "Renderer/Framebuffer.hpp"
 #include "Renderer/Model/Material.hpp"
@@ -184,11 +184,11 @@ namespace Fermion
             return nullptr;
         }
 
-        // Bind framebuffer and setup render state using RenderCommand
+        // Bind framebuffer and setup render state using RendererAPI
         m_framebuffer->bind();
-        RenderCommand::setViewport(0, 0, settings.width, settings.height);
-        RenderCommand::setClearColor({0.1f, 0.1f, 0.1f, 1.0f});
-        RenderCommand::clear();
+        Renderer::getRendererAPI().setViewport(0, 0, settings.width, settings.height);
+        Renderer::getRendererAPI().setClearColor({0.1f, 0.1f, 0.1f, 1.0f});
+        Renderer::getRendererAPI().clear();
 
         m_previewPipeline->bind();
 
@@ -221,7 +221,7 @@ namespace Fermion
         material->bind(shader);
 
         vertexArray->bind();
-        RenderCommand::drawIndexed(vertexArray);
+        Renderer::getRendererAPI().drawIndexed(vertexArray);
 
         m_framebuffer->resolve();
 

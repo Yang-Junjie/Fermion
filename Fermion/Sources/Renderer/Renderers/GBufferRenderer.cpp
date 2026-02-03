@@ -1,7 +1,7 @@
 #include "GBufferRenderer.hpp"
 #include "EnvironmentRenderer.hpp"
 #include "Renderer.hpp"
-#include "Renderer/RenderCommand.hpp"
+#include "Renderer/RenderCommands.hpp"
 #include "Renderer/UniformBufferLayout.hpp"
 #include "Renderer/UniformBuffer.hpp"
 #include "Renderer/Pipeline.hpp"
@@ -76,49 +76,50 @@ namespace Fermion
         LegacyRenderGraphPass pass;
         pass.Name = "GBufferPass";
         pass.Outputs = {gBuffer, sceneDepth};
-        pass.Execute = [this, &context, &drawList, forwardPbrPipeline, environmentRenderer, geometryDrawCalls, iblDrawCalls](CommandBuffer& commandBuffer)
+        pass.Execute = [this, &context, &drawList, forwardPbrPipeline, environmentRenderer, geometryDrawCalls, iblDrawCalls](RenderCommandQueue& queue)
         {
-            commandBuffer.record([this, &context, &drawList, forwardPbrPipeline, environmentRenderer, geometryDrawCalls, iblDrawCalls](RendererAPI& api)
-            {
-                if (!m_framebuffer)
-                    return;
+            if (!m_framebuffer)
+                return;
 
-                m_framebuffer->bind();
-                RenderCommand::setBlendEnabled(false);
-                RenderCommand::setClearColor({0.0f, 0.0f, 0.0f, 1.0f});
-                RenderCommand::clear();
+            queue.submit(CmdBindFramebuffer{m_framebuffer});
+            queue.submit(CmdSetBlendEnabled{false});
+            queue.submit(CmdSetClearColor{{0.0f, 0.0f, 0.0f, 1.0f}});
+            queue.submit(CmdClear{});
+            queue.submit(CmdCustom{[this]() {
                 m_framebuffer->clearAttachment(static_cast<uint32_t>(Attachment::ObjectID), -1);
+            }});
 
-                std::shared_ptr<Pipeline> currentPipeline = nullptr;
+            std::shared_ptr<Pipeline> currentPipeline = nullptr;
 
-                EnvironmentRenderer::IBLSettings iblSettings = {
-                    .useIBL = context.useIBL,
-                    .irradianceMapSize = context.irradianceMapSize,
-                    .prefilterMapSize = context.prefilterMapSize,
-                    .brdfLUTSize = context.brdfLUTSize,
-                    .prefilterMaxMipLevels = context.prefilterMaxMipLevels
-                };
+            EnvironmentRenderer::IBLSettings iblSettings = {
+                .useIBL = context.useIBL,
+                .irradianceMapSize = context.irradianceMapSize,
+                .prefilterMapSize = context.prefilterMapSize,
+                .brdfLUTSize = context.brdfLUTSize,
+                .prefilterMaxMipLevels = context.prefilterMaxMipLevels
+            };
 
-                if (environmentRenderer)
+            if (environmentRenderer)
+            {
+                environmentRenderer->ensureIBLInitialized(iblSettings, context.targetFramebuffer,
+                                                          context.viewportWidth, context.viewportHeight,
+                                                          iblDrawCalls);
+            }
+
+            for (const auto& cmd : drawList)
+            {
+                if (!cmd.visible || cmd.transparent)
+                    continue;
+
+                const bool isPbr = cmd.pipeline == forwardPbrPipeline;
+                auto desiredPipeline = isPbr ? m_pbrPipeline : m_phongPipeline;
+                if (!desiredPipeline)
+                    continue;
+
+                if (currentPipeline != desiredPipeline)
                 {
-                    environmentRenderer->ensureIBLInitialized(iblSettings, context.targetFramebuffer,
-                                                              context.viewportWidth, context.viewportHeight,
-                                                              iblDrawCalls);
-                }
-
-                for (const auto& cmd : drawList)
-                {
-                    if (!cmd.visible || cmd.transparent)
-                        continue;
-
-                    const bool isPbr = cmd.pipeline == forwardPbrPipeline;
-                    auto desiredPipeline = isPbr ? m_pbrPipeline : m_phongPipeline;
-                    if (!desiredPipeline)
-                        continue;
-
-                    if (currentPipeline != desiredPipeline)
-                    {
-                        currentPipeline = desiredPipeline;
+                    currentPipeline = desiredPipeline;
+                    queue.submit(CmdCustom{[currentPipeline, isPbr, &context]() {
                         currentPipeline->bind();
                         auto shader = currentPipeline->getShader();
                         // Camera UBO is already bound globally
@@ -127,38 +128,42 @@ namespace Fermion
                             shader->setFloat("u_NormalStrength", context.normalMapStrength);
                             shader->setFloat("u_ToksvigStrength", context.toksvigStrength);
                         }
-                    }
-
-                    // Update model uniform buffer for this draw call
-                    ModelData modelData;
-                    modelData.model = cmd.transform;
-                    modelData.normalMatrix = glm::transpose(glm::inverse(cmd.transform));
-                    modelData.objectID = cmd.objectID;
-                    context.modelUBO->setData(&modelData, sizeof(ModelData));
-
-                    if (cmd.material)
-                        cmd.material->bind(currentPipeline->getShader());
-
-                    RenderCommand::drawIndexed(cmd.vao, cmd.indexCount, cmd.indexOffset);
-                    if (geometryDrawCalls)
-                        (*geometryDrawCalls)++;
+                    }});
                 }
 
-                if (context.targetFramebuffer)
-                {
-                    Framebuffer::blit(m_framebuffer, context.targetFramebuffer, {
+                // Update model uniform buffer for this draw call
+                ModelData modelData;
+                modelData.model = cmd.transform;
+                modelData.normalMatrix = glm::transpose(glm::inverse(cmd.transform));
+                modelData.objectID = cmd.objectID;
+
+                queue.submit(CmdCustom{[modelUBO = context.modelUBO, modelData, currentPipeline, material = cmd.material]() {
+                    modelUBO->setData(&modelData, sizeof(ModelData));
+                    if (material)
+                        material->bind(currentPipeline->getShader());
+                }});
+
+                queue.submit(CmdDrawIndexed{cmd.vao, cmd.indexCount, cmd.indexOffset});
+                if (geometryDrawCalls)
+                    (*geometryDrawCalls)++;
+            }
+
+            if (context.targetFramebuffer)
+            {
+                queue.submit(CmdCustom{[this, targetFB = context.targetFramebuffer]() {
+                    Framebuffer::blit(m_framebuffer, targetFB, {
                         .mask = FramebufferBlitMask::Depth
                     });
-                    context.targetFramebuffer->bind();
-                }
-                else
-                {
-                    m_framebuffer->unbind();
-                    if (context.viewportWidth > 0 && context.viewportHeight > 0)
-                        RenderCommand::setViewport(0, 0, context.viewportWidth, context.viewportHeight);
-                    RenderCommand::setBlendEnabled(true);
-                }
-            });
+                    targetFB->bind();
+                }});
+            }
+            else
+            {
+                queue.submit(CmdUnbindFramebuffer{m_framebuffer});
+                if (context.viewportWidth > 0 && context.viewportHeight > 0)
+                    queue.submit(CmdSetViewport{0, 0, context.viewportWidth, context.viewportHeight});
+                queue.submit(CmdSetBlendEnabled{true});
+            }
         };
         renderGraph.addPass(pass);
     }

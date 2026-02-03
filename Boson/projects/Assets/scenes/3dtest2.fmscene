@@ -1,10 +1,23 @@
 Scene: Name
 Entities:
+  - Entity: 13192142759119736963
+    TagComponent:
+      Tag: dl
+    TransformComponent:
+      Translation: [3.3698547, 1.2130407, 1.5778769]
+      Rotation: [-1.1035376, 0.8370525, -0.8262825]
+      Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
+    DirectionalLightComponent:
+      Color: [1, 0.960423, 0.75949365]
+      Intensity: 5.3
+      MainLight: true
   - Entity: 12703848604684242753
     TagComponent:
       Tag: cube
     TransformComponent:
-      Translation: [0.04924175, 0, 0]
+      Translation: [0.04924175, 0.11789499, 7.0270896e-09]
       Rotation: [-1.5707964, 0, 0]
       Scale: [1, 1, 1]
     RelationshipComponent:
@@ -22,16 +35,3 @@ Entities:
         - 17328189057630196023
         - 15288354084329951289
         - 5800004709905524479
-  - Entity: 13192142759119736963
-    TagComponent:
-      Tag: dl
-    TransformComponent:
-      Translation: [3.3698547, 1.2130407, 1.5778769]
-      Rotation: [-1.1035376, 0.8370525, -0.8262825]
-      Scale: [1, 1, 1]
-    RelationshipComponent:
-      Parent: 0
-    DirectionalLightComponent:
-      Color: [1, 0.960423, 0.75949365]
-      Intensity: 5.3
-      MainLight: true

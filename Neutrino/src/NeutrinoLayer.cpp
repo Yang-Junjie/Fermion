@@ -48,8 +48,8 @@ void NeutrinoLayer::onUpdate(Fermion::Timestep dt)
         m_runtimeScene->onViewportResize(windowWidth, windowHeight);
     }
 
-    Fermion::RenderCommand::setClearColor({0.1f, 0.1f, 0.1f, 1.0f});
-    Fermion::RenderCommand::clear();
+    Fermion::Renderer::getRendererAPI().setClearColor({0.1f, 0.1f, 0.1f, 1.0f});
+    Fermion::Renderer::getRendererAPI().clear();
 
     m_runtimeScene->onUpdateRuntime(m_sceneRenderer, dt, true);
 }

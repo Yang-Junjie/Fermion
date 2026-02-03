@@ -1,7 +1,7 @@
 #include "OutlineRenderer.hpp"
 #include "GBufferRenderer.hpp"
 #include "Renderer.hpp"
-#include "Renderer/RenderCommand.hpp"
+#include "Renderer/RenderCommands.hpp"
 #include "Renderer/Pipeline.hpp"
 #include "Renderer/VertexArray.hpp"
 #include "Renderer2DCompat.hpp"
@@ -96,24 +96,23 @@ namespace Fermion
             LegacyRenderGraphPass pass;
             pass.Name = "OutlinePass";
             pass.Inputs = {gBufferHandle, sceneDepth, lightingResult};
-            pass.Execute = [this, &context, gBuffer, uniqueIDs = std::move(uniqueIDs), settings](CommandBuffer& commandBuffer)
+            pass.Execute = [this, &context, gBuffer, uniqueIDs = std::move(uniqueIDs), settings](RenderCommandQueue& queue)
             {
-                commandBuffer.record([this, &context, gBuffer, uniqueIDs, settings](RendererAPI& api)
+                auto gBufferFramebuffer = gBuffer->getFramebuffer();
+                if (!gBufferFramebuffer || !m_pipeline || uniqueIDs.empty())
+                    return;
+
+                if (context.targetFramebuffer)
                 {
-                    auto gBufferFramebuffer = gBuffer->getFramebuffer();
-                    if (!gBufferFramebuffer || !m_pipeline || uniqueIDs.empty())
-                        return;
+                    queue.submit(CmdBindFramebuffer{context.targetFramebuffer});
+                }
+                else
+                {
+                    if (context.viewportWidth > 0 && context.viewportHeight > 0)
+                        queue.submit(CmdSetViewport{0, 0, context.viewportWidth, context.viewportHeight});
+                }
 
-                    if (context.targetFramebuffer)
-                    {
-                        context.targetFramebuffer->bind();
-                    }
-                    else
-                    {
-                        if (context.viewportWidth > 0 && context.viewportHeight > 0)
-                            RenderCommand::setViewport(0, 0, context.viewportWidth, context.viewportHeight);
-                    }
-
+                queue.submit(CmdCustom{[this, gBufferFramebuffer, uniqueIDs, settings, &context]() {
                     m_pipeline->bind();
                     auto shader = m_pipeline->getShader();
 
@@ -138,9 +137,9 @@ namespace Fermion
                     shader->setFloat("u_DepthThreshold", settings.depthThreshold);
                     shader->setFloat("u_NormalThreshold", settings.normalThreshold);
                     shader->setFloat("u_Thickness", settings.thickness);
+                }});
 
-                    RenderCommand::drawIndexed(m_quadVA, m_quadVA->getIndexBuffer()->getCount());
-                });
+                queue.submit(CmdDrawIndexed{m_quadVA, m_quadVA->getIndexBuffer()->getCount()});
             };
             renderGraph.addPass(pass);
             return;
@@ -153,9 +152,9 @@ namespace Fermion
         LegacyRenderGraphPass pass;
         pass.Name = "OutlinePass";
         pass.Inputs = {lightingResult};
-        pass.Execute = [&drawList, settings](CommandBuffer& commandBuffer)
+        pass.Execute = [&drawList, settings](RenderCommandQueue& queue)
         {
-            Renderer2DCompat::recordOutlinePass(commandBuffer, drawList, settings.color);
+            Renderer2DCompat::recordOutlinePass(queue, drawList, settings.color);
         };
         renderGraph.addPass(pass);
     }

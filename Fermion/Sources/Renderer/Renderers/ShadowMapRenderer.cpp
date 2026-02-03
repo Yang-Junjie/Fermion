@@ -1,7 +1,7 @@
 #include "fmpch.hpp"
 #include "ShadowMapRenderer.hpp"
 
-#include "Renderer/RenderCommand.hpp"
+#include "Renderer/RenderCommands.hpp"
 #include "Renderer/Renderers/Renderer.hpp"
 #include "Renderer/UniformBufferLayout.hpp"
 #include "Renderer/Framebuffer.hpp"
@@ -42,35 +42,35 @@ namespace Fermion
         LegacyRenderGraphPass pass;
         pass.Name = "ShadowPass";
         pass.Outputs = {shadowMap};
-        pass.Execute = [this, &drawList, targetFramebuffer, viewportWidth, viewportHeight, shadowDrawCalls, modelUniformBuffer, lightUniformBuffer](CommandBuffer &commandBuffer)
+        pass.Execute = [this, &drawList, targetFramebuffer, viewportWidth, viewportHeight, shadowDrawCalls, modelUniformBuffer, lightUniformBuffer](RenderCommandQueue& queue)
         {
-            commandBuffer.record([this, &drawList, targetFramebuffer, viewportWidth, viewportHeight, shadowDrawCalls, modelUniformBuffer, lightUniformBuffer](RendererAPI &api)
-                                 {
-                m_shadowMapFB->bind();
-                RenderCommand::clear();
+            queue.submit(CmdBindFramebuffer{m_shadowMapFB});
+            queue.submit(CmdClear{});
+            queue.submit(CmdBindPipeline{m_shadowPipeline});
 
-                m_shadowPipeline->bind();
+            for (auto &cmd : drawList) {
+                // Update model uniform buffer for this draw call
+                ModelData modelData;
+                modelData.model = cmd.transform;
+                modelData.normalMatrix = glm::transpose(glm::inverse(cmd.transform));
+                modelData.objectID = cmd.objectID;
 
-                for (auto &cmd : drawList) {
-                    // Update model uniform buffer for this draw call
-                    ModelData modelData;
-                    modelData.model = cmd.transform;
-                    modelData.normalMatrix = glm::transpose(glm::inverse(cmd.transform));
-                    modelData.objectID = cmd.objectID;
+                queue.submit(CmdCustom{[modelUniformBuffer, modelData]() {
                     modelUniformBuffer->setData(&modelData, sizeof(ModelData));
+                }});
 
-                    RenderCommand::drawIndexed(cmd.vao, cmd.indexCount, cmd.indexOffset);
-                    if (shadowDrawCalls)
-                        (*shadowDrawCalls)++;
-                }
+                queue.submit(CmdDrawIndexed{cmd.vao, cmd.indexCount, cmd.indexOffset});
+                if (shadowDrawCalls)
+                    (*shadowDrawCalls)++;
+            }
 
-                if (targetFramebuffer) {
-                    targetFramebuffer->bind();
-                } else {
-                    m_shadowMapFB->unbind();
-                    if (viewportWidth > 0 && viewportHeight > 0)
-                        RenderCommand::setViewport(0, 0, viewportWidth, viewportHeight);
-                } });
+            if (targetFramebuffer) {
+                queue.submit(CmdBindFramebuffer{targetFramebuffer});
+            } else {
+                queue.submit(CmdUnbindFramebuffer{m_shadowMapFB});
+                if (viewportWidth > 0 && viewportHeight > 0)
+                    queue.submit(CmdSetViewport{0, 0, viewportWidth, viewportHeight});
+            }
         };
         renderGraph.addPass(pass);
     }

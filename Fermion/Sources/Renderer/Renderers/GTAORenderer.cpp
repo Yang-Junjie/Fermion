@@ -1,7 +1,7 @@
 #include "GTAORenderer.hpp"
 #include "GBufferRenderer.hpp"
 #include "Renderer.hpp"
-#include "Renderer/RenderCommand.hpp"
+#include "Renderer/RenderCommands.hpp"
 #include "Renderer/Framebuffer.hpp"
 #include "Renderer/Pipeline.hpp"
 #include "Renderer/VertexArray.hpp"
@@ -73,7 +73,7 @@ namespace Fermion
         pass.Name = "GTAOPass";
         pass.Inputs = {};  // GBuffer is accessed via gBuffer reference
         pass.Outputs = {gtaoOutput};
-        pass.Execute = [this, &context, &gBuffer, settings](CommandBuffer& commandBuffer)
+        pass.Execute = [this, &context, &gBuffer, settings](RenderCommandQueue& queue)
         {
             auto gBufferFramebuffer = gBuffer.getFramebuffer();
             if (!gBufferFramebuffer || !m_pipeline || !m_quadVA || !m_framebuffer)
@@ -100,17 +100,13 @@ namespace Fermion
             const float power = settings.power;
             const float intensity = settings.intensity;
 
-            commandBuffer.record([this, gBufferFramebuffer, projection, inverseProjection, view,
-                                  sliceCount, stepCount, radius, bias, power, intensity](RendererAPI& api)
-            {
-                if (!gBufferFramebuffer || !m_pipeline || !m_framebuffer || !m_quadVA)
-                    return;
+            queue.submit(CmdBindFramebuffer{m_framebuffer});
+            queue.submit(CmdSetBlendEnabled{false});
+            queue.submit(CmdSetClearColor{{1.0f, 1.0f, 1.0f, 1.0f}});
+            queue.submit(CmdClear{});
 
-                m_framebuffer->bind();
-                RenderCommand::setBlendEnabled(false);
-                RenderCommand::setClearColor({1.0f, 1.0f, 1.0f, 1.0f});
-                RenderCommand::clear();
-
+            queue.submit(CmdCustom{[this, gBufferFramebuffer, projection, inverseProjection, view,
+                                    radius, bias, power, intensity, sliceCount, stepCount]() {
                 m_pipeline->bind();
                 auto shader = m_pipeline->getShader();
 
@@ -129,10 +125,11 @@ namespace Fermion
                 shader->setFloat("u_GTAOIntensity", intensity);
                 shader->setInt("u_GTAOSliceCount", sliceCount);
                 shader->setInt("u_GTAOStepCount", stepCount);
+            }});
 
-                RenderCommand::drawIndexed(m_quadVA, m_quadVA->getIndexBuffer()->getCount());
-                RenderCommand::setBlendEnabled(true);
-            });
+            queue.submit(CmdDrawIndexed{m_quadVA, m_quadVA->getIndexBuffer()->getCount()});
+            queue.submit(CmdUnbindFramebuffer{m_framebuffer});
+            queue.submit(CmdSetBlendEnabled{true});
         };
         renderGraph.addPass(pass);
     }

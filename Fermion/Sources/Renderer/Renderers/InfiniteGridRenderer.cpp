@@ -5,7 +5,7 @@
 #include "Renderer/Shader.hpp"
 #include "Renderer.hpp"
 #include "Renderer/Pipeline.hpp"
-#include "Renderer/RenderCommand.hpp"
+#include "Renderer/RenderCommands.hpp"
 #include "Renderer/RenderDrawCommand.hpp"
 
 namespace Fermion
@@ -74,35 +74,35 @@ namespace Fermion
         if (depthTarget.isValid())
             pass.Inputs.push_back(depthTarget);
 
-        pass.Execute = [this, context, settings](CommandBuffer& commandBuffer) {
-            commandBuffer.record([this, context, settings](RendererAPI&) {
-                render(context, settings);
-            });
+        pass.Execute = [this, context, settings](RenderCommandQueue& queue) {
+            render(queue, context, settings);
         };
 
         renderGraph.addPass(pass);
     }
 
-    void InfiniteGridRenderer::render(const RenderContext& context, const Settings& settings)
+    void InfiniteGridRenderer::render(RenderCommandQueue& queue, const RenderContext& context, const Settings& settings)
     {
         if (!m_initialized || !m_gridPipeline || !m_quadVA)
             return;
 
         // Enable alpha blending for anti-aliased grid lines
-        RenderCommand::setBlendEnabled(true);
+        queue.submit(CmdSetBlendEnabled{true});
 
-        m_gridPipeline->bind();
+        queue.submit(CmdCustom{[this, settings]() {
+            m_gridPipeline->bind();
 
-        auto shader = m_gridPipeline->getShader();
-        shader->setInt("u_GridPlane", static_cast<int>(settings.plane));
-        shader->setFloat("u_GridScale", settings.gridScale);
-        shader->setFloat("u_FadeDistance", settings.fadeDistance);
-        shader->setFloat4("u_GridColorThin", settings.gridColorThin);
-        shader->setFloat4("u_GridColorThick", settings.gridColorThick);
-        shader->setFloat4("u_AxisColorX", settings.axisColorX);
-        shader->setFloat4("u_AxisColorZ", settings.axisColorZ);
+            auto shader = m_gridPipeline->getShader();
+            shader->setInt("u_GridPlane", static_cast<int>(settings.plane));
+            shader->setFloat("u_GridScale", settings.gridScale);
+            shader->setFloat("u_FadeDistance", settings.fadeDistance);
+            shader->setFloat4("u_GridColorThin", settings.gridColorThin);
+            shader->setFloat4("u_GridColorThick", settings.gridColorThick);
+            shader->setFloat4("u_AxisColorX", settings.axisColorX);
+            shader->setFloat4("u_AxisColorZ", settings.axisColorZ);
+        }});
 
-        RenderCommand::drawIndexed(m_quadVA, m_quadVA->getIndexBuffer()->getCount());
+        queue.submit(CmdDrawIndexed{m_quadVA, m_quadVA->getIndexBuffer()->getCount()});
     }
 
 } // namespace Fermion

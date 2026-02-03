@@ -3,7 +3,7 @@
 // 暂时或可能以后都没用
 #pragma once
 #include "fmpch.hpp"
-#include "Renderer/RenderCommand.hpp"
+#include "Renderer/RendererAPI.hpp"
 #include "Renderer/Camera/OrthographicCamera.hpp"
 #include "Renderer/Shader.hpp"
 #include "Renderer/RendererConfig.hpp"
@@ -17,8 +17,8 @@ public:
 
     static void onWindowResize(uint32_t width, uint32_t height);
 
-    static void beginScene(OrthographicCamera &camera);
-    static void endScene();
+    // static void beginScene(OrthographicCamera &camera);
+    // static void endScene();
 
     static const ShaderLibrary* getShaderLibrary() {
         return s_shaderLibrary.get();
@@ -30,7 +30,12 @@ public:
         return RendererAPI::getAPI();
     }
 
+    static RendererAPI& getRendererAPI() {
+        return *s_rendererAPI;
+    }
+
 private:
+    inline static std::unique_ptr<RendererAPI> s_rendererAPI;
     struct SceneData {
         glm::mat4 viewProjectionMatrix;
     };

@@ -46,13 +46,11 @@ set(CORE_SOURCES
 
     ${FERMION_DIR}/Renderer/Renderers/Renderer.cpp
     ${FERMION_DIR}/Renderer/RendererAPI.cpp
-    ${FERMION_DIR}/Renderer/RenderCommand.cpp
     ${FERMION_DIR}/Renderer/Renderers/Renderer2D.cpp
     ${FERMION_DIR}/Renderer/Batch/QuadBatch.cpp
     ${FERMION_DIR}/Renderer/Batch/CircleBatch.cpp
     ${FERMION_DIR}/Renderer/Batch/LineBatch.cpp
     ${FERMION_DIR}/Renderer/Batch/TextBatch.cpp
-    ${FERMION_DIR}/Renderer/CommandBuffer.cpp
     ${FERMION_DIR}/Renderer/RenderCommandQueue.cpp
     ${FERMION_DIR}/Renderer/RenderGraph/RenderGraph.cpp
     ${FERMION_DIR}/Renderer/RenderGraph/RenderGraphResource.cpp
@@ -60,7 +58,6 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Renderer/RenderGraph/RenderGraphCompiler.cpp
     ${FERMION_DIR}/Renderer/RenderGraph/RenderGraphExecutor.cpp
     ${FERMION_DIR}/Renderer/RenderGraphLegacy.cpp
-    ${FERMION_DIR}/Renderer/RendererBackend.cpp
     ${FERMION_DIR}/Renderer/Pipeline.cpp
     ${FERMION_DIR}/Renderer/Renderers/DebugRenderer.cpp
     ${FERMION_DIR}/Renderer/GraphicsContext.cpp

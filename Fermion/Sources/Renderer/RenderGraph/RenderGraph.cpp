@@ -69,12 +69,12 @@ namespace Fermion
         return result.success;
     }
 
-    void RenderGraph::execute(RenderCommandQueue &commandQueue, RendererBackend &backend)
+    void RenderGraph::execute(RenderCommandQueue &commandQueue, RendererAPI &api)
     {
         if (m_Dirty || !m_Compiled)
             compile();
 
-        m_Executor.execute(m_Passes, m_ExecutionOrder, m_Resources, m_ResourcePool, commandQueue, backend);
+        m_Executor.execute(m_Passes, m_ExecutionOrder, m_Resources, m_ResourcePool, commandQueue, api);
     }
 
     void RenderGraph::reset()

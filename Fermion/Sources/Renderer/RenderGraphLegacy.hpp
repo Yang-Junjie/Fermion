@@ -1,6 +1,5 @@
 #pragma once
 #include "RenderGraph/RenderGraph.hpp"
-#include "Renderer/CommandBuffer.hpp"
 #include <functional>
 #include <string>
 #include <vector>
@@ -14,7 +13,7 @@ namespace Fermion
         std::string Name;
         std::vector<ResourceHandle> Inputs;
         std::vector<ResourceHandle> Outputs;
-        std::function<void(CommandBuffer &)> Execute;
+        std::function<void(RenderCommandQueue &)> Execute;
     };
 
     class RenderGraphLegacy
@@ -25,7 +24,7 @@ namespace Fermion
         ResourceHandle createResource();
         PassHandle addPass(const LegacyRenderGraphPass &pass);
         bool compile();
-        void execute(RenderCommandQueue &queue, RendererBackend &backend);
+        void execute(RenderCommandQueue &queue, RendererAPI &api);
         void reset();
         bool lastCompileSucceeded() const;
 

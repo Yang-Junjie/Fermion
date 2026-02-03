@@ -1,7 +1,7 @@
-﻿#include "SceneRenderer.hpp"
+#include "SceneRenderer.hpp"
 #include "Renderer2DCompat.hpp"
-#include "Renderer/RendererBackend.hpp"
-#include "Renderer/RenderCommand.hpp"
+#include "Renderer.hpp"
+
 #include "Renderer/Framebuffer.hpp"
 #include "Renderer/UniformBuffer.hpp"
 #include "Renderer/UniformBufferLayout.hpp"
@@ -320,8 +320,8 @@ namespace Fermion
 
         AddPostProcessingPasses(resources, flags);
 
-        RendererBackend backend(RenderCommand::GetRendererAPI());
-        m_renderGraph.execute(m_commandQueue, backend);
+
+        m_renderGraph.execute(m_commandQueue, Renderer::getRendererAPI());
         m_meshDrawList.clear();
         m_outlineIDs.clear();
     }

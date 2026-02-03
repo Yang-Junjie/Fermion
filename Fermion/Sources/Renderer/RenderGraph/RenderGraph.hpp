@@ -5,7 +5,6 @@
 #include "RenderGraphResource.hpp"
 #include "RenderGraphResourcePool.hpp"
 #include "Renderer/RenderCommandQueue.hpp"
-#include "Renderer/RendererBackend.hpp"
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -23,7 +22,7 @@ namespace Fermion
         void addPass(const std::string &name, std::function<void(PassBuilder &)> setupFunc);
 
         bool compile();
-        void execute(RenderCommandQueue &commandQueue, RendererBackend &backend);
+        void execute(RenderCommandQueue &commandQueue, RendererAPI &api);
         void reset();
 
         bool lastCompileSucceeded() const { return m_LastCompileSuccess; }

@@ -34,7 +34,7 @@ namespace Fermion
             builder.execute([pass](PassContext &ctx)
                             {
                 if (pass.Execute)
-                    pass.Execute(ctx.commands);
+                    pass.Execute(ctx.commandQueue);
             });
         });
 
@@ -46,9 +46,9 @@ namespace Fermion
         return m_Graph.compile();
     }
 
-    void RenderGraphLegacy::execute(RenderCommandQueue &queue, RendererBackend &backend)
+    void RenderGraphLegacy::execute(RenderCommandQueue &queue, RendererAPI &api)
     {
-        m_Graph.execute(queue, backend);
+        m_Graph.execute(queue, api);
     }
 
     void RenderGraphLegacy::reset()

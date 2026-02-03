@@ -30,7 +30,6 @@
 #include "Renderer/GraphicsContext.hpp"
 #include "Renderer/Camera/OrthographicCamera.hpp"
 #include "Renderer/Camera/OrthographicCameraController.hpp"
-#include "Renderer/RenderCommand.hpp"
 #include "Renderer/Renderers/Renderer.hpp"
 #include "Renderer/RendererConfig.hpp"
 #include "Renderer/RendererAPI.hpp"

@@ -147,8 +147,8 @@ namespace Fermion
         if (m_viewportRenderer)
             m_viewportRenderer->resetStatistics();
         m_framebuffer->bind();
-        RenderCommand::setClearColor({0.1f, 0.1f, 0.1f, 1.0f});
-        RenderCommand::clear();
+        Renderer::getRendererAPI().setClearColor({0.1f, 0.1f, 0.1f, 1.0f});
+        Renderer::getRendererAPI().clear();
         m_framebuffer->clearAttachment(1, -1);
 
         // Tell SceneRenderer which framebuffer to restore after shadow pass

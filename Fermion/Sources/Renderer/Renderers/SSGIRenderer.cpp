@@ -1,7 +1,7 @@
 #include "SSGIRenderer.hpp"
 #include "GBufferRenderer.hpp"
 #include "Renderer.hpp"
-#include "Renderer/RenderCommand.hpp"
+#include "Renderer/RenderCommands.hpp"
 #include "Renderer/Framebuffer.hpp"
 #include "Renderer/Pipeline.hpp"
 #include "Renderer/VertexArray.hpp"
@@ -116,7 +116,7 @@ namespace Fermion
         pass.Name = "SSGIPass";
         pass.Inputs = {};  // GBuffer is accessed via gBuffer reference
         pass.Outputs = {ssgiOutput};
-        pass.Execute = [this, &context, &gBuffer, settings](CommandBuffer& commandBuffer)
+        pass.Execute = [this, &context, &gBuffer, settings](RenderCommandQueue& queue)
         {
             auto gBufferFramebuffer = gBuffer.getFramebuffer();
             if (!gBufferFramebuffer || !m_pipeline || !m_quadVA || !m_framebuffers[0] || !m_framebuffers[1])
@@ -150,17 +150,14 @@ namespace Fermion
             const float bias = settings.bias;
             const float intensity = settings.intensity;
 
-            commandBuffer.record([this, gBufferFramebuffer, currentFramebuffer, historyFramebuffer,
-                                  viewProjection, inverseViewProjection, sampleCount, radius, bias, intensity, frameIndex](RendererAPI& api)
-            {
-                if (!gBufferFramebuffer || !m_pipeline || !currentFramebuffer || !m_quadVA)
-                    return;
+            queue.submit(CmdBindFramebuffer{currentFramebuffer});
+            queue.submit(CmdSetBlendEnabled{false});
+            queue.submit(CmdSetClearColor{{0.0f, 0.0f, 0.0f, 1.0f}});
+            queue.submit(CmdClear{});
 
-                currentFramebuffer->bind();
-                RenderCommand::setBlendEnabled(false);
-                RenderCommand::setClearColor({0.0f, 0.0f, 0.0f, 1.0f});
-                RenderCommand::clear();
-
+            queue.submit(CmdCustom{[this, gBufferFramebuffer, historyFramebuffer,
+                                    viewProjection, inverseViewProjection,
+                                    sampleCount, radius, bias, intensity, frameIndex]() {
                 m_pipeline->bind();
                 auto shader = m_pipeline->getShader();
 
@@ -182,10 +179,11 @@ namespace Fermion
                 shader->setFloat("u_SSGIBias", bias);
                 shader->setFloat("u_SSGIIntensity", intensity);
                 shader->setInt("u_FrameIndex", frameIndex);
+            }});
 
-                RenderCommand::drawIndexed(m_quadVA, m_quadVA->getIndexBuffer()->getCount());
-                RenderCommand::setBlendEnabled(true);
-            });
+            queue.submit(CmdDrawIndexed{m_quadVA, m_quadVA->getIndexBuffer()->getCount()});
+            queue.submit(CmdUnbindFramebuffer{currentFramebuffer});
+            queue.submit(CmdSetBlendEnabled{true});
 
             m_currentFramebuffer = currentFramebuffer;
             m_historyIndex = currentIndex;

@@ -43,7 +43,7 @@ namespace Fermion
                      ResourceHandle colorTarget,
                      ResourceHandle depthTarget);
 
-        void render(const RenderContext& context, const Settings& settings);
+        void render(RenderCommandQueue& queue, const RenderContext& context, const Settings& settings);
 
     private:
         void initializeResources();

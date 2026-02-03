@@ -19,13 +19,12 @@ namespace Fermion
     class Camera;
     class EditorCamera;
     class Font;
-    class CommandBuffer;
     class Pipeline;
     class Shader;
     class UniformBuffer;
     class RenderGraphLegacy;
     class RenderCommandQueue;
-    class RendererBackend;
+    class RendererAPI;
 
 
     class Renderer2D
@@ -37,10 +36,10 @@ namespace Fermion
         Renderer2D(const Renderer2D&) = delete;
         Renderer2D& operator=(const Renderer2D&) = delete;
 
-   
+
         void init(const RendererConfig& config);
 
-    
+
         void shutdown();
 
 
@@ -131,7 +130,7 @@ namespace Fermion
 
 
 
-        void recordOutlinePass(CommandBuffer& commandBuffer,
+        void recordOutlinePass(RenderCommandQueue& queue,
                               const std::vector<MeshDrawCommand>& drawCommands,
                               const glm::vec4& outlineColor);
 

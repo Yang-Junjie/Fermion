@@ -3,7 +3,7 @@
 #include "SSGIRenderer.hpp"
 #include "GTAORenderer.hpp"
 #include "Renderer.hpp"
-#include "Renderer/RenderCommand.hpp"
+#include "Renderer/RenderCommands.hpp"
 #include "Renderer/Pipeline.hpp"
 #include "Renderer/VertexArray.hpp"
 
@@ -66,31 +66,35 @@ namespace Fermion
         LegacyRenderGraphPass pass;
         pass.Name = "DepthViewPass";
         pass.Inputs = {sceneDepth, lightingResult};
-        pass.Execute = [this, &context, gBuffer, useDeferred, power](CommandBuffer& commandBuffer)
+        pass.Execute = [this, &context, gBuffer, useDeferred, power](RenderCommandQueue& queue)
         {
-            commandBuffer.record([this, &context, gBuffer, useDeferred, power](RendererAPI& api)
-            {
+            auto gBufferFB = (gBuffer && useDeferred) ? gBuffer->getFramebuffer() : nullptr;
+            auto targetFB = context.targetFramebuffer;
+            float nearClip = context.camera.nearClip;
+            float farClip = context.camera.farClip;
+
+            queue.submit(CmdCustom{[this, gBufferFB, targetFB, useDeferred, power, nearClip, farClip]() {
                 m_depthViewPipeline->bind();
                 auto shader = m_depthViewPipeline->getShader();
 
                 shader->setInt("u_Depth", 0);
-                if (gBuffer && gBuffer->getFramebuffer() && useDeferred)
+                if (gBufferFB && useDeferred)
                 {
-                    gBuffer->getFramebuffer()->bindDepthAttachment(0);
+                    gBufferFB->bindDepthAttachment(0);
                 }
                 else
                 {
-                    context.targetFramebuffer->bindDepthAttachment(0);
+                    targetFB->bindDepthAttachment(0);
                 }
 
-                shader->setFloat("u_Near", context.camera.nearClip);
-                shader->setFloat("u_Far", context.camera.farClip);
+                shader->setFloat("u_Near", nearClip);
+                shader->setFloat("u_Far", farClip);
                 shader->setInt("u_IsPerspective", 1);
 
                 shader->setFloat("u_Power", power);
+            }});
 
-                RenderCommand::drawIndexed(m_quadVA, m_quadVA->getIndexBuffer()->getCount());
-            });
+            queue.submit(CmdDrawIndexed{m_quadVA, m_quadVA->getIndexBuffer()->getCount()});
         };
         renderGraph.addPass(pass);
     }
@@ -110,24 +114,29 @@ namespace Fermion
         LegacyRenderGraphPass pass;
         pass.Name = "GBufferDebugPass";
         pass.Inputs = {gBufferHandle, sceneDepth, ssgiHandle, gtaoHandle};
-        pass.Execute = [this, &context, &gBuffer, ssgi, gtao, mode, depthPower](CommandBuffer& commandBuffer)
+        pass.Execute = [this, &context, &gBuffer, ssgi, gtao, mode, depthPower](RenderCommandQueue& queue)
         {
-            commandBuffer.record([this, &context, &gBuffer, ssgi, gtao, mode, depthPower](RendererAPI& api)
+            auto gBufferFramebuffer = gBuffer.getFramebuffer();
+            if (!gBufferFramebuffer || !m_debugPipeline)
+                return;
+
+            if (context.targetFramebuffer)
             {
-                auto gBufferFramebuffer = gBuffer.getFramebuffer();
-                if (!gBufferFramebuffer || !m_debugPipeline)
-                    return;
+                queue.submit(CmdBindFramebuffer{context.targetFramebuffer});
+            }
+            else
+            {
+                if (context.viewportWidth > 0 && context.viewportHeight > 0)
+                    queue.submit(CmdSetViewport{0, 0, context.viewportWidth, context.viewportHeight});
+            }
 
-                if (context.targetFramebuffer)
-                {
-                    context.targetFramebuffer->bind();
-                }
-                else
-                {
-                    if (context.viewportWidth > 0 && context.viewportHeight > 0)
-                        RenderCommand::setViewport(0, 0, context.viewportWidth, context.viewportHeight);
-                }
+            auto ssgiResultFB = (ssgi && ssgi->getResultFramebuffer()) ? ssgi->getResultFramebuffer() : nullptr;
+            auto gtaoResultFB = (gtao && gtao->getResultFramebuffer()) ? gtao->getResultFramebuffer() : nullptr;
+            float nearClip = context.camera.nearClip;
+            float farClip = context.camera.farClip;
 
+            queue.submit(CmdCustom{[this, gBufferFramebuffer, ssgiResultFB, gtaoResultFB,
+                                    mode, nearClip, farClip, depthPower]() {
                 m_debugPipeline->bind();
                 auto shader = m_debugPipeline->getShader();
 
@@ -140,8 +149,8 @@ namespace Fermion
                 shader->setInt("u_SSGI", 6);
                 shader->setInt("u_GTAO", 7);
                 shader->setInt("u_Mode", static_cast<int>(mode));
-                shader->setFloat("u_Near", context.camera.nearClip);
-                shader->setFloat("u_Far", context.camera.farClip);
+                shader->setFloat("u_Near", nearClip);
+                shader->setFloat("u_Far", farClip);
                 shader->setFloat("u_DepthPower", depthPower);
 
                 gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Albedo), 0);
@@ -150,13 +159,13 @@ namespace Fermion
                 gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Emissive), 3);
                 gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::ObjectID), 4);
                 gBufferFramebuffer->bindDepthAttachment(5);
-                if (ssgi && ssgi->getResultFramebuffer())
-                    ssgi->getResultFramebuffer()->bindColorAttachment(0, 6);
-                if (gtao && gtao->getResultFramebuffer())
-                    gtao->getResultFramebuffer()->bindColorAttachment(0, 7);
+                if (ssgiResultFB)
+                    ssgiResultFB->bindColorAttachment(0, 6);
+                if (gtaoResultFB)
+                    gtaoResultFB->bindColorAttachment(0, 7);
+            }});
 
-                RenderCommand::drawIndexed(m_quadVA, m_quadVA->getIndexBuffer()->getCount());
-            });
+            queue.submit(CmdDrawIndexed{m_quadVA, m_quadVA->getIndexBuffer()->getCount()});
         };
         renderGraph.addPass(pass);
     }
