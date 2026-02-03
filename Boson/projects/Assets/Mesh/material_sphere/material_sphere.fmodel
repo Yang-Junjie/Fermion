@@ -1,0 +1,8 @@
+Model:
+  Name: material_sphere
+  Mesh: 14073109195218332276
+  Materials:
+    - Slot: 0
+      Handle: 12789564397648272813
+    - Slot: 1
+      Handle: 4786523718999311435

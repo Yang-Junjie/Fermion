@@ -1,0 +1,12 @@
+Material:
+  Type: 2
+  Name: outside
+  Albedo: [0.511863, 0.621656, 0.64]
+  Metallic: 0
+  Roughness: 0.5
+  AO: 1
+  AlbedoMap: 0
+  NormalMap: 0
+  MetallicMap: 0
+  RoughnessMap: 0
+  AOMap: 0

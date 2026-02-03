@@ -1,0 +1,123 @@
+Scene: Name
+Entities:
+  - Entity: 1618366951868227580
+    TagComponent:
+      Tag: floor
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [11.36939, 1, 18.806814]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 17981568426459333315
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 0
+  - Entity: 5724357248172432469
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [-1.4901161e-08, 1.110538, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 14073109195218332276
+      MemoryOnly: false
+      MemoryMeshType: 0
+      SubmeshMaterials:
+        - 12789564397648272813
+  - Entity: 17324850415508766904
+    TagComponent:
+      Tag: dl
+    TransformComponent:
+      Translation: [2.5433621, 5.7443304, 6.5492907]
+      Rotation: [-0.33792952, 0.33516794, -0.11507743]
+      Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
+    DirectionalLightComponent:
+      Color: [1, 1, 1]
+      Intensity: 10.1
+      MainLight: true
+    ScriptContainerComponent:
+      ScriptClassNames:
+        - Sandbox.CameraRotationTest
+  - Entity: 11393899159250742768
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [1.3931907, 1.110538, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 14073109195218332276
+      MemoryOnly: false
+      MemoryMeshType: 0
+      SubmeshMaterials:
+        - 4786523718999311435
+  - Entity: 8567047896725819500
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [2.8217235, 1.110538, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 14073109195218332276
+      MemoryOnly: false
+      MemoryMeshType: 0
+      SubmeshMaterials:
+        - 7143575055291843919
+  - Entity: 789329721391035545
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [4.2303433, 1.110538, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 14073109195218332276
+      MemoryOnly: false
+      MemoryMeshType: 0
+      SubmeshMaterials:
+        - 5448258832851368164
+  - Entity: 11583114792624333185
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [-1.4218239, 1.110538, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 14073109195218332276
+      MemoryOnly: false
+      MemoryMeshType: 0
+      SubmeshMaterials:
+        - 792032775927799854
+  - Entity: 14603016884078780009
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [-2.8197398, 1.110538, -0.006006032]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 14073109195218332276
+      MemoryOnly: false
+      MemoryMeshType: 0
+      SubmeshMaterials:
+        - 14425210814170376866

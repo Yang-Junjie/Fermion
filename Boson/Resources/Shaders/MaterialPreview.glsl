@@ -37,6 +37,7 @@ in vec2 v_TexCoords;
 
 const float PI = 3.14159265359;
 const float F0_NON_METAL = 0.04;
+const float MIN_ROUGHNESS = 0.045;
 
 // Camera
 uniform vec3 u_CameraPosition;
@@ -74,47 +75,59 @@ uniform bool u_UseAOMap;
 uniform sampler2D u_AOMap;
 
 // ============================================================================
+// Utility Functions
+// ============================================================================
+
+float pow5(float x) {
+    float x2 = x * x;
+    return x2 * x2 * x;
+}
+
+float saturate(float x) {
+    return clamp(x, 0.0, 1.0);
+}
+
+vec3 saturate(vec3 x) {
+    return clamp(x, 0.0, 1.0);
+}
+
+// ============================================================================
 // PBR Functions
 // ============================================================================
 
-// Normal Distribution Function (GGX/Trowbridge-Reitz)
-float DistributionGGX(vec3 N, vec3 H, float roughness) {
+// Normal Distribution Function (GGX)
+float D_GGX(float roughness, float NoH) {
     float a = roughness * roughness;
     float a2 = a * a;
-    float NdotH = max(dot(N, H), 0.0);
-    float NdotH2 = NdotH * NdotH;
+    float NoH2 = NoH * NoH;
 
     float nom = a2;
-    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+    float denom = (NoH2 * (a2 - 1.0) + 1.0);
     denom = PI * denom * denom;
 
-    return nom / denom;
+    return nom / max(denom, 1e-7);
 }
 
-// Geometry Function (Schlick-GGX)
-float GeometrySchlickGGX(float NdotV, float roughness) {
-    float r = (roughness + 1.0);
-    float k = (r * r) / 8.0;
-
-    float nom = NdotV;
-    float denom = NdotV * (1.0 - k) + k;
-
-    return nom / denom;
-}
-
-// Smith's method
-float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
-    float NdotV = max(dot(N, V), 0.0);
-    float NdotL = max(dot(N, L), 0.0);
-    float ggx2 = GeometrySchlickGGX(NdotV, roughness);
-    float ggx1 = GeometrySchlickGGX(NdotL, roughness);
-
-    return ggx1 * ggx2;
+// Smith-GGX Correlated Visibility
+float V_SmithGGXCorrelated(float roughness, float NoV, float NoL) {
+    float a = roughness * roughness;
+    float a2 = a * a;
+    float lambdaV = NoL * sqrt(NoV * NoV * (1.0 - a2) + a2);
+    float lambdaL = NoV * sqrt(NoL * NoL * (1.0 - a2) + a2);
+    return 0.5 / max(lambdaV + lambdaL, 1e-5);
 }
 
 // Fresnel-Schlick
 vec3 fresnelSchlick(float cosTheta, vec3 F0) {
-    return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+    return F0 + (1.0 - F0) * pow5(saturate(1.0 - cosTheta));
+}
+
+// Burley Diffuse
+float Fd_Burley(float roughness, float NoV, float NoL, float LoH) {
+    float f90 = 0.5 + 2.0 * roughness * LoH * LoH;
+    float lightScatter = 1.0 + (f90 - 1.0) * pow5(1.0 - NoL);
+    float viewScatter = 1.0 + (f90 - 1.0) * pow5(1.0 - NoV);
+    return lightScatter * viewScatter * (1.0 / PI);
 }
 
 // Get normal from normal map using screen-space derivatives
@@ -138,6 +151,16 @@ vec3 getNormalFromMap() {
     return normalize(TBN * tangentNormal);
 }
 
+// ACES Filmic Tone Mapping
+vec3 ACESFilm(vec3 x) {
+    float a = 2.51;
+    float b = 0.03;
+    float c = 2.43;
+    float d = 0.59;
+    float e = 0.14;
+    return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
+}
+
 void main() {
     // Get material properties
     vec3 baseColorLinear = pow(u_Material.albedo, vec3(2.2));
@@ -148,12 +171,13 @@ void main() {
     float roughness = u_UseRoughnessMap ? texture(u_RoughnessMap, v_TexCoords).r : u_Material.roughness;
     float ao = u_UseAOMap ? texture(u_AOMap, v_TexCoords).r : u_Material.ao;
 
-    // Clamp roughness to avoid division by zero
-    roughness = clamp(roughness, 0.04, 1.0);
+    // Clamp roughness
+    roughness = max(roughness, MIN_ROUGHNESS);
 
     // Get normal
     vec3 N = getNormalFromMap();
     vec3 V = normalize(u_CameraPosition - v_WorldPos);
+    float NoV = max(dot(N, V), 1e-4);
 
     // Calculate F0
     vec3 F0 = mix(vec3(F0_NON_METAL), albedo, metallic);
@@ -166,33 +190,33 @@ void main() {
         vec3 L = normalize(-u_LightDirection);
         vec3 H = normalize(V + L);
 
-        float NdotL = max(dot(N, L), 0.0);
-        float NdotV = max(dot(N, V), 0.0);
+        float NoL = max(dot(N, L), 0.0);
+        float NoH = saturate(dot(N, H));
+        float LoH = saturate(dot(L, H));
 
         // Cook-Torrance BRDF
-        float D = DistributionGGX(N, H, roughness);
-        float G = GeometrySmith(N, V, L, roughness);
-        vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
+        float D = D_GGX(roughness, NoH);
+        float V_term = V_SmithGGXCorrelated(roughness, NoV, NoL);
+        vec3 F = fresnelSchlick(LoH, F0);
 
-        vec3 numerator = D * G * F;
-        float denominator = 4.0 * max(NdotV * NdotL, 0.01);
-        vec3 specular = numerator / denominator;
+        vec3 specularBRDF = (D * V_term) * F;
 
-        // Energy conservation
+        // Burley diffuse
         vec3 kS = F;
         vec3 kD = (vec3(1.0) - kS) * (1.0 - metallic);
+        vec3 diffuseBRDF = kD * albedo * Fd_Burley(roughness, NoV, NoL, LoH);
 
         vec3 radiance = u_LightColor * u_LightIntensity;
-        Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+        Lo += (diffuseBRDF + specularBRDF) * radiance * NoL;
     }
 
-    // Ambient lighting (simple)
+    // Ambient lighting
     vec3 ambient = vec3(u_AmbientIntensity) * albedo * ao;
 
     vec3 color = ambient + Lo;
 
-    // HDR tone mapping (Reinhard)
-    color = color / (color + vec3(1.0));
+    // HDR tone mapping (ACES Filmic)
+    color = ACESFilm(color);
 
     // Gamma correction
     color = pow(color, vec3(1.0 / 2.2));

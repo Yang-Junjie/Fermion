@@ -96,6 +96,7 @@ namespace Fermion
         AssetHandle &getMetallicMap();
         AssetHandle &getRoughnessMap();
         AssetHandle &getAOMap();
+
         AssetType getAssetsType() const override;
 
         const MaterialNodeEditorData &getEditorData() const;

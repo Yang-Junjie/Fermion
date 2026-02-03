@@ -10,8 +10,9 @@ namespace Fermion
         // Color
         RGBA8,
         RED_INTEGER,
-        RGB16F, // IBL: 辐照度贴图和预过滤贴图
-        RG16F,  // IBL: BRDF查找表
+        RGB16F,  // IBL: 辐照度贴图和预过滤贴图
+        RGBA16F, // Advanced materials: GBuffer with alpha channel
+        RG16F,   // IBL: BRDF查找表
 
         // Depth/stencil
         DEPTH24STENCIL8,

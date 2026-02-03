@@ -41,7 +41,7 @@ namespace Fermion
                 {
                     type = GL_INT;
                 }
-                else if (internalFormat == GL_RGB16F || internalFormat == GL_RG16F)
+                else if (internalFormat == GL_RGB16F || internalFormat == GL_RG16F || internalFormat == GL_RGBA16F)
                 {
                     type = GL_FLOAT;
                 }
@@ -116,6 +116,8 @@ namespace Fermion
                 return GL_RED_INTEGER;
             case FramebufferTextureFormat::RGB16F:
                 return GL_RGB16F;
+            case FramebufferTextureFormat::RGBA16F:
+                return GL_RGBA16F;
             case FramebufferTextureFormat::RG16F:
                 return GL_RG16F;
             }
@@ -134,6 +136,8 @@ namespace Fermion
                 return GL_RED_INTEGER;
             case FramebufferTextureFormat::RGB16F:
                 return GL_RGB;
+            case FramebufferTextureFormat::RGBA16F:
+                return GL_RGBA;
             case FramebufferTextureFormat::RG16F:
                 return GL_RG;
             }
@@ -219,6 +223,9 @@ namespace Fermion
                 case FramebufferTextureFormat::RGB16F:
                     Utils::attachColorTexture(m_colorAttachments[i], m_specification.samples, GL_RGB16F, GL_RGB, m_specification.width, m_specification.height, (int)i);
                     break;
+                case FramebufferTextureFormat::RGBA16F:
+                    Utils::attachColorTexture(m_colorAttachments[i], m_specification.samples, GL_RGBA16F, GL_RGBA, m_specification.width, m_specification.height, (int)i);
+                    break;
                 case FramebufferTextureFormat::RG16F:
                     Utils::attachColorTexture(m_colorAttachments[i], m_specification.samples, GL_RG16F, GL_RG, m_specification.width, m_specification.height, (int)i);
                     break;
@@ -286,6 +293,9 @@ namespace Fermion
                         break;
                     case FramebufferTextureFormat::RGB16F:
                         Utils::attachColorTexture(m_resolveColorAttachments[i], 1, GL_RGB16F, GL_RGB, m_specification.width, m_specification.height, (int)i);
+                        break;
+                    case FramebufferTextureFormat::RGBA16F:
+                        Utils::attachColorTexture(m_resolveColorAttachments[i], 1, GL_RGBA16F, GL_RGBA, m_specification.width, m_specification.height, (int)i);
                         break;
                     case FramebufferTextureFormat::RG16F:
                         Utils::attachColorTexture(m_resolveColorAttachments[i], 1, GL_RG16F, GL_RG, m_specification.width, m_specification.height, (int)i);
@@ -483,6 +493,7 @@ namespace Fermion
                 glClearBufferfv(GL_COLOR, attachmentIndex, clearColor);
             }
             else if (spec.textureFormat == FramebufferTextureFormat::RGB16F ||
+                     spec.textureFormat == FramebufferTextureFormat::RGBA16F ||
                      spec.textureFormat == FramebufferTextureFormat::RG16F)
             {
                 GLfloat clearColor[4] = {static_cast<float>(value), static_cast<float>(value),
@@ -506,6 +517,7 @@ namespace Fermion
                                 Utils::fermionFBBaseFormatToGL(spec.textureFormat), GL_INT, clearColor);
             }
             else if (spec.textureFormat == FramebufferTextureFormat::RGB16F ||
+                     spec.textureFormat == FramebufferTextureFormat::RGBA16F ||
                      spec.textureFormat == FramebufferTextureFormat::RG16F)
             {
                 float clearColor[4] = {static_cast<float>(value),
