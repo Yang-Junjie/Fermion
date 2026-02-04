@@ -239,24 +239,36 @@ namespace Fermion
         drawInputPin(Albedo, "Albedo", [&]()
                      {
             ImGui::SetNextItemWidth(80);
-            ImGui::ColorEdit3("##albedo", glm::value_ptr(m_Albedo), ImGuiColorEditFlags_NoInputs); });
+            ImVec2 btnPos = ImGui::GetCursorScreenPos();
+            if (ImGui::ColorButton("##albedo", ImVec4(m_Albedo.r, m_Albedo.g, m_Albedo.b, 1.0f),
+                                   ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoBorder, ImVec2(20, 20)))
+            {
+                m_OpenAlbedoPicker = true;
+                m_AlbedoPickerPos = btnPos;
+            } });
 
-        drawInputPin(Normal, "Normal", []() {});
+        drawInputPin(Normal, "Normal", [&]() {
+            ImGui::SetNextItemWidth(80);
+            ImGui::NewLine();
+        });
 
         drawInputPin(Metallic, "Metallic", [&]()
                      {
             ImGui::SetNextItemWidth(80);
-            ImGui::SliderFloat("##metallic", &m_Metallic, 0.0f, 1.0f, "%.2f"); });
+            if (ImGui::SliderFloat("##metallic", &m_Metallic, 0.0f, 1.0f, "%.2f"))
+                m_NeedUpdatePreview = true; });
 
         drawInputPin(Roughness, "Roughness", [&]()
                      {
             ImGui::SetNextItemWidth(80);
-            ImGui::SliderFloat("##roughness", &m_Roughness, 0.0f, 1.0f, "%.2f"); });
+            if (ImGui::SliderFloat("##roughness", &m_Roughness, 0.0f, 1.0f, "%.2f"))
+                m_NeedUpdatePreview = true; });
 
         drawInputPin(AO, "AO", [&]()
                      {
             ImGui::SetNextItemWidth(80);
-            ImGui::SliderFloat("##ao", &m_AO, 0.0f, 1.0f, "%.2f"); });
+            if (ImGui::SliderFloat("##ao", &m_AO, 0.0f, 1.0f, "%.2f"))
+                m_NeedUpdatePreview = true; });
 
         ImGui::EndGroup();
 
@@ -465,6 +477,20 @@ namespace Fermion
 
         // Context menu and drag-drop
         ed::Suspend();
+
+        // Handle color picker popup
+        if (m_OpenAlbedoPicker)
+        {
+            ImGui::OpenPopup("AlbedoColorPicker");
+            m_OpenAlbedoPicker = false;
+        }
+        if (ImGui::BeginPopup("AlbedoColorPicker"))
+        {
+            if (ImGui::ColorPicker3("##albedopicker", glm::value_ptr(m_Albedo)))
+                m_NeedUpdatePreview = true;
+            ImGui::EndPopup();
+        }
+
         if (ed::ShowBackgroundContextMenu())
             ImGui::OpenPopup("NodeEditorContextMenu");
         if (ImGui::BeginPopup("NodeEditorContextMenu"))

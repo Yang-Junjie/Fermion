@@ -98,6 +98,10 @@ namespace Fermion
         std::unique_ptr<Texture2D> m_PreviewTexture;
         bool m_NeedUpdatePreview = true;
 
+        // Color picker popup state
+        bool m_OpenAlbedoPicker = false;
+        ImVec2 m_AlbedoPickerPos = ImVec2(0, 0);
+
         void drawOutputNode();
         void drawTextureNode(TextureNodeInfo &node);
         float drawNodeHeader(const char *title, float minWidth);
