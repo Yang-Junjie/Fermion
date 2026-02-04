@@ -71,9 +71,7 @@ namespace Fermion
             bool enableDepthView = false;
             float depthViewPower = 3.0f;
             glm::vec4 meshOutlineColor = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-            float outlineDepthThreshold = 1.0f;
-            float outlineNormalThreshold = 2.0f;
-            float outlineThickness = 3.0f;
+            float outlineThickness = 2.0f; 
 
             float ambientIntensity = 0.1f;
             RenderMode renderMode = RenderMode::DeferredHybrid;

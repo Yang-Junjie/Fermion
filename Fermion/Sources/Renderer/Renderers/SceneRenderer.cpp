@@ -595,12 +595,9 @@ namespace Fermion
                 resources.lightingResult);
         }
 
-        // Outline Pass
         OutlineRenderer::Settings outlineSettings;
         outlineSettings.color = m_sceneData.meshOutlineColor;
-        outlineSettings.depthThreshold = m_sceneData.outlineDepthThreshold;
-        outlineSettings.normalThreshold = m_sceneData.outlineNormalThreshold;
-        outlineSettings.thickness = m_sceneData.outlineThickness;
+        outlineSettings.lineWidth = m_sceneData.outlineThickness;
         m_outlineRenderer->addPass(
             m_renderGraph,
             m_renderContext,

@@ -18,9 +18,7 @@ namespace Fermion
         struct Settings
         {
             glm::vec4 color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-            float depthThreshold = 1.0f;
-            float normalThreshold = 2.0f;
-            float thickness = 3.0f;
+            float lineWidth = 2.0f; 
         };
 
         OutlineRenderer();
@@ -35,9 +33,6 @@ namespace Fermion
                      ResourceHandle sceneDepth,
                      ResourceHandle lightingResult);
 
-    private:
-        std::shared_ptr<Pipeline> m_pipeline;
-        std::shared_ptr<VertexArray> m_quadVA;
     };
 
 } // namespace Fermion
