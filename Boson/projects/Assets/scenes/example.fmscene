@@ -127,10 +127,6 @@ Entities:
         OrthographicFar: 100
       Primary: true
       FixedAspectRatio: false
-    ScriptContainerComponent:
-      ScriptClassNames:
-        - Sandbox.CameraController
-        - Sandbox.CameraController
   - Entity: 17674460285504380402
     TagComponent:
       Tag: red square
@@ -175,6 +171,3 @@ Entities:
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
-    ScriptContainerComponent:
-      ScriptClassNames:
-        - Sandbox.TestScript

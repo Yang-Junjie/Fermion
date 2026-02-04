@@ -121,6 +121,8 @@ public:
     virtual void onUpdateEntity(Entity entity, Timestep ts) = 0;
 
     virtual const std::vector<std::string> &getALLEntityClasses() const = 0;
+    virtual std::shared_ptr<ScriptClass> getScriptClass(const std::string &fullClassName) = 0;
+    virtual std::shared_ptr<ScriptInstance> getEntityScriptInstance(UUID uuid, const std::string &className) = 0;
     void setSceneRenderer(std::shared_ptr<SceneRenderer> renderer) {
         m_renderer = renderer;
     }

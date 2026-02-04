@@ -1,6 +1,6 @@
 using Fermion;
 
-namespace Sandbox
+namespace Photon
 {
     public class XAxisMove : Entity
     {

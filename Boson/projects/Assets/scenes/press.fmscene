@@ -18,9 +18,6 @@ Entities:
         OrthographicFar: 100
       Primary: true
       FixedAspectRatio: false
-    ScriptContainerComponent:
-      ScriptClassNames:
-        - Sandbox.CameraController
   - Entity: 18295920508468473622
     TagComponent:
       Tag: Script
@@ -28,6 +25,3 @@ Entities:
       Translation: [1.8847084, -7.450581e-09, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    ScriptContainerComponent:
-      ScriptClassNames:
-        - Sandbox.PressureTest

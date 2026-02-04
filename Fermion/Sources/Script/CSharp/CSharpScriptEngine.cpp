@@ -457,4 +457,25 @@ namespace Fermion
         return m_allEntityClassesNames;
     }
 
+    std::shared_ptr<ScriptClass> CSharpScriptEngine::getScriptClass(const std::string &fullClassName)
+    {
+        auto it = m_classes.find(fullClassName);
+        if (it != m_classes.end())
+            return it->second;
+        return nullptr;
+    }
+
+    std::shared_ptr<ScriptInstance> CSharpScriptEngine::getEntityScriptInstance(UUID uuid, const std::string &className)
+    {
+        auto entityIt = m_entityInstances.find(uuid);
+        if (entityIt == m_entityInstances.end())
+            return nullptr;
+
+        auto scriptIt = entityIt->second.find(className);
+        if (scriptIt == entityIt->second.end())
+            return nullptr;
+
+        return scriptIt->second;
+    }
+
 } // namespace Fermion

@@ -88,9 +88,6 @@ Entities:
       Color: [1, 1, 1]
       Intensity: 10.1
       MainLight: true
-    ScriptContainerComponent:
-      ScriptClassNames:
-        - Sandbox.CameraRotationTest
   - Entity: 5724357248172432469
     TagComponent:
       Tag: Empty Entity

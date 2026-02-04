@@ -5,13 +5,13 @@
 #include "Scene/Scene.hpp"
 #include "Scene/Components.hpp"
 #include "Script/ScriptManager.hpp"
+#include "Script/ScriptTypes.hpp"
 #include "Project/Project.hpp"
 #include "Asset/AssetManager/EditorAssetManager.hpp"
 #include "ImGui/BosonUI.hpp"
 
 #include "Renderer/Model/MeshFactory.hpp"
 #include "Renderer/Preview/MaterialPreviewRenderer.hpp"
-
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -21,9 +21,110 @@
 #include <optional>
 #include <string_view>
 
-
 namespace Fermion
 {
+    namespace
+    {
+        // 从完整类名获取显示名称
+        auto getScriptDisplayName = [](const std::string &fullName) -> std::string
+        {
+            size_t dotPos = fullName.rfind('.');
+            return (dotPos != std::string::npos) ? fullName.substr(dotPos + 1) : fullName;
+        };
+
+        // 判断是否Photon 命名空间
+        auto isUserScript = [](const std::string &fullName) -> bool
+        {
+            size_t dotPos = fullName.find('.');
+            if (dotPos == std::string::npos)
+                return false;
+            return fullName.substr(0, dotPos) == "Photon";
+        };
+
+        // 获取字段类型名称
+        auto getFieldTypeName = [](ScriptFieldType type) -> const char *
+        {
+            switch (type)
+            {
+            case ScriptFieldType::Float:
+                return "Float";
+            case ScriptFieldType::Double:
+                return "Double";
+            case ScriptFieldType::Int:
+                return "Int";
+            case ScriptFieldType::Bool:
+                return "Bool";
+            case ScriptFieldType::ULong:
+                return "ULong";
+            case ScriptFieldType::Vector2:
+                return "Vector2";
+            case ScriptFieldType::Vector3:
+                return "Vector3";
+            case ScriptFieldType::Vector4:
+                return "Vector4";
+            case ScriptFieldType::Entity:
+                return "Entity";
+            default:
+                return "Unknown";
+            }
+        };
+
+        // 绘制单个脚本字段
+        auto drawScriptField = [&](const std::string &fieldName,
+                                   const ScriptField &field,
+                                   std::shared_ptr<ScriptInstance> instance)
+        {
+            ImGui::PushID(fieldName.c_str());
+
+            bool hasInstance = (instance != nullptr);
+
+            switch (field.type)
+            {
+            case ScriptFieldType::Float:
+            {
+                float value = hasInstance ? instance->getFieldValue<float>(fieldName) : 0.0f;
+                if (ui::drawFloatControl(fieldName.c_str(), value, 120.0f, 0.1f) && hasInstance)
+                    instance->setFieldValue<float>(fieldName, value);
+                break;
+            }
+            case ScriptFieldType::Double:
+            {
+                float value = hasInstance ? static_cast<float>(instance->getFieldValue<double>(fieldName)) : 0.0f;
+                if (ui::drawFloatControl(fieldName.c_str(), value, 120.0f, 0.1f) && hasInstance)
+                    instance->setFieldValue<double>(fieldName, static_cast<double>(value));
+                break;
+            }
+            case ScriptFieldType::Int:
+            {
+                int value = hasInstance ? instance->getFieldValue<int>(fieldName) : 0;
+                if (ui::drawIntControl(fieldName.c_str(), value, 120.0f) && hasInstance)
+                    instance->setFieldValue<int>(fieldName, value);
+                break;
+            }
+            case ScriptFieldType::Bool:
+            {
+                bool value = hasInstance ? instance->getFieldValue<bool>(fieldName) : false;
+                if (ui::drawCheckboxControl(fieldName.c_str(), value, 120.0f) && hasInstance)
+                    instance->setFieldValue<bool>(fieldName, value);
+                break;
+            }
+            case ScriptFieldType::ULong:
+            {
+                uint64_t value = hasInstance ? instance->getFieldValue<uint64_t>(fieldName) : 0;
+                ImGui::Text("%s: %llu", fieldName.c_str(), value);
+                break;
+            }
+            default:
+                ImGui::BulletText("%s", fieldName.c_str());
+                ImGui::SameLine();
+                ImGui::TextColored(ImVec4(0.5f, 0.7f, 1.0f, 1.0f), "(%s)", getFieldTypeName(field.type));
+                break;
+            }
+
+            ImGui::PopID();
+        };
+
+    }
     static std::unique_ptr<MaterialPreviewRenderer> s_materialPreviewRenderer;
     static std::unordered_map<uint64_t, std::unique_ptr<Texture2D>> s_materialPreviewCache;
 
@@ -95,7 +196,7 @@ namespace Fermion
 
     static void drawEngineInternalMeshPopup(MeshComponent &component)
     {
-        if (ImGui::Button("Add Internal Mesh",ImVec2(-1, 20)))
+        if (ImGui::Button("Add Internal Mesh", ImVec2(-1, 20)))
             ImGui::OpenPopup("mesh_popup");
 
         ImVec2 popupPos = ImGui::GetItemRectMin();
@@ -280,7 +381,7 @@ namespace Fermion
         ImGui::End();
     }
 
-        template <typename T, typename UIFunction>
+    template <typename T, typename UIFunction>
     static void drawComponent(const std::string &name, Entity entity, UIFunction uiFunction)
     {
         if (!entity.hasComponent<T>())
@@ -564,69 +665,140 @@ namespace Fermion
         // 				}
         // 			}
         // 		}
-        // 	} });
-        drawComponent<ScriptContainerComponent>("Scripts Container", entity, [](auto &component)
+
+        drawComponent<ScriptContainerComponent>("Scripts Container", entity, [&, entity](auto &component) mutable
                                                 {
-            static std::unordered_map<std::string, bool> checkedState;
+            static int selectedScriptIndex = -1;
 
-            auto allClasses = ScriptManager::getALLEntityClasses();
+            const auto &allClasses = ScriptManager::getALLEntityClasses();
+            const size_t scriptCount = component.scriptClassNames.size();
 
-            // 初始化checked状态
-            for (auto &name: allClasses) {
-                size_t dotPos = name.find('.');
-                if (dotPos == std::string::npos)
-                    continue;
+            if (selectedScriptIndex >= static_cast<int>(scriptCount))
+                selectedScriptIndex = -1;
 
-                std::string namespaceName = name.substr(0, dotPos);
-                if (namespaceName == "Fermion")
-                    continue;
+            //  已添加的脚本列表 
+            ImGui::Text("Attached Scripts");
+            ImGui::BeginChild("ScriptList", ImVec2(0, 120), true, ImGuiWindowFlags_HorizontalScrollbar);
+            for (size_t i = 0; i < scriptCount; i++)
+            {
+                ImGui::PushID(static_cast<int>(i));
 
-                if (checkedState.find(name) == checkedState.end())
-                    checkedState[name] = false;
+                const std::string &scriptName = component.scriptClassNames[i];
+                bool isSelected = (selectedScriptIndex == static_cast<int>(i));
 
-                bool isInComponent = std::find(
-                                         component.scriptClassNames.begin(),
-                                         component.scriptClassNames.end(),
-                                         name
-                                     ) != component.scriptClassNames.end();
+                if (ImGui::Selectable(getScriptDisplayName(scriptName).c_str(), isSelected))
+                    selectedScriptIndex = static_cast<int>(i);
 
-                checkedState[name] = isInComponent;
-            }
-
-            // 渲染和更新选中状态
-            for (auto &name: allClasses) {
-                size_t dotPos = name.find('.');
-                if (dotPos == std::string::npos)
-                    continue;
-
-                std::string namespaceName = name.substr(0, dotPos);
-                if (namespaceName == "Fermion")
-                    continue;
-
-                bool checked = checkedState[name];
-                std::string label = "##checkbox_" + name;
-
-                if (ImGui::Checkbox(label.c_str(), &checked)) {
-                    checkedState[name] = checked;
-
-                    if (checked) {
-                        if (std::find(component.scriptClassNames.begin(),
-                                      component.scriptClassNames.end(),
-                                      name) == component.scriptClassNames.end()) {
-                            component.scriptClassNames.push_back(name);
-                        }
-                    } else {
-                        component.scriptClassNames.erase(
-                            std::remove(component.scriptClassNames.begin(),
-                                        component.scriptClassNames.end(),
-                                        name),
-                            component.scriptClassNames.end()
-                        );
+                // 右键菜单
+                if (ImGui::BeginPopupContextItem())
+                {
+                    if (ImGui::MenuItem("Remove"))
+                    {
+                        component.scriptClassNames.erase(component.scriptClassNames.begin() + i);
+                        if (selectedScriptIndex == static_cast<int>(i))
+                            selectedScriptIndex = -1;
+                        else if (selectedScriptIndex > static_cast<int>(i))
+                            selectedScriptIndex--;
+                        ImGui::EndPopup();
+                        ImGui::PopID();
+                        break;
                     }
+                    ImGui::EndPopup();
                 }
 
-                ImGui::SameLine();
-                ImGui::Text("%s", name.c_str());
+                ImGui::PopID();
+            }
+            if (scriptCount == 0)
+                ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "No scripts attached");
+            ImGui::EndChild();
+
+            //  添加脚本按钮 
+            if (ImGui::Button("Add Script", ImVec2(-1, 0)))
+                ImGui::OpenPopup("AddScriptPopup");
+
+            if (ImGui::BeginPopup("AddScriptPopup"))
+            {
+                ImGui::Text("Available Scripts:");
+                ImGui::Separator();
+
+                bool hasAvailable = false;
+                for (const auto &name : allClasses)
+                {
+                    if (!isUserScript(name))
+                        continue;
+
+                    bool alreadyAdded = std::find(component.scriptClassNames.begin(),
+                                                  component.scriptClassNames.end(),
+                                                  name) != component.scriptClassNames.end();
+                    if (alreadyAdded)
+                        continue;
+
+                    hasAvailable = true;
+                    if (ImGui::Selectable(getScriptDisplayName(name).c_str()))
+                    {
+                        component.scriptClassNames.push_back(name);
+                        ImGui::CloseCurrentPopup();
+                    }
+                    if (ImGui::IsItemHovered())
+                        ImGui::SetTooltip("%s", name.c_str());
+                }
+
+                if (!hasAvailable)
+                    ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "No more scripts available");
+
+                ImGui::EndPopup();
+            }
+
+            //  选中脚本的详情面板 
+            if (selectedScriptIndex >= 0 && selectedScriptIndex < static_cast<int>(scriptCount))
+            {
+                ImGui::Separator();
+
+                const std::string &selectedScript = component.scriptClassNames[selectedScriptIndex];
+                ImGui::Text("Script: %s", getScriptDisplayName(selectedScript).c_str());
+                ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "%s", selectedScript.c_str());
+                ImGui::Spacing();
+
+                auto scriptClass = ScriptManager::getScriptClass(selectedScript);
+                if (scriptClass)
+                {
+                    const auto &fields = scriptClass->getFields();
+                    if (!fields.empty())
+                    {
+                        auto instance = ScriptManager::getEntityScriptInstance(entity.getUUID(), selectedScript);
+                        ImGui::Text(instance ? "Public Fields (Runtime):" : "Public Fields:");
+                        ImGui::Separator();
+
+                        for (const auto &[fieldName, field] : fields)
+                            drawScriptField(fieldName, field, instance);
+                    }
+                    else
+                    {
+                        ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "No public fields");
+                    }
+                }
+                else
+                {
+                    ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "Script class not loaded");
+                }
+
+                ImGui::Spacing();
+                if (ImGui::Button("Remove Script", ImVec2(-1, 0)))
+                {
+                    component.scriptClassNames.erase(component.scriptClassNames.begin() + selectedScriptIndex);
+                    selectedScriptIndex = -1;
+                }
+            }
+
+            //  清空所有脚本
+            if (scriptCount > 0)
+            {
+                ImGui::Separator();
+                if (ImGui::Button("Clear All Scripts", ImVec2(-1, 0)))
+                {
+                    component.scriptClassNames.clear();
+                    selectedScriptIndex = -1;
+                }
             } });
 
         drawComponent<CircleRendererComponent>("Circle Renderer", entity, [](auto &component)

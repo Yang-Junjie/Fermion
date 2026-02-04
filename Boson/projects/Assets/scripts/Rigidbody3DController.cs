@@ -1,7 +1,7 @@
 using System;
 using Fermion;
 
-namespace Sandbox
+namespace Photon
 {
     public class Rigidbody3DController : Entity
     {

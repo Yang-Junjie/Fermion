@@ -45,6 +45,14 @@ public:
         return s_scriptEngine->getALLEntityClasses();
     }
 
+    static std::shared_ptr<ScriptClass> getScriptClass(const std::string &fullClassName) {
+        return s_scriptEngine->getScriptClass(fullClassName);
+    }
+
+    static std::shared_ptr<ScriptInstance> getEntityScriptInstance(UUID uuid, const std::string &className) {
+        return s_scriptEngine->getEntityScriptInstance(uuid, className);
+    }
+
     static Scene *getSceneContext() {
         return s_scriptEngine->getSceneContext();
     }

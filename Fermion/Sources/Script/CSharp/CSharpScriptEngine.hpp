@@ -50,6 +50,8 @@ namespace Fermion
         virtual ScriptHandle getManagedInstance(UUID uuid, std::string className) override;
 
         virtual const std::vector<std::string> &getALLEntityClasses() const override;
+        virtual std::shared_ptr<ScriptClass> getScriptClass(const std::string &fullClassName) override;
+        virtual std::shared_ptr<ScriptInstance> getEntityScriptInstance(UUID uuid, const std::string &className) override;
         virtual bool entityClassExists(const std::string &fullClassName) override;
         bool isEntityClass(MonoClass *klass);
 

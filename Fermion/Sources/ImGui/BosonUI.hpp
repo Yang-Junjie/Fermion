@@ -250,6 +250,45 @@ namespace Fermion
             return changed;
         }
 
+        inline bool drawIntControl(const std::string &label,
+                                   int &value,
+                                   float columnWidth = 100.0f,
+                                   int step = 1,
+                                   int min = 0,
+                                   int max = 0)
+        {
+            bool changed = false;
+            ImGui::PushID(label.c_str());
+
+            ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2{0, 1});
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{4, 1});
+
+            if (ImGui::BeginTable("##IntTable", 2, ImGuiTableFlags_NoSavedSettings))
+            {
+                ImGui::TableSetupColumn("##label", ImGuiTableColumnFlags_WidthFixed, columnWidth);
+                ImGui::TableSetupColumn("##control", ImGuiTableColumnFlags_WidthStretch);
+
+                ImGui::TableNextRow(ImGuiTableRowFlags_None, ImGui::GetFontSize() + 2.0f);
+
+                ImGui::TableNextColumn();
+                ImGui::AlignTextToFramePadding();
+                ImGui::Text("%s", label.c_str());
+
+                ImGui::TableNextColumn();
+
+                if (ImGui::DragInt("##value", &value, static_cast<float>(step), min, max))
+                {
+                    changed = true;
+                }
+
+                ImGui::EndTable();
+            }
+
+            ImGui::PopStyleVar(2);
+            ImGui::PopID();
+            return changed;
+        }
+
         inline void verticalProgressBar(float value, float minValue, float maxValue, ImVec2 size)
         {
             ImDrawList *drawList = ImGui::GetWindowDrawList();
