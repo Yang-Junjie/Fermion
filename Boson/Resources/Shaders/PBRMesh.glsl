@@ -608,23 +608,9 @@ void main() {
         B = normalize(cross(N, T));
     }
 
-    // ==========================================================
-    // Normal Map Weighting (Roughness-based Normal Filtering)
-    // ==========================================================
-
+    // 法线强度混合
     vec3 N_geom = normalize(v_Normal);
-
-    float roughnessWeight = smoothstep(0.15, 0.75, 1.0 - roughness);
-    float grazingAttenuation = smoothstep(0.0, 0.4, NoV);
-
-    float normalWeight = roughnessWeight * grazingAttenuation;
-    normalWeight *= u_NormalStrength;
-
-    float dist = length(u_CameraPosition - v_WorldPos);
-    float distanceBoost = clamp(1.5 - dist * 0.15, 0.7, 1.5);
-    normalWeight *= distanceBoost;
-
-    N = normalize(mix(N_geom, N, normalWeight));
+    N = normalize(mix(N_geom, N, u_NormalStrength));
     NoV = max(dot(N, V), 1e-4);
 
     // ================= Specular Anti-Aliasing =================

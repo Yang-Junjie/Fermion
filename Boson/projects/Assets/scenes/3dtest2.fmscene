@@ -1,5 +1,27 @@
 Scene: Name
 Entities:
+  - Entity: 12703848604684242753
+    TagComponent:
+      Tag: cube
+    TransformComponent:
+      Translation: [0.04924175, 0.11789499, 7.0270896e-09]
+      Rotation: [-1.5707964, 0, 0]
+      Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 14227142122038534411
+      MemoryOnly: false
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 11437228126175889633
+        - 17207464414636508281
+        - 6705585016915462725
+        - 1708001808402853489
+        - 2623753559428522445
+        - 18198609308612700680
+        - 13725132128430959278
+        - 4261051226497776507
   - Entity: 13192142759119736963
     TagComponent:
       Tag: dl
@@ -13,25 +35,3 @@ Entities:
       Color: [1, 0.960423, 0.75949365]
       Intensity: 5.3
       MainLight: true
-  - Entity: 12703848604684242753
-    TagComponent:
-      Tag: cube
-    TransformComponent:
-      Translation: [0.04924175, 0.11789499, 7.0270896e-09]
-      Rotation: [-1.5707964, 0, 0]
-      Scale: [1, 1, 1]
-    RelationshipComponent:
-      Parent: 0
-    MeshComponent:
-      MeshHandle: 12742829763335144906
-      MemoryOnly: false
-      MemoryMeshType: 1
-      SubmeshMaterials:
-        - 1681593861787139849
-        - 8828072996582463891
-        - 3657589397671674950
-        - 12430200672397466065
-        - 10467345339741458642
-        - 17328189057630196023
-        - 15288354084329951289
-        - 5800004709905524479
