@@ -53,7 +53,6 @@ out vec3 v_Normal;
 out vec4 v_Color;
 out vec2 v_TexCoords;
 out vec4 v_FragPosLightSpace;
-out mat3 v_TBN;
 flat out int v_ObjectID;
 
 void main() {
@@ -80,13 +79,6 @@ void main() {
     mat3 normalMatrix = mat3(u_NormalMatrix);
     v_Normal = normalize(normalMatrix * skinNormalMatrix * a_Normal);
 
-    // Build TBN matrix for normal mapping
-    vec3 T = normalize(normalMatrix * skinNormalMatrix * a_Tangent);
-    vec3 N = v_Normal;
-    T = normalize(T - dot(T, N) * N);
-    vec3 B = cross(N, T);
-    v_TBN = mat3(T, B, N);
-
     v_Color = a_Color;
     v_TexCoords = a_TexCoords;
     v_FragPosLightSpace = u_LightSpaceMatrix * worldPos;
@@ -106,7 +98,6 @@ in vec3 v_Normal;
 in vec4 v_Color;
 in vec2 v_TexCoords;
 in vec4 v_FragPosLightSpace;
-in mat3 v_TBN;
 flat in int v_ObjectID;
 
 const float PI = 3.14159265359;
@@ -470,11 +461,20 @@ void main() {
     vec3 N = getNormalFromMap(normalVariance);
     vec3 V = normalize(u_CameraPosition - v_WorldPos);
     float NoV = max(dot(N, V), 1e-4);
-    vec3 T = normalize(v_TBN[0]);
-    vec3 B = normalize(v_TBN[1]);
+
+    // Compute T and B using screen-space derivatives (same as getNormalFromMap)
+    vec3 Q1 = dFdx(v_WorldPos);
+    vec3 Q2 = dFdy(v_WorldPos);
+    vec2 st1 = dFdx(uv);
+    vec2 st2 = dFdy(uv);
+    vec3 T = normalize(Q1 * st2.t - Q2 * st1.t);
+    vec3 B = normalize(cross(N, T));
+
     if(u_UseAnisotropic) {
         vec3 anisotropyDir = normalize(u_AnisotropyDirection);
-        T = normalize(v_TBN * anisotropyDir);
+        vec3 N_geom = normalize(v_Normal);
+        mat3 TBN = mat3(T, B, N_geom);
+        T = normalize(TBN * anisotropyDir);
         B = normalize(cross(N, T));
     }
     vec3 N_geom = normalize(v_Normal);
