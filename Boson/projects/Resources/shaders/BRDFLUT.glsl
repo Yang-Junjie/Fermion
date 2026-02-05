@@ -20,6 +20,12 @@ in vec2 v_TexCoords;
 
 const float PI = 3.14159265359;
 
+// 优化的 pow5
+float pow5(float x) {
+    float x2 = x * x;
+    return x2 * x2 * x;
+}
+
 // 低差异序列采样
 float RadicalInverse_VdC(uint bits) {
     bits = (bits << 16u) | (bits >> 16u);
@@ -36,20 +42,20 @@ vec2 Hammersley(uint i, uint N) {
 
 vec3 ImportanceSampleGGX(vec2 Xi, vec3 N, float roughness) {
     float a = roughness * roughness;
-    
+
     float phi = 2.0 * PI * Xi.x;
     float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (a*a - 1.0) * Xi.y));
     float sinTheta = sqrt(1.0 - cosTheta*cosTheta);
-    
+
     vec3 H;
     H.x = cos(phi) * sinTheta;
     H.y = sin(phi) * sinTheta;
     H.z = cosTheta;
-    
+
     vec3 up = abs(N.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
     vec3 tangent = normalize(cross(up, N));
     vec3 bitangent = cross(N, tangent);
-    
+
     vec3 sampleVec = tangent * H.x + bitangent * H.y + N * H.z;
     return normalize(sampleVec);
 }
@@ -80,10 +86,10 @@ vec2 IntegrateBRDF(float NdotV, float roughness) {
     V.z = NdotV;
 
     float A = 0.0;
-    float B = 0.0; 
+    float B = 0.0;
 
     vec3 N = vec3(0.0, 0.0, 1.0);
-    
+
     const uint SAMPLE_COUNT = 1024u;
     for(uint i = 0u; i < SAMPLE_COUNT; ++i) {
         vec2 Xi = Hammersley(i, SAMPLE_COUNT);
@@ -96,8 +102,8 @@ vec2 IntegrateBRDF(float NdotV, float roughness) {
 
         if(NdotL > 0.0) {
             float G = GeometrySmith(N, V, L, roughness);
-            float G_Vis = (G * VdotH) / (NdotH * NdotV);
-            float Fc = pow(1.0 - VdotH, 5.0);
+            float G_Vis = (G * VdotH) / max(NdotH * NdotV, 0.001);
+            float Fc = pow5(1.0 - VdotH);
 
             A += (1.0 - Fc) * G_Vis;
             B += Fc * G_Vis;

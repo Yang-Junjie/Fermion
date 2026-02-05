@@ -115,6 +115,8 @@ namespace Fermion
 
         virtual void blitTo(const std::shared_ptr<Framebuffer> &target, const FramebufferBlitSpecification &spec) const = 0;
 
+        virtual void blitToDefaultFramebuffer(uint32_t dstWidth, uint32_t dstHeight, const FramebufferBlitSpecification &spec) const = 0;
+
         virtual void resolve() = 0;
 
         virtual bool isMultisampled() const { return getSpecification().samples > 1; }
@@ -125,6 +127,10 @@ namespace Fermion
 
         static void blit(const std::shared_ptr<Framebuffer> &source, const std::shared_ptr<Framebuffer> &target,
                          const FramebufferBlitSpecification &spec);
+
+        static void blitToDefault(const std::shared_ptr<Framebuffer> &source,
+                                  uint32_t dstWidth, uint32_t dstHeight,
+                                  const FramebufferBlitSpecification &spec);
     };
 
 } // namespace Fermion

@@ -27,4 +27,13 @@ namespace Fermion
         source->blitTo(target, spec);
     }
 
+    void Framebuffer::blitToDefault(const std::shared_ptr<Framebuffer> &source,
+                                    uint32_t dstWidth, uint32_t dstHeight,
+                                    const FramebufferBlitSpecification &spec)
+    {
+        if (!source)
+            return;
+        source->blitToDefaultFramebuffer(dstWidth, dstHeight, spec);
+    }
+
 } // namespace Fermion

@@ -53,6 +53,8 @@ public:
 
     virtual void blitTo(const std::shared_ptr<Framebuffer> &target, const FramebufferBlitSpecification &spec) const override;
 
+    virtual void blitToDefaultFramebuffer(uint32_t dstWidth, uint32_t dstHeight, const FramebufferBlitSpecification &spec) const override;
+
     virtual void resolve() override;
 
     virtual const FramebufferSpecification &getSpecification() const override {

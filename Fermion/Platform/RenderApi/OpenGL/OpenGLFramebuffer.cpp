@@ -645,4 +645,51 @@ namespace Fermion
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, prevDraw);
     }
 
+    void OpenGLFramebuffer::blitToDefaultFramebuffer(uint32_t dstWidth, uint32_t dstHeight, const FramebufferBlitSpecification &spec) const
+    {
+        GLint prevRead = 0;
+        GLint prevDraw = 0;
+        glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &prevRead);
+        glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &prevDraw);
+
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, m_rendererID);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+        GLenum mask = 0;
+        const bool blitColor = hasBlitMask(spec.mask, FramebufferBlitMask::Color);
+        if (blitColor)
+        {
+            FERMION_ASSERT(spec.srcAttachmentIndex < m_colorAttachments.size(), "Source attachment index out of range!");
+            glReadBuffer(GL_COLOR_ATTACHMENT0 + spec.srcAttachmentIndex);
+            glDrawBuffer(GL_BACK);
+            mask |= GL_COLOR_BUFFER_BIT;
+        }
+        else
+        {
+            glReadBuffer(GL_NONE);
+            glDrawBuffer(GL_NONE);
+        }
+
+        if (hasBlitMask(spec.mask, FramebufferBlitMask::Depth))
+            mask |= GL_DEPTH_BUFFER_BIT;
+        if (hasBlitMask(spec.mask, FramebufferBlitMask::Stencil))
+            mask |= GL_STENCIL_BUFFER_BIT;
+
+        // OpenGL requires GL_NEAREST when blitting depth or stencil
+        GLenum filter = GL_NEAREST;
+        if (blitColor && !hasBlitMask(spec.mask, FramebufferBlitMask::Depth) &&
+            !hasBlitMask(spec.mask, FramebufferBlitMask::Stencil))
+        {
+            filter = (spec.filter == FramebufferBlitFilter::Linear) ? GL_LINEAR : GL_NEAREST;
+        }
+
+        glBlitFramebuffer(0, 0, m_specification.width, m_specification.height,
+                          0, 0, dstWidth, dstHeight,
+                          mask, filter);
+
+        // Restore default framebuffer state
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glDrawBuffer(GL_BACK);
+    }
+
 } // namespace Fermion

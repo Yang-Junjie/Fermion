@@ -159,7 +159,12 @@ namespace Fermion
             }
             else
             {
-                queue.submit(CmdUnbindFramebuffer{m_framebuffer});
+                // Blit depth to default framebuffer (0) for correct skybox/transparent rendering
+                queue.submit(CmdCustom{[this, vpW = context.viewportWidth, vpH = context.viewportHeight]() {
+                    Framebuffer::blitToDefault(m_framebuffer, vpW, vpH, {
+                        .mask = FramebufferBlitMask::Depth
+                    });
+                }});
                 if (context.viewportWidth > 0 && context.viewportHeight > 0)
                     queue.submit(CmdSetViewport{0, 0, context.viewportWidth, context.viewportHeight});
                 queue.submit(CmdSetBlendEnabled{true});
