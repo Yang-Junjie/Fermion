@@ -278,7 +278,17 @@ namespace Fermion
                     auto &mesh = defaultView.get<MeshComponent>(entity);
                     Entity sceneEntity{entity, this};
                     glm::mat4 worldTransform = m_entityManager->getWorldSpaceTransformMatrix(sceneEntity);
-                    renderer->submitMesh(mesh, worldTransform, (int)entity);
+
+                    // Check if this entity also has an AnimatorComponent
+                    if (sceneEntity.hasComponent<AnimatorComponent>())
+                    {
+                        auto &animator = sceneEntity.getComponent<AnimatorComponent>();
+                        renderer->submitSkinnedMesh(mesh, animator, worldTransform, (int)entity);
+                    }
+                    else
+                    {
+                        renderer->submitMesh(mesh, worldTransform, (int)entity);
+                    }
                 }
             }
 
@@ -428,6 +438,20 @@ namespace Fermion
                                bool showRenderEntities)
     {
         FM_PROFILE_FUNCTION();
+
+        // Update all animators
+        {
+            auto view = getRegistry().view<AnimatorComponent>();
+            for (auto e : view)
+            {
+                auto &animator = view.get<AnimatorComponent>(e);
+                if (animator.runtimeAnimator)
+                {
+                    animator.runtimeAnimator->update(ts);
+                }
+            }
+        }
+
         onRenderEditor(renderer, camera, showRenderEntities);
     }
 
@@ -538,6 +562,19 @@ namespace Fermion
                 m_physicsWorld3D->step(this, ts);
         }
 
+        // Update all animators
+        {
+            auto view = getRegistry().view<AnimatorComponent>();
+            for (auto e : view)
+            {
+                auto &animator = view.get<AnimatorComponent>(e);
+                if (animator.runtimeAnimator)
+                {
+                    animator.runtimeAnimator->update(ts);
+                }
+            }
+        }
+
         onRenderEditor(renderer, camera, showRenderEntities);
     }
 
@@ -645,6 +682,19 @@ namespace Fermion
         }
         if (m_physicsWorld3D)
             m_physicsWorld3D->step(this, ts);
+
+        // Update all animators
+        {
+            auto animView = getRegistry().view<AnimatorComponent>();
+            for (auto e : animView)
+            {
+                auto &animator = animView.get<AnimatorComponent>(e);
+                if (animator.runtimeAnimator)
+                {
+                    animator.runtimeAnimator->update(ts);
+                }
+            }
+        }
 
         {
             Camera *mainCamera = nullptr;

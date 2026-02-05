@@ -450,6 +450,7 @@ namespace Fermion
             displayAddComponentEntry<BoxSensor2DComponent>("Box Sensor2D");
             ImGui::SeparatorText("3D Component");
             displayAddComponentEntry<MeshComponent>("Mesh");
+            displayAddComponentEntry<AnimatorComponent>("Animator");
             displayAddComponentEntry<Rigidbody3DComponent>("Rigidbody3D");
             displayAddComponentEntry<BoxCollider3DComponent>("Box Collider3D");
             displayAddComponentEntry<CircleCollider3DComponent>("Circle Collider3D");
@@ -614,6 +615,271 @@ namespace Fermion
 
                                          ImGui::Spacing();
                                          drawSubmeshMaterialsEditor(component, editorAssets); });
+
+        drawComponent<AnimatorComponent>("Animator", entity, [entity](auto &component) mutable
+                                         {
+            auto editorAssets = Project::getEditorAssetManager();
+
+            // Skeleton section
+            ImGui::Text("Skeleton");
+            ImGui::Indent();
+
+            if (static_cast<uint64_t>(component.skeletonHandle) != 0)
+            {
+                auto skeleton = editorAssets->getAsset<Skeleton>(component.skeletonHandle);
+                if (skeleton)
+                {
+                    ImGui::Text("Handle: %llu", static_cast<uint64_t>(component.skeletonHandle));
+                    ImGui::Text("Bones: %zu", skeleton->getBoneCount());
+                    component.runtimeSkeleton = skeleton;
+                }
+                else
+                {
+                    ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "Failed to load skeleton");
+                }
+
+                if (ImGui::Button("Clear Skeleton", ImVec2(-1, 0)))
+                {
+                    component.skeletonHandle = AssetHandle(0);
+                    component.runtimeSkeleton = nullptr;
+                    component.runtimeAnimator = nullptr;
+                }
+            }
+            else
+            {
+                ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "No skeleton assigned");
+            }
+
+            ImGui::Button("Drag Skeleton Here (.fskel)", ImVec2(-1, 20));
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_SKELETON"))
+                {
+                    if (auto view = payloadToStringView(payload))
+                    {
+                        AssetHandle handle = editorAssets->importAsset(std::filesystem::path(*view));
+                        if (static_cast<uint64_t>(handle) != 0)
+                        {
+                            component.skeletonHandle = handle;
+                            component.runtimeSkeleton = editorAssets->getAsset<Skeleton>(handle);
+                            component.runtimeAnimator = nullptr;
+                        }
+                    }
+                }
+                ImGui::EndDragDropTarget();
+            }
+            ImGui::Unindent();
+
+            ImGui::Separator();
+
+            // Animation Clips section
+            ImGui::Text("Animation Clips");
+            ImGui::Indent();
+
+            // Load runtime clips if needed
+            if (component.runtimeClips.size() != component.animationClipHandles.size())
+            {
+                component.runtimeClips.clear();
+                for (const auto &clipHandle : component.animationClipHandles)
+                {
+                    if (static_cast<uint64_t>(clipHandle) != 0)
+                    {
+                        auto clip = editorAssets->getAsset<AnimationClip>(clipHandle);
+                        component.runtimeClips.push_back(clip);
+                    }
+                    else
+                    {
+                        component.runtimeClips.push_back(nullptr);
+                    }
+                }
+            }
+
+            if (component.animationClipHandles.empty())
+            {
+                ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "No animation clips");
+            }
+            else
+            {
+                ImGui::Text("Clips: %zu", component.animationClipHandles.size());
+
+                // Animation clip selector
+                const char *currentClipName = "None";
+                if (component.activeClipIndex < component.runtimeClips.size() && component.runtimeClips[component.activeClipIndex])
+                {
+                    currentClipName = component.runtimeClips[component.activeClipIndex]->getName().c_str();
+                    if (strlen(currentClipName) == 0)
+                        currentClipName = "Unnamed Clip";
+                }
+
+                if (ImGui::BeginCombo("Active Clip", currentClipName))
+                {
+                    for (size_t i = 0; i < component.runtimeClips.size(); i++)
+                    {
+                        bool isSelected = (component.activeClipIndex == static_cast<uint32_t>(i));
+                        const auto &clip = component.runtimeClips[i];
+
+                        std::string label;
+                        if (clip)
+                        {
+                            label = clip->getName();
+                            if (label.empty())
+                                label = "Animation " + std::to_string(i);
+                        }
+                        else
+                        {
+                            label = "[Invalid] " + std::to_string(i);
+                        }
+
+                        if (ImGui::Selectable(label.c_str(), isSelected))
+                        {
+                            component.activeClipIndex = static_cast<uint32_t>(i);
+                            if (component.runtimeAnimator && clip)
+                            {
+                                component.runtimeAnimator->play(clip);
+                            }
+                        }
+                        if (isSelected)
+                            ImGui::SetItemDefaultFocus();
+
+                        if (clip && ImGui::IsItemHovered())
+                        {
+                            ImGui::BeginTooltip();
+                            ImGui::Text("Duration: %.2f ticks", clip->getDuration());
+                            ImGui::Text("Ticks/sec: %.1f", clip->getTicksPerSecond());
+                            ImGui::Text("Duration: %.2fs", clip->getDuration() / clip->getTicksPerSecond());
+                            ImGui::Text("Channels: %zu", clip->getChannels().size());
+                            ImGui::EndTooltip();
+                        }
+                    }
+                    ImGui::EndCombo();
+                }
+
+                // Show current clip info
+                if (component.activeClipIndex < component.runtimeClips.size())
+                {
+                    const auto &activeClip = component.runtimeClips[component.activeClipIndex];
+                    if (activeClip)
+                    {
+                        ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "Duration: %.2fs",
+                            activeClip->getDuration() / activeClip->getTicksPerSecond());
+                    }
+                }
+
+                // List all clips with remove button
+                ImGui::BeginChild("ClipList", ImVec2(0, 80), true);
+                for (size_t i = 0; i < component.animationClipHandles.size(); i++)
+                {
+                    ImGui::PushID(static_cast<int>(i));
+                    const auto &clip = component.runtimeClips[i];
+                    std::string clipName = clip ? (clip->getName().empty() ? "Animation " + std::to_string(i) : clip->getName()) : "[Invalid]";
+
+                    bool isActive = (component.activeClipIndex == static_cast<uint32_t>(i));
+                    if (isActive)
+                        ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "> %s", clipName.c_str());
+                    else
+                        ImGui::Text("  %s", clipName.c_str());
+
+                    if (ImGui::BeginPopupContextItem("ClipContextMenu"))
+                    {
+                        if (ImGui::MenuItem("Remove"))
+                        {
+                            component.removeAnimationClip(i);
+                            ImGui::EndPopup();
+                            ImGui::PopID();
+                            break;
+                        }
+                        if (ImGui::MenuItem("Set Active"))
+                        {
+                            component.activeClipIndex = static_cast<uint32_t>(i);
+                        }
+                        ImGui::EndPopup();
+                    }
+                    ImGui::PopID();
+                }
+                ImGui::EndChild();
+
+                if (ImGui::Button("Clear All Clips", ImVec2(-1, 0)))
+                {
+                    component.clearAnimationClips();
+                }
+            }
+
+            ImGui::Button("Drag Animation Here (.fanim)", ImVec2(-1, 20));
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_ANIMATION"))
+                {
+                    if (auto view = payloadToStringView(payload))
+                    {
+                        AssetHandle handle = editorAssets->importAsset(std::filesystem::path(*view));
+                        if (static_cast<uint64_t>(handle) != 0)
+                        {
+                            component.addAnimationClip(handle);
+                            auto clip = editorAssets->getAsset<AnimationClip>(handle);
+                            component.runtimeClips.push_back(clip);
+                        }
+                    }
+                }
+                ImGui::EndDragDropTarget();
+            }
+            ImGui::Unindent();
+
+            ImGui::Separator();
+            ImGui::Text("Playback");
+
+            ui::drawCheckboxControl("Playing", component.playing, 150.0f);
+            ui::drawCheckboxControl("Looping", component.looping, 150.0f);
+            ui::drawFloatControl("Speed", component.speed, 150.0f, 0.1f, 0.0f, 10.0f);
+
+            // Runtime info
+            if (component.runtimeAnimator)
+            {
+                ImGui::Separator();
+                ImGui::Text("Runtime Info");
+                ImGui::Indent();
+
+                float currentTime = component.runtimeAnimator->getCurrentTime();
+                ImGui::Text("Current Time: %.2f", currentTime);
+
+                bool isPlaying = component.runtimeAnimator->isPlaying();
+                ImGui::Text("Status: %s", isPlaying ? "Playing" : "Paused/Stopped");
+
+                const auto &boneMatrices = component.runtimeAnimator->getFinalBoneMatrices();
+                ImGui::Text("Bone Matrices: %zu", boneMatrices.size());
+
+                ImGui::Unindent();
+            }
+
+            // Playback controls
+            ImGui::Separator();
+            float buttonWidth = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x * 2) / 3.0f;
+
+            if (ImGui::Button("Play", ImVec2(buttonWidth, 0)))
+            {
+                component.playing = true;
+                if (component.runtimeAnimator && !component.runtimeClips.empty() && component.activeClipIndex < component.runtimeClips.size())
+                {
+                    component.runtimeAnimator->play(component.runtimeClips[component.activeClipIndex]);
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Pause", ImVec2(buttonWidth, 0)))
+            {
+                component.playing = false;
+                if (component.runtimeAnimator)
+                {
+                    component.runtimeAnimator->pause();
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Stop", ImVec2(buttonWidth, 0)))
+            {
+                component.playing = false;
+                if (component.runtimeAnimator)
+                {
+                    component.runtimeAnimator->stop();
+                }
+            } });
         drawComponent<DirectionalLightComponent>("Directional Light", entity, [](auto &component)
                                                  {
             ImGui::ColorEdit4("Color", glm::value_ptr(component.color));

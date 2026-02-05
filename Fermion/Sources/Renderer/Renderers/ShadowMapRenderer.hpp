@@ -29,7 +29,8 @@ namespace Fermion
                      uint32_t viewportHeight,
                      uint32_t *shadowDrawCalls,
                      const std::shared_ptr<UniformBuffer> &modelUniformBuffer,
-                     const std::shared_ptr<UniformBuffer> &lightUniformBuffer);
+                     const std::shared_ptr<UniformBuffer> &lightUniformBuffer,
+                     const std::shared_ptr<UniformBuffer> &boneUniformBuffer = nullptr);
 
         const glm::mat4 &getLightSpaceMatrix() const;
         std::shared_ptr<Framebuffer> getShadowMapFramebuffer() const;
@@ -40,6 +41,7 @@ namespace Fermion
 
     private:
         std::shared_ptr<Pipeline> m_shadowPipeline;
+        std::shared_ptr<Pipeline> m_skinnedShadowPipeline;
         std::shared_ptr<Framebuffer> m_shadowMapFB;
         glm::mat4 m_lightSpaceMatrix{1.0f};
     };

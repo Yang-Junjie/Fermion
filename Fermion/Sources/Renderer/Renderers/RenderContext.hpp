@@ -23,6 +23,7 @@ namespace Fermion
         std::shared_ptr<UniformBuffer> cameraUBO;
         std::shared_ptr<UniformBuffer> modelUBO;
         std::shared_ptr<UniformBuffer> lightUBO;
+        std::shared_ptr<UniformBuffer> boneUBO;
 
         // Scene data
         SceneRendererCamera camera;

@@ -59,6 +59,7 @@ namespace Fermion
     private:
         std::shared_ptr<Pipeline> m_phongPipeline;
         std::shared_ptr<Pipeline> m_pbrPipeline;
+        std::shared_ptr<Pipeline> m_skinnedGBufferPipeline;
         std::shared_ptr<Framebuffer> m_framebuffer;
     };
 

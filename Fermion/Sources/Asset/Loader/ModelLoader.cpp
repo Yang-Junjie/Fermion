@@ -6,6 +6,8 @@ namespace Fermion
 {
     std::shared_ptr<Asset> ModelLoader::load(const AssetMetadata &metadata)
     {
-        return ModelSerializer::deserialize(metadata.FilePath, metadata.Handle);
+        auto model = ModelSerializer::deserialize(metadata.FilePath, metadata.Handle);
+        FERMION_ASSERT(model != nullptr, "Failed to load model!");
+        return model;
     }
 } // namespace Fermion

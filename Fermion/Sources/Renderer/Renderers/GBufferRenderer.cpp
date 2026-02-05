@@ -33,6 +33,18 @@ namespace Fermion
 
             m_pbrPipeline = Pipeline::create(gbufferPbrSpec);
         }
+
+        // Skinned G-Buffer PBR Pipeline
+        {
+            PipelineSpecification skinnedGBufferSpec;
+            skinnedGBufferSpec.shader = Renderer::getShaderLibrary()->get("SkinnedGBufferPBRMesh");
+            skinnedGBufferSpec.depthTest = true;
+            skinnedGBufferSpec.depthWrite = true;
+            skinnedGBufferSpec.depthOperator = DepthCompareOperator::Less;
+            skinnedGBufferSpec.cull = CullMode::Back;
+
+            m_skinnedGBufferPipeline = Pipeline::create(skinnedGBufferSpec);
+        }
     }
 
     void GBufferRenderer::ensureFramebuffer(uint32_t width, uint32_t height)
@@ -111,8 +123,20 @@ namespace Fermion
                 if (!cmd.visible || cmd.transparent)
                     continue;
 
-                const bool isPbr = cmd.pipeline == forwardPbrPipeline;
-                auto desiredPipeline = isPbr ? m_pbrPipeline : m_phongPipeline;
+                std::shared_ptr<Pipeline> desiredPipeline;
+                bool isPbr;
+
+                if (cmd.isSkinned)
+                {
+                    desiredPipeline = m_skinnedGBufferPipeline;
+                    isPbr = true;
+                }
+                else
+                {
+                    isPbr = cmd.pipeline == forwardPbrPipeline;
+                    desiredPipeline = isPbr ? m_pbrPipeline : m_phongPipeline;
+                }
+
                 if (!desiredPipeline)
                     continue;
 
@@ -136,6 +160,15 @@ namespace Fermion
                 modelData.model = cmd.transform;
                 modelData.normalMatrix = glm::transpose(glm::inverse(cmd.transform));
                 modelData.objectID = cmd.objectID;
+
+                // Upload bone matrices for skinned meshes
+                if (cmd.isSkinned && cmd.boneMatrices && !cmd.boneMatrices->empty())
+                {
+                    queue.submit(CmdCustom{[boneUBO = context.boneUBO, boneMatrices = cmd.boneMatrices]() {
+                        boneUBO->setData(boneMatrices->data(),
+                            static_cast<uint32_t>(boneMatrices->size() * sizeof(glm::mat4)));
+                    }});
+                }
 
                 queue.submit(CmdCustom{[modelUBO = context.modelUBO, modelData, currentPipeline, material = cmd.material]() {
                     modelUBO->setData(&modelData, sizeof(ModelData));

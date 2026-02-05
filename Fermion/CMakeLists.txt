@@ -112,6 +112,8 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Asset/Loader/MeshLoader.cpp
     ${FERMION_DIR}/Asset/Loader/MaterialLoader.cpp
     ${FERMION_DIR}/Asset/Loader/ModelLoader.cpp
+    ${FERMION_DIR}/Asset/Loader/SkeletonLoader.cpp
+    ${FERMION_DIR}/Asset/Loader/AnimationClipLoader.cpp
     ${FERMION_DIR}/Asset/Importer/TextureImporter.cpp
     ${FERMION_DIR}/Asset/Importer/FontImporter.cpp
     ${FERMION_DIR}/Asset/Importer/SceneImporter.cpp
@@ -121,6 +123,14 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Asset/Importer/MaterialImporter.cpp
     ${FERMION_DIR}/Asset/Importer/ModelImporter.cpp
     ${FERMION_DIR}/Asset/Importer/ModelSourceImporter.cpp
+
+    ${FERMION_DIR}/Animation/BoneTransform.cpp
+    ${FERMION_DIR}/Animation/Skeleton.cpp
+    ${FERMION_DIR}/Animation/AnimationClip.cpp
+    ${FERMION_DIR}/Animation/AnimationSampler.cpp
+    ${FERMION_DIR}/Animation/Animator.cpp
+    ${FERMION_DIR}/Animation/SkeletonSerializer.cpp
+    ${FERMION_DIR}/Animation/AnimationClipSerializer.cpp
 
     # ${FERMION_DIR}/Script/ScriptEngine.cpp
     ${FERMION_DIR}/Script/ScriptGlue.cpp

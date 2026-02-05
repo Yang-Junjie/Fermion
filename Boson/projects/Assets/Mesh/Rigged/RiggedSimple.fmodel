@@ -1,0 +1,8 @@
+Model:
+  Name: RiggedSimple
+  Mesh: 14058975965526743887
+  Materials:
+    - Slot: 0
+      Handle: 7387536021182561952
+    - Slot: 1
+      Handle: 10331089978089102129

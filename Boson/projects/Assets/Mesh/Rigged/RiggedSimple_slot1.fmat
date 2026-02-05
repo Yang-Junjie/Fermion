@@ -1,0 +1,12 @@
+Material:
+  Type: 2
+  Name: Material_1
+  Albedo: [1, 1, 1]
+  Metallic: 1
+  Roughness: 1
+  AO: 1
+  AlbedoMap: 0
+  NormalMap: 0
+  MetallicMap: 0
+  RoughnessMap: 0
+  AOMap: 0

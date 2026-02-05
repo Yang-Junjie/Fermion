@@ -18,6 +18,7 @@
 #include "InfiniteGridRenderer.hpp"
 #include "Project/Project.hpp"
 #include "Asset/AssetManager/RuntimeAssetManager.hpp"
+#include "Scene/Components.hpp"
 
 
 namespace Fermion
@@ -45,6 +46,7 @@ namespace Fermion
         m_cameraUniformBuffer = UniformBuffer::create(UniformBufferBinding::Camera, CameraData::getSize());
         m_modelUniformBuffer = UniformBuffer::create(UniformBufferBinding::Model, ModelData::getSize());
         m_lightUniformBuffer = UniformBuffer::create(UniformBufferBinding::Lights, LightData::getSize());
+        m_boneUniformBuffer = UniformBuffer::create(UniformBufferBinding::Bones, BoneData::getSize());
 
         // Initialize sub-renderers
         m_gBufferRenderer = std::make_unique<GBufferRenderer>();
@@ -128,6 +130,7 @@ namespace Fermion
         m_renderContext.cameraUBO = m_cameraUniformBuffer;
         m_renderContext.modelUBO = m_modelUniformBuffer;
         m_renderContext.lightUBO = m_lightUniformBuffer;
+        m_renderContext.boneUBO = m_boneUniformBuffer;
         m_renderContext.camera = m_sceneData.sceneCamera;
         m_renderContext.environmentLight = m_sceneData.sceneEnvironmentLight;
         m_renderContext.viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
@@ -273,6 +276,151 @@ namespace Fermion
             }
         }
     }
+
+    void SceneRenderer::submitSkinnedMesh(MeshComponent &meshComponent, AnimatorComponent &animator, glm::mat4 transform, int objectId, bool drawOutline)
+    {
+        if (static_cast<uint64_t>(meshComponent.meshHandle) == 0)
+            return;
+
+        auto assetManager = Project::getRuntimeAssetManager();
+        auto mesh = assetManager->getAsset<Mesh>(meshComponent.meshHandle);
+        if (!mesh)
+            return;
+
+        // If mesh is not skinned, fall back to regular mesh rendering
+        if (!mesh->isSkinned())
+        {
+            submitMesh(meshComponent, transform, objectId, drawOutline);
+            return;
+        }
+
+        // Load skeleton from AnimatorComponent if not already loaded
+        if (!animator.runtimeSkeleton && static_cast<uint64_t>(animator.skeletonHandle) != 0)
+        {
+            animator.runtimeSkeleton = assetManager->getAsset<Skeleton>(animator.skeletonHandle);
+        }
+
+        // Fall back to mesh's embedded skeleton if AnimatorComponent doesn't have one
+        std::shared_ptr<Skeleton> skeleton = animator.runtimeSkeleton;
+        if (!skeleton)
+        {
+            skeleton = mesh->getSkeleton();
+        }
+
+        // If still no skeleton, fall back to regular rendering
+        if (!skeleton)
+        {
+            submitMesh(meshComponent, transform, objectId, drawOutline);
+            return;
+        }
+
+        // Load animation clips from AnimatorComponent if not already loaded
+        if (animator.runtimeClips.size() != animator.animationClipHandles.size())
+        {
+            animator.runtimeClips.clear();
+            for (const auto &clipHandle : animator.animationClipHandles)
+            {
+                if (static_cast<uint64_t>(clipHandle) != 0)
+                {
+                    auto clip = assetManager->getAsset<AnimationClip>(clipHandle);
+                    animator.runtimeClips.push_back(clip);
+                }
+                else
+                {
+                    animator.runtimeClips.push_back(nullptr);
+                }
+            }
+        }
+
+        // Get animation clips - prefer AnimatorComponent's clips, fall back to mesh's embedded animations
+        const std::vector<std::shared_ptr<AnimationClip>>* animationClips = &animator.runtimeClips;
+        if (animator.runtimeClips.empty())
+        {
+            animationClips = &mesh->getAnimations();
+        }
+
+        // Initialize runtime animator if needed
+        if (!animator.runtimeAnimator)
+        {
+            animator.runtimeAnimator = std::make_shared<Animator>();
+            animator.runtimeAnimator->setSkeleton(skeleton);
+            animator.runtimeAnimator->setSpeed(animator.speed);
+            animator.runtimeAnimator->setLooping(animator.looping);
+
+            // Play first animation clip if available
+            if (!animationClips->empty() && animator.activeClipIndex < animationClips->size())
+            {
+                animator.runtimeAnimator->play((*animationClips)[animator.activeClipIndex]);
+            }
+        }
+
+        // Update animator state from component
+        animator.runtimeAnimator->setSpeed(animator.speed);
+        animator.runtimeAnimator->setLooping(animator.looping);
+        if (animator.playing && !animator.runtimeAnimator->isPlaying())
+        {
+            if (!animationClips->empty() && animator.activeClipIndex < animationClips->size())
+            {
+                animator.runtimeAnimator->play((*animationClips)[animator.activeClipIndex]);
+            }
+        }
+        else if (!animator.playing && animator.runtimeAnimator->isPlaying())
+        {
+            animator.runtimeAnimator->pause();
+        }
+
+        auto vao = mesh->getVertexArray();
+        const auto &submeshes = mesh->getSubMeshes();
+        bool visible = true;
+        if (m_hasCameraFrustum)
+        {
+            const AABB worldAabb = AABB::TransformAABB(mesh->getBoundingBox(), transform);
+            visible = Math::IsAABBInsideFrustum(m_cameraFrustumPlanes, worldAabb);
+        }
+
+        const std::vector<glm::mat4>* boneMatrices = &animator.runtimeAnimator->getFinalBoneMatrices();
+
+        for (size_t i = 0; i < submeshes.size(); i++)
+        {
+            const auto &submesh = submeshes[i];
+            std::shared_ptr<Material> material;
+
+            AssetHandle submeshMaterialHandle = meshComponent.getSubmeshMaterial(static_cast<uint32_t>(i));
+            if (static_cast<uint64_t>(submeshMaterialHandle) != 0)
+            {
+                material = assetManager->getAsset<Material>(submeshMaterialHandle);
+            }
+
+            if (!material)
+            {
+                material = std::make_shared<Material>();
+                material->setMaterialType(MaterialType::PBR);
+                material->setAlbedo(glm::vec3(1.0f, 1.0f, 1.0f));
+                material->setMetallic(0.0f);
+                material->setRoughness(1.0f);
+                material->setAO(1.0f);
+            }
+
+            // Create draw command using skinned pipelines
+            MeshDrawCommand cmd;
+            cmd.pipeline = m_forwardRenderer->getSkinnedPBRPipeline();
+            cmd.vao = vao;
+            cmd.material = material;
+            cmd.transform = transform;
+            cmd.indexCount = submesh.IndexCount;
+            cmd.indexOffset = submesh.IndexOffset;
+            cmd.objectID = objectId;
+            cmd.drawOutline = drawOutline;
+            cmd.visible = visible;
+            cmd.transparent = IsTransparentMaterial(material);
+            cmd.aabb = mesh->getBoundingBox();
+            cmd.isSkinned = true;
+            cmd.boneMatrices = boneMatrices;
+
+            m_meshDrawList.emplace_back(std::move(cmd));
+        }
+    }
+
     void SceneRenderer::drawInfiniteLine(const glm::vec3 &point, const glm::vec3 &direction, const glm::vec4 &color)
     {
         float big = m_sceneData.sceneCamera.farClip * 2.0f;
@@ -365,7 +513,8 @@ namespace Fermion
             viewportHeight,
             &m_renderer3DStatistics.shadowDrawCalls,
             m_modelUniformBuffer,
-            m_lightUniformBuffer);
+            m_lightUniformBuffer,
+            m_boneUniformBuffer);
     }
 
     SceneRenderer::FrameFlags SceneRenderer::PrepareFrameFlags() const

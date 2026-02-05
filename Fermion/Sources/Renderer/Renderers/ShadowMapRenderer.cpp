@@ -22,6 +22,16 @@ namespace Fermion
         shadowSpec.cull = CullMode::Back;
 
         m_shadowPipeline = Pipeline::create(shadowSpec);
+
+        // Skinned shadow pipeline
+        PipelineSpecification skinnedShadowSpec;
+        skinnedShadowSpec.shader = Renderer::getShaderLibrary()->get("SkinnedShadow");
+        skinnedShadowSpec.depthTest = true;
+        skinnedShadowSpec.depthWrite = true;
+        skinnedShadowSpec.depthOperator = DepthCompareOperator::Less;
+        skinnedShadowSpec.cull = CullMode::Back;
+
+        m_skinnedShadowPipeline = Pipeline::create(skinnedShadowSpec);
     }
 
     void ShadowMapRenderer::addPass(RenderGraphLegacy &renderGraph,
@@ -34,7 +44,8 @@ namespace Fermion
                                     uint32_t viewportHeight,
                                     uint32_t *shadowDrawCalls,
                                     const std::shared_ptr<UniformBuffer> &modelUniformBuffer,
-                                    const std::shared_ptr<UniformBuffer> &lightUniformBuffer)
+                                    const std::shared_ptr<UniformBuffer> &lightUniformBuffer,
+                                    const std::shared_ptr<UniformBuffer> &boneUniformBuffer)
     {
         ensureFramebuffer(shadowMapSize);
         m_lightSpaceMatrix = calculateLightSpaceMatrix(light);
@@ -42,13 +53,22 @@ namespace Fermion
         LegacyRenderGraphPass pass;
         pass.Name = "ShadowPass";
         pass.Outputs = {shadowMap};
-        pass.Execute = [this, &drawList, targetFramebuffer, viewportWidth, viewportHeight, shadowDrawCalls, modelUniformBuffer, lightUniformBuffer](RenderCommandQueue& queue)
+        pass.Execute = [this, &drawList, targetFramebuffer, viewportWidth, viewportHeight, shadowDrawCalls, modelUniformBuffer, lightUniformBuffer, boneUniformBuffer](RenderCommandQueue& queue)
         {
             queue.submit(CmdBindFramebuffer{m_shadowMapFB});
             queue.submit(CmdClear{});
-            queue.submit(CmdBindPipeline{m_shadowPipeline});
+
+            std::shared_ptr<Pipeline> currentPipeline = nullptr;
 
             for (auto &cmd : drawList) {
+                // Select appropriate pipeline
+                auto desiredPipeline = cmd.isSkinned ? m_skinnedShadowPipeline : m_shadowPipeline;
+                if (currentPipeline != desiredPipeline)
+                {
+                    currentPipeline = desiredPipeline;
+                    queue.submit(CmdBindPipeline{currentPipeline});
+                }
+
                 // Update model uniform buffer for this draw call
                 ModelData modelData;
                 modelData.model = cmd.transform;
@@ -58,6 +78,15 @@ namespace Fermion
                 queue.submit(CmdCustom{[modelUniformBuffer, modelData]() {
                     modelUniformBuffer->setData(&modelData, sizeof(ModelData));
                 }});
+
+                // Upload bone matrices for skinned meshes
+                if (cmd.isSkinned && cmd.boneMatrices && !cmd.boneMatrices->empty() && boneUniformBuffer)
+                {
+                    queue.submit(CmdCustom{[boneUniformBuffer, boneMatrices = cmd.boneMatrices]() {
+                        boneUniformBuffer->setData(boneMatrices->data(),
+                            static_cast<uint32_t>(boneMatrices->size() * sizeof(glm::mat4)));
+                    }});
+                }
 
                 queue.submit(CmdDrawIndexed{cmd.vao, cmd.indexCount, cmd.indexOffset});
                 if (shadowDrawCalls)

@@ -18,6 +18,8 @@
 #include "Asset/Loader/SceneLoader.hpp"
 #include "Asset/Loader/MaterialLoader.hpp"
 #include "Asset/Loader/ModelLoader.hpp"
+#include "Asset/Loader/SkeletonLoader.hpp"
+#include "Asset/Loader/AnimationClipLoader.hpp"
 #include "Asset/AssetExtensions.hpp"
 
 namespace Fermion
@@ -37,6 +39,8 @@ namespace Fermion
         s_assetLoaders.emplace(AssetType::Mesh, std::make_unique<MeshLoader>());
         s_assetLoaders.emplace(AssetType::Material, std::make_unique<MaterialLoader>());
         s_assetLoaders.emplace(AssetType::Model, std::make_unique<ModelLoader>());
+        s_assetLoaders.emplace(AssetType::Skeleton, std::make_unique<SkeletonLoader>());
+        s_assetLoaders.emplace(AssetType::AnimationClip, std::make_unique<AnimationClipLoader>());
     }
 
     static AssetType GetAssetTypeFromPath(const std::filesystem::path &path)

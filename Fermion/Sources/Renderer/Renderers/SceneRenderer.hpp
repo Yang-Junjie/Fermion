@@ -220,6 +220,9 @@ namespace Fermion
         void setLineWidth(float thickness);
 
         void submitMesh(MeshComponent &meshComponent, glm::mat4 transform, int objectId = -1, bool drawOutline = false);
+
+        void submitSkinnedMesh(MeshComponent &meshComponent, AnimatorComponent &animator, glm::mat4 transform, int objectId = -1, bool drawOutline = false);
+
         void setScene(std::shared_ptr<Scene> scene)
         {
             m_scene = scene;
@@ -315,6 +318,7 @@ namespace Fermion
         std::shared_ptr<UniformBuffer> m_cameraUniformBuffer;
         std::shared_ptr<UniformBuffer> m_modelUniformBuffer;
         std::shared_ptr<UniformBuffer> m_lightUniformBuffer;
+        std::shared_ptr<UniformBuffer> m_boneUniformBuffer;
 
         std::shared_ptr<Framebuffer> m_targetFramebuffer;
 

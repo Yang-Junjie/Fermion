@@ -218,6 +218,28 @@ namespace Fermion
                         }
                     }
 
+                    if (!isDirectory && path.extension() == ".fskel")
+                    {
+                        if (ImGui::BeginDragDropSource())
+                        {
+                            std::string fullPath = path.string();
+                            ImGui::SetDragDropPayload("FERMION_SKELETON", fullPath.c_str(), fullPath.size() + 1);
+                            ImGui::Text("%s", filename.c_str());
+                            ImGui::EndDragDropSource();
+                        }
+                    }
+
+                    if (!isDirectory && path.extension() == ".fanim")
+                    {
+                        if (ImGui::BeginDragDropSource())
+                        {
+                            std::string fullPath = path.string();
+                            ImGui::SetDragDropPayload("FERMION_ANIMATION", fullPath.c_str(), fullPath.size() + 1);
+                            ImGui::Text("%s", filename.c_str());
+                            ImGui::EndDragDropSource();
+                        }
+                    }
+
                     if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
                     {
                         if (isDirectory)

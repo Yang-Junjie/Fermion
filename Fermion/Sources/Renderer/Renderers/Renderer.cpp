@@ -25,7 +25,12 @@ namespace Fermion
         s_shaderLibrary->load(s_config.ShaderPath + "Skybox.glsl");
         s_shaderLibrary->load(s_config.ShaderPath + "Shadow.glsl");
         s_shaderLibrary->load(s_config.ShaderPath + "InfiniteGrid.glsl");
-  
+
+        // Skinned animation shaders
+        s_shaderLibrary->load(s_config.ShaderPath + "SkinnedPBRMesh.glsl");
+        s_shaderLibrary->load(s_config.ShaderPath + "SkinnedGBufferPBRMesh.glsl");
+        s_shaderLibrary->load(s_config.ShaderPath + "SkinnedShadow.glsl");
+
         // IBL shaders
         s_shaderLibrary->load(s_config.ShaderPath + "IBLPreprocess.glsl");
         s_shaderLibrary->load(s_config.ShaderPath + "IBLPrefilter.glsl");
@@ -55,15 +60,6 @@ namespace Fermion
     {
         s_rendererAPI->setViewport(0, 0, width, height);
     }
-
-    // void Renderer::beginScene(OrthographicCamera &camera)
-    // {
-    //     s_sceneData->viewProjectionMatrix = camera.getViewProjectionMatrix();
-    // }
-
-    // void Renderer::endScene()
-    // {
-    // }
 
     void Renderer::submit(const std::shared_ptr<Shader> &shader, const std::shared_ptr<VertexArray> &vertexArray, const glm::mat4 &transform)
     {

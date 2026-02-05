@@ -7,11 +7,12 @@ namespace Fermion
     struct MeshBinaryHeader
     {
         uint32_t magic = 0x4D455348;      // "MESH" in ASCII
-        uint32_t version = 1;             
+        uint32_t version = 2;             // Version 2 adds bone data support
         uint32_t vertexCount;
         uint32_t indexCount;
         uint32_t subMeshCount;
-        AABB boundingBox;               
+        uint32_t boneDataCount;           // New: bone data count (0 if not skinned)
+        AABB boundingBox;
         uint32_t nameLength;              //暂时保留为0
     };
 
@@ -21,7 +22,7 @@ namespace Fermion
         std::ofstream file(filepath, std::ios::binary);
         if (!file.is_open())
         {
-         
+
             return false;
         }
 
@@ -29,10 +30,11 @@ namespace Fermion
         header.vertexCount = static_cast<uint32_t>(mesh.getVertices().size());
         header.indexCount = static_cast<uint32_t>(mesh.getIndices().size());
         header.subMeshCount = static_cast<uint32_t>(mesh.getSubMeshes().size());
+        header.boneDataCount = static_cast<uint32_t>(mesh.getBoneData().size());
         header.boundingBox = mesh.getBoundingBox();
-        header.nameLength = 0;  
+        header.nameLength = 0;
 
-       
+
         file.write(reinterpret_cast<const char*>(&header), sizeof(header));
 
         if (header.vertexCount > 0)
@@ -53,8 +55,15 @@ namespace Fermion
                       header.subMeshCount * sizeof(SubMesh));
         }
 
+        // Write bone data if present
+        if (header.boneDataCount > 0)
+        {
+            file.write(reinterpret_cast<const char*>(mesh.getBoneData().data()),
+                      header.boneDataCount * sizeof(VertexBoneData));
+        }
+
         file.close();
-        
+
         return true;
     }
 
@@ -80,7 +89,8 @@ namespace Fermion
             return nullptr;
         }
 
-        if (header.version != 1)
+        // Support both version 1 and 2
+        if (header.version != 1 && header.version != 2)
         {
             return nullptr;
         }
@@ -107,6 +117,15 @@ namespace Fermion
                      header.subMeshCount * sizeof(SubMesh));
         }
 
+        // Read bone data if version 2 and has bone data
+        std::vector<VertexBoneData> boneData;
+        if (header.version >= 2 && header.boneDataCount > 0)
+        {
+            boneData.resize(header.boneDataCount);
+            file.read(reinterpret_cast<char*>(boneData.data()),
+                     header.boneDataCount * sizeof(VertexBoneData));
+        }
+
         file.close();
 
         auto mesh = std::make_shared<Mesh>(std::move(vertices),
@@ -114,7 +133,13 @@ namespace Fermion
                                            std::move(subMeshes));
         mesh->handle = handle;
 
-      
+        // Set bone data if present
+        if (!boneData.empty())
+        {
+            mesh->setBoneData(std::move(boneData));
+        }
+
+
         return mesh;
     }
 

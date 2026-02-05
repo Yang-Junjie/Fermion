@@ -294,6 +294,25 @@ namespace Fermion
             out << YAML::EndSeq;
             out << YAML::EndMap;
         }
+        if (entity.hasComponent<AnimatorComponent>())
+        {
+            out << YAML::Key << "AnimatorComponent";
+            out << YAML::BeginMap;
+            auto &ac = entity.getComponent<AnimatorComponent>();
+            out << YAML::Key << "SkeletonHandle" << YAML::Value << static_cast<uint64_t>(ac.skeletonHandle);
+            out << YAML::Key << "ActiveClipIndex" << YAML::Value << ac.activeClipIndex;
+            out << YAML::Key << "Speed" << YAML::Value << ac.speed;
+            out << YAML::Key << "Playing" << YAML::Value << ac.playing;
+            out << YAML::Key << "Looping" << YAML::Value << ac.looping;
+            if (!ac.animationClipHandles.empty())
+            {
+                out << YAML::Key << "AnimationClips" << YAML::Value << YAML::BeginSeq;
+                for (const auto &clipHandle : ac.animationClipHandles)
+                    out << static_cast<uint64_t>(clipHandle);
+                out << YAML::EndSeq;
+            }
+            out << YAML::EndMap;
+        }
 
         // Close entity map after writing all components
         out << YAML::EndMap;
@@ -709,6 +728,32 @@ namespace Fermion
                     {
                         for (auto classNode : classNamesNode)
                             sc.scriptClassNames.push_back(classNode.as<std::string>());
+                    }
+                }
+                auto animatorNode = entity["AnimatorComponent"];
+                if (animatorNode && animatorNode.IsMap())
+                {
+                    auto &ac = deserializedEntity.addComponent<AnimatorComponent>();
+                    if (auto n = animatorNode["SkeletonHandle"]; n)
+                    {
+                        uint64_t handleValue = n.as<uint64_t>();
+                        if (handleValue != 0)
+                            ac.skeletonHandle = AssetHandle(handleValue);
+                    }
+                    if (auto n = animatorNode["ActiveClipIndex"]; n)
+                        ac.activeClipIndex = n.as<uint32_t>();
+                    if (auto n = animatorNode["Speed"]; n)
+                        ac.speed = n.as<float>();
+                    if (auto n = animatorNode["Playing"]; n)
+                        ac.playing = n.as<bool>();
+                    if (auto n = animatorNode["Looping"]; n)
+                        ac.looping = n.as<bool>();
+                    auto clipsNode = animatorNode["AnimationClips"];
+                    if (clipsNode && clipsNode.IsSequence())
+                    {
+                        ac.animationClipHandles.clear();
+                        for (auto clipNode : clipsNode)
+                            ac.animationClipHandles.push_back(AssetHandle(clipNode.as<uint64_t>()));
                     }
                 }
             }

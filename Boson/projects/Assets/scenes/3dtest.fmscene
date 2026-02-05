@@ -1,5 +1,28 @@
 Scene: Name
 Entities:
+  - Entity: 13362832373704839983
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [-3.0194733, 0.10119653, -0.034729276]
+      Rotation: [-1.5707964, -1.5707964, 0]
+      Scale: [3.63739, 3.6372926, 3.6372926]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 12114531687242775476
+      MemoryOnly: false
+      MemoryMeshType: 0
+      SubmeshMaterials:
+        - 10459753340594094427
+    AnimatorComponent:
+      SkeletonHandle: 9810600328927751932
+      ActiveClipIndex: 0
+      Speed: 1
+      Playing: true
+      Looping: true
+      AnimationClips:
+        - 14507567345971260926
   - Entity: 11360655435152651385
     TagComponent:
       Tag: Empty Entity
@@ -10,7 +33,7 @@ Entities:
     RelationshipComponent:
       Parent: 0
     MeshComponent:
-      MeshHandle: 15831980446969766269
+      MeshHandle: 14007270886715639853
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:
@@ -50,13 +73,13 @@ Entities:
     TagComponent:
       Tag: floor
     TransformComponent:
-      Translation: [0, 0.15465415, 0]
+      Translation: [0, -0.3726985, 0]
       Rotation: [0, 0, 0]
       Scale: [36.02469, 1, 47.285305]
     RelationshipComponent:
       Parent: 0
     MeshComponent:
-      MeshHandle: 13424275615528645935
+      MeshHandle: 18226056752288227460
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:
@@ -88,7 +111,7 @@ Entities:
         - 7383789325647833737
         - 3536735286335801191
     MeshComponent:
-      MeshHandle: 11601050397877257904
+      MeshHandle: 18019891611790089748
       MemoryOnly: true
       MemoryMeshType: 4
       SubmeshMaterials:
@@ -159,7 +182,7 @@ Entities:
     RelationshipComponent:
       Parent: 0
     MeshComponent:
-      MeshHandle: 2722176596289210072
+      MeshHandle: 12576191686065472306
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:
@@ -188,7 +211,7 @@ Entities:
     RelationshipComponent:
       Parent: 0
     MeshComponent:
-      MeshHandle: 17101412670044382461
+      MeshHandle: 6418364184188472785
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:
@@ -207,3 +230,26 @@ Entities:
       Friction: 0.5
       Restitution: 0
       IsTrigger: false
+  - Entity: 9894699710484613839
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [0, 4.396455, 1.7618214e-07]
+      Rotation: [-1.5707964, 1.5707964, 2.4241324e-08]
+      Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 14058975965526743887
+      MemoryOnly: false
+      MemoryMeshType: 0
+      SubmeshMaterials:
+        - 7387536021182561952
+    AnimatorComponent:
+      SkeletonHandle: 11771943120765843024
+      ActiveClipIndex: 0
+      Speed: 1
+      Playing: true
+      Looping: true
+      AnimationClips:
+        - 6663496551838248239

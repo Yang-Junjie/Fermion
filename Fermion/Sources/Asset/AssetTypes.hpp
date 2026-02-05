@@ -6,14 +6,16 @@ namespace Fermion
     {
         None = 0,
         Texture,
-        TextureSource, 
+        TextureSource,
         Scene,
         Font,
         Shader,
         Mesh,
         Material,
         Model,
-        ModelSource
+        ModelSource,
+        Skeleton,
+        AnimationClip
     };
 
     namespace AssetUtils
@@ -42,6 +44,10 @@ namespace Fermion
                 return "Model";
             case AssetType::ModelSource:
                 return "ModelSource";
+            case AssetType::Skeleton:
+                return "Skeleton";
+            case AssetType::AnimationClip:
+                return "AnimationClip";
             }
             return "None";
         }
@@ -66,6 +72,10 @@ namespace Fermion
                 return AssetType::Model;
             if (str == "ModelSource")
                 return AssetType::ModelSource;
+            if (str == "Skeleton")
+                return AssetType::Skeleton;
+            if (str == "AnimationClip")
+                return AssetType::AnimationClip;
             return AssetType::None;
         }
     } // namespace AssetUtils

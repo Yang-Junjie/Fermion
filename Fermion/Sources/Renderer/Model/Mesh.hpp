@@ -2,6 +2,8 @@
 #include "fmpch.hpp"
 #include "Asset/Asset.hpp"
 #include "Math/AABB.hpp"
+#include "Animation/Skeleton.hpp"
+#include "Animation/AnimationClip.hpp"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 
@@ -14,6 +16,12 @@ namespace Fermion
         glm::vec3 Normal;
         glm::vec4 Color = glm::vec4(1.0f);
         glm::vec2 TexCoord = glm::vec2(0.0f);
+    };
+
+    struct VertexBoneData
+    {
+        glm::ivec4 BoneIDs = glm::ivec4(-1);
+        glm::vec4 BoneWeights = glm::vec4(0.0f);
     };
 
     struct SubMesh
@@ -86,6 +94,34 @@ namespace Fermion
             return m_BoundingBox;
         }
 
+        bool isSkinned() const { return m_isSkinned; }
+
+        void setBoneData(std::vector<VertexBoneData> boneData)
+        {
+            m_boneData = std::move(boneData);
+            m_isSkinned = !m_boneData.empty();
+            // Re-setup mesh to include bone data in VAO
+            if (m_isSkinned)
+            {
+                setupMesh();
+            }
+        }
+
+        const std::vector<VertexBoneData> &getBoneData() const
+        {
+            return m_boneData;
+        }
+
+        std::shared_ptr<Skeleton> getSkeleton() const
+        {
+            return m_skeleton;
+        }
+
+        const std::vector<std::shared_ptr<AnimationClip>> &getAnimations() const
+        {
+            return m_animations;
+        }
+
     private:
         std::vector<Vertex> m_vertices;
         std::vector<uint32_t> m_indices;
@@ -96,11 +132,21 @@ namespace Fermion
 
         std::shared_ptr<VertexArray> m_VAO = nullptr;
 
+        // Skinning data
+        bool m_isSkinned = false;
+        std::vector<VertexBoneData> m_boneData;
+        std::shared_ptr<Skeleton> m_skeleton;
+        std::vector<std::shared_ptr<AnimationClip>> m_animations;
+
         void loadMesh(const std::string &path);
 
         void processNode(aiNode *node, const aiScene *scene);
-
         void processMesh(aiMesh *mesh, const aiScene *scene);
+
+        void processBones(aiMesh *mesh, uint32_t vertexStart);
+        void processAnimations(const aiScene *scene);
+
+        void buildSkeletonHierarchy(const aiScene *scene);
 
         void setupMesh();
     };

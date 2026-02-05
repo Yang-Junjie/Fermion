@@ -1,0 +1,8 @@
+Model:
+  Name: CesiumMan
+  Mesh: 12114531687242775476
+  Materials:
+    - Slot: 0
+      Handle: 10459753340594094427
+    - Slot: 1
+      Handle: 7850935501353329151

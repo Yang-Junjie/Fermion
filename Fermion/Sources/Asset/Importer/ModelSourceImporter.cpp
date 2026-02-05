@@ -5,13 +5,19 @@
 #include "Renderer/Model/MaterialSerializer.hpp"
 #include "Renderer/Model/MeshSerializer.hpp"
 #include "Renderer/Model/ModelSerializer.hpp"
+#include "Animation/Skeleton.hpp"
+#include "Animation/AnimationClip.hpp"
+#include "Animation/SkeletonSerializer.hpp"
+#include "Animation/AnimationClipSerializer.hpp"
 
 #include <assimp/Importer.hpp>
 #include <assimp/material.h>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
+#include <assimp/anim.h>
 
 #include <fstream>
+#include <functional>
 #include <optional>
 #include <string_view>
 
@@ -38,8 +44,181 @@ namespace Fermion
             return {c.r, c.g, c.b};
         }
 
+        glm::mat4 aiMatrixToGlm(const aiMatrix4x4 &m)
+        {
+            return glm::mat4(
+                m.a1, m.b1, m.c1, m.d1,
+                m.a2, m.b2, m.c2, m.d2,
+                m.a3, m.b3, m.c3, m.d3,
+                m.a4, m.b4, m.c4, m.d4);
+        }
+
+        void process_bones(aiMesh *mesh, uint32_t vertexStart,
+                          std::shared_ptr<Skeleton> &skeleton,
+                          std::vector<VertexBoneData> &boneData)
+        {
+            if (!skeleton || !mesh->HasBones())
+                return;
+
+            for (unsigned int boneIdx = 0; boneIdx < mesh->mNumBones; boneIdx++)
+            {
+                aiBone *bone = mesh->mBones[boneIdx];
+                std::string boneName = bone->mName.C_Str();
+
+                int32_t boneIndex = skeleton->findBoneIndex(boneName);
+                if (boneIndex < 0)
+                {
+                    glm::mat4 offsetMatrix = aiMatrixToGlm(bone->mOffsetMatrix);
+                    boneIndex = skeleton->addBone(boneName, -1, offsetMatrix);
+                }
+
+                if (boneIndex < 0)
+                    continue;
+
+                for (unsigned int weightIdx = 0; weightIdx < bone->mNumWeights; weightIdx++)
+                {
+                    uint32_t vertexId = bone->mWeights[weightIdx].mVertexId + vertexStart;
+                    float weight = bone->mWeights[weightIdx].mWeight;
+
+                    if (vertexId >= boneData.size())
+                        continue;
+
+                    auto &vBoneData = boneData[vertexId];
+                    for (int i = 0; i < 4; i++)
+                    {
+                        if (vBoneData.BoneIDs[i] < 0)
+                        {
+                            vBoneData.BoneIDs[i] = boneIndex;
+                            vBoneData.BoneWeights[i] = weight;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        void build_skeleton_hierarchy(const aiScene *scene, std::shared_ptr<Skeleton> &skeleton)
+        {
+            if (!skeleton || !scene->mRootNode)
+                return;
+
+            std::function<void(aiNode *)> resolveParents = [&](aiNode *node)
+            {
+                std::string nodeName = node->mName.C_Str();
+                int32_t boneIndex = skeleton->findBoneIndex(nodeName);
+
+                if (boneIndex >= 0)
+                {
+                    aiNode *parent = node->mParent;
+                    while (parent)
+                    {
+                        std::string parentName = parent->mName.C_Str();
+                        int32_t parentIndex = skeleton->findBoneIndex(parentName);
+                        if (parentIndex >= 0)
+                        {
+                            auto &bone = skeleton->getBone(boneIndex);
+                            bone.parentIndex = parentIndex;
+                            break;
+                        }
+                        parent = parent->mParent;
+                    }
+
+                    const auto &m = node->mTransformation;
+                    glm::mat4 localTransform = aiMatrixToGlm(m);
+
+                    auto &bone = skeleton->getBone(boneIndex);
+                    glm::vec3 pos = glm::vec3(localTransform[3]);
+                    glm::vec3 scale;
+                    scale.x = glm::length(glm::vec3(localTransform[0]));
+                    scale.y = glm::length(glm::vec3(localTransform[1]));
+                    scale.z = glm::length(glm::vec3(localTransform[2]));
+
+                    glm::mat3 rotMat(
+                        glm::vec3(localTransform[0]) / scale.x,
+                        glm::vec3(localTransform[1]) / scale.y,
+                        glm::vec3(localTransform[2]) / scale.z);
+                    glm::quat rot = glm::quat_cast(rotMat);
+
+                    bone.localBindPose.position = pos;
+                    bone.localBindPose.rotation = rot;
+                    bone.localBindPose.scale = scale;
+                }
+
+                for (unsigned int i = 0; i < node->mNumChildren; i++)
+                    resolveParents(node->mChildren[i]);
+            };
+
+            resolveParents(scene->mRootNode);
+        }
+
+        std::vector<std::shared_ptr<AnimationClip>> process_animations(const aiScene *scene,
+                                                                        std::shared_ptr<Skeleton> &skeleton)
+        {
+            std::vector<std::shared_ptr<AnimationClip>> animations;
+            if (!scene || !skeleton)
+                return animations;
+
+            for (unsigned int animIdx = 0; animIdx < scene->mNumAnimations; animIdx++)
+            {
+                aiAnimation *anim = scene->mAnimations[animIdx];
+
+                float ticksPerSecond = (anim->mTicksPerSecond > 0.0f)
+                                           ? static_cast<float>(anim->mTicksPerSecond)
+                                           : 25.0f;
+
+                auto clip = std::make_shared<AnimationClip>(
+                    anim->mName.C_Str(),
+                    static_cast<float>(anim->mDuration),
+                    ticksPerSecond);
+
+                for (unsigned int chanIdx = 0; chanIdx < anim->mNumChannels; chanIdx++)
+                {
+                    aiNodeAnim *nodeAnim = anim->mChannels[chanIdx];
+
+                    BoneChannel channel;
+                    channel.boneName = nodeAnim->mNodeName.C_Str();
+
+                    channel.positionKeys.reserve(nodeAnim->mNumPositionKeys);
+                    for (unsigned int k = 0; k < nodeAnim->mNumPositionKeys; k++)
+                    {
+                        auto &key = nodeAnim->mPositionKeys[k];
+                        channel.positionKeys.emplace_back(
+                            static_cast<float>(key.mTime),
+                            glm::vec3(key.mValue.x, key.mValue.y, key.mValue.z));
+                    }
+
+                    channel.rotationKeys.reserve(nodeAnim->mNumRotationKeys);
+                    for (unsigned int k = 0; k < nodeAnim->mNumRotationKeys; k++)
+                    {
+                        auto &key = nodeAnim->mRotationKeys[k];
+                        channel.rotationKeys.emplace_back(
+                            static_cast<float>(key.mTime),
+                            glm::quat(key.mValue.w, key.mValue.x, key.mValue.y, key.mValue.z));
+                    }
+
+                    channel.scaleKeys.reserve(nodeAnim->mNumScalingKeys);
+                    for (unsigned int k = 0; k < nodeAnim->mNumScalingKeys; k++)
+                    {
+                        auto &key = nodeAnim->mScalingKeys[k];
+                        channel.scaleKeys.emplace_back(
+                            static_cast<float>(key.mTime),
+                            glm::vec3(key.mValue.x, key.mValue.y, key.mValue.z));
+                    }
+
+                    clip->addChannel(std::move(channel));
+                }
+
+                clip->bindSkeleton(skeleton);
+                animations.push_back(clip);
+            }
+
+            return animations;
+        }
+
         void process_mesh(aiMesh *mesh, const aiScene *scene, std::vector<Vertex> &vertices,
                           std::vector<uint32_t> &indices, std::vector<SubMesh> &subMeshes,
+                          std::vector<VertexBoneData> &boneData,
+                          std::shared_ptr<Skeleton> &skeleton,
                           const std::string &meshName)
         {
             if (!mesh)
@@ -81,6 +260,18 @@ namespace Fermion
                 vertices.push_back(vertex);
             }
 
+            // Resize bone data if skinned
+            if (skeleton)
+            {
+                boneData.resize(vertices.size());
+            }
+
+            // Process bones
+            if (mesh->HasBones() && skeleton)
+            {
+                process_bones(mesh, vertexStart, skeleton, boneData);
+            }
+
             for (unsigned int i = 0; i < mesh->mNumFaces; ++i)
             {
                 const aiFace &face = mesh->mFaces[i];
@@ -91,14 +282,14 @@ namespace Fermion
             SubMesh submesh;
             submesh.IndexOffset = indexStart;
             submesh.IndexCount = static_cast<uint32_t>(indices.size()) - indexStart;
-            
+
             if (scene && mesh->mMaterialIndex < scene->mNumMaterials)
             {
                 submesh.MaterialSlotIndex = mesh->mMaterialIndex;
 
                 aiString matName;
                 scene->mMaterials[mesh->mMaterialIndex]->Get(AI_MATKEY_NAME, matName);
-                
+
                 Log::Info(std::format("SubMesh [{}]: vertices={}, indices={}, materialSlot={}, materialName='{}'",
                          subMeshes.size(), mesh->mNumVertices, submesh.IndexCount,
                          submesh.MaterialSlotIndex, matName.C_Str()));
@@ -110,12 +301,14 @@ namespace Fermion
                          scene ? scene->mNumMaterials : 0));
                 submesh.MaterialSlotIndex = 0;
             }
-            
+
             subMeshes.push_back(submesh);
         }
 
         void process_node(aiNode *node, const aiScene *scene, std::vector<Vertex> &vertices,
-                          std::vector<uint32_t> &indices, std::vector<SubMesh> &subMeshes)
+                          std::vector<uint32_t> &indices, std::vector<SubMesh> &subMeshes,
+                          std::vector<VertexBoneData> &boneData,
+                          std::shared_ptr<Skeleton> &skeleton)
         {
             if (!node || !scene)
                 return;
@@ -126,12 +319,12 @@ namespace Fermion
                 std::string meshName = mesh->mName.C_Str();
                 if (meshName.empty())
                     meshName = std::format("mesh_{}", node->mMeshes[i]);
-                    
-                process_mesh(mesh, scene, vertices, indices, subMeshes, meshName);
+
+                process_mesh(mesh, scene, vertices, indices, subMeshes, boneData, skeleton, meshName);
             }
 
             for (unsigned int i = 0; i < node->mNumChildren; ++i)
-                process_node(node->mChildren[i], scene, vertices, indices, subMeshes);
+                process_node(node->mChildren[i], scene, vertices, indices, subMeshes, boneData, skeleton);
         }
 
         static std::optional<std::filesystem::path> write_embedded_texture_if_needed(
@@ -350,13 +543,13 @@ namespace Fermion
     {
         if (assetPath.empty() || !std::filesystem::exists(assetPath))
         {
-            Log::Error("ModelSourceImporter: Invalid asset path");  
+            Log::Error("ModelSourceImporter: Invalid asset path");
             return {};
         }
 
         Assimp::Importer importer;
         const aiScene *scene = importer.ReadFile(assetPath.string(),
-                                                 aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs);
+                                                 aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs | aiProcess_LimitBoneWeights);
 
         if (!scene || !scene->mRootNode)
         {
@@ -369,20 +562,88 @@ namespace Fermion
         const auto meshPath = make_output_path(assetPath, "", ".fmesh");
         const auto modelPath = make_output_path(assetPath, "", ".fmodel");
 
-        Log::Info(std::format("ModelSourceImporter: Processing '{}': {} meshes, {} materials",
-                 assetPath.filename().string(), scene->mNumMeshes, scene->mNumMaterials));
+        // Check if model has bones
+        bool hasBones = false;
+        for (unsigned int i = 0; i < scene->mNumMeshes; i++)
+        {
+            if (scene->mMeshes[i]->HasBones())
+            {
+                hasBones = true;
+                break;
+            }
+        }
+
+        std::shared_ptr<Skeleton> skeleton;
+        if (hasBones)
+        {
+            skeleton = std::make_shared<Skeleton>();
+        }
+
+        Log::Info(std::format("ModelSourceImporter: Processing '{}': {} meshes, {} materials, {} animations, hasBones={}",
+                 assetPath.filename().string(), scene->mNumMeshes, scene->mNumMaterials,
+                 scene->mNumAnimations, hasBones));
 
         std::vector<Vertex> vertices;
         std::vector<uint32_t> indices;
         std::vector<SubMesh> subMeshes;
-        process_node(scene->mRootNode, scene, vertices, indices, subMeshes);
+        std::vector<VertexBoneData> boneData;
+        process_node(scene->mRootNode, scene, vertices, indices, subMeshes, boneData, skeleton);
 
         if (vertices.empty() || indices.empty())
         {
             Log::Warn(std::format("ModelSourceImporter: Model {} has no valid geometry", assetPath.string()));
             return {};
         }
-        
+
+        // Build skeleton hierarchy and process animations
+        AssetHandle skeletonHandle(0);
+        std::vector<AssetHandle> animationHandles;
+
+        if (skeleton && skeleton->getBoneCount() > 0)
+        {
+            build_skeleton_hierarchy(scene, skeleton);
+
+            // Serialize skeleton
+            const auto skeletonPath = make_output_path(assetPath, "", ".fskel");
+            AssetMetadata skelMeta;
+            skelMeta.Handle = make_handle_non_zero();
+            skelMeta.Type = AssetType::Skeleton;
+            skelMeta.FilePath = skeletonPath;
+            skelMeta.Name = assetPath.stem().string() + "_skeleton";
+
+            skeleton->handle = skelMeta.Handle;
+            if (SkeletonSerializer::serialize(skeletonPath, *skeleton))
+            {
+                writeMetadata(skelMeta);
+                skeletonHandle = skelMeta.Handle;
+                Log::Info(std::format("ModelSourceImporter: Serialized skeleton with {} bones to {}",
+                         skeleton->getBoneCount(), skeletonPath.filename().string()));
+            }
+
+            // Process and serialize animations
+            auto animations = process_animations(scene, skeleton);
+            for (size_t i = 0; i < animations.size(); i++)
+            {
+                auto &clip = animations[i];
+                const auto animPath = make_output_path(assetPath, std::format("_anim{}", i), ".fanim");
+
+                AssetMetadata animMeta;
+                animMeta.Handle = make_handle_non_zero();
+                animMeta.Type = AssetType::AnimationClip;
+                animMeta.FilePath = animPath;
+                animMeta.Name = clip->getName().empty() ? std::format("Animation_{}", i) : clip->getName();
+
+                clip->handle = animMeta.Handle;
+                if (AnimationClipSerializer::serialize(animPath, *clip))
+                {
+                    writeMetadata(animMeta);
+                    animationHandles.push_back(animMeta.Handle);
+                    Log::Info(std::format("ModelSourceImporter: Serialized animation '{}' ({} channels) to {}",
+                             animMeta.Name, clip->getChannels().size(), animPath.filename().string()));
+                }
+            }
+        }
+
         Log::Info(std::format("ModelSourceImporter: Generated {} SubMeshes with {} total vertices, {} indices",
                  subMeshes.size(), vertices.size(), indices.size()));
 
@@ -394,6 +655,13 @@ namespace Fermion
 
         Mesh mesh(std::move(vertices), std::move(indices), std::move(subMeshes));
         mesh.handle = meshMeta.Handle;
+
+        // Set bone data if present (for skinned meshes)
+        if (!boneData.empty())
+        {
+            mesh.setBoneData(std::move(boneData));
+            Log::Info(std::format("ModelSourceImporter: Mesh has {} bone data entries", mesh.getBoneData().size()));
+        }
 
         MeshSerializeOptions meshOptions;
         meshOptions.nameOverride = meshMeta.Name;
@@ -439,7 +707,7 @@ namespace Fermion
             writeMetadata(matMeta);
             materialHandles[i] = matMeta.Handle;
         }
-        
+
         Log::Info(std::format("ModelSourceImporter: Created {} material files", materialHandles.size()));
 
         m_Metadata = ModelSerializer::serialize(modelPath, meshMeta.Handle, materialHandles);

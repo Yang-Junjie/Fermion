@@ -60,8 +60,9 @@ namespace Fermion
     void Mesh::loadMesh(const std::string &path)
     {
         Assimp::Importer importer;
+        // Note: Do NOT use aiProcess_PreTransformVertices as it removes bone information
         const aiScene *scene = importer.ReadFile(path,
-                                                 aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs);
+                                                 aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_FlipUVs | aiProcess_LimitBoneWeights);
 
         if (!scene || !scene->mRootNode)
         {
@@ -69,12 +70,43 @@ namespace Fermion
             return;
         }
 
+        // Check if any mesh has bones
+        bool hasBones = false;
+        for (unsigned int i = 0; i < scene->mNumMeshes; i++)
+        {
+            if (scene->mMeshes[i]->HasBones())
+            {
+                hasBones = true;
+                break;
+            }
+        }
+
+        if (hasBones)
+        {
+            m_isSkinned = true;
+            m_skeleton = std::make_shared<Skeleton>();
+        }
+
         processNode(scene->mRootNode, scene);
+
+        if (m_isSkinned)
+        {
+            buildSkeletonHierarchy(scene);
+            processAnimations(scene);
+
+            // Bind all animations to the skeleton
+            for (auto &clip : m_animations)
+            {
+                clip->bindSkeleton(m_skeleton);
+            }
+        }
     }
+
     std::shared_ptr<VertexArray> Mesh::getVertexArray() const
     {
         return m_VAO;
     }
+
     void Mesh::processNode(aiNode *node, const aiScene *scene)
     {
         for (unsigned int i = 0; i < node->mNumMeshes; i++)
@@ -116,6 +148,18 @@ namespace Fermion
             m_vertices.push_back(v);
         }
 
+        // Resize bone data to match vertices if skinned
+        if (m_isSkinned)
+        {
+            m_boneData.resize(m_vertices.size());
+        }
+
+        // Process bones for this mesh
+        if (mesh->HasBones())
+        {
+            processBones(mesh, vertexStart);
+        }
+
         // 索引
         for (unsigned int i = 0; i < mesh->mNumFaces; i++)
         {
@@ -130,6 +174,185 @@ namespace Fermion
         submesh.IndexOffset = indexStart;
         submesh.IndexCount = (uint32_t)m_indices.size() - indexStart;
         m_SubMeshes.push_back(submesh);
+    }
+
+    void Mesh::processBones(aiMesh *mesh, uint32_t vertexStart)
+    {
+        if (!m_skeleton)
+            return;
+
+        for (unsigned int boneIdx = 0; boneIdx < mesh->mNumBones; boneIdx++)
+        {
+            aiBone *bone = mesh->mBones[boneIdx];
+            std::string boneName = bone->mName.C_Str();
+
+            // Get or create bone in skeleton
+            int32_t boneIndex = m_skeleton->findBoneIndex(boneName);
+            if (boneIndex < 0)
+            {
+                // Convert Assimp offset matrix to glm
+                const auto &m = bone->mOffsetMatrix;
+                glm::mat4 offsetMatrix = glm::mat4(
+                    m.a1, m.b1, m.c1, m.d1,
+                    m.a2, m.b2, m.c2, m.d2,
+                    m.a3, m.b3, m.c3, m.d3,
+                    m.a4, m.b4, m.c4, m.d4);
+
+                boneIndex = m_skeleton->addBone(boneName, -1, offsetMatrix);
+            }
+
+            if (boneIndex < 0)
+                continue;
+
+            // Assign bone weights to vertices
+            for (unsigned int weightIdx = 0; weightIdx < bone->mNumWeights; weightIdx++)
+            {
+                uint32_t vertexId = bone->mWeights[weightIdx].mVertexId + vertexStart;
+                float weight = bone->mWeights[weightIdx].mWeight;
+
+                if (vertexId >= m_boneData.size())
+                    continue;
+
+                auto &boneData = m_boneData[vertexId];
+
+                // Find an empty slot in the bone data
+                for (int i = 0; i < 4; i++)
+                {
+                    if (boneData.BoneIDs[i] < 0)
+                    {
+                        boneData.BoneIDs[i] = boneIndex;
+                        boneData.BoneWeights[i] = weight;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    void Mesh::buildSkeletonHierarchy(const aiScene *scene)
+    {
+        if (!m_skeleton || !scene->mRootNode)
+            return;
+
+        // Build a map of node names to their parent node names
+        std::function<void(aiNode *, int32_t)> resolveParents = [&](aiNode *node, int32_t depth)
+        {
+            std::string nodeName = node->mName.C_Str();
+            int32_t boneIndex = m_skeleton->findBoneIndex(nodeName);
+
+            if (boneIndex >= 0)
+            {
+                // Find parent bone by walking up the node tree
+                aiNode *parent = node->mParent;
+                while (parent)
+                {
+                    std::string parentName = parent->mName.C_Str();
+                    int32_t parentIndex = m_skeleton->findBoneIndex(parentName);
+                    if (parentIndex >= 0)
+                    {
+                        auto &bone = m_skeleton->getBone(boneIndex);
+                        bone.parentIndex = parentIndex;
+                        break;
+                    }
+                    parent = parent->mParent;
+                }
+
+                // Set the local bind pose from the node transformation
+                const auto &m = node->mTransformation;
+                glm::mat4 localTransform = glm::mat4(
+                    m.a1, m.b1, m.c1, m.d1,
+                    m.a2, m.b2, m.c2, m.d2,
+                    m.a3, m.b3, m.c3, m.d3,
+                    m.a4, m.b4, m.c4, m.d4);
+
+                auto &bone = m_skeleton->getBone(boneIndex);
+                // Decompose the local transform into TRS
+                glm::vec3 pos = glm::vec3(localTransform[3]);
+                glm::vec3 scale;
+                scale.x = glm::length(glm::vec3(localTransform[0]));
+                scale.y = glm::length(glm::vec3(localTransform[1]));
+                scale.z = glm::length(glm::vec3(localTransform[2]));
+
+                glm::mat3 rotMat(
+                    glm::vec3(localTransform[0]) / scale.x,
+                    glm::vec3(localTransform[1]) / scale.y,
+                    glm::vec3(localTransform[2]) / scale.z);
+                glm::quat rot = glm::quat_cast(rotMat);
+
+                bone.localBindPose.position = pos;
+                bone.localBindPose.rotation = rot;
+                bone.localBindPose.scale = scale;
+            }
+
+            for (unsigned int i = 0; i < node->mNumChildren; i++)
+            {
+                resolveParents(node->mChildren[i], depth + 1);
+            }
+        };
+
+        resolveParents(scene->mRootNode, 0);
+    }
+
+    void Mesh::processAnimations(const aiScene *scene)
+    {
+        if (!scene || !m_skeleton)
+            return;
+
+        for (unsigned int animIdx = 0; animIdx < scene->mNumAnimations; animIdx++)
+        {
+            aiAnimation *anim = scene->mAnimations[animIdx];
+
+            float ticksPerSecond = (anim->mTicksPerSecond > 0.0f)
+                                       ? static_cast<float>(anim->mTicksPerSecond)
+                                       : 25.0f;
+
+            auto clip = std::make_shared<AnimationClip>(
+                anim->mName.C_Str(),
+                static_cast<float>(anim->mDuration),
+                ticksPerSecond);
+
+            for (unsigned int chanIdx = 0; chanIdx < anim->mNumChannels; chanIdx++)
+            {
+                aiNodeAnim *nodeAnim = anim->mChannels[chanIdx];
+
+                BoneChannel channel;
+                channel.boneName = nodeAnim->mNodeName.C_Str();
+
+                // Position keys
+                channel.positionKeys.reserve(nodeAnim->mNumPositionKeys);
+                for (unsigned int k = 0; k < nodeAnim->mNumPositionKeys; k++)
+                {
+                    auto &key = nodeAnim->mPositionKeys[k];
+                    channel.positionKeys.emplace_back(
+                        static_cast<float>(key.mTime),
+                        glm::vec3(key.mValue.x, key.mValue.y, key.mValue.z));
+                }
+
+                // Rotation keys
+                channel.rotationKeys.reserve(nodeAnim->mNumRotationKeys);
+                for (unsigned int k = 0; k < nodeAnim->mNumRotationKeys; k++)
+                {
+                    auto &key = nodeAnim->mRotationKeys[k];
+                    channel.rotationKeys.emplace_back(
+                        static_cast<float>(key.mTime),
+                        glm::quat(key.mValue.w, key.mValue.x, key.mValue.y, key.mValue.z));
+                }
+
+                // Scale keys
+                channel.scaleKeys.reserve(nodeAnim->mNumScalingKeys);
+                for (unsigned int k = 0; k < nodeAnim->mNumScalingKeys; k++)
+                {
+                    auto &key = nodeAnim->mScalingKeys[k];
+                    channel.scaleKeys.emplace_back(
+                        static_cast<float>(key.mTime),
+                        glm::vec3(key.mValue.x, key.mValue.y, key.mValue.z));
+                }
+
+                clip->addChannel(std::move(channel));
+            }
+
+            m_animations.push_back(clip);
+        }
     }
 
     void Mesh::setupMesh()
@@ -148,6 +371,20 @@ namespace Fermion
         auto ibo = IndexBuffer::create(m_indices.data(), (uint32_t)m_indices.size());
 
         m_VAO->addVertexBuffer(vbo);
+
+        // Add bone data VBO for skinned meshes
+        if (m_isSkinned && !m_boneData.empty())
+        {
+            auto boneVBO = VertexBuffer::create(
+                reinterpret_cast<float *>(m_boneData.data()),
+                (uint32_t)(m_boneData.size() * sizeof(VertexBoneData)));
+
+            boneVBO->setLayout({{ShaderDataType::Int4, "a_BoneIDs"},
+                                {ShaderDataType::Float4, "a_BoneWeights"}});
+
+            m_VAO->addVertexBuffer(boneVBO);
+        }
+
         m_VAO->setIndexBuffer(ibo);
     }
 } // namespace Fermion

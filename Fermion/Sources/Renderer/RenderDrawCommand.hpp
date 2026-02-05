@@ -25,6 +25,10 @@ struct MeshDrawCommand {
     bool transparent = false;
     bool drawOutline = false;
     bool visible = true;
+
+    // Skinning data
+    const std::vector<glm::mat4>* boneMatrices = nullptr;
+    bool isSkinned = false;
 };
 
 struct SkyboxDrawCommand {

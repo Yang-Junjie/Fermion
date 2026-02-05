@@ -17,9 +17,6 @@ public:
 
     static void onWindowResize(uint32_t width, uint32_t height);
 
-    // static void beginScene(OrthographicCamera &camera);
-    // static void endScene();
-
     static const ShaderLibrary* getShaderLibrary() {
         return s_shaderLibrary.get();
     }

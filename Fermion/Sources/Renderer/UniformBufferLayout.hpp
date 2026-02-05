@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <glm/glm.hpp>
+#include "Animation/Skeleton.hpp"
 
 namespace Fermion
 {
@@ -10,6 +11,7 @@ namespace Fermion
         constexpr uint32_t Model = 1;       // Per-object model transforms
         constexpr uint32_t Lights = 2;      // Scene lighting data
         constexpr uint32_t Material = 3;    // Material properties
+        constexpr uint32_t Bones = 4;       // Bone matrices for skeletal animation
     }
 
     // Camera uniform buffer (binding = 0)
@@ -81,6 +83,15 @@ namespace Fermion
         int hasRoughnessMap;         // 4 bytes
 
         static constexpr uint32_t getSize() { return 48; }
+    };
+
+    // Bone uniform buffer (binding = 4)
+    // Contains bone matrices for skeletal animation
+    struct BoneData
+    {
+        glm::mat4 boneMatrices[MAX_BONES]; // MAX_BONES * 64 = 8192 bytes
+
+        static constexpr uint32_t getSize() { return MAX_BONES * sizeof(glm::mat4); }
     };
 
 } // namespace Fermion

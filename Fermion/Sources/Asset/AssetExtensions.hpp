@@ -36,6 +36,10 @@ namespace Fermion
             {".fmodel", AssetType::Model},
             // Material
             {".fmat", AssetType::Material},
+            // Skeleton
+            {".fskel", AssetType::Skeleton},
+            // Animation
+            {".fanim", AssetType::AnimationClip},
     };
 
     inline static AssetType GetAssetTypeFromExtension(const std::string &extension)

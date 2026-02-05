@@ -1,0 +1,12 @@
+Material:
+  Type: 2
+  Name: Cesium_Man-effect
+  Albedo: [1, 1, 1]
+  Metallic: 0
+  Roughness: 1
+  AO: 1
+  AlbedoMap: 14423951390451185725
+  NormalMap: 0
+  MetallicMap: 0
+  RoughnessMap: 0
+  AOMap: 0

@@ -31,10 +31,12 @@ namespace Fermion
 
         std::shared_ptr<Pipeline> getPhongPipeline() const { return m_phongPipeline; }
         std::shared_ptr<Pipeline> getPBRPipeline() const { return m_pbrPipeline; }
+        std::shared_ptr<Pipeline> getSkinnedPBRPipeline() const { return m_skinnedPBRPipeline; }
 
     private:
         std::shared_ptr<Pipeline> m_phongPipeline;
         std::shared_ptr<Pipeline> m_pbrPipeline;
+        std::shared_ptr<Pipeline> m_skinnedPBRPipeline;
     };
 
 } // namespace Fermion

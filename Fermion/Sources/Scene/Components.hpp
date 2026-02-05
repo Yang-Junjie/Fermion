@@ -6,6 +6,7 @@
 #include "Renderer/Font/Font.hpp"
 #include "Asset/Asset.hpp"
 #include "Math/Math.hpp"
+#include "Animation/Animator.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -423,6 +424,52 @@ namespace Fermion
         SpotLightComponent(const SpotLightComponent &) = default;
     };
 
+    struct AnimatorComponent
+    {
+        // Asset references (serialized)
+        AssetHandle skeletonHandle = AssetHandle(0);
+        std::vector<AssetHandle> animationClipHandles;
+        uint32_t activeClipIndex = 0;
+        float speed = 1.0f;
+        bool playing = true;
+        bool looping = true;
+
+        // Runtime data (not serialized)
+        std::shared_ptr<Skeleton> runtimeSkeleton = nullptr;
+        std::vector<std::shared_ptr<AnimationClip>> runtimeClips;
+        std::shared_ptr<Animator> runtimeAnimator = nullptr;
+
+        AnimatorComponent() = default;
+        AnimatorComponent(const AnimatorComponent &) = default;
+
+        void addAnimationClip(AssetHandle clipHandle)
+        {
+            if (std::find(animationClipHandles.begin(), animationClipHandles.end(), clipHandle) == animationClipHandles.end())
+            {
+                animationClipHandles.push_back(clipHandle);
+            }
+        }
+
+        void removeAnimationClip(size_t index)
+        {
+            if (index < animationClipHandles.size())
+            {
+                animationClipHandles.erase(animationClipHandles.begin() + index);
+                if (activeClipIndex >= animationClipHandles.size() && !animationClipHandles.empty())
+                    activeClipIndex = static_cast<uint32_t>(animationClipHandles.size() - 1);
+                else if (animationClipHandles.empty())
+                    activeClipIndex = 0;
+            }
+        }
+
+        void clearAnimationClips()
+        {
+            animationClipHandles.clear();
+            runtimeClips.clear();
+            activeClipIndex = 0;
+        }
+    };
+
     template <typename... Component>
     struct ComponentGroup
     {
@@ -443,6 +490,10 @@ namespace Fermion
             /* Lighting */
             PointLightComponent,
             SpotLightComponent,
-            DirectionalLightComponent
+            DirectionalLightComponent,
+            /************/
+
+            /* Animation */
+            AnimatorComponent
             /************/>;
 } // namespace Fermion

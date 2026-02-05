@@ -33,6 +33,18 @@ namespace Fermion
 
             m_pbrPipeline = Pipeline::create(pbrSpec);
         }
+
+        // Skinned PBR Mesh Pipeline
+        {
+            PipelineSpecification skinnedPbrSpec;
+            skinnedPbrSpec.shader = Renderer::getShaderLibrary()->get("SkinnedPBRMesh");
+            skinnedPbrSpec.depthTest = true;
+            skinnedPbrSpec.depthWrite = true;
+            skinnedPbrSpec.depthOperator = DepthCompareOperator::Less;
+            skinnedPbrSpec.cull = CullMode::Back;
+
+            m_skinnedPBRPipeline = Pipeline::create(skinnedPbrSpec);
+        }
     }
 
     void ForwardRenderer::addPass(RenderGraphLegacy& renderGraph,
@@ -125,7 +137,16 @@ namespace Fermion
                     modelUBO->setData(&modelData, sizeof(ModelData));
                 }});
 
-                if (cmd.pipeline == m_pbrPipeline)
+                // Upload bone matrices for skinned meshes
+                if (cmd.isSkinned && cmd.boneMatrices && !cmd.boneMatrices->empty())
+                {
+                    queue.submit(CmdCustom{[boneUBO = context.boneUBO, boneMatrices = cmd.boneMatrices]() {
+                        boneUBO->setData(boneMatrices->data(),
+                            static_cast<uint32_t>(boneMatrices->size() * sizeof(glm::mat4)));
+                    }});
+                }
+
+                if (cmd.pipeline == m_pbrPipeline || cmd.pipeline == m_skinnedPBRPipeline)
                 {
                     if (envRenderer)
                     {
