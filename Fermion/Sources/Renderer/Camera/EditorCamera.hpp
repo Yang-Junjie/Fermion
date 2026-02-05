@@ -28,6 +28,12 @@ namespace Fermion
             m_distance = distance;
         }
 
+        inline void setPosition(const glm::vec3 &position)
+        {
+            m_position = position;
+            updateView();
+        }
+
         inline void setViewportSize(const float width, const float height)
         {
             m_viewportWidth = width;
@@ -100,8 +106,8 @@ namespace Fermion
         glm::vec2 m_savedCursorPosition = {0.0f, 0.0f};
         bool m_hasSavedCursorPosition = false;
 
-        float m_distance = 10.0f;
-        float m_pitch = 0.0f, m_yaw = 0.0f;
+        float m_distance = 17.3205f;  // sqrt(10^2 + 10^2 + 10^2) = sqrt(300)
+        float m_pitch = 0.6155f, m_yaw = 0.7854f;  // 从(10,10,10)看向(0,0,0)
 
         float m_viewportWidth = 1280, m_viewportHeight = 720;
 

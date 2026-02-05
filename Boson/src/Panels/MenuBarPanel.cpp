@@ -37,7 +37,7 @@ namespace Fermion
 
         DrawMenuItem("File", "FilePopup", leftX, y, itemWidth, itemHeight);
         DrawMenuItem("Create", "CreatePopup", leftX, y, itemWidth, itemHeight);
-        DrawMenuItem("Build", "BuildPopup", leftX, y, itemWidth, itemHeight);
+        // DrawMenuItem("Build", "BuildPopup", leftX, y, itemWidth, itemHeight);
         DrawMenuItem("Help", "HelpPopup", leftX, y, itemWidth, itemHeight);
 
         // if (DrawWindowButton("##CloseWindow", m_WindowCloseIcon, rightX, y, itemHeight, IM_COL32(180, 60, 60, 255)))
@@ -99,21 +99,21 @@ namespace Fermion
             ui::EndPopup();
         }
 
-        if (ui::BeginPopup("BuildPopup"))
-        {
-            if (ImGui::MenuItem("Build Project"))
-            {
-                if (auto project = Project::getActive())
-                {
-                    buildProject(project);
-                }
-                else
-                {
-                    Log::Error("No active project found!");
-                }
-            }
-            ui::EndPopup();
-        }
+        // if (ui::BeginPopup("BuildPopup"))
+        // {
+        //     if (ImGui::MenuItem("Build Project"))
+        //     {
+        //         if (auto project = Project::getActive())
+        //         {
+        //             buildProject(project);
+        //         }
+        //         else
+        //         {
+        //             Log::Error("No active project found!");
+        //         }
+        //     }
+        //     ui::EndPopup();
+        // }
 
         if (ui::BeginPopup("HelpPopup"))
         {
@@ -132,8 +132,6 @@ namespace Fermion
 
         const auto projectDir = project->getProjectPath().parent_path();
         std::error_code ec;
-
-        ProjectSerializer(project).sertializeRuntime(projectDir / "Project.fdat");
 
         const std::filesystem::path shaderSrcDir = "../Boson/Resources/shaders";
         const std::filesystem::path shaderDstDir = projectDir / "Resources" / "shaders";

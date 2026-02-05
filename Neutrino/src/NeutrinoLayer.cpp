@@ -1,8 +1,29 @@
 #include "NeutrinoLayer.hpp"
 
 #include "Project/Project.hpp"
-#include "Project/ProjectSerializer.hpp"
 #include "Scene/SceneSerializer.hpp"
+
+namespace
+{
+    std::filesystem::path findProjectFile(const std::filesystem::path &directory)
+    {
+        std::error_code ec;
+        for (std::filesystem::directory_iterator it(directory, ec), end; it != end; it.increment(ec))
+        {
+            if (ec)
+                break;
+            std::error_code entryEc;
+            if (!it->is_regular_file(entryEc) || entryEc)
+                continue;
+            auto ext = it->path().extension().string();
+            std::transform(ext.begin(), ext.end(), ext.begin(),
+                           [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+            if (ext == ".fmproj")
+                return it->path();
+        }
+        return {};
+    }
+} // namespace
 
 NeutrinoLayer::NeutrinoLayer() : Fermion::Layer("NeutrinoLayer")
 {
@@ -81,14 +102,8 @@ void NeutrinoLayer::openProject()
 {
     const auto runtimeRoot = std::filesystem::current_path().parent_path();
 
-    const auto dummyProject = std::make_shared<Fermion::Project>();
-    Fermion::ProjectSerializer serializer(dummyProject);
-    const auto runtimeFile = runtimeRoot / "Project.fdat";
-
-    std::string projectName = serializer.deserializeRuntime(runtimeFile);
-    FERMION_ASSERT(!projectName.empty(), "Failed to read project name from Project.fdat!");
-
-    std::filesystem::path fmprojPath = runtimeRoot / (projectName + ".fmproj");
+    std::filesystem::path fmprojPath = findProjectFile(runtimeRoot);
+    FERMION_ASSERT(!fmprojPath.empty(), "No .fmproj file found in runtime directory!");
 
     m_project = Fermion::Project::loadProject(fmprojPath);
     FERMION_ASSERT(m_project != nullptr, "Failed to load project!");
