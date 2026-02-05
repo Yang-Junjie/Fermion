@@ -421,14 +421,6 @@ namespace Fermion
             for (auto &&func : debugRenderer->GetRenderQueue())
                 func(renderer);
             debugRenderer->ClearRenderQueue();
-
-            // TODO(Yang) : 升级2DRenderer
-            // // X aixs
-            // renderer->drawInfiniteLine(glm::vec3(0), glm::vec3(1,0,0),glm::vec4(0.5f,1.0f,0.3f,1.0f));
-            // // Y aixs
-            // renderer->drawInfiniteLine(glm::vec3(0), glm::vec3(0,1,0),glm::vec4(0.3f,0.5f,1.0f,1.0f));
-            // // Z aixs
-            // renderer->drawInfiniteLine(glm::vec3(0), glm::vec3(0,0,1),glm::vec4(1.0f,0.3f,0.5f,1.0f));
         }
 
         renderer->endScene();
@@ -729,7 +721,17 @@ namespace Fermion
                             auto &mesh = defaultView.get<MeshComponent>(entity);
                             Entity sceneEntity{entity, this};
                             glm::mat4 worldTransform = m_entityManager->getWorldSpaceTransformMatrix(sceneEntity);
-                            renderer->submitMesh(mesh, worldTransform, (int)entity);
+
+                            // Check if this entity also has an AnimatorComponent
+                            if (sceneEntity.hasComponent<AnimatorComponent>())
+                            {
+                                auto &animator = sceneEntity.getComponent<AnimatorComponent>();
+                                renderer->submitSkinnedMesh(mesh, animator, worldTransform, (int)entity);
+                            }
+                            else
+                            {
+                                renderer->submitMesh(mesh, worldTransform, (int)entity);
+                            }
                         }
                     }
                     // Directional Lights
