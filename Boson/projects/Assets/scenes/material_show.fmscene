@@ -128,7 +128,7 @@ Entities:
     RelationshipComponent:
       Parent: 0
     MeshComponent:
-      MeshHandle: 15763168744422691126
+      MeshHandle: 11060348311619464446
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:
@@ -153,3 +153,13 @@ Entities:
         OrthographicFar: 100
       Primary: true
       FixedAspectRatio: false
+EnvironmentSettings:
+  ShowSkybox: true
+  EnableShadows: false
+  AmbientIntensity: 0.1
+  ShadowMapSize: 5120
+  ShadowBias: 0.01
+  ShadowSoftness: 10
+  NormalMapStrength: 1
+  ToksvigStrength: 1
+  UseIBL: false

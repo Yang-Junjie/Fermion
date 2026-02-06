@@ -65,6 +65,9 @@ namespace Fermion
 
         void onDuplicateEntity();
 
+        void syncEnvironmentSettingsToScene();
+        void syncEnvironmentSettingsFromScene();
+
         // ImGui Panels
 
         void onHelpPanel();

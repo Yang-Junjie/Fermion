@@ -62,20 +62,37 @@ namespace Fermion
             GTAO = 11
         };
 
+        struct EnvironmentSettings
+        {
+            bool showSkybox = true;
+            bool enableShadows = true;
+            float ambientIntensity = 0.1f;
+
+            // Shadow mapping settings
+            uint32_t shadowMapSize = 2048;
+            float shadowBias = 0.01f;
+            float shadowSoftness = 1.0f;
+            float normalMapStrength = 1.0f;
+            float toksvigStrength = 1.0f;
+
+            bool useIBL = true;
+        };
         struct SceneInfo
         {
             SceneRendererCamera sceneCamera;
             EnvironmentLight sceneEnvironmentLight;
-            bool showSkybox = true;
-            bool enableShadows = true;
+
+            EnvironmentSettings environmentSettings;
+
             bool enableDepthView = false;
             float depthViewPower = 3.0f;
             glm::vec4 meshOutlineColor = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-            float outlineThickness = 2.0f; 
+            float outlineThickness = 2.0f;
 
-            float ambientIntensity = 0.1f;
             RenderMode renderMode = RenderMode::DeferredHybrid;
             GBufferDebugMode gbufferDebug = GBufferDebugMode::None;
+
+            // Experimental functionality
             bool enableSSGI = false;
             float ssgiIntensity = 1.0f;
             float ssgiRadius = 1.0f;
@@ -89,15 +106,7 @@ namespace Fermion
             int gtaoSliceCount = 6;
             int gtaoStepCount = 6;
 
-            // Shadow mapping settings
-            uint32_t shadowMapSize = 2048;
-            float shadowBias = 0.01f;
-            float shadowSoftness = 1.0f;
-            float normalMapStrength = 1.0f;
-            float toksvigStrength = 1.0f;
-
             // IBL settings
-            bool useIBL = true;
             uint32_t irradianceMapSize = 32;
             uint32_t prefilterMapSize = 128;
             uint32_t brdfLUTSize = 512;
@@ -107,7 +116,7 @@ namespace Fermion
 
             // Infinite Grid settings
             bool showInfiniteGrid = true;
-            int gridPlane = 0;  // 0 = XZ, 1 = XY, 2 = YZ
+            int gridPlane = 0; // 0 = XZ, 1 = XY, 2 = YZ
             float gridScale = 3.0f;
             float gridFadeDistance = 500.0f;
             glm::vec4 gridColorThin = glm::vec4(0.5f, 0.5f, 0.5f, 0.4f);
@@ -250,7 +259,7 @@ namespace Fermion
         RenderStatistics getStatistics() const;
 
         void loadHDREnvironment(const std::string &hdrPath);
-        
+
         void generateProceduralSky();
 
         std::shared_ptr<Framebuffer> getGBufferFramebuffer() const;
@@ -292,7 +301,6 @@ namespace Fermion
 
         void SkyboxPass(ResourceHandle lightingResult);
         void ShadowPass(ResourceHandle shadowMap);
-
 
     private:
         std::shared_ptr<DebugRenderer> m_debugRenderer;

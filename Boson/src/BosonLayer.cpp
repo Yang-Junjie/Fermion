@@ -469,13 +469,13 @@ namespace Fermion
             ImGui::TextWrapped("HDR: %s",
                                hdrPath
                                    ? hdrPath
-                                   : std::filesystem::path(m_viewportRenderer->getSceneInfo().defaultHdrPath).filename().string().c_str());
-            ImGui::Checkbox("showSkybox", &m_viewportRenderer->getSceneInfo().showSkybox);
-            ImGui::Checkbox("enable shadows", &m_viewportRenderer->getSceneInfo().enableShadows);
-            ImGui::Checkbox("use IBL", &m_viewportRenderer->getSceneInfo().useIBL);
-            ImGui::DragFloat("Ambient Intensity", &m_viewportRenderer->getSceneInfo().ambientIntensity, 0.01f, 0.0f, 1.0f);
-            ImGui::DragFloat("Normal Map Strength", &m_viewportRenderer->getSceneInfo().normalMapStrength, 0.1f, 0.0f, 5.0f);
-            ImGui::DragFloat("Toksvig Strength", &m_viewportRenderer->getSceneInfo().toksvigStrength, 0.05f, 0.0f, 4.0f);
+                                   : std::filesystem::path(sceneInfo.defaultHdrPath).filename().string().c_str());
+            ImGui::Checkbox("showSkybox", &sceneInfo.environmentSettings.showSkybox);
+            ImGui::Checkbox("enable shadows", &sceneInfo.environmentSettings.enableShadows);
+            ImGui::Checkbox("use IBL", &sceneInfo.environmentSettings.useIBL);
+            ImGui::DragFloat("Ambient Intensity", &sceneInfo.environmentSettings.ambientIntensity, 0.01f, 0.0f, 1.0f);
+            ImGui::DragFloat("Normal Map Strength", &sceneInfo.environmentSettings.normalMapStrength, 0.1f, 0.0f, 5.0f);
+            ImGui::DragFloat("Toksvig Strength", &sceneInfo.environmentSettings.toksvigStrength, 0.05f, 0.0f, 4.0f);
 
             ImGui::SeparatorText("SSGI");
             if (ImGui::Checkbox("Enable SSGI", &sceneInfo.enableSSGI))
@@ -512,31 +512,31 @@ namespace Fermion
             }
 
             ImGui::Separator();
-            ImGui::DragFloat("Shadow Bias", &m_viewportRenderer->getSceneInfo().shadowBias, 0.0001f, 0.0f, 0.1f);
+            ImGui::DragFloat("Shadow Bias", &sceneInfo.environmentSettings.shadowBias, 0.0001f, 0.0f, 0.1f);
             ImGui::Separator();
             static const float kShadowSoftnessLevels[] = {0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f};
             static int softnessIndex = 0;
 
-            ImGui::Text("Shadow Softness = %.1f", sceneInfo.shadowSoftness);
+            ImGui::Text("Shadow Softness = %.1f", sceneInfo.environmentSettings.shadowSoftness);
             if (ImGui::SliderInt(
                     "##Shadow Softness",
                     &softnessIndex,
                     0,
                     IM_ARRAYSIZE(kShadowSoftnessLevels) - 1))
             {
-                sceneInfo.shadowSoftness = kShadowSoftnessLevels[softnessIndex];
+                sceneInfo.environmentSettings.shadowSoftness = kShadowSoftnessLevels[softnessIndex];
             }
             ImGui::Separator();
             static const float kShadowMapSizeLevels[] = {1024, 2048, 3072, 4096, 5120};
             static int shadowMapSizeIndex = 0;
-            ImGui::Text("Shadow MapSize = %.u", sceneInfo.shadowMapSize);
+            ImGui::Text("Shadow MapSize = %.u", sceneInfo.environmentSettings.shadowMapSize);
             if (ImGui::SliderInt(
                     "##ShadowMapSize",
                     &shadowMapSizeIndex,
                     0,
                     IM_ARRAYSIZE(kShadowMapSizeLevels) - 1))
             {
-                sceneInfo.shadowMapSize = kShadowMapSizeLevels[shadowMapSizeIndex];
+                sceneInfo.environmentSettings.shadowMapSize = kShadowMapSizeLevels[shadowMapSizeIndex];
             }
             ImGui::End();
         }
@@ -1384,6 +1384,7 @@ namespace Fermion
             return;
 
         SceneSerializer serializer(m_editorScene);
+        syncEnvironmentSettingsToScene();
         serializer.serialize(path);
         m_editorScenePath = path;
 
@@ -1401,6 +1402,7 @@ namespace Fermion
         if (!m_editorScenePath.empty())
         {
             SceneSerializer serializer(m_editorScene);
+            syncEnvironmentSettingsToScene();
             serializer.serialize(m_editorScenePath);
 
             auto editorAssets = Project::getEditorAssetManager();
@@ -1474,6 +1476,7 @@ namespace Fermion
             m_editorScenePath = path;
             m_sceneHierarchyPanel.setContext(m_activeScene);
             m_viewportRenderer->setScene(m_activeScene);
+            syncEnvironmentSettingsFromScene();
             Log::Info(std::format("Scene opened successfully! Path: {}",
                                   path.string()));
         }
@@ -1482,6 +1485,40 @@ namespace Fermion
             Log::Error(std::format("Scene open failed! Path: {}",
                                    path.string()));
         }
+    }
+
+    void BosonLayer::syncEnvironmentSettingsToScene()
+    {
+        if (!m_editorScene || !m_viewportRenderer)
+            return;
+        auto &rendererEnv = m_viewportRenderer->getSceneInfo().environmentSettings;
+        auto &sceneEnv = m_editorScene->getEnvironmentSettings();
+        sceneEnv.showSkybox = rendererEnv.showSkybox;
+        sceneEnv.enableShadows = rendererEnv.enableShadows;
+        sceneEnv.ambientIntensity = rendererEnv.ambientIntensity;
+        sceneEnv.shadowMapSize = rendererEnv.shadowMapSize;
+        sceneEnv.shadowBias = rendererEnv.shadowBias;
+        sceneEnv.shadowSoftness = rendererEnv.shadowSoftness;
+        sceneEnv.normalMapStrength = rendererEnv.normalMapStrength;
+        sceneEnv.toksvigStrength = rendererEnv.toksvigStrength;
+        sceneEnv.useIBL = rendererEnv.useIBL;
+    }
+
+    void BosonLayer::syncEnvironmentSettingsFromScene()
+    {
+        if (!m_editorScene || !m_viewportRenderer)
+            return;
+        auto &sceneEnv = m_editorScene->getEnvironmentSettings();
+        auto &rendererEnv = m_viewportRenderer->getSceneInfo().environmentSettings;
+        rendererEnv.showSkybox = sceneEnv.showSkybox;
+        rendererEnv.enableShadows = sceneEnv.enableShadows;
+        rendererEnv.ambientIntensity = sceneEnv.ambientIntensity;
+        rendererEnv.shadowMapSize = sceneEnv.shadowMapSize;
+        rendererEnv.shadowBias = sceneEnv.shadowBias;
+        rendererEnv.shadowSoftness = sceneEnv.shadowSoftness;
+        rendererEnv.normalMapStrength = sceneEnv.normalMapStrength;
+        rendererEnv.toksvigStrength = sceneEnv.toksvigStrength;
+        rendererEnv.useIBL = sceneEnv.useIBL;
     }
 
     void BosonLayer::onScenePlay()

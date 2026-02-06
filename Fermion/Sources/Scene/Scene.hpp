@@ -16,6 +16,21 @@ namespace Fermion
     class SceneRenderer;
     class Physics3DWorld;
 
+    struct SceneEnvironmentSettings
+    {
+        bool showSkybox = true;
+        bool enableShadows = true;
+        float ambientIntensity = 0.1f;
+
+        uint32_t shadowMapSize = 2048;
+        float shadowBias = 0.01f;
+        float shadowSoftness = 1.0f;
+        float normalMapStrength = 1.0f;
+        float toksvigStrength = 1.0f;
+
+        bool useIBL = true;
+    };
+
     struct PointLight
     {
         glm::vec3 position = {0.0f, 0.0f, 0.0f};
@@ -122,6 +137,9 @@ namespace Fermion
             return m_physicsWorld3D.get();
         }
 
+        SceneEnvironmentSettings &getEnvironmentSettings() { return m_environmentSettings; }
+        const SceneEnvironmentSettings &getEnvironmentSettings() const { return m_environmentSettings; }
+
     private:
         void onPhysics2DStart();
         void onPhysics2DStop();
@@ -140,6 +158,7 @@ namespace Fermion
         int m_stepFrames = 0;
 
         EnvironmentLight m_environmentLight;
+        SceneEnvironmentSettings m_environmentSettings;
         b2WorldId m_physicsWorld = b2_nullWorldId;
 
         bool m_hasDirectionalLight = false;

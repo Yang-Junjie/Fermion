@@ -132,7 +132,22 @@ void NeutrinoLayer::loadScene(const std::string_view &filepath)
     }
 
     if (m_sceneRenderer)
+    {
         m_sceneRenderer->setScene(m_runtimeScene);
+
+        // Sync EnvironmentSettings from scene to renderer
+        auto &sceneEnv = m_runtimeScene->getEnvironmentSettings();
+        auto &rendererEnv = m_sceneRenderer->getSceneInfo().environmentSettings;
+        rendererEnv.showSkybox = sceneEnv.showSkybox;
+        rendererEnv.enableShadows = sceneEnv.enableShadows;
+        rendererEnv.ambientIntensity = sceneEnv.ambientIntensity;
+        rendererEnv.shadowMapSize = sceneEnv.shadowMapSize;
+        rendererEnv.shadowBias = sceneEnv.shadowBias;
+        rendererEnv.shadowSoftness = sceneEnv.shadowSoftness;
+        rendererEnv.normalMapStrength = sceneEnv.normalMapStrength;
+        rendererEnv.toksvigStrength = sceneEnv.toksvigStrength;
+        rendererEnv.useIBL = sceneEnv.useIBL;
+    }
 }
 
 void NeutrinoLayer::onScenePlay() const

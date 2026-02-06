@@ -136,13 +136,13 @@ namespace Fermion
         m_renderContext.viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
         m_renderContext.viewportHeight = m_scene ? m_scene->getViewportHeight() : 0;
         m_renderContext.targetFramebuffer = m_targetFramebuffer;
-        m_renderContext.ambientIntensity = m_sceneData.ambientIntensity;
-        m_renderContext.enableShadows = m_sceneData.enableShadows;
-        m_renderContext.shadowBias = m_sceneData.shadowBias;
-        m_renderContext.shadowSoftness = m_sceneData.shadowSoftness;
-        m_renderContext.normalMapStrength = m_sceneData.normalMapStrength;
-        m_renderContext.toksvigStrength = m_sceneData.toksvigStrength;
-        m_renderContext.useIBL = m_sceneData.useIBL;
+        m_renderContext.ambientIntensity = m_sceneData.environmentSettings.ambientIntensity;
+        m_renderContext.enableShadows = m_sceneData.environmentSettings.enableShadows;
+        m_renderContext.shadowBias = m_sceneData.environmentSettings.shadowBias;
+        m_renderContext.shadowSoftness = m_sceneData.environmentSettings.shadowSoftness;
+        m_renderContext.normalMapStrength = m_sceneData.environmentSettings.normalMapStrength;
+        m_renderContext.toksvigStrength = m_sceneData.environmentSettings.toksvigStrength;
+        m_renderContext.useIBL = m_sceneData.environmentSettings.useIBL;
         m_renderContext.irradianceMapSize = m_sceneData.irradianceMapSize;
         m_renderContext.prefilterMapSize = m_sceneData.prefilterMapSize;
         m_renderContext.brdfLUTSize = m_sceneData.brdfLUTSize;
@@ -507,7 +507,7 @@ namespace Fermion
             shadowMap,
             m_meshDrawList,
             m_sceneData.sceneEnvironmentLight.directionalLights[0],
-            m_sceneData.shadowMapSize,
+            m_sceneData.environmentSettings.shadowMapSize,
             m_targetFramebuffer,
             viewportWidth,
             viewportHeight,
@@ -543,7 +543,7 @@ namespace Fermion
     {
         FrameResources resources;
 
-        if (m_sceneData.enableShadows)
+        if (m_sceneData.environmentSettings.enableShadows)
             resources.shadowMap = m_renderGraph.createResource();
 
         resources.gBuffer = m_renderGraph.createResource();
@@ -578,7 +578,7 @@ namespace Fermion
 
     void SceneRenderer::PrepareEnvironmentAndShadows(const FrameResources &resources)
     {
-        if (m_sceneData.enableShadows)
+        if (m_sceneData.environmentSettings.enableShadows)
             ShadowPass(resources.shadowMap);
     }
 
@@ -651,7 +651,7 @@ namespace Fermion
                 m_sceneData.enableSSGI,
                 m_sceneData.enableGTAO);
 
-            if (m_sceneData.showSkybox)
+            if (m_sceneData.environmentSettings.showSkybox)
                 SkyboxPass(resources.lightingResult);
 
             if (flags.hasTransparent)
@@ -688,7 +688,7 @@ namespace Fermion
             &m_renderer3DStatistics.geometryDrawCalls,
             &m_renderer3DStatistics.iblDrawCalls);
 
-        if (m_sceneData.showSkybox)
+        if (m_sceneData.environmentSettings.showSkybox)
             SkyboxPass(resources.lightingResult);
 
         if (flags.hasTransparent)

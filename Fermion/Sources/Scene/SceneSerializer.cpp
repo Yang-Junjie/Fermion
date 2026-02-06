@@ -334,6 +334,24 @@ namespace Fermion
             serializeEntity(out, entity);
         }
         out << YAML::EndSeq;
+
+        // Serialize EnvironmentSettings
+        {
+            out << YAML::Key << "EnvironmentSettings";
+            out << YAML::BeginMap;
+            auto &env = m_scene->getEnvironmentSettings();
+            out << YAML::Key << "ShowSkybox" << YAML::Value << env.showSkybox;
+            out << YAML::Key << "EnableShadows" << YAML::Value << env.enableShadows;
+            out << YAML::Key << "AmbientIntensity" << YAML::Value << env.ambientIntensity;
+            out << YAML::Key << "ShadowMapSize" << YAML::Value << env.shadowMapSize;
+            out << YAML::Key << "ShadowBias" << YAML::Value << env.shadowBias;
+            out << YAML::Key << "ShadowSoftness" << YAML::Value << env.shadowSoftness;
+            out << YAML::Key << "NormalMapStrength" << YAML::Value << env.normalMapStrength;
+            out << YAML::Key << "ToksvigStrength" << YAML::Value << env.toksvigStrength;
+            out << YAML::Key << "UseIBL" << YAML::Value << env.useIBL;
+            out << YAML::EndMap;
+        }
+
         out << YAML::EndMap;
         std::ofstream fout(filepath);
         fout << out.c_str();
@@ -758,6 +776,32 @@ namespace Fermion
                 }
             }
         }
+
+        // Deserialize EnvironmentSettings
+        auto envNode = data["EnvironmentSettings"];
+        if (envNode && envNode.IsMap())
+        {
+            auto &env = m_scene->getEnvironmentSettings();
+            if (auto n = envNode["ShowSkybox"]; n)
+                env.showSkybox = n.as<bool>();
+            if (auto n = envNode["EnableShadows"]; n)
+                env.enableShadows = n.as<bool>();
+            if (auto n = envNode["AmbientIntensity"]; n)
+                env.ambientIntensity = n.as<float>();
+            if (auto n = envNode["ShadowMapSize"]; n)
+                env.shadowMapSize = n.as<uint32_t>();
+            if (auto n = envNode["ShadowBias"]; n)
+                env.shadowBias = n.as<float>();
+            if (auto n = envNode["ShadowSoftness"]; n)
+                env.shadowSoftness = n.as<float>();
+            if (auto n = envNode["NormalMapStrength"]; n)
+                env.normalMapStrength = n.as<float>();
+            if (auto n = envNode["ToksvigStrength"]; n)
+                env.toksvigStrength = n.as<float>();
+            if (auto m = envNode["UseIBL"]; m)
+                env.useIBL = m.as<bool>();
+        }
+
         return true;
     }
 
