@@ -1,0 +1,65 @@
+Material:
+  Type: 2
+  Name: Material_MR
+  Albedo: [1, 1, 1]
+  Metallic: 1
+  Roughness: 1
+  AO: 1
+  Emissive: [0, 0, 0]
+  EmissiveIntensity: 1
+  AlbedoMap: 2493715504153704453
+  NormalMap: 7553078236290796322
+  MetallicMap: 16026405867881152170
+  RoughnessMap: 16026405867881152170
+  AOMap: 5345533721503086083
+  EmissiveMap: 10970895745636314528
+Editor:
+  NextNodeID: 8
+  NextLinkID: 7
+  Nodes:
+    - ID: 1
+      Type: 0
+      Position: [400, 100]
+    - ID: 2
+      Type: 1
+      Position: [50, 0]
+      TextureHandle: 2493715504153704453
+    - ID: 3
+      Type: 1
+      Position: [50, 150]
+      TextureHandle: 7553078236290796322
+    - ID: 4
+      Type: 1
+      Position: [50, 300]
+      TextureHandle: 16026405867881152170
+    - ID: 5
+      Type: 1
+      Position: [50, 450]
+      TextureHandle: 16026405867881152170
+    - ID: 6
+      Type: 1
+      Position: [50, 600]
+      TextureHandle: 5345533721503086083
+    - ID: 7
+      Type: 1
+      Position: [39, 770]
+      TextureHandle: 10970895745636314528
+  Links:
+    - ID: 1
+      StartPin: 201
+      EndPin: 101
+    - ID: 2
+      StartPin: 301
+      EndPin: 102
+    - ID: 3
+      StartPin: 401
+      EndPin: 103
+    - ID: 4
+      StartPin: 501
+      EndPin: 104
+    - ID: 5
+      StartPin: 601
+      EndPin: 105
+    - ID: 6
+      StartPin: 701
+      EndPin: 106

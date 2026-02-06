@@ -1,0 +1,15 @@
+Material:
+  Type: 2
+  Name: Material_MR
+  Albedo: [1, 1, 1]
+  Metallic: 1
+  Roughness: 1
+  AO: 1
+  Emissive: [0, 0, 0]
+  EmissiveIntensity: 1
+  AlbedoMap: 2493715504153704453
+  NormalMap: 7553078236290796322
+  MetallicMap: 16026405867881152170
+  RoughnessMap: 16026405867881152170
+  AOMap: 5345533721503086083
+  EmissiveMap: 0

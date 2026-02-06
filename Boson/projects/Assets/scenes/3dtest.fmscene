@@ -1,157 +1,5 @@
 Scene: Name
 Entities:
-  - Entity: 13362832373704839983
-    TagComponent:
-      Tag: player
-    TransformComponent:
-      Translation: [-3.0194733, 0.10119653, -0.034729276]
-      Rotation: [-1.5707964, -1.5707964, 0]
-      Scale: [3.63739, 3.6372926, 3.6372926]
-    RelationshipComponent:
-      Parent: 0
-      Children:
-        - 13029796715102793311
-    MeshComponent:
-      MeshHandle: 12114531687242775476
-      MemoryOnly: false
-      MemoryMeshType: 0
-      SubmeshMaterials:
-        - 10459753340594094427
-    AnimatorComponent:
-      SkeletonHandle: 9810600328927751932
-      ActiveClipIndex: 0
-      Speed: 1
-      Playing: true
-      Looping: true
-      AnimationClips:
-        - 14507567345971260926
-  - Entity: 11360655435152651385
-    TagComponent:
-      Tag: Empty Entity
-    TransformComponent:
-      Translation: [8.416231, 3.6175423, 0.8333045]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 4.6419225]
-    RelationshipComponent:
-      Parent: 0
-    MeshComponent:
-      MeshHandle: 5970335479872708629
-      MemoryOnly: true
-      MemoryMeshType: 1
-      SubmeshMaterials:
-        - 5448258832851368164
-    Rigidbody3DComponent:
-      BodyType: 2
-      Mass: 1
-      LinearDamping: 0.01
-      AngularDamping: 0.05
-      UseGravity: true
-      FixedRotation: false
-    BoxCollider3DComponent:
-      Offset: [0, 0, 0]
-      Size: [0.5, 0.5, 0.5]
-      Density: 1
-      Friction: 1
-      Restitution: 0
-      IsTrigger: false
-    ScriptContainerComponent:
-      ScriptClassNames:
-        - Photon.XAxisMove
-        - Photon.CameraRotationTest
-  - Entity: 4743755843832731881
-    TagComponent:
-      Tag: dl
-    TransformComponent:
-      Translation: [9.313226e-10, 4.66257, 3.6338215]
-      Rotation: [-0.90876806, -0, 0]
-      Scale: [1, 1, 1]
-    RelationshipComponent:
-      Parent: 0
-    DirectionalLightComponent:
-      Color: [1, 1, 1]
-      Intensity: 25.5
-      MainLight: true
-  - Entity: 10774058232598574726
-    TagComponent:
-      Tag: floor
-    TransformComponent:
-      Translation: [0, -0.3726985, 0]
-      Rotation: [0, 0, 0]
-      Scale: [36.02469, 1, 47.285305]
-    RelationshipComponent:
-      Parent: 0
-    MeshComponent:
-      MeshHandle: 18283630099768146809
-      MemoryOnly: true
-      MemoryMeshType: 1
-      SubmeshMaterials:
-        - 5448258832851368164
-    Rigidbody3DComponent:
-      BodyType: 0
-      Mass: 1
-      LinearDamping: 0.01
-      AngularDamping: 0.05
-      UseGravity: true
-      FixedRotation: false
-    BoxCollider3DComponent:
-      Offset: [0, 0, 0]
-      Size: [0.5, 0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      IsTrigger: false
-  - Entity: 14144719567661516759
-    TagComponent:
-      Tag: wall
-    TransformComponent:
-      Translation: [6.5984864, 1.1133593, 8.203739]
-      Rotation: [0.6076582, -0, 0]
-      Scale: [6.681284, 0.28712848, 12.530597]
-    RelationshipComponent:
-      Parent: 0
-    MeshComponent:
-      MeshHandle: 2813917529461447302
-      MemoryOnly: true
-      MemoryMeshType: 1
-      SubmeshMaterials:
-        - 14425210814170376866
-    Rigidbody3DComponent:
-      BodyType: 0
-      Mass: 1
-      LinearDamping: 0.01
-      AngularDamping: 0.05
-      UseGravity: true
-      FixedRotation: false
-    BoxCollider3DComponent:
-      Offset: [0, 0, 0]
-      Size: [0.5, 0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      IsTrigger: false
-  - Entity: 9894699710484613839
-    TagComponent:
-      Tag: Empty Entity
-    TransformComponent:
-      Translation: [0, 4.396455, 1.7618214e-07]
-      Rotation: [-1.5707964, 1.5707964, 2.4241324e-08]
-      Scale: [1, 1, 1]
-    RelationshipComponent:
-      Parent: 0
-    MeshComponent:
-      MeshHandle: 14058975965526743887
-      MemoryOnly: false
-      MemoryMeshType: 0
-      SubmeshMaterials:
-        - 7387536021182561952
-    AnimatorComponent:
-      SkeletonHandle: 11771943120765843024
-      ActiveClipIndex: 0
-      Speed: 1
-      Playing: true
-      Looping: true
-      AnimationClips:
-        - 6663496551838248239
   - Entity: 16433565487989043854
     TagComponent:
       Tag: wall
@@ -162,7 +10,7 @@ Entities:
     RelationshipComponent:
       Parent: 0
     MeshComponent:
-      MeshHandle: 5074215732884404040
+      MeshHandle: 6425468443051726601
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:
@@ -201,3 +49,132 @@ Entities:
         OrthographicFar: 100
       Primary: true
       FixedAspectRatio: false
+  - Entity: 14144719567661516759
+    TagComponent:
+      Tag: wall
+    TransformComponent:
+      Translation: [6.5984864, 1.1133593, 8.203739]
+      Rotation: [0.6076582, -0, 0]
+      Scale: [6.681284, 0.28712848, 12.530597]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 12885648570927973590
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 14425210814170376866
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 10774058232598574726
+    TagComponent:
+      Tag: floor
+    TransformComponent:
+      Translation: [0, -0.3726985, 0]
+      Rotation: [0, 0, 0]
+      Scale: [36.02469, 1, 47.285305]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 9841163596596432852
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 5448258832851368164
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 4743755843832731881
+    TagComponent:
+      Tag: dl
+    TransformComponent:
+      Translation: [9.313226e-10, 4.66257, 3.6338215]
+      Rotation: [-0.90876806, -0, 0]
+      Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
+    DirectionalLightComponent:
+      Color: [1, 1, 1]
+      Intensity: 25.5
+      MainLight: true
+  - Entity: 11360655435152651385
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [8.416231, 3.6175423, 0.8333045]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 4.6419225]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 14656172172533215769
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 5448258832851368164
+    Rigidbody3DComponent:
+      BodyType: 2
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 1
+      Restitution: 0
+      IsTrigger: false
+    ScriptContainerComponent:
+      ScriptClassNames:
+        - Photon.XAxisMove
+        - Photon.CameraRotationTest
+  - Entity: 13362832373704839983
+    TagComponent:
+      Tag: player
+    TransformComponent:
+      Translation: [-3.0194733, 0.10119653, -0.034729276]
+      Rotation: [-1.5707964, -1.5707964, 0]
+      Scale: [3.63739, 3.6372926, 3.6372926]
+    RelationshipComponent:
+      Parent: 0
+      Children:
+        - 13029796715102793311
+    MeshComponent:
+      MeshHandle: 12114531687242775476
+      MemoryOnly: false
+      MemoryMeshType: 0
+      SubmeshMaterials:
+        - 10459753340594094427
+    AnimatorComponent:
+      SkeletonHandle: 9810600328927751932
+      ActiveClipIndex: 0
+      Speed: 1
+      Playing: true
+      Looping: true
+      AnimationClips:
+        - 14507567345971260926

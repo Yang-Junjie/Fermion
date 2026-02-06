@@ -1,0 +1,8 @@
+Model:
+  Name: DamagedHelmet
+  Mesh: 16995833566098313806
+  Materials:
+    - Slot: 0
+      Handle: 14366777016250952074
+    - Slot: 1
+      Handle: 6327250490176856646

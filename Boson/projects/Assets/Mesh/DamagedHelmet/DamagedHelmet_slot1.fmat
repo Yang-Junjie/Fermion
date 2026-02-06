@@ -5,8 +5,11 @@ Material:
   Metallic: 1
   Roughness: 1
   AO: 1
+  Emissive: [0, 0, 0]
+  EmissiveIntensity: 1
   AlbedoMap: 0
   NormalMap: 0
   MetallicMap: 0
   RoughnessMap: 0
   AOMap: 0
+  EmissiveMap: 0
