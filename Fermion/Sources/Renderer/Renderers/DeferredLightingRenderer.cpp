@@ -10,6 +10,7 @@
 #include "Renderer/UniformBuffer.hpp"
 #include "Renderer/VertexArray.hpp"
 #include "Renderer/Pipeline.hpp"
+#include "Core/Log.hpp"
 
 namespace Fermion
 {
@@ -67,12 +68,15 @@ namespace Fermion
             if (!gBufferFramebuffer || !m_pipeline)
                 return;
 
+            Log::Trace(std::format("[LightingPass] Starting lighting pass"));
             if (context.targetFramebuffer)
             {
+                Log::Trace(std::format("[LightingPass] Binding target framebuffer: {}", (void*)context.targetFramebuffer.get()));
                 queue.submit(CmdBindFramebuffer{context.targetFramebuffer});
             }
             else
             {
+                Log::Trace(std::format("[LightingPass] No target framebuffer, rendering to default FB (0)"));
                 if (context.viewportWidth > 0 && context.viewportHeight > 0)
                     queue.submit(CmdSetViewport{0, 0, context.viewportWidth, context.viewportHeight});
             }
@@ -114,6 +118,10 @@ namespace Fermion
                 .brdfLUTSize = context.brdfLUTSize,
                 .prefilterMaxMipLevels = context.prefilterMaxMipLevels
             };
+
+            Log::Trace(std::format("[DeferredLighting] IBL settings: useIBL={}, ambientIntensity={}",
+                                  context.useIBL, context.ambientIntensity));
+            Log::Trace(std::format("[DeferredLighting] envRenderer={}", (void*)envRenderer));
 
             const bool useSSGI = enableSSGI && ssgiRenderer && ssgiRenderer->getResultFramebuffer();
             const bool useGTAO = enableGTAO && gtaoRenderer && gtaoRenderer->getResultFramebuffer();
@@ -170,10 +178,12 @@ namespace Fermion
 
                 if (envRenderer)
                 {
+                    Log::Trace("[DeferredLighting] Binding IBL from envRenderer");
                     envRenderer->bindIBL(shader, iblSettings);
                 }
                 else
                 {
+                    Log::Trace("[DeferredLighting] No envRenderer available, disabling IBL");
                     shader->setBool("u_UseIBL", false);
                 }
 

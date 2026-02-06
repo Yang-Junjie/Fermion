@@ -1,11 +1,11 @@
 Scene: Name
 Entities:
-  - Entity: 3295698318381262255
+  - Entity: 7179213451869219871
     TagComponent:
       Tag: Empty Entity
     TransformComponent:
-      Translation: [3.3958414, 1.1371589, 0]
-      Rotation: [0, 0, 0]
+      Translation: [-1.1252244, 1.1319014, -0.05028688]
+      Rotation: [0.058121838, 0.018868743, 0.016587857]
       Scale: [1, 1, 1]
     RelationshipComponent:
       Parent: 0
@@ -14,7 +14,52 @@ Entities:
       MemoryOnly: false
       MemoryMeshType: 0
       SubmeshMaterials:
-        - 14380219146205500101
+        - 5448258832851368164
+    Rigidbody3DComponent:
+      BodyType: 1
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    MeshCollider3DComponent:
+      Offset: [0, 0, 0]
+      MeshHandle: 983756287400397806
+      Convex: true
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 9312113796207270584
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [0.34848025, 1.1631881, -0.038062047]
+      Rotation: [0.03168076, 0.018868728, 0.016587356]
+      Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 983756287400397806
+      MemoryOnly: false
+      MemoryMeshType: 0
+      SubmeshMaterials:
+        - 792032775927799854
+    Rigidbody3DComponent:
+      BodyType: 1
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    MeshCollider3DComponent:
+      Offset: [0, 0, 0]
+      MeshHandle: 983756287400397806
+      Convex: true
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
   - Entity: 11240105626377157121
     TagComponent:
       Tag: Empty Entity
@@ -30,36 +75,6 @@ Entities:
       MemoryMeshType: 0
       SubmeshMaterials:
         - 14425210814170376866
-  - Entity: 9312113796207270584
-    TagComponent:
-      Tag: Empty Entity
-    TransformComponent:
-      Translation: [0.31818163, 1.1371589, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    RelationshipComponent:
-      Parent: 0
-    MeshComponent:
-      MeshHandle: 983756287400397806
-      MemoryOnly: false
-      MemoryMeshType: 0
-      SubmeshMaterials:
-        - 792032775927799854
-  - Entity: 5455624548299688826
-    TagComponent:
-      Tag: Empty Entity
-    TransformComponent:
-      Translation: [-1.1297324, 1.1371589, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    RelationshipComponent:
-      Parent: 0
-    MeshComponent:
-      MeshHandle: 983756287400397806
-      MemoryOnly: false
-      MemoryMeshType: 0
-      SubmeshMaterials:
-        - 5448258832851368164
   - Entity: 8905502929131365907
     TagComponent:
       Tag: Empty Entity
@@ -122,17 +137,31 @@ Entities:
     TagComponent:
       Tag: floor
     TransformComponent:
-      Translation: [0, 0, 0]
+      Translation: [-0.14729398, 0, 0]
       Rotation: [0, 0, 0]
-      Scale: [12.149919, 1, 18.806814]
+      Scale: [15.253271, 1, 18.806814]
     RelationshipComponent:
       Parent: 0
     MeshComponent:
-      MeshHandle: 11060348311619464446
+      MeshHandle: 5144585305562017945
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:
         - 6634658485454426090
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
   - Entity: 4208437932203581464
     TagComponent:
       Tag: Empty Entity
@@ -153,13 +182,28 @@ Entities:
         OrthographicFar: 100
       Primary: true
       FixedAspectRatio: false
+  - Entity: 3295698318381262255
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [3.3958414, 1.1371589, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 983756287400397806
+      MemoryOnly: false
+      MemoryMeshType: 0
+      SubmeshMaterials:
+        - 14380219146205500101
 EnvironmentSettings:
   ShowSkybox: true
-  EnableShadows: false
+  EnableShadows: true
   AmbientIntensity: 0.1
   ShadowMapSize: 5120
   ShadowBias: 0.01
   ShadowSoftness: 10
   NormalMapStrength: 1
   ToksvigStrength: 1
-  UseIBL: false
+  UseIBL: true

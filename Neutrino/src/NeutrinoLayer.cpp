@@ -138,6 +138,13 @@ void NeutrinoLayer::loadScene(const std::string_view &filepath)
         // Sync EnvironmentSettings from scene to renderer
         auto &sceneEnv = m_runtimeScene->getEnvironmentSettings();
         auto &rendererEnv = m_sceneRenderer->getSceneInfo().environmentSettings;
+
+        Fermion::Log::Info(std::format("[Neutrino] Syncing environment settings from scene to renderer:"));
+        Fermion::Log::Info(std::format("  showSkybox: {}", sceneEnv.showSkybox));
+        Fermion::Log::Info(std::format("  useIBL: {}", sceneEnv.useIBL));
+        Fermion::Log::Info(std::format("  ambientIntensity: {}", sceneEnv.ambientIntensity));
+        Fermion::Log::Info(std::format("  enableShadows: {}", sceneEnv.enableShadows));
+
         rendererEnv.showSkybox = sceneEnv.showSkybox;
         rendererEnv.enableShadows = sceneEnv.enableShadows;
         rendererEnv.ambientIntensity = sceneEnv.ambientIntensity;

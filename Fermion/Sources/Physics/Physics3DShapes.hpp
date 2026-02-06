@@ -9,6 +9,7 @@ namespace Fermion
     struct BoxCollider3DComponent;
     struct CircleCollider3DComponent;
     struct CapsuleCollider3DComponent;
+    struct MeshCollider3DComponent;
 
     namespace Physics3DShapes
     {
@@ -21,5 +22,8 @@ namespace Fermion
 
         JPH::ShapeRefC CreateCapsuleShape(const TransformComponent &transform,
                                           const CapsuleCollider3DComponent *collider);
+
+        JPH::ShapeRefC CreateMeshShape(const TransformComponent &transform,
+                                       const MeshCollider3DComponent *collider);
     } // namespace Physics3DShapes
 } // namespace Fermion

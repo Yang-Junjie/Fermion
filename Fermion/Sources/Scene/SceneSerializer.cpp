@@ -241,6 +241,21 @@ namespace Fermion
             out << YAML::Key << "IsTrigger" << YAML::Value << cc.isTrigger;
             out << YAML::EndMap;
         }
+        if (entity.hasComponent<MeshCollider3DComponent>())
+        {
+            out << YAML::Key << "MeshCollider3DComponent";
+            out << YAML::BeginMap;
+            auto &mc = entity.getComponent<MeshCollider3DComponent>();
+            out << YAML::Key << "Offset" << YAML::Value << mc.offset;
+            if (static_cast<uint64_t>(mc.meshHandle) != 0)
+                out << YAML::Key << "MeshHandle" << YAML::Value << static_cast<uint64_t>(mc.meshHandle);
+            out << YAML::Key << "Convex" << YAML::Value << mc.convex;
+            out << YAML::Key << "Density" << YAML::Value << mc.density;
+            out << YAML::Key << "Friction" << YAML::Value << mc.friction;
+            out << YAML::Key << "Restitution" << YAML::Value << mc.restitution;
+            out << YAML::Key << "IsTrigger" << YAML::Value << mc.isTrigger;
+            out << YAML::EndMap;
+        }
         if (entity.hasComponent<BoxSensor2DComponent>())
         {
             out << YAML::Key << "BoxSensor2DComponent";
@@ -684,6 +699,29 @@ namespace Fermion
                     if (auto n = capsuleCollider3DComponent["IsTrigger"]; n)
                         cc.isTrigger = n.as<bool>();
                 }
+                auto meshCollider3DComponent = entity["MeshCollider3DComponent"];
+                if (meshCollider3DComponent && meshCollider3DComponent.IsMap())
+                {
+                    auto &mc = deserializedEntity.addComponent<MeshCollider3DComponent>();
+                    if (auto n = meshCollider3DComponent["Offset"]; n)
+                        mc.offset = n.as<glm::vec3>();
+                    if (auto n = meshCollider3DComponent["MeshHandle"]; n)
+                    {
+                        uint64_t handleValue = n.as<uint64_t>();
+                        if (handleValue != 0)
+                            mc.meshHandle = AssetHandle(handleValue);
+                    }
+                    if (auto n = meshCollider3DComponent["Convex"]; n)
+                        mc.convex = n.as<bool>();
+                    if (auto n = meshCollider3DComponent["Density"]; n)
+                        mc.density = n.as<float>();
+                    if (auto n = meshCollider3DComponent["Friction"]; n)
+                        mc.friction = n.as<float>();
+                    if (auto n = meshCollider3DComponent["Restitution"]; n)
+                        mc.restitution = n.as<float>();
+                    if (auto n = meshCollider3DComponent["IsTrigger"]; n)
+                        mc.isTrigger = n.as<bool>();
+                }
                 auto boxSensor2DComponent = entity["BoxSensor2DComponent"];
                 if (boxSensor2DComponent && boxSensor2DComponent.IsMap())
                 {
@@ -800,6 +838,16 @@ namespace Fermion
                 env.toksvigStrength = n.as<float>();
             if (auto m = envNode["UseIBL"]; m)
                 env.useIBL = m.as<bool>();
+
+            Log::Info(std::format("[SceneSerializer] Deserialized EnvironmentSettings:"));
+            Log::Info(std::format("  showSkybox: {}", env.showSkybox));
+            Log::Info(std::format("  useIBL: {}", env.useIBL));
+            Log::Info(std::format("  ambientIntensity: {}", env.ambientIntensity));
+            Log::Info(std::format("  enableShadows: {}", env.enableShadows));
+        }
+        else
+        {
+            Log::Warn("[SceneSerializer] No EnvironmentSettings found in scene file, using defaults");
         }
 
         return true;

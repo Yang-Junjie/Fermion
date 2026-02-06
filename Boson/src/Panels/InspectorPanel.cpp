@@ -455,6 +455,7 @@ namespace Fermion
             displayAddComponentEntry<BoxCollider3DComponent>("Box Collider3D");
             displayAddComponentEntry<CircleCollider3DComponent>("Circle Collider3D");
             displayAddComponentEntry<CapsuleCollider3DComponent>("Capsule Collider3D");
+            displayAddComponentEntry<MeshCollider3DComponent>("Mesh Collider3D");
             displayAddComponentEntry<DirectionalLightComponent>("Directional Light");
             displayAddComponentEntry<PointLightComponent>("Point Light");
             displayAddComponentEntry<SpotLightComponent>("Spot Light");
@@ -1157,6 +1158,44 @@ namespace Fermion
             ui::drawVec3Control("Offset",component.offset,0.0f,100.0f,0.1f);
             ui::drawFloatControl("Radius",component.radius,150.0f,0.01f,0.0f,100.0f);
             ui::drawFloatControl("Height",component.height,150.0f,0.01f,0.0f,100.0f);
+            ui::drawFloatControl("Density",component.density,150.0f,0.01f,0.0f,10.0f);
+            ui::drawFloatControl("Friction",component.friction,150.0f,0.01f,0.0f,1.0f);
+            ui::drawFloatControl("Restitution",component.restitution,150.0f,0.01f,0.0f,1.0f);
+            ui::drawCheckboxControl("Trigger", component.isTrigger, 150.0f); });
+        drawComponent<MeshCollider3DComponent>("Mesh Collider 3D", entity, [](auto &component)
+                                               {
+            auto editorAssets = Project::getEditorAssetManager();
+
+            ui::drawVec3Control("Offset",component.offset,0.0f,100.0f,0.1f);
+
+            ImGui::Separator();
+            ImGui::Text("Mesh Source");
+            ImGui::Text("Mesh Handle: %llu", static_cast<uint64_t>(component.meshHandle));
+
+            ImGui::Button("Drag Mesh Here", ImVec2(-1, 20));
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_MODEL"))
+                {
+                    if (auto view = payloadToStringView(payload))
+                    {
+                        AssetHandle modelHandle = editorAssets->importAsset(std::filesystem::path(*view));
+                        if (static_cast<uint64_t>(modelHandle) != 0)
+                        {
+                            auto modelAsset = editorAssets->getAsset<ModelAsset>(modelHandle);
+                            if (modelAsset)
+                                component.meshHandle = modelAsset->mesh;
+                        }
+                    }
+                }
+                ImGui::EndDragDropTarget();
+            }
+
+            if (ImGui::Button("Clear Mesh", ImVec2(-1, 0)))
+                component.meshHandle = AssetHandle(0);
+
+            ImGui::Separator();
+            ui::drawCheckboxControl("Convex", component.convex, 150.0f);
             ui::drawFloatControl("Density",component.density,150.0f,0.01f,0.0f,10.0f);
             ui::drawFloatControl("Friction",component.friction,150.0f,0.01f,0.0f,1.0f);
             ui::drawFloatControl("Restitution",component.restitution,150.0f,0.01f,0.0f,1.0f);

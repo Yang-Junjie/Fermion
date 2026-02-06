@@ -5,6 +5,7 @@
 #include "Renderer/UniformBufferLayout.hpp"
 #include "Renderer/UniformBuffer.hpp"
 #include "Renderer/Pipeline.hpp"
+#include "Core/Log.hpp"
 
 namespace Fermion
 {
@@ -194,9 +195,11 @@ namespace Fermion
             {
                 // Blit depth to default framebuffer (0) for correct skybox/transparent rendering
                 queue.submit(CmdCustom{[this, vpW = context.viewportWidth, vpH = context.viewportHeight]() {
+                    Log::Trace(std::format("[GBuffer] Blitting depth to default framebuffer (viewport: {}x{})", vpW, vpH));
                     Framebuffer::blitToDefault(m_framebuffer, vpW, vpH, {
                         .mask = FramebufferBlitMask::Depth
                     });
+                    Log::Trace(std::format("[GBuffer] Blit complete, should be bound to default FB (0)"));
                 }});
                 if (context.viewportWidth > 0 && context.viewportHeight > 0)
                     queue.submit(CmdSetViewport{0, 0, context.viewportWidth, context.viewportHeight});

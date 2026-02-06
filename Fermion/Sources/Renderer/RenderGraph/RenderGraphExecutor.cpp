@@ -1,5 +1,6 @@
 #include "RenderGraphExecutor.hpp"
 #include "PassContext.hpp"
+#include "Core/Log.hpp"
 
 namespace Fermion
 {
@@ -11,6 +12,11 @@ namespace Fermion
         RenderCommandQueue &commandQueue,
         RendererAPI &api)
     {
+        static uint32_t frameCount = 0;
+        frameCount++;
+        Log::Trace(std::format("RenderGraphExecutor::execute - Frame {}, passes: {}, executionOrder: {}",
+                  frameCount, passes.size(), executionOrder.size()));
+
         allocateResources(resources, resourcePool);
 
         std::unordered_map<RenderGraphResourceHandle, std::shared_ptr<Framebuffer>> framebufferMap;
@@ -25,6 +31,9 @@ namespace Fermion
         {
             const auto &pass = passes[passIndex];
 
+            Log::Trace(std::format("  Pass[{}]: {}, shouldExecute: {}",
+                      passIndex, pass.getName(), pass.shouldExecute()));
+
             if (!pass.shouldExecute())
                 continue;
 
@@ -35,7 +44,9 @@ namespace Fermion
         }
 
         // 统一执行所有录制的命令
+        Log::Trace("  Flushing command queue...");
         commandQueue.flush(api);
+        Log::Trace("  Command queue flushed");
         releaseResources(resources, resourcePool);
     }
 

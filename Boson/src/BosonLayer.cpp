@@ -1210,6 +1210,59 @@ namespace Fermion
                 drawArc(bottomCenter, forward, up, scaledRadius, kTwoPi * 0.5f, kTwoPi, arcSegments, collider3DColor);
             }
         }
+
+        // 3D Mesh Colliders
+        {
+            auto view = m_activeScene->getAllEntitiesWith<TransformComponent, MeshCollider3DComponent>();
+            for (auto entity : view)
+            {
+                Entity colliderEntity{entity, m_activeScene.get()};
+                auto [tc, mc3d] = view.get<TransformComponent, MeshCollider3DComponent>(entity);
+
+                if (static_cast<uint64_t>(mc3d.meshHandle) == 0)
+                    continue;
+
+                auto editorAssets = Project::getEditorAssetManager();
+                auto mesh = editorAssets->getAsset<Mesh>(mc3d.meshHandle);
+                if (!mesh)
+                    continue;
+
+                const auto &vertices = mesh->getVertices();
+                const auto &indices = mesh->getIndices();
+
+                if (vertices.empty() || indices.empty())
+                    continue;
+
+                glm::mat4 rotation = glm::toMat4(glm::quat(tc.rotation));
+                glm::mat4 localTransform = glm::translate(glm::mat4(1.0f), tc.translation) *
+                                           rotation *
+                                           glm::translate(glm::mat4(1.0f), mc3d.offset) *
+                                           glm::scale(glm::mat4(1.0f), tc.scale);
+                glm::mat4 transform = getParentTransform(colliderEntity) * localTransform;
+
+                // Draw mesh edges
+                for (size_t i = 0; i < indices.size(); i += 3)
+                {
+                    if (i + 2 >= indices.size())
+                        break;
+
+                    uint32_t idx0 = indices[i];
+                    uint32_t idx1 = indices[i + 1];
+                    uint32_t idx2 = indices[i + 2];
+
+                    if (idx0 >= vertices.size() || idx1 >= vertices.size() || idx2 >= vertices.size())
+                        continue;
+
+                    glm::vec3 v0 = transform * glm::vec4(vertices[idx0].Position, 1.0f);
+                    glm::vec3 v1 = transform * glm::vec4(vertices[idx1].Position, 1.0f);
+                    glm::vec3 v2 = transform * glm::vec4(vertices[idx2].Position, 1.0f);
+
+                    m_viewportRenderer->drawLine(v0, v1, collider3DColor);
+                    m_viewportRenderer->drawLine(v1, v2, collider3DColor);
+                    m_viewportRenderer->drawLine(v2, v0, collider3DColor);
+                }
+            }
+        }
     }
 
     void BosonLayer::renderSelectedEntityOutline() const

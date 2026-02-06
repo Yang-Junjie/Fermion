@@ -117,6 +117,15 @@ namespace Fermion
                 restitution = collider.restitution;
                 isTrigger = collider.isTrigger;
             }
+            else if (entity.hasComponent<MeshCollider3DComponent>())
+            {
+                const auto &collider = entity.getComponent<MeshCollider3DComponent>();
+                shape = Physics3DShapes::CreateMeshShape(worldTransform, &collider);
+                offset = collider.offset;
+                friction = collider.friction;
+                restitution = collider.restitution;
+                isTrigger = collider.isTrigger;
+            }
             else
             {
                 // No collider component, skip
@@ -240,6 +249,10 @@ namespace Fermion
                 {
                     offset = entity.getComponent<CircleCollider3DComponent>().offset;
                 }
+                else if (entity.hasComponent<MeshCollider3DComponent>())
+                {
+                    offset = entity.getComponent<MeshCollider3DComponent>().offset;
+                }
                 glm::vec3 worldOffset = rotationQuat * offset;
                 glm::vec3 bodyPosition = worldTransform.translation + worldOffset;
 
@@ -292,6 +305,10 @@ namespace Fermion
             else if (entity.hasComponent<CircleCollider3DComponent>())
             {
                 offset = entity.getComponent<CircleCollider3DComponent>().offset;
+            }
+            else if (entity.hasComponent<MeshCollider3DComponent>())
+            {
+                offset = entity.getComponent<MeshCollider3DComponent>().offset;
             }
             glm::vec3 worldOffset = rotation * offset;
 

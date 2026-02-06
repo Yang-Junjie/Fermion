@@ -176,10 +176,21 @@ namespace Fermion
                                                    uint32_t viewportHeight,
                                                    uint32_t *iblDrawCalls)
     {
-        if (m_iblInitialized || !m_environmentCubemap || !settings.useIBL)
-            return;
+        Log::Trace(std::format("[EnvironmentRenderer::ensureIBLInitialized] m_iblInitialized={}, m_environmentCubemap={}, settings.useIBL={}",
+                              m_iblInitialized, (void*)m_environmentCubemap.get(), settings.useIBL));
 
-        Log::Info("Initializing IBL from HDR environment...");
+        if (m_iblInitialized || !m_environmentCubemap || !settings.useIBL)
+        {
+            if (m_iblInitialized)
+                Log::Trace("[EnvironmentRenderer] IBL already initialized, skipping");
+            else if (!m_environmentCubemap)
+                Log::Warn("[EnvironmentRenderer] No environment cubemap, cannot initialize IBL");
+            else if (!settings.useIBL)
+                Log::Trace("[EnvironmentRenderer] IBL disabled in settings, skipping initialization");
+            return;
+        }
+
+        Log::Trace("Initializing IBL from HDR environment...");
 
         generateIrradianceMap(settings, targetFramebuffer, viewportWidth, viewportHeight, iblDrawCalls);
         generatePrefilterMap(settings, targetFramebuffer, viewportWidth, viewportHeight, iblDrawCalls);
@@ -192,9 +203,18 @@ namespace Fermion
     void EnvironmentRenderer::bindIBL(const std::shared_ptr<Shader> &shader, const IBLSettings &settings) const
     {
         const bool enableIBL = settings.useIBL && m_iblInitialized;
+
+        Log::Trace(std::format("[EnvironmentRenderer::bindIBL] settings.useIBL={}, m_iblInitialized={}, enableIBL={}",
+                              settings.useIBL, m_iblInitialized, enableIBL));
+        Log::Trace(std::format("[EnvironmentRenderer::bindIBL] m_irradianceMap={}, m_prefilterMap={}, m_brdfLUT={}",
+                              (void*)m_irradianceMap.get(), (void*)m_prefilterMap.get(), (void*)m_brdfLUT.get()));
+
         shader->setBool("u_UseIBL", enableIBL);
         if (!enableIBL)
+        {
+            Log::Trace("[EnvironmentRenderer::bindIBL] IBL disabled, shader will use ambient intensity fallback");
             return;
+        }
 
         shader->setInt("u_IrradianceMap", 11);
         shader->setInt("u_PrefilterMap", 12);
@@ -222,7 +242,12 @@ namespace Fermion
         pass.Execute = [this, view, projection, skyboxDrawCalls](RenderCommandQueue& queue)
         {
             if (!m_environmentCubemap)
+            {
+                Log::Trace("[SkyboxPass] No environment cubemap available, skipping skybox rendering");
                 return;
+            }
+
+            Log::Trace(std::format("[SkyboxPass] Rendering skybox with cubemap={}", (void*)m_environmentCubemap.get()));
 
             SkyboxDrawCommand cmd;
             cmd.pipeline = m_skyboxPipeline;

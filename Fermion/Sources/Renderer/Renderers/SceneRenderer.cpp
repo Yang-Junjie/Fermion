@@ -147,6 +147,9 @@ namespace Fermion
         m_renderContext.prefilterMapSize = m_sceneData.prefilterMapSize;
         m_renderContext.brdfLUTSize = m_sceneData.brdfLUTSize;
         m_renderContext.prefilterMaxMipLevels = m_sceneData.prefilterMaxMipLevels;
+
+        Log::Trace(std::format("[SceneRenderer::updateRenderContext] useIBL={}, ambientIntensity={}, showSkybox={}",
+                              m_renderContext.useIBL, m_renderContext.ambientIntensity, m_sceneData.environmentSettings.showSkybox));
     }
 
     void SceneRenderer::endScene()
@@ -482,7 +485,13 @@ namespace Fermion
     void SceneRenderer::SkyboxPass(ResourceHandle lightingResult)
     {
         if (!m_environmentRenderer)
+        {
+            Log::Warn("[SceneRenderer::SkyboxPass] No environment renderer available");
             return;
+        }
+
+        Log::Trace(std::format("[SceneRenderer::SkyboxPass] hasEnvironment={}",
+                              m_environmentRenderer->hasEnvironment()));
 
         m_environmentRenderer->addSkyboxPass(m_renderGraph,
                                              m_sceneData.sceneCamera.view,
@@ -584,6 +593,11 @@ namespace Fermion
 
     void SceneRenderer::RenderDeferredPath(const FrameResources &resources, const FrameFlags &flags)
     {
+        Log::Trace(std::format("[SceneRenderer::RenderDeferredPath] Starting deferred rendering path"));
+        Log::Trace(std::format("  showSkybox: {}", m_sceneData.environmentSettings.showSkybox));
+        Log::Trace(std::format("  useIBL: {}", m_sceneData.environmentSettings.useIBL));
+        Log::Trace(std::format("  ambientIntensity: {}", m_sceneData.environmentSettings.ambientIntensity));
+
         // GBuffer Pass
         m_gBufferRenderer->addPass(
             m_renderGraph,
@@ -652,7 +666,14 @@ namespace Fermion
                 m_sceneData.enableGTAO);
 
             if (m_sceneData.environmentSettings.showSkybox)
+            {
+                Log::Trace("[SceneRenderer] Adding skybox pass (deferred path)");
                 SkyboxPass(resources.lightingResult);
+            }
+            else
+            {
+                Log::Trace("[SceneRenderer] Skybox disabled, skipping skybox pass");
+            }
 
             if (flags.hasTransparent)
             {
