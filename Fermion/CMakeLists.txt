@@ -243,6 +243,7 @@ target_include_directories(engine PUBLIC
     ${EXTERNAL_DIR}/stb
     ${EXTERNAL_DIR}/yaml-cpp/include
     ${EXTERNAL_DIR}/ImGuizmo
+    ${EXTERNAL_DIR}
     ${EXTERNAL_DIR}/ImguiNodeEditor
     ${EXTERNAL_DIR}/ImguiNodeEditor/examples/blueprints-example/utilities
     ${EXTERNAL_DIR}/box2d/include

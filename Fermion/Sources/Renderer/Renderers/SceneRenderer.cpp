@@ -74,17 +74,33 @@ namespace Fermion
 
     void SceneRenderer::beginScene(const Camera &camera, const glm::mat4 &transform)
     {
-        beginScene({camera, glm::inverse(transform)});
+        SceneRendererCamera sceneCamera{camera, glm::inverse(transform)};
+
+        if (const auto *sc = dynamic_cast<const SceneCamera *>(&camera);
+            sc && sc->getProjectionType() == SceneCamera::ProjectionType::Orthographic)
+        {
+            const glm::mat4 &proj = camera.getProjection();
+            float aspectRatio = (proj[0][0] != 0.0f) ? (proj[1][1] / proj[0][0]) : 1.778f;
+            sceneCamera.skyboxProjection = glm::perspective(
+                sc->getPerspectiveFOV(), aspectRatio,
+                sc->getPerspectiveNearClip(), sc->getPerspectiveFarClip());
+        }
+
+        beginScene(sceneCamera);
     }
 
     void SceneRenderer::beginScene(const EditorCamera &camera)
     {
-        beginScene({camera, camera.getViewMatrix(), camera.getFarCilp(), camera.getNearCilp()});
+        SceneRendererCamera sceneCamera{camera, camera.getViewMatrix(), camera.getFarCilp(), camera.getNearCilp(),
+                                        camera.getPerspectiveProjection()};
+        beginScene(sceneCamera);
     }
 
     void SceneRenderer::beginScene(const SceneRendererCamera &camera)
     {
         m_sceneData.sceneCamera = camera;
+        if (m_sceneData.sceneCamera.skyboxProjection == glm::mat4(1.0f))
+            m_sceneData.sceneCamera.skyboxProjection = camera.camera.getProjection();
         m_sceneData.sceneEnvironmentLight = m_scene->m_environmentLight;
         m_cameraFrustumPlanes = Math::ExtractFrustumPlanes(camera.camera.getProjection() * camera.view);
         m_hasCameraFrustum = true;
@@ -495,7 +511,7 @@ namespace Fermion
 
         m_environmentRenderer->addSkyboxPass(m_renderGraph,
                                              m_sceneData.sceneCamera.view,
-                                             m_sceneData.sceneCamera.camera.getProjection(),
+                                             m_sceneData.sceneCamera.skyboxProjection,
                                              &m_renderer3DStatistics.skyboxDrawCalls,
                                              lightingResult);
     }

@@ -3,13 +3,17 @@
 set(BOSON_SOUCES
     ${CMAKE_CURRENT_LIST_DIR}/src/BosonEditor.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/BosonLayer.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/BosonLayer_Project.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/BosonLayer_Scene.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/Panels/SceneHierarchyPanel.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/Panels/ContentBrowserPanel.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/Panels/AssetManagerPanel.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/Panels/InspectorPanel.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/Panels/MenuBarPanel.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/Panels/MaterialEditorPanel.cpp
-
+    ${CMAKE_CURRENT_LIST_DIR}/src/Panels/ViewportPanel.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/Panels/SettingsPanel.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/Panels/OverlayRenderPanel.cpp
 )
 
 add_executable(BosonEditor ${BOSON_SOUCES})

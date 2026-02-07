@@ -21,7 +21,18 @@ namespace Fermion
     void EditorCamera::updateProjection()
     {
         m_aspectRatio = m_viewportWidth / m_viewportHeight;
-        m_projection = glm::perspective(glm::radians(m_fov), m_aspectRatio, m_nearClip, m_farClip);
+        if (m_projectionType == ProjectionType::Perspective)
+        {
+            m_projection = glm::perspective(glm::radians(m_fov), m_aspectRatio, m_nearClip, m_farClip);
+        }
+        else
+        {
+            float orthoLeft = -m_orthoSize * m_aspectRatio * 0.5f;
+            float orthoRight = m_orthoSize * m_aspectRatio * 0.5f;
+            float orthoBottom = -m_orthoSize * 0.5f;
+            float orthoTop = m_orthoSize * 0.5f;
+            m_projection = glm::ortho(orthoLeft, orthoRight, orthoBottom, orthoTop, m_orthoNearClip, m_orthoFarClip);
+        }
     }
 
     void EditorCamera::updateView()
@@ -125,6 +136,12 @@ namespace Fermion
         {
             m_fpsMoveSpeed = std::clamp(m_fpsMoveSpeed + delta, 1.0f, 30.0f);
         }
+        else if (m_projectionType == ProjectionType::Orthographic)
+        {
+            m_orthoSize -= delta * 0.5f;
+            m_orthoSize = std::max(m_orthoSize, 0.1f);
+            updateProjection();
+        }
         else
         {
             mouseZoom(delta * 0.1f);
@@ -201,6 +218,12 @@ namespace Fermion
     {
         float distance = std::max(m_distance * 0.2f, 0.0f);
         return std::min(distance * distance, 100.0f);
+    }
+
+    void EditorCamera::setProjectionType(ProjectionType type)
+    {
+        m_projectionType = type;
+        updateProjection();
     }
 
 } // namespace Fermion

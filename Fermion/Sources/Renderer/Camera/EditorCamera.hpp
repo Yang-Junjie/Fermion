@@ -9,6 +9,12 @@
 
 namespace Fermion
 {
+    enum class ProjectionType
+    {
+        Perspective = 0,
+        Orthographic = 1
+    };
+
     class IEvent;
     class EditorCamera : public Camera
     {
@@ -78,6 +84,32 @@ namespace Fermion
 
         void setCanEnterFpsMode(bool canEnter) { m_canEnterFpsMode = canEnter; }
 
+        ProjectionType getProjectionType() const { return m_projectionType; }
+        void setProjectionType(ProjectionType type);
+
+        float getOrthographicSize() const { return m_orthoSize; }
+        void setOrthographicSize(float size) { m_orthoSize = size; updateProjection(); }
+
+        glm::mat4 getPerspectiveProjection() const
+        {
+            return glm::perspective(glm::radians(m_fov), m_aspectRatio, m_nearClip, m_farClip);
+        }
+
+        const glm::vec3 &getFocalPoint() const { return m_focalPoint; }
+
+        void setYawPitch(float yaw, float pitch)
+        {
+            m_yaw = yaw;
+            m_pitch = pitch;
+            updateView();
+        }
+
+        void setFocalPoint(const glm::vec3 &focalPoint)
+        {
+            m_focalPoint = focalPoint;
+            updateView();
+        }
+
     private:
         void updateProjection();
         void updateView();
@@ -96,7 +128,10 @@ namespace Fermion
         float zoomSpeed() const;
 
     private:
+        ProjectionType m_projectionType = ProjectionType::Perspective;
         float m_fov = 45.0f, m_aspectRatio = 1.778f, m_nearClip = 0.1f, m_farClip = 1000.0f;
+        float m_orthoSize = 10.0f;
+        float m_orthoNearClip = -1000.0f, m_orthoFarClip = 1000.0f;
 
         glm::mat4 m_viewMatrix;
         glm::vec3 m_position = {0.0f, 0.0f, 0.0f};

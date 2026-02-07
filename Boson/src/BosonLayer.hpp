@@ -7,6 +7,9 @@
 #include "Panels/AssetManagerPanel.hpp"
 #include "Panels/MenuBarPanel.hpp"
 #include "Panels/MaterialEditorPanel.hpp"
+#include "Panels/ViewportPanel.hpp"
+#include "Panels/SettingsPanel.hpp"
+#include "Panels/OverlayRenderPanel.hpp"
 
 #include "Renderer/Renderers/SceneRenderer.hpp"
 
@@ -41,14 +44,6 @@ namespace Fermion
 
         bool onMouseButtonPressedEvent(const MouseButtonPressedEvent &e);
 
-        void onOverlayRender() const;
-
-        bool beginOverlayPass() const;
-        void renderPhysicsColliders() const;
-        void renderPhysics2DColliders() const;
-        void renderPhysics3DColliders() const;
-        void renderSelectedEntityOutline() const;
-
         void newProject();
         void openProject();
         void saveProject();
@@ -69,45 +64,14 @@ namespace Fermion
         void syncEnvironmentSettingsFromScene();
 
         // ImGui Panels
-
         void onHelpPanel();
-
         void openAboutWindow();
         void openMaterialEditorPanel();
 
-        void onSettingsPanel();
-        void onViewportPanel();
-
-        void onOverlayViewportUI();
-
-        void updateMousePicking();
-
     private:
-        struct ViewportBounds
-        {
-            glm::vec2 min; // top-left in screen space
-            glm::vec2 max; // bottom-right in screen space
-
-            [[nodiscard]]
-            glm::vec2 size() const
-            {
-                return max - min;
-            }
-
-            [[nodiscard]]
-            bool isValid() const
-            {
-                const glm::vec2 s = size();
-                return s.x > 0.0f && s.y > 0.0f;
-            }
-
-            [[nodiscard]]
-            bool contains(const glm::vec2 &p) const
-            {
-                return p.x >= min.x && p.y >= min.y &&
-                       p.x < max.x && p.y < max.y;
-            }
-        };
+        ViewportPanel m_viewportPanel;
+        SettingsPanel m_settingsPanel;
+        OverlayRenderPanel m_overlayRenderPanel;
 
         SceneHierarchyPanel m_sceneHierarchyPanel;
         MaterialEditorPanel m_materialEditorPanel;
@@ -119,12 +83,6 @@ namespace Fermion
         bool m_isMaterialEditorOpen = false;
 
         std::shared_ptr<Framebuffer> m_framebuffer;
-
-        glm::vec2 m_viewportSize{0.0f, 0.0f};
-
-        ViewportBounds m_viewport = {.min{0.0f, 0.0f}, .max{0.0f, 0.0f}};
-        bool m_viewportFocused = false;
-        bool m_viewportHovered = false;
 
         enum class SceneState
         {
@@ -143,15 +101,11 @@ namespace Fermion
 
         EditorCamera m_editorCamera;
 
-        Entity m_hoveredEntity;
-
-        int m_gizmoType = -1;
         bool m_primaryCamera = true;
         bool m_showPhysicsColliders = false;
         bool m_showRenderEntities = true;
 
         bool m_isInitialized = false;
         std::filesystem::path m_pendingProjectPath;
-        float m_viewportTabBarHeight = 0.0f;
     };
 } // namespace Fermion

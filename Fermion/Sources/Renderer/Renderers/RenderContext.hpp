@@ -15,6 +15,7 @@ namespace Fermion
         glm::mat4 view;
         float farClip = 0.0f;
         float nearClip = 0.1f;
+        glm::mat4 skyboxProjection = glm::mat4(1.0f);
     };
 
     struct RenderContext
