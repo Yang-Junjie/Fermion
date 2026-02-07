@@ -15,26 +15,11 @@ Entities:
       MemoryMeshType: 0
       SubmeshMaterials:
         - 5448258832851368164
-    Rigidbody3DComponent:
-      BodyType: 1
-      Mass: 1
-      LinearDamping: 0.01
-      AngularDamping: 0.05
-      UseGravity: true
-      FixedRotation: false
-    MeshCollider3DComponent:
-      Offset: [0, 0, 0]
-      MeshHandle: 983756287400397806
-      Convex: true
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      IsTrigger: false
   - Entity: 9312113796207270584
     TagComponent:
       Tag: Empty Entity
     TransformComponent:
-      Translation: [0.34848025, 1.1631881, -0.038062047]
+      Translation: [0.35000068, 1.0681107, -0.041075088]
       Rotation: [0.03168076, 0.018868728, 0.016587356]
       Scale: [1, 1, 1]
     RelationshipComponent:
@@ -45,21 +30,6 @@ Entities:
       MemoryMeshType: 0
       SubmeshMaterials:
         - 792032775927799854
-    Rigidbody3DComponent:
-      BodyType: 1
-      Mass: 1
-      LinearDamping: 0.01
-      AngularDamping: 0.05
-      UseGravity: true
-      FixedRotation: false
-    MeshCollider3DComponent:
-      Offset: [0, 0, 0]
-      MeshHandle: 983756287400397806
-      Convex: true
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      IsTrigger: false
   - Entity: 11240105626377157121
     TagComponent:
       Tag: Empty Entity
@@ -143,7 +113,7 @@ Entities:
     RelationshipComponent:
       Parent: 0
     MeshComponent:
-      MeshHandle: 5144585305562017945
+      MeshHandle: 11059257043252565480
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:

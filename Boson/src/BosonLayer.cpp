@@ -587,7 +587,7 @@ namespace Fermion
             if (sceneInfo.showInfiniteGrid)
             {
                 ImGui::Indent();
-                const char* planeNames[] = { "XZ (Horizontal)", "XY (Front)", "YZ (Side)" };
+                const char *planeNames[] = {"XZ (Horizontal)", "XY (Front)", "YZ (Side)"};
                 ImGui::Combo("Grid Plane", &sceneInfo.gridPlane, planeNames, 3);
                 // ImGui::DragFloat("Grid Scale", &sceneInfo.gridScale, 0.1f, 0.1f, 10.0f);
                 // ImGui::DragFloat("Fade Distance", &sceneInfo.gridFadeDistance, 1.0f, 10.0f, 500.0f);
@@ -1378,7 +1378,9 @@ namespace Fermion
         auto lastScene = Project::getActive()->getConfig().startScene;
         if (!lastScene.empty())
             openScene(lastScene);
-        m_contentBrowserPanel.setBaseDirectory(Project::getActive()->getProjectDirectory());
+        
+        auto assetDir = Project::getActive()->getConfig().assetDirectory;
+        m_contentBrowserPanel.setCurrentDirectory(assetDir);
     }
 
     void BosonLayer::saveProject()

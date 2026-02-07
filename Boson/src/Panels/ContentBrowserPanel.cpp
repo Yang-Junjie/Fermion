@@ -4,6 +4,7 @@
 #include <imgui.h>
 #include <algorithm>
 #include <cctype>
+#include <vector>
 
 namespace
 {
@@ -18,7 +19,6 @@ namespace
 
 namespace Fermion
 {
-    // 相对于可执行文件所在的 bin 目录
     constexpr const char *s_assetDirectory = "../Boson/projects";
 
     ContentBrowserPanel::ContentBrowserPanel() : m_currentDirectory(m_baseDirectory)
@@ -36,23 +36,30 @@ namespace Fermion
     void ContentBrowserPanel::onImGuiRender()
     {
         ImGui::Begin("Content Browser");
+
+        ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(4.0f, 4.0f));
+
         if (ImGui::BeginTable("ContentBrowserTable", 2,
                               ImGuiTableFlags_Resizable |
                                   ImGuiTableFlags_BordersInnerV |
                                   ImGuiTableFlags_ScrollY))
         {
-            ImGui::TableSetupColumn("FolderTree", ImGuiTableColumnFlags_WidthFixed, 300.0f);
+            ImGui::TableSetupColumn("FolderTree", ImGuiTableColumnFlags_WidthFixed, 250.0f);
             ImGui::TableSetupColumn("ContentView", ImGuiTableColumnFlags_WidthStretch);
 
             ImGui::TableNextRow();
 
-            // ================= 左侧文件树 =================
             ImGui::TableSetColumnIndex(0);
-            ImGui::BeginChild("FolderTree");
-            drawFolderTree(m_baseDirectory);
-            ImGui::EndChild();
 
-            // ================= 右侧内容视图 =================
+            ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.12f, 0.12f, 0.12f, 1.0f));
+            ImGui::BeginChild("FolderTree");
+
+            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
+            drawFolderTree(m_baseDirectory);
+
+            ImGui::EndChild();
+            ImGui::PopStyleColor();
+
             ImGui::TableSetColumnIndex(1);
             ImGui::BeginChild("ContentView");
 
@@ -61,14 +68,29 @@ namespace Fermion
                 ImGui::Text("Directory not found: %s", m_currentDirectory.string().c_str());
                 ImGui::EndChild();
                 ImGui::EndTable();
+                ImGui::PopStyleVar();
                 ImGui::End();
                 return;
             }
 
-            if (m_currentDirectory != m_baseDirectory)
+            // 顶部导航栏
             {
-                if (ImGui::Button("<-"))
-                    m_currentDirectory = m_currentDirectory.parent_path();
+                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 4));
+                if (m_currentDirectory != m_baseDirectory)
+                {
+                    if (ImGui::Button(" <- Back "))
+                        m_currentDirectory = m_currentDirectory.parent_path();
+                }
+                else
+                {
+                    ImGui::BeginDisabled();
+                    ImGui::Button(" <- Back ");
+                    ImGui::EndDisabled();
+                }
+                ImGui::SameLine();
+                ImGui::Text("Current: %s", m_currentDirectory.generic_string().c_str());
+                ImGui::PopStyleVar();
+                ImGui::Separator();
             }
 
             static float padding = 16.0f;
@@ -80,10 +102,18 @@ namespace Fermion
             if (columnCount < 1)
                 columnCount = 1;
 
-            // 网格 Table
             if (ImGui::BeginTable("ContentGrid", columnCount))
             {
+                std::vector<std::filesystem::directory_entry> entries;
                 for (auto &entry : std::filesystem::directory_iterator(m_currentDirectory))
+                    entries.push_back(entry);
+
+                std::sort(entries.begin(), entries.end(), [](const auto &a, const auto &b)
+                          {
+                    if (a.is_directory() != b.is_directory()) return a.is_directory() > b.is_directory();
+                    return a.path().filename().string() < b.path().filename().string(); });
+
+                for (auto &entry : entries)
                 {
                     const auto &path = entry.path();
                     if (entry.is_regular_file() && (path.extension() == ".meta"))
@@ -138,107 +168,20 @@ namespace Fermion
                         icon = m_directoryIcon.get();
                     }
 
+                    // 绘制缩略图按钮
+                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0, 0, 0, 0});
+                    bool clicked = false;
                     if (icon && icon->isLoaded())
                     {
-                        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0, 0, 0, 0});
-                        ImGui::ImageButton(
-                            "##icon",
-                            (ImTextureID)icon->getRendererID(),
-                            ImVec2{thumbnailSize, thumbnailSize},
-                            ImVec2{0, 1}, ImVec2{1, 0});
-                        ImGui::PopStyleColor();
+                        clicked = ImGui::ImageButton("##icon", (ImTextureID)icon->getRendererID(),
+                                                     ImVec2{thumbnailSize, thumbnailSize},
+                                                     ImVec2{0, 1}, ImVec2{1, 0});
                     }
                     else
                     {
-                        ImGui::Button("##icon", ImVec2{thumbnailSize, thumbnailSize});
+                        clicked = ImGui::Button("##icon", ImVec2{thumbnailSize, thumbnailSize});
                     }
-
-                    if (!isDirectory && path.extension() == ".fmscene")
-                    {
-                        if (ImGui::BeginDragDropSource())
-                        {
-                            std::string fullPath = path.string();
-                            ImGui::SetDragDropPayload("FERMION_SCENE", fullPath.c_str(), fullPath.size() + 1);
-                            ImGui::Text("%s", filename.c_str());
-                            ImGui::EndDragDropSource();
-                        }
-                    }
-                    if (!isDirectory && path.extension() == ".fmat")
-                    {
-                        if (ImGui::BeginDragDropSource())
-                        {
-                            std::string fullPath = path.string();
-                            ImGui::SetDragDropPayload("FERMION_MATERIAL", fullPath.c_str(), fullPath.size() + 1);
-                            ImGui::Text("%s", filename.c_str());
-                            ImGui::EndDragDropSource();
-                        }
-                    }
-
-                    if (!isDirectory && path.extension() == ".fmproj")
-                    {
-                        if (ImGui::BeginDragDropSource())
-                        {
-                            std::string fullPath = path.string();
-                            ImGui::SetDragDropPayload("FERMION_PROJECT", fullPath.c_str(), fullPath.size() + 1);
-                            ImGui::Text("%s", filename.c_str());
-                            ImGui::EndDragDropSource();
-                        }
-                    }
-
-                    if (!isDirectory &&
-                        (path.extension() == ".png" || path.extension() == ".jpg" || path.extension() == ".jpeg"))
-                    {
-                        if (ImGui::BeginDragDropSource())
-                        {
-                            std::string fullPath = path.string();
-                            ImGui::SetDragDropPayload("FERMION_TEXTURE", fullPath.c_str(), fullPath.size() + 1);
-                            ImGui::Text("%s", filename.c_str());
-                            ImGui::EndDragDropSource();
-                        }
-                    }
-                    if (!isDirectory && path.extension() == ".hdr")
-                    {
-                        if (ImGui::BeginDragDropSource())
-                        {
-                            std::string fullPath = path.string();
-                            ImGui::SetDragDropPayload("FERMION_HDR", fullPath.c_str(), fullPath.size() + 1);
-                            ImGui::Text("%s", filename.c_str());
-                            ImGui::EndDragDropSource();
-                        }
-                    }
-
-                    if (!isDirectory && path.extension() == ".fmodel")
-                    {
-                        if (ImGui::BeginDragDropSource())
-                        {
-                            std::string fullPath = path.string();
-                            ImGui::SetDragDropPayload("FERMION_MODEL", fullPath.c_str(), fullPath.size() + 1);
-                            ImGui::Text("%s", filename.c_str());
-                            ImGui::EndDragDropSource();
-                        }
-                    }
-
-                    if (!isDirectory && path.extension() == ".fskel")
-                    {
-                        if (ImGui::BeginDragDropSource())
-                        {
-                            std::string fullPath = path.string();
-                            ImGui::SetDragDropPayload("FERMION_SKELETON", fullPath.c_str(), fullPath.size() + 1);
-                            ImGui::Text("%s", filename.c_str());
-                            ImGui::EndDragDropSource();
-                        }
-                    }
-
-                    if (!isDirectory && path.extension() == ".fanim")
-                    {
-                        if (ImGui::BeginDragDropSource())
-                        {
-                            std::string fullPath = path.string();
-                            ImGui::SetDragDropPayload("FERMION_ANIMATION", fullPath.c_str(), fullPath.size() + 1);
-                            ImGui::Text("%s", filename.c_str());
-                            ImGui::EndDragDropSource();
-                        }
-                    }
+                    ImGui::PopStyleColor();
 
                     if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
                     {
@@ -246,6 +189,40 @@ namespace Fermion
                             m_currentDirectory /= path.filename();
                         else if (isProjectDescriptor(path) && m_projectOpenCallback)
                             m_projectOpenCallback(path);
+                    }
+
+                    auto HandleDragDrop = [&](const char *type)
+                    {
+                        if (ImGui::BeginDragDropSource())
+                        {
+                            std::string fullPath = path.string();
+                            ImGui::SetDragDropPayload(type, fullPath.c_str(), fullPath.size() + 1);
+
+                            if (icon && icon->isLoaded())
+                                ImGui::Image((ImTextureID)icon->getRendererID(), {32, 32}, {0, 1}, {1, 0});
+                            ImGui::Text("%s", filename.c_str());
+                            ImGui::EndDragDropSource();
+                        }
+                    };
+
+                    if (!isDirectory)
+                    {
+                        if (path.extension() == ".fmscene")
+                            HandleDragDrop("FERMION_SCENE");
+                        else if (path.extension() == ".fmat")
+                            HandleDragDrop("FERMION_MATERIAL");
+                        else if (path.extension() == ".fmproj")
+                            HandleDragDrop("FERMION_PROJECT");
+                        else if (path.extension() == ".png" || path.extension() == ".jpg" || path.extension() == ".jpeg")
+                            HandleDragDrop("FERMION_TEXTURE");
+                        else if (path.extension() == ".hdr")
+                            HandleDragDrop("FERMION_HDR");
+                        else if (path.extension() == ".fmodel")
+                            HandleDragDrop("FERMION_MODEL");
+                        else if (path.extension() == ".fskel")
+                            HandleDragDrop("FERMION_SKELETON");
+                        else if (path.extension() == ".fanim")
+                            HandleDragDrop("FERMION_ANIMATION");
                     }
 
                     ImGui::TextWrapped("%s", filename.c_str());
@@ -259,6 +236,7 @@ namespace Fermion
             ImGui::EndChild(); // ContentView
             ImGui::EndTable(); // ContentBrowserTable
         }
+        ImGui::PopStyleVar(); // CellPadding
 
         ImGui::End();
     }
@@ -289,6 +267,11 @@ namespace Fermion
         m_currentDirectory = m_baseDirectory;
     }
 
+    void ContentBrowserPanel::setCurrentDirectory(const std::filesystem::path &directory)
+    {
+        m_currentDirectory = directory;
+    }
+
     void ContentBrowserPanel::setProjectOpenCallback(std::function<void(const std::filesystem::path &)> callback)
     {
         m_projectOpenCallback = std::move(callback);
@@ -296,37 +279,66 @@ namespace Fermion
 
     void ContentBrowserPanel::drawFolderTree(const std::filesystem::path &dir)
     {
-        bool isSelected = (dir == m_currentDirectory);
+        std::vector<std::filesystem::path> subdirs;
+        try
+        {
+            for (auto &entry : std::filesystem::directory_iterator(dir))
+            {
+                if (entry.is_directory())
+                {
+                    subdirs.push_back(entry.path());
+                }
+            }
+        }
+        catch (...)
+        {
+        }
 
-        ImGuiTreeNodeFlags flags =
-            ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick |
-            ImGuiTreeNodeFlags_SpanAvailWidth;
+        std::sort(subdirs.begin(), subdirs.end());
 
-        if (isSelected)
+        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow |
+                                   ImGuiTreeNodeFlags_OpenOnDoubleClick |
+                                   ImGuiTreeNodeFlags_SpanAvailWidth |
+                                   ImGuiTreeNodeFlags_FramePadding;
+
+        if (dir == m_currentDirectory)
             flags |= ImGuiTreeNodeFlags_Selected;
 
-        bool opened = ImGui::TreeNodeEx(
-            dir.string().c_str(),
-            flags,
-            "%s", dir.filename().string().c_str());
+        if (subdirs.empty())
+            flags |= ImGuiTreeNodeFlags_Leaf;
+
+        bool opened = ImGui::TreeNodeEx(dir.string().c_str(), flags, "");
 
         if (ImGui::IsItemClicked())
         {
             m_currentDirectory = dir;
         }
 
+        ImGui::SameLine();
+        float lineHeight = ImGui::GetTextLineHeight();
+
+        if (m_directoryIcon && m_directoryIcon->isLoaded())
+        {
+            float verticalOffset = (ImGui::GetFrameHeight() - lineHeight) * 0.5f;
+            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + verticalOffset);
+
+            ImGui::Image((ImTextureID)m_directoryIcon->getRendererID(), {lineHeight, lineHeight}, {0, 1}, {1, 0});
+            ImGui::SetCursorPosY(ImGui::GetCursorPosY() - verticalOffset);
+            ImGui::SameLine();
+        }
+
+        ImGui::TextUnformatted(dir.filename().string().c_str());
+
         if (opened)
         {
-            for (auto &entry : std::filesystem::directory_iterator(dir))
+            for (const auto &subdir : subdirs)
             {
-                if (entry.is_directory())
-                {
-                    drawFolderTree(entry.path());
-                }
+                drawFolderTree(subdir);
             }
             ImGui::TreePop();
         }
     }
+
     const Texture2D *ContentBrowserPanel::getOrCreateThumbnail(const std::filesystem::path &path, AssetType type)
     {
         auto key = path.string();

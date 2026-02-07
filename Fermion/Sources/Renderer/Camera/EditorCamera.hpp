@@ -107,7 +107,7 @@ namespace Fermion
         bool m_hasSavedCursorPosition = false;
 
         float m_distance = 17.3205f;  // sqrt(10^2 + 10^2 + 10^2) = sqrt(300)
-        float m_pitch = 0.6155f, m_yaw = 0.7854f;  // 从(10,10,10)看向(0,0,0)
+        float m_pitch = 0.6155f, m_yaw = -0.7854f;  // 从(10,10,10)看向(0,0,0)
 
         float m_viewportWidth = 1280, m_viewportHeight = 720;
 
