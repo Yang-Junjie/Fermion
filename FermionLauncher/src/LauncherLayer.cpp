@@ -232,13 +232,13 @@ void LauncherLayer::drawProjectsListPanel() {
         drawList->AddText(
             textPos,
             IM_COL32(255, 255, 255, 255),
-            m_projects[i].Name.c_str()
+            m_projects[i].name.c_str()
         );
 
         drawList->AddText(
             { textPos.x, textPos.y + 22 },
             IM_COL32(180, 180, 180, 200),
-            m_projects[i].Path.string().c_str()
+            m_projects[i].path.string().c_str()
         );
 
         ImGui::Dummy({ 0.0f, 6.0f });
@@ -328,9 +328,9 @@ void LauncherLayer::scanProjects() {
                 continue;
 
             ProjectInfo info;
-            info.ProjectFile = projectFile;
-            info.Path = projectFile.parent_path();
-            info.Name = projectFile.stem().string();
+            info.projectFile = projectFile;
+            info.path = projectFile.parent_path();
+            info.name = projectFile.stem().string();
             m_projects.push_back(std::move(info));
             continue;
         }
@@ -341,21 +341,21 @@ void LauncherLayer::scanProjects() {
                 continue;
 
             ProjectInfo info;
-            info.ProjectFile = entryPath;
-            info.Path = entryPath.parent_path();
-            info.Name = entryPath.stem().string();
+            info.projectFile = entryPath;
+            info.path = entryPath.parent_path();
+            info.name = entryPath.stem().string();
             m_projects.push_back(std::move(info));
         }
     }
 
     std::sort(m_projects.begin(), m_projects.end(), [](const ProjectInfo &lhs, const ProjectInfo &rhs) {
-        return lhs.Name < rhs.Name;
+        return lhs.name < rhs.name;
     });
 }
 
 void LauncherLayer::openProject(const ProjectInfo &project) {
-    if (project.ProjectFile.empty()) {
-        Fermion::Log::Warn(std::format("Selected project '{}' is missing a project file.", project.Name));
+    if (project.projectFile.empty()) {
+        Fermion::Log::Warn(std::format("Selected project '{}' is missing a project file.", project.name));
         return;
     }
 
@@ -366,10 +366,10 @@ void LauncherLayer::openProject(const ProjectInfo &project) {
     }
 
     std::vector<std::string> arguments;
-    arguments.emplace_back(project.ProjectFile.string());
+    arguments.emplace_back(project.projectFile.string());
     if (!Fermion::Process::launchDetached(bosonExecutable, arguments)) {
         Fermion::Log::Error(std::format("Failed to launch BosonEditor: {} {}", bosonExecutable.string(),
-                                        project.ProjectFile.string()));
+                                        project.projectFile.string()));
     }
 }
 

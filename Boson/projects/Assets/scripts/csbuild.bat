@@ -8,6 +8,9 @@
 ../Boson/projects/Assets/scripts/Rigidbody3DController.cs ^
 ../Boson/projects/Assets/scripts/FPSCameraController.cs ^
 ../Boson/projects/Assets/scripts/FPSCharacterController.cs ^
-../Boson/projects/Assets/scripts/CameraRotationTest.cs
+../Boson/projects/Assets/scripts/CameraRotationTest.cs ^
+../Boson/projects/Assets/scripts/SnakeGame.cs ^
+../Boson/projects/Assets/scripts/CubePhysicsDemo.cs
+
 
 

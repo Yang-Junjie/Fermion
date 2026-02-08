@@ -6,6 +6,19 @@
 
 namespace Fermion
 {
+    AssetHandle MaterialFactory::createMemoryOnlyMaterial(const glm::vec3 &albedo, float metallic, float roughness, float AO)
+    {
+        auto material = std::make_shared<Material>();
+        material->setMaterialType(MaterialType::PBR);
+        material->setName("MemoryMaterial");
+        material->setAlbedo(albedo);
+        material->setMetallic(metallic);
+        material->setRoughness(roughness);
+        material->setAO(AO);
+
+        return AssetManager::addMemoryOnlyAsset(material);
+    }
+
     AssetHandle MaterialFactory::createMaterial(std::string name, const glm::vec3 &albedo, float metallic, float roughness, float AO)
     {
 

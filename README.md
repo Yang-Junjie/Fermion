@@ -1,6 +1,8 @@
 # Fermion
 
-Fermion 是一款基于 C++20 自研游戏引擎。
+Fermion 是一款基于 C++20 构建的高性能、AI 辅助编程实现的游戏引擎。  
+引擎采用 Render Graph 架构。对底层 API 进行了抽象封装，在实现 OpenGL 渲染的同时，具备支持多后端渲染的扩展能力。核心采用 Forward+ 渲染管线，并集成 EnTT 深度支持 ECS 架构。此外，引擎内置了完整的 C# 脚本系统，以及由 Box2D 与 Jolt Physics 驱动的 2D/3D 物理模拟方案。  
+
 
 ## 命名哲学
 
@@ -9,26 +11,6 @@ Fermion 是一款基于 C++20 自研游戏引擎。
 - **Photon（光子）**: 对应脚本系统。光子是一种玻色子，标志着Photon是编辑器的一部分。并且光子轻、快象征着脚本的轻、快。
 - **Neutrino（中微子）**：对应引擎的运行时(Runtime)。中微子是一种费米子，标志着运行时是引擎的一部分。并且中微子几乎不与物质相互作用，就像运行时不直接被玩家看见负责维持内部机制正常运转。
 
-## 第三方依赖
-
-项目依赖的库均以源码形式引入，便于跨平台编译与调试：
-
-- [spdlog](https://github.com/gabime/spdlog) – 高性能日志库
-- [entt](https://github.com/skypjack/entt) – 实体组件系统（ECS）
-- [glm](https://github.com/g-truc/glm) – 数学库（向量、矩阵、变换）
-- [Dear ImGui](https://github.com/ocornut/imgui) – 即时模式图形界面
-- [ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo) – 编辑器中的变换 Gizmo
-- [GLFW](https://github.com/glfw/glfw) – 跨平台窗口与输入管理
-- [GLAD](https://glad.dav1d.de/) – OpenGL 函数加载器
-- [stb](https://github.com/nothings/stb) – 使用进行纹理加载和保存
-- [yaml-cpp](https://github.com/jbeder/yaml-cpp) – YAML 序列化（场景保存/加载）
-- [box2d](https://github.com/erincatto/box2d) – 2D 刚体物理引擎
-- [msdf-atlas-gen](https://github.com/Chlumsky/msdf-atlas-gen) - MSDF 纹理生成
-- [freetype](https://github.com/freetype/freetype) - FreeType 字体库
-- [Mono](https://github.com/mono/mono) - 跨平台 .NET 运行时，用于在引擎中运行 C# 脚本。
-- [Assimp](https://github.com/assimp/assimp) - 3D 模型加载
-- [JoltPhysics](https://github.com/jrouwe/JoltPhysics) - 3D物理引擎
-- [ImguiNodeEditor](https://github.com/thedmd/imgui-node-editor) - 节点编辑器
 
 ## 构建说明
 
@@ -55,6 +37,29 @@ cd build
 cmake .. 
 cmake --build . --config Release
 ```
+
+## 第三方依赖
+
+项目依赖的库均以源码形式引入，便于跨平台编译与调试：
+
+- [spdlog](https://github.com/gabime/spdlog) – 高性能日志库
+- [entt](https://github.com/skypjack/entt) – 实体组件系统（ECS）
+- [glm](https://github.com/g-truc/glm) – 数学库（向量、矩阵、变换）
+- [Dear ImGui](https://github.com/ocornut/imgui) – 即时模式图形界面
+- [ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo) – 编辑器中的变换 Gizmo
+- [GLFW](https://github.com/glfw/glfw) – 跨平台窗口与输入管理
+- [GLAD](https://glad.dav1d.de/) – OpenGL 函数加载器
+- [stb](https://github.com/nothings/stb) – 使用进行纹理加载和保存
+- [yaml-cpp](https://github.com/jbeder/yaml-cpp) – YAML 序列化（场景保存/加载）
+- [box2d](https://github.com/erincatto/box2d) – 2D 刚体物理引擎
+- [msdf-atlas-gen](https://github.com/Chlumsky/msdf-atlas-gen) - MSDF 纹理生成
+- [freetype](https://github.com/freetype/freetype) - FreeType 字体库
+- [Mono](https://github.com/mono/mono) - 跨平台 .NET 运行时，用于在引擎中运行 C# 脚本。
+- [Assimp](https://github.com/assimp/assimp) - 3D 模型加载
+- [JoltPhysics](https://github.com/jrouwe/JoltPhysics) - 3D物理引擎
+- [ImguiNodeEditor](https://github.com/thedmd/imgui-node-editor) - 节点编辑器
+- [ImViewGuizmo](https://github.com/Ka1serM/ImViewGuizmo) - View Gizmo
+
 ## 参考
 - [Hazel](https://github.com/TheCherno/Hazel.git) 跟着这个教程走的，后期自己进行扩展
 

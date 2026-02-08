@@ -15,6 +15,7 @@ namespace JPH
 namespace Fermion
 {
     class Scene;
+    class Entity;
 
     class Physics3DWorld
     {
@@ -25,6 +26,7 @@ namespace Fermion
         void start(Scene *scene);
         void stop(Scene *scene);
         void step(Scene *scene, Timestep ts);
+        void addBody(Scene *scene, Entity entity);
 
         bool isActive() const;
         JPH::PhysicsSystem *getPhysicsSystem() const { return m_physicsSystem.get(); }

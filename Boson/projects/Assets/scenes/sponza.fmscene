@@ -1,5 +1,18 @@
 Scene: Name
 Entities:
+  - Entity: 9674948488269786251
+    TagComponent:
+      Tag: pl
+    TransformComponent:
+      Translation: [-2.3532326, 6.1124535, 4.000105]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
+    PointLightComponent:
+      Color: [0.9704641, 0.9277021, 0.7452509]
+      Intensity: 7.4
+      Range: 13
   - Entity: 16223500667925827541
     TagComponent:
       Tag: sponza
@@ -130,18 +143,13 @@ Entities:
       Color: [0.9746835, 0.9611484, 0.7608289]
       Intensity: 31.3
       MainLight: true
-  - Entity: 3955266105070907491
-    TagComponent:
-      Tag: Empty Entity
-    TransformComponent:
-      Translation: [0, 0.8070328, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    RelationshipComponent:
-      Parent: 0
-    MeshComponent:
-      MeshHandle: 7752104819879178645
-      MemoryOnly: true
-      MemoryMeshType: 1
-      SubmeshMaterials:
-        - 0
+EnvironmentSettings:
+  ShowSkybox: true
+  EnableShadows: true
+  AmbientIntensity: 0
+  ShadowMapSize: 5120
+  ShadowBias: 0.01
+  ShadowSoftness: 10
+  NormalMapStrength: 1
+  ToksvigStrength: 1
+  UseIBL: false

@@ -6,4 +6,4 @@ Directories:
   AssetDirectory: Assets
   ScriptDirectory: Assets/scripts
 Runtime:
-  StartScene: Assets/scenes/material_show.fmscene
+  StartScene: Assets/scenes/PinkCube.fmscene

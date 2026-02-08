@@ -12,6 +12,8 @@
 #include "Scene/EntityManager.hpp"
 #include "Renderer/Renderers/SceneRenderer.hpp"
 #include "Renderer/Renderers/DebugRenderer.hpp"
+#include "Renderer/Model/MeshFactory.hpp"
+#include "Renderer/Model/MaterialFactory.hpp"
 #include "Scene/Entity.hpp"
 #include "Scene/Components.hpp"
 #include "Physics/Physics2D.hpp"
@@ -129,6 +131,27 @@ namespace Fermion
         std::string tagStr = Utils::monoStringToString(tag);
         return scene->createEntity(tagStr).getUUID();
     }
+
+    extern "C" void Scene_DestroyEntity(uint64_t entityID)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null");
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        if (entity)
+            scene->getEntityManager().destroyEntity(entity);
+    }
+
+    extern "C" void Scene_InitPhysics3DEntity(uint64_t entityID)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null");
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        if (!entity)
+            return;
+        Physics3DWorld *world = scene->getPhysicsWorld3D();
+        if (world && world->isActive())
+            world->addBody(scene, entity);
+    }
 #pragma endregion
 
 #pragma region Log
@@ -233,6 +256,26 @@ namespace Fermion
         FERMION_ASSERT(entity, "Entity is null!");
 
         entity.getComponent<TransformComponent>().rotation = *rotation;
+    }
+
+    extern "C" void TransformComponent_GetScale(UUID entityID, glm::vec3 *outScale)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        *outScale = entity.getComponent<TransformComponent>().scale;
+    }
+
+    extern "C" void TransformComponent_SetScale(UUID entityID, glm::vec3 *scale)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        entity.getComponent<TransformComponent>().scale = *scale;
     }
 #pragma endregion
 
@@ -629,6 +672,277 @@ namespace Fermion
     }
 #pragma endregion
 
+#pragma region MeshComponent
+    extern "C" void MeshComponent_SetMemoryMesh(UUID entityID, int meshType)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        auto &mesh = entity.getComponent<MeshComponent>();
+        MemoryMeshType type = static_cast<MemoryMeshType>(meshType);
+        mesh.memoryMeshType = type;
+        mesh.memoryOnly = true;
+        mesh.meshHandle = MeshFactory::GetMemoryMeshHandle(type);
+
+        AssetHandle matHandle = MaterialFactory::createMemoryOnlyMaterial();
+        mesh.setSubmeshMaterial(0, matHandle);
+    }
+
+    extern "C" void MeshComponent_SetMaterialColor(UUID entityID, glm::vec3 *color)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        auto &mesh = entity.getComponent<MeshComponent>();
+        AssetHandle matHandle = MaterialFactory::createMemoryOnlyMaterial(*color);
+        mesh.setSubmeshMaterial(0, matHandle);
+    }
+#pragma endregion
+
+#pragma region BoxCollider3DComponent
+    extern "C" void BoxCollider3DComponent_GetSize(UUID entityID, glm::vec3 *out)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+        *out = entity.getComponent<BoxCollider3DComponent>().size;
+    }
+
+    extern "C" void BoxCollider3DComponent_SetSize(UUID entityID, glm::vec3 *size)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+        entity.getComponent<BoxCollider3DComponent>().size = *size;
+    }
+
+    extern "C" void BoxCollider3DComponent_GetOffset(UUID entityID, glm::vec3 *out)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+        *out = entity.getComponent<BoxCollider3DComponent>().offset;
+    }
+
+    extern "C" void BoxCollider3DComponent_SetOffset(UUID entityID, glm::vec3 *offset)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+        entity.getComponent<BoxCollider3DComponent>().offset = *offset;
+    }
+
+    extern "C" float BoxCollider3DComponent_GetFriction(UUID entityID)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        return entity.getComponent<BoxCollider3DComponent>().friction;
+    }
+
+    extern "C" void BoxCollider3DComponent_SetFriction(UUID entityID, float friction)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        entity.getComponent<BoxCollider3DComponent>().friction = friction;
+    }
+
+    extern "C" float BoxCollider3DComponent_GetRestitution(UUID entityID)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        return entity.getComponent<BoxCollider3DComponent>().restitution;
+    }
+
+    extern "C" void BoxCollider3DComponent_SetRestitution(UUID entityID, float restitution)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        entity.getComponent<BoxCollider3DComponent>().restitution = restitution;
+    }
+#pragma endregion
+
+#pragma region CircleCollider3DComponent
+    extern "C" float CircleCollider3DComponent_GetRadius(UUID entityID)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        return entity.getComponent<CircleCollider3DComponent>().radius;
+    }
+
+    extern "C" void CircleCollider3DComponent_SetRadius(UUID entityID, float radius)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        entity.getComponent<CircleCollider3DComponent>().radius = radius;
+    }
+
+    extern "C" void CircleCollider3DComponent_GetOffset(UUID entityID, glm::vec3 *out)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        *out = entity.getComponent<CircleCollider3DComponent>().offset;
+    }
+
+    extern "C" void CircleCollider3DComponent_SetOffset(UUID entityID, glm::vec3 *offset)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        entity.getComponent<CircleCollider3DComponent>().offset = *offset;
+    }
+
+    extern "C" float CircleCollider3DComponent_GetFriction(UUID entityID)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        return entity.getComponent<CircleCollider3DComponent>().friction;
+    }
+
+    extern "C" void CircleCollider3DComponent_SetFriction(UUID entityID, float friction)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        entity.getComponent<CircleCollider3DComponent>().friction = friction;
+    }
+
+    extern "C" float CircleCollider3DComponent_GetRestitution(UUID entityID)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        return entity.getComponent<CircleCollider3DComponent>().restitution;
+    }
+
+    extern "C" void CircleCollider3DComponent_SetRestitution(UUID entityID, float restitution)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        entity.getComponent<CircleCollider3DComponent>().restitution = restitution;
+    }
+#pragma endregion
+
+#pragma region CapsuleCollider3DComponent
+    extern "C" float CapsuleCollider3DComponent_GetRadius(UUID entityID)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        return entity.getComponent<CapsuleCollider3DComponent>().radius;
+    }
+
+    extern "C" void CapsuleCollider3DComponent_SetRadius(UUID entityID, float radius)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        entity.getComponent<CapsuleCollider3DComponent>().radius = radius;
+    }
+
+    extern "C" float CapsuleCollider3DComponent_GetHeight(UUID entityID)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        return entity.getComponent<CapsuleCollider3DComponent>().height;
+    }
+
+    extern "C" void CapsuleCollider3DComponent_SetHeight(UUID entityID, float height)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        entity.getComponent<CapsuleCollider3DComponent>().height = height;
+    }
+
+    extern "C" void CapsuleCollider3DComponent_GetOffset(UUID entityID, glm::vec3 *out)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        *out = entity.getComponent<CapsuleCollider3DComponent>().offset;
+    }
+
+    extern "C" void CapsuleCollider3DComponent_SetOffset(UUID entityID, glm::vec3 *offset)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        entity.getComponent<CapsuleCollider3DComponent>().offset = *offset;
+    }
+
+    extern "C" float CapsuleCollider3DComponent_GetFriction(UUID entityID)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        return entity.getComponent<CapsuleCollider3DComponent>().friction;
+    }
+
+    extern "C" void CapsuleCollider3DComponent_SetFriction(UUID entityID, float friction)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        entity.getComponent<CapsuleCollider3DComponent>().friction = friction;
+    }
+
+    extern "C" float CapsuleCollider3DComponent_GetRestitution(UUID entityID)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        return entity.getComponent<CapsuleCollider3DComponent>().restitution;
+    }
+
+    extern "C" void CapsuleCollider3DComponent_SetRestitution(UUID entityID, float restitution)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        entity.getComponent<CapsuleCollider3DComponent>().restitution = restitution;
+    }
+#pragma endregion
+
+#pragma region Rigidbody3DComponentExtended
+    extern "C" float Rigidbody3DComponent_GetMass(UUID entityID)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        return entity.getComponent<Rigidbody3DComponent>().mass;
+    }
+
+    extern "C" void Rigidbody3DComponent_SetMass(UUID entityID, float mass)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        entity.getComponent<Rigidbody3DComponent>().mass = mass;
+    }
+
+    extern "C" bool Rigidbody3DComponent_GetUseGravity(UUID entityID)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        return entity.getComponent<Rigidbody3DComponent>().useGravity;
+    }
+
+    extern "C" void Rigidbody3DComponent_SetUseGravity(UUID entityID, bool useGravity)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        entity.getComponent<Rigidbody3DComponent>().useGravity = useGravity;
+    }
+
+    extern "C" bool Rigidbody3DComponent_GetFixedRotation(UUID entityID)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        return entity.getComponent<Rigidbody3DComponent>().fixedRotation;
+    }
+
+    extern "C" void Rigidbody3DComponent_SetFixedRotation(UUID entityID, bool fixedRotation)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        entity.getComponent<Rigidbody3DComponent>().fixedRotation = fixedRotation;
+    }
+#pragma endregion
+
 #pragma region TextComponent
     extern "C" void TextComponent_SetText(UUID entityID, MonoString *string)
     {
@@ -776,6 +1090,8 @@ namespace Fermion
     void ScriptGlue::registerFunctions()
     {
         FM_ADD_INTERNAL_CALL(Scene_CreateEntity);
+        FM_ADD_INTERNAL_CALL(Scene_DestroyEntity);
+        FM_ADD_INTERNAL_CALL(Scene_InitPhysics3DEntity);
 
         FM_ADD_INTERNAL_CALL(NativeLog);
         FM_ADD_INTERNAL_CALL(ConsoleLog);
@@ -789,6 +1105,8 @@ namespace Fermion
         FM_ADD_INTERNAL_CALL(TransformComponent_SetTranslation);
         FM_ADD_INTERNAL_CALL(TransformComponent_GetRotation);
         FM_ADD_INTERNAL_CALL(TransformComponent_SetRotation);
+        FM_ADD_INTERNAL_CALL(TransformComponent_GetScale);
+        FM_ADD_INTERNAL_CALL(TransformComponent_SetScale);
 
         FM_ADD_INTERNAL_CALL(SpriteRendererComponent_SetColor);
         FM_ADD_INTERNAL_CALL(SpriteRendererComponent_SetTexture);
@@ -807,6 +1125,44 @@ namespace Fermion
         FM_ADD_INTERNAL_CALL(Rigidbody3DComponent_SetLinearVelocity);
         FM_ADD_INTERNAL_CALL(Rigidbody3DComponent_GetAngularVelocity);
         FM_ADD_INTERNAL_CALL(Rigidbody3DComponent_SetAngularVelocity);
+        FM_ADD_INTERNAL_CALL(Rigidbody3DComponent_GetMass);
+        FM_ADD_INTERNAL_CALL(Rigidbody3DComponent_SetMass);
+        FM_ADD_INTERNAL_CALL(Rigidbody3DComponent_GetUseGravity);
+        FM_ADD_INTERNAL_CALL(Rigidbody3DComponent_SetUseGravity);
+        FM_ADD_INTERNAL_CALL(Rigidbody3DComponent_GetFixedRotation);
+        FM_ADD_INTERNAL_CALL(Rigidbody3DComponent_SetFixedRotation);
+
+        FM_ADD_INTERNAL_CALL(MeshComponent_SetMemoryMesh);
+        FM_ADD_INTERNAL_CALL(MeshComponent_SetMaterialColor);
+
+        FM_ADD_INTERNAL_CALL(BoxCollider3DComponent_GetSize);
+        FM_ADD_INTERNAL_CALL(BoxCollider3DComponent_SetSize);
+        FM_ADD_INTERNAL_CALL(BoxCollider3DComponent_GetOffset);
+        FM_ADD_INTERNAL_CALL(BoxCollider3DComponent_SetOffset);
+        FM_ADD_INTERNAL_CALL(BoxCollider3DComponent_GetFriction);
+        FM_ADD_INTERNAL_CALL(BoxCollider3DComponent_SetFriction);
+        FM_ADD_INTERNAL_CALL(BoxCollider3DComponent_GetRestitution);
+        FM_ADD_INTERNAL_CALL(BoxCollider3DComponent_SetRestitution);
+
+        FM_ADD_INTERNAL_CALL(CircleCollider3DComponent_GetRadius);
+        FM_ADD_INTERNAL_CALL(CircleCollider3DComponent_SetRadius);
+        FM_ADD_INTERNAL_CALL(CircleCollider3DComponent_GetOffset);
+        FM_ADD_INTERNAL_CALL(CircleCollider3DComponent_SetOffset);
+        FM_ADD_INTERNAL_CALL(CircleCollider3DComponent_GetFriction);
+        FM_ADD_INTERNAL_CALL(CircleCollider3DComponent_SetFriction);
+        FM_ADD_INTERNAL_CALL(CircleCollider3DComponent_GetRestitution);
+        FM_ADD_INTERNAL_CALL(CircleCollider3DComponent_SetRestitution);
+
+        FM_ADD_INTERNAL_CALL(CapsuleCollider3DComponent_GetRadius);
+        FM_ADD_INTERNAL_CALL(CapsuleCollider3DComponent_SetRadius);
+        FM_ADD_INTERNAL_CALL(CapsuleCollider3DComponent_GetHeight);
+        FM_ADD_INTERNAL_CALL(CapsuleCollider3DComponent_SetHeight);
+        FM_ADD_INTERNAL_CALL(CapsuleCollider3DComponent_GetOffset);
+        FM_ADD_INTERNAL_CALL(CapsuleCollider3DComponent_SetOffset);
+        FM_ADD_INTERNAL_CALL(CapsuleCollider3DComponent_GetFriction);
+        FM_ADD_INTERNAL_CALL(CapsuleCollider3DComponent_SetFriction);
+        FM_ADD_INTERNAL_CALL(CapsuleCollider3DComponent_GetRestitution);
+        FM_ADD_INTERNAL_CALL(CapsuleCollider3DComponent_SetRestitution);
 
         FM_ADD_INTERNAL_CALL(BoxSensor2D_SensorBegin);
         FM_ADD_INTERNAL_CALL(BoxSensor2D_SensorEnd);

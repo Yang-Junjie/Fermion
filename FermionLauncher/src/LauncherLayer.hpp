@@ -4,9 +4,9 @@
 #include "fmpch.hpp"
 
 struct ProjectInfo {
-    std::string Name;
-    std::filesystem::path Path;
-    std::filesystem::path ProjectFile;
+    std::string name;
+    std::filesystem::path path;
+    std::filesystem::path projectFile;
 };
 
 class LauncherLayer : public Fermion::Layer {

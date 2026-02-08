@@ -1,47 +1,44 @@
 Scene: Name
 Entities:
-  - Entity: 514905198623457139
+  - Entity: 6450949677575356715
     TagComponent:
-      Tag: Left
+      Tag: Empty Entity
     TransformComponent:
-      Translation: [-0.355, 0, 0.35]
-      Rotation: [0, -0.7853982, 0]
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [1, 0, 0.94980717, 1]
-  - Entity: 10458637223163106465
+    RelationshipComponent:
+      Parent: 0
+    ScriptContainerComponent:
+      ScriptClassNames:
+        - Photon.SnakeGame
+  - Entity: 12205172225304927126
     TagComponent:
-      Tag: Right
+      Tag: Empty Entity
     TransformComponent:
-      Translation: [0.352, 0, 0.35]
-      Rotation: [0, 0.7853982, 0]
+      Translation: [0, 0, 32.87887]
+      Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [0.54842025, 0, 0.5868726, 1]
-  - Entity: 2785738821363193836
-    TagComponent:
-      Tag: Camera
-    TransformComponent:
-      Translation: [0, 1.7, 4]
-      Rotation: [-0.4049164, 0, 0]
-      Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
     CameraComponent:
       Camera:
         ProjectionType: 1
-        PerspectiveFOV: 0.5235988
+        PerspectiveFOV: 0.7853982
         PerspectiveNear: 0.01
-        PerspectiveFar: 1000
+        PerspectiveFar: 100
         OrthographicSize: 10
-        OrthographicNear: -1
-        OrthographicFar: 1
+        OrthographicNear: -100
+        OrthographicFar: 100
       Primary: true
       FixedAspectRatio: false
-  - Entity: 8284673578758026669
-    TagComponent:
-      Tag: Top
-    TransformComponent:
-      Translation: [0, 0.5, 0]
-      Rotation: [-1.5707964, 0.7853982, 0]
-      Scale: [1, 1, 1]
-    SpriteRendererComponent:
-      Color: [0.87644786, 0, 0.8347128, 1]
+EnvironmentSettings:
+  ShowSkybox: false
+  EnableShadows: true
+  AmbientIntensity: 0.1
+  ShadowMapSize: 2048
+  ShadowBias: 0.01
+  ShadowSoftness: 1
+  NormalMapStrength: 1
+  ToksvigStrength: 1
+  UseIBL: true

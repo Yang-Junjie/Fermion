@@ -38,6 +38,19 @@ namespace Fermion
 				InternalCalls.TransformComponent_SetRotation(Entity.ID, ref value);
 			}
 		}
+
+		public Vector3 Scale
+		{
+			get
+			{
+				InternalCalls.TransformComponent_GetScale(Entity.ID, out Vector3 scale);
+				return scale;
+			}
+			set
+			{
+				InternalCalls.TransformComponent_SetScale(Entity.ID, ref value);
+			}
+		}
 	}
 
 	public class SpriteRendererComponent : Component
@@ -120,6 +133,24 @@ namespace Fermion
 			set => InternalCalls.Rigidbody3DComponent_SetType(Entity.ID, value);
 		}
 
+		public float Mass
+		{
+			get => InternalCalls.Rigidbody3DComponent_GetMass(Entity.ID);
+			set => InternalCalls.Rigidbody3DComponent_SetMass(Entity.ID, value);
+		}
+
+		public bool UseGravity
+		{
+			get => InternalCalls.Rigidbody3DComponent_GetUseGravity(Entity.ID);
+			set => InternalCalls.Rigidbody3DComponent_SetUseGravity(Entity.ID, value);
+		}
+
+		public bool FixedRotation
+		{
+			get => InternalCalls.Rigidbody3DComponent_GetFixedRotation(Entity.ID);
+			set => InternalCalls.Rigidbody3DComponent_SetFixedRotation(Entity.ID, value);
+		}
+
 		public void ApplyLinearImpulse(Vector3 impulse, bool wake)
 		{
 			InternalCalls.Rigidbody3DComponent_ApplyLinearImpulseToCenter(Entity.ID, ref impulse, wake);
@@ -180,6 +211,144 @@ namespace Fermion
 			{
 				InternalCalls.TextComponent_SetText(Entity.ID, value);
 			}
+		}
+	}
+
+	public enum MemoryMeshType
+	{
+		None = 0,
+		Cube = 1,
+		Sphere = 2,
+		Cylinder = 3,
+		Capsule = 4,
+		Cone = 5
+	}
+
+	public class MeshComponent : Component
+	{
+		public void SetMemoryMesh(MemoryMeshType meshType)
+		{
+			InternalCalls.MeshComponent_SetMemoryMesh(Entity.ID, (int)meshType);
+		}
+
+		public void SetMaterialColor(Vector3 color)
+		{
+			InternalCalls.MeshComponent_SetMaterialColor(Entity.ID, ref color);
+		}
+	}
+
+	public class BoxCollider3DComponent : Component
+	{
+		public Vector3 Size
+		{
+			get
+			{
+				InternalCalls.BoxCollider3DComponent_GetSize(Entity.ID, out Vector3 size);
+				return size;
+			}
+			set
+			{
+				InternalCalls.BoxCollider3DComponent_SetSize(Entity.ID, ref value);
+			}
+		}
+
+		public Vector3 Offset
+		{
+			get
+			{
+				InternalCalls.BoxCollider3DComponent_GetOffset(Entity.ID, out Vector3 offset);
+				return offset;
+			}
+			set
+			{
+				InternalCalls.BoxCollider3DComponent_SetOffset(Entity.ID, ref value);
+			}
+		}
+
+		public float Friction
+		{
+			get => InternalCalls.BoxCollider3DComponent_GetFriction(Entity.ID);
+			set => InternalCalls.BoxCollider3DComponent_SetFriction(Entity.ID, value);
+		}
+
+		public float Restitution
+		{
+			get => InternalCalls.BoxCollider3DComponent_GetRestitution(Entity.ID);
+			set => InternalCalls.BoxCollider3DComponent_SetRestitution(Entity.ID, value);
+		}
+	}
+
+	public class CircleCollider3DComponent : Component
+	{
+		public float Radius
+		{
+			get => InternalCalls.CircleCollider3DComponent_GetRadius(Entity.ID);
+			set => InternalCalls.CircleCollider3DComponent_SetRadius(Entity.ID, value);
+		}
+
+		public Vector3 Offset
+		{
+			get
+			{
+				InternalCalls.CircleCollider3DComponent_GetOffset(Entity.ID, out Vector3 offset);
+				return offset;
+			}
+			set
+			{
+				InternalCalls.CircleCollider3DComponent_SetOffset(Entity.ID, ref value);
+			}
+		}
+
+		public float Friction
+		{
+			get => InternalCalls.CircleCollider3DComponent_GetFriction(Entity.ID);
+			set => InternalCalls.CircleCollider3DComponent_SetFriction(Entity.ID, value);
+		}
+
+		public float Restitution
+		{
+			get => InternalCalls.CircleCollider3DComponent_GetRestitution(Entity.ID);
+			set => InternalCalls.CircleCollider3DComponent_SetRestitution(Entity.ID, value);
+		}
+	}
+
+	public class CapsuleCollider3DComponent : Component
+	{
+		public float Radius
+		{
+			get => InternalCalls.CapsuleCollider3DComponent_GetRadius(Entity.ID);
+			set => InternalCalls.CapsuleCollider3DComponent_SetRadius(Entity.ID, value);
+		}
+
+		public float Height
+		{
+			get => InternalCalls.CapsuleCollider3DComponent_GetHeight(Entity.ID);
+			set => InternalCalls.CapsuleCollider3DComponent_SetHeight(Entity.ID, value);
+		}
+
+		public Vector3 Offset
+		{
+			get
+			{
+				InternalCalls.CapsuleCollider3DComponent_GetOffset(Entity.ID, out Vector3 offset);
+				return offset;
+			}
+			set
+			{
+				InternalCalls.CapsuleCollider3DComponent_SetOffset(Entity.ID, ref value);
+			}
+		}
+
+		public float Friction
+		{
+			get => InternalCalls.CapsuleCollider3DComponent_GetFriction(Entity.ID);
+			set => InternalCalls.CapsuleCollider3DComponent_SetFriction(Entity.ID, value);
+		}
+
+		public float Restitution
+		{
+			get => InternalCalls.CapsuleCollider3DComponent_GetRestitution(Entity.ID);
+			set => InternalCalls.CapsuleCollider3DComponent_SetRestitution(Entity.ID, value);
 		}
 	}
 

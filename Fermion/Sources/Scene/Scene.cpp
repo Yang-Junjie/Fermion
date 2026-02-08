@@ -840,6 +840,16 @@ namespace Fermion
                                          (int)entity);
                 }
             }
+            {
+                auto group = getRegistry().group<>(entt::get<TransformComponent, TextComponent>);
+                for (auto entity : group)
+                {
+                    auto &text = group.get<TextComponent>(entity);
+                    Entity sceneEntity{entity, this};
+                    glm::mat4 worldTransform = m_entityManager->getWorldSpaceTransformMatrix(sceneEntity);
+                    renderer->drawString(text.textString, worldTransform, text, (int)entity);
+                }
+            }
         }
 
         // Debug draw

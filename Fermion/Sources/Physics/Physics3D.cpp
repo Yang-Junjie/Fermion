@@ -207,6 +207,115 @@ namespace Fermion
         m_physicsSystem.reset();
     }
 
+    void Physics3DWorld::addBody(Scene *scene, Entity entity)
+    {
+        if (!scene || !m_physicsSystem || !entity)
+            return;
+
+        if (!entity.hasComponent<Rigidbody3DComponent>() || !entity.hasComponent<TransformComponent>())
+            return;
+
+        auto &rb = entity.getComponent<Rigidbody3DComponent>();
+
+        // Skip if already has a runtime body
+        if (rb.runtimeBody)
+            return;
+
+        TransformComponent worldTransform = scene->getEntityManager().getWorldSpaceTransform(entity);
+
+        JPH::ShapeRefC shape;
+        glm::vec3 offset{0.0f};
+        float friction = 0.5f;
+        float restitution = 0.0f;
+        bool isTrigger = false;
+
+        if (entity.hasComponent<BoxCollider3DComponent>())
+        {
+            const auto &collider = entity.getComponent<BoxCollider3DComponent>();
+            shape = Physics3DShapes::CreateBoxShape(worldTransform, &collider);
+            offset = collider.offset;
+            friction = collider.friction;
+            restitution = collider.restitution;
+            isTrigger = collider.isTrigger;
+        }
+        else if (entity.hasComponent<CapsuleCollider3DComponent>())
+        {
+            const auto &collider = entity.getComponent<CapsuleCollider3DComponent>();
+            shape = Physics3DShapes::CreateCapsuleShape(worldTransform, &collider);
+            offset = collider.offset;
+            friction = collider.friction;
+            restitution = collider.restitution;
+            isTrigger = collider.isTrigger;
+        }
+        else if (entity.hasComponent<CircleCollider3DComponent>())
+        {
+            const auto &collider = entity.getComponent<CircleCollider3DComponent>();
+            shape = Physics3DShapes::CreateSphereShape(worldTransform, &collider);
+            offset = collider.offset;
+            friction = collider.friction;
+            restitution = collider.restitution;
+            isTrigger = collider.isTrigger;
+        }
+        else if (entity.hasComponent<MeshCollider3DComponent>())
+        {
+            const auto &collider = entity.getComponent<MeshCollider3DComponent>();
+            shape = Physics3DShapes::CreateMeshShape(worldTransform, &collider);
+            offset = collider.offset;
+            friction = collider.friction;
+            restitution = collider.restitution;
+            isTrigger = collider.isTrigger;
+        }
+        else
+        {
+            return;
+        }
+
+        if (!shape)
+            return;
+
+        glm::quat rotationQuat = glm::quat(worldTransform.getRotationEuler());
+        glm::vec3 worldOffset = rotationQuat * offset;
+        glm::vec3 bodyPosition = worldTransform.translation + worldOffset;
+
+        bool isStatic = rb.type == Rigidbody3DComponent::BodyType::Static;
+        JPH::BodyCreationSettings bodySettings(shape, Physics3DUtils::ToJoltVec3(bodyPosition),
+                                               Physics3DUtils::ToJoltQuat(rotationQuat),
+                                               Physics3DUtils::ToJoltMotionType(rb.type),
+                                               isStatic ? Physics3DInternal::Layers::NON_MOVING
+                                                        : Physics3DInternal::Layers::MOVING);
+
+        bodySettings.mAllowSleeping = true;
+        bodySettings.mLinearDamping = rb.linearDamping;
+        bodySettings.mAngularDamping = rb.angularDamping;
+        bodySettings.mFriction = friction;
+        bodySettings.mRestitution = restitution;
+        bodySettings.mIsSensor = isTrigger;
+        bodySettings.mGravityFactor = rb.useGravity ? 1.0f : 0.0f;
+        bodySettings.mUserData = static_cast<uint64_t>(entity.getUUID());
+        bodySettings.mAllowedDOFs = rb.fixedRotation
+                                        ? (JPH::EAllowedDOFs::TranslationX | JPH::EAllowedDOFs::TranslationY |
+                                           JPH::EAllowedDOFs::TranslationZ)
+                                        : JPH::EAllowedDOFs::All;
+
+        if (rb.mass > 0.0f)
+        {
+            bodySettings.mOverrideMassProperties = JPH::EOverrideMassProperties::MassAndInertiaProvided;
+            JPH::MassProperties massProperties = shape->GetMassProperties();
+            massProperties.ScaleToMass(rb.mass);
+            bodySettings.mMassPropertiesOverride = massProperties;
+        }
+
+        auto activation = isStatic ? JPH::EActivation::DontActivate : JPH::EActivation::Activate;
+        JPH::BodyInterface &bodyInterface = m_physicsSystem->GetBodyInterface();
+        JPH::BodyID bodyID = bodyInterface.CreateAndAddBody(bodySettings, activation);
+
+        if (bodyID.IsInvalid())
+            return;
+
+        m_bodyMap[entity.getUUID()] = bodyID.GetIndexAndSequenceNumber();
+        rb.runtimeBody = reinterpret_cast<void *>(static_cast<uint64_t>(bodyID.GetIndexAndSequenceNumber()));
+    }
+
     void Physics3DWorld::step(Scene *scene, Timestep ts)
     {
         if (!scene || !m_physicsSystem || !m_tempAllocator || !m_jobSystem)
