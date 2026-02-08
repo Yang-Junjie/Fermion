@@ -70,7 +70,7 @@ namespace Fermion
         };
 
         // 绘制单个脚本字段
-        auto drawScriptField = [&](const std::string &fieldName,
+        auto drawScriptField = [](const std::string &fieldName,
                                    const ScriptField &field,
                                    std::shared_ptr<ScriptInstance> instance)
         {

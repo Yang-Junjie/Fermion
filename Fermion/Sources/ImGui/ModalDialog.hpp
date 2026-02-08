@@ -8,22 +8,23 @@ namespace Fermion
 {
     namespace ui
     {
+        struct ModalConfig
+        {
+            std::string Title;
+            bool ShowConfirm = true;
+            bool ShowCancel = true;
+            bool ShowClose = true;
+
+            std::string ConfirmText = "Confirm";
+            std::string CancelText = "Cancel";
+
+            std::function<void()> ContentFunc = nullptr;
+            std::function<void()> ConfirmFunc = nullptr;
+        };
+             
         class ModalDialog
         {
         public:
-            struct ModalConfig
-            {
-                std::string Title;
-                bool ShowConfirm = true;
-                bool ShowCancel = true;
-                bool ShowClose = true;
-
-                std::string ConfirmText = "Confirm";
-                std::string CancelText = "Cancel";
-
-                std::function<void()> ContentFunc = nullptr;
-                std::function<void()> ConfirmFunc = nullptr;
-            };
             static void Show(ModalConfig config)
             {
                 s_Config = std::move(config);

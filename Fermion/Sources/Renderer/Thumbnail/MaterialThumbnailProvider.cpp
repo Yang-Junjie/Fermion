@@ -42,7 +42,7 @@ namespace Fermion
         }
 
         // Render the preview
-        MaterialPreviewRenderer::PreviewSettings settings;
+        PreviewSettings settings;
         settings.width = 128;
         settings.height = 128;
 

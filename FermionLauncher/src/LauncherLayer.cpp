@@ -7,7 +7,12 @@
 #include <algorithm>
 #include <cctype>
 #include <cstdlib>
-#include <process.h>
+#ifdef _WIN32
+    #include <process.h>
+#else
+    #include <unistd.h>     
+    #include <sys/wait.h>
+#endif
 #include <vector>
 
 namespace

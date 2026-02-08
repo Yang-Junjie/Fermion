@@ -688,7 +688,7 @@ namespace Fermion
         if (!material)
             return;
 
-        MaterialPreviewRenderer::PreviewSettings settings;
+        PreviewSettings settings;
         settings.width = 256;
         settings.height = 256;
 

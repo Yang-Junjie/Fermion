@@ -11,26 +11,29 @@ namespace Fermion
     class Material;
     class Mesh;
 
+    struct PreviewSettings
+    {
+        uint32_t width = 256;
+        uint32_t height = 256;
+        glm::vec3 lightDirection = glm::vec3(-0.5f, -0.7f, -0.5f);
+        glm::vec3 lightColor = glm::vec3(1.0f);
+        float lightIntensity = 15.0f;
+        float ambientIntensity = 0.15f;
+        glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 1.5f);
+
+        PreviewSettings() = default;
+    };
+
+
     class MaterialPreviewRenderer
     {
     public:
-        struct PreviewSettings
-        {
-            uint32_t width = 256;
-            uint32_t height = 256;
-            glm::vec3 lightDirection = glm::vec3(-0.5f, -0.7f, -0.5f);
-            glm::vec3 lightColor = glm::vec3(1.0f);
-            float lightIntensity = 15.0f;
-            float ambientIntensity = 0.15f;
-            glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 1.5f);
-        };
-
         MaterialPreviewRenderer();
         ~MaterialPreviewRenderer() = default;
 
         std::unique_ptr<Texture2D> renderPreview(
             const std::shared_ptr<Material> &material,
-            const PreviewSettings &settings = PreviewSettings{});
+            const PreviewSettings &settings = {});
 
         bool isInitialized() const { return m_initialized; }
 
