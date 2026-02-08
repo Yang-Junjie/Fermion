@@ -188,6 +188,20 @@ namespace Fermion
             out << YAML::Key << "RestitutionThreshold" << YAML::Value << cc.restitutionThreshold;
             out << YAML::EndMap;
         }
+        if(entity.hasComponent<CapsuleCollider2DComponent>())
+        {
+            out << YAML::Key << "CapsuleCollider2DComponent";
+            out << YAML::BeginMap;
+            auto &cc = entity.getComponent<CapsuleCollider2DComponent>();
+            out << YAML::Key << "Offset" << YAML::Value << cc.offset;
+            out << YAML::Key << "Radius" << YAML::Value << cc.radius;
+            out << YAML::Key << "Height" << YAML::Value << cc.height;
+            out << YAML::Key << "Density" << YAML::Value << cc.density;
+            out << YAML::Key << "Friction" << YAML::Value << cc.friction;
+            out << YAML::Key << "Restitution" << YAML::Value << cc.restitution;
+            out << YAML::Key << "RestitutionThreshold" << YAML::Value << cc.restitutionThreshold;
+            out << YAML::EndMap;
+        }
         if (entity.hasComponent<Rigidbody3DComponent>())
         {
             out << YAML::Key << "Rigidbody3DComponent";
@@ -629,6 +643,27 @@ namespace Fermion
                     if (auto n = circleCollider2DComponent["RestitutionThreshold"]; n)
                         cc.restitutionThreshold = n.as<float>();
                 }
+                auto capsuleCollider2DComponent = entity["CapsuleCollider2DComponent"];
+                if (capsuleCollider2DComponent && capsuleCollider2DComponent.IsMap())
+                {
+                    auto &cc = deserializedEntity.addComponent<CapsuleCollider2DComponent>();
+                    if (auto n = capsuleCollider2DComponent["Offset"]; n)
+                        cc.offset = n.as<glm::vec2>();
+                    if (auto n = capsuleCollider2DComponent["Radius"]; n)
+                        cc.radius = n.as<float>();
+                    if (auto n = capsuleCollider2DComponent["Height"]; n)
+                        cc.height = n.as<float>();
+                    if (auto n = capsuleCollider2DComponent["Density"]; n)
+                        cc.density = n.as<float>(); 
+                    if (auto n = capsuleCollider2DComponent["Friction"]; n)
+                        cc.friction = n.as<float>();
+                    if (auto n = capsuleCollider2DComponent["Restitution"]; n)  
+                        cc.restitution = n.as<float>();
+                    if (auto n = capsuleCollider2DComponent["RestitutionThreshold"]; n)
+                        cc.restitutionThreshold = n.as<float>();
+                }
+
+
                 auto rigidbody3DComponent = entity["Rigidbody3DComponent"];
                 if (rigidbody3DComponent && rigidbody3DComponent.IsMap())
                 {

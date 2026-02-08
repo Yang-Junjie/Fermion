@@ -1,18 +1,5 @@
 Scene: Name
 Entities:
-  - Entity: 9674948488269786251
-    TagComponent:
-      Tag: pl
-    TransformComponent:
-      Translation: [-2.3532326, 6.1124535, 4.000105]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    RelationshipComponent:
-      Parent: 0
-    PointLightComponent:
-      Color: [0.9704641, 0.9277021, 0.7452509]
-      Intensity: 7.4
-      Range: 13
   - Entity: 16223500667925827541
     TagComponent:
       Tag: sponza
@@ -146,10 +133,10 @@ Entities:
 EnvironmentSettings:
   ShowSkybox: true
   EnableShadows: true
-  AmbientIntensity: 0
+  AmbientIntensity: 0.1
   ShadowMapSize: 5120
   ShadowBias: 0.01
   ShadowSoftness: 10
   NormalMapStrength: 1
   ToksvigStrength: 1
-  UseIBL: false
+  UseIBL: true

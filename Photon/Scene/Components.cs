@@ -82,6 +82,10 @@ namespace Fermion
 				InternalCalls.Rigidbody2DComponent_GetLinearVelocity(Entity.ID, out Vector2 velocity);
 				return velocity;
 			}
+			set
+			{
+				InternalCalls.Rigidbody2DComponent_SetLinearVelocity(Entity.ID, ref value);
+			}
 		}
 
 		public BodyType Type

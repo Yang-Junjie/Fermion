@@ -64,6 +64,8 @@ namespace Fermion
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal extern static void Rigidbody2DComponent_GetLinearVelocity(ulong entityID, out Vector2 linearVelocity);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal extern static void Rigidbody2DComponent_SetLinearVelocity(ulong entityID, ref Vector2 linearVelocity);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal extern static Rigidbody3DComponent.BodyType Rigidbody3DComponent_GetType(ulong entityID);

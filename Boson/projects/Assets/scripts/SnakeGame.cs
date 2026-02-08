@@ -124,15 +124,27 @@ namespace Photon
             bool rightDown = Input.IsKeyDown(KeyCode.Right) || Input.IsKeyDown(KeyCode.D);
             bool rDown = Input.IsKeyDown(KeyCode.R);
 
-            // 方向输入（禁止直接反向）
+            // 方向输入（禁止直接反向），方向改变时立即移动
             if (upDown && !m_LastUpDown && m_CurrentDirection != Direction.Down)
+            {
                 m_NextDirection = Direction.Up;
+                m_MoveTimer = m_CurrentMoveInterval;
+            }
             else if (downDown && !m_LastDownDown && m_CurrentDirection != Direction.Up)
+            {
                 m_NextDirection = Direction.Down;
+                m_MoveTimer = m_CurrentMoveInterval;
+            }
             else if (leftDown && !m_LastLeftDown && m_CurrentDirection != Direction.Right)
+            {
                 m_NextDirection = Direction.Left;
+                m_MoveTimer = m_CurrentMoveInterval;
+            }
             else if (rightDown && !m_LastRightDown && m_CurrentDirection != Direction.Left)
+            {
                 m_NextDirection = Direction.Right;
+                m_MoveTimer = m_CurrentMoveInterval;
+            }
 
             // R键重新开始
             if (rDown && !m_LastRDown)

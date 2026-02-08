@@ -311,6 +311,23 @@ namespace Fermion
         CircleCollider2DComponent(const CircleCollider2DComponent &) = default;
     };
 
+    struct CapsuleCollider2DComponent
+    {
+        glm::vec2 offset = {0.0f, 0.0f};
+        float radius = 0.5f;
+        float height = 1.0f;
+
+        float density = 1.0f;
+        float friction = 0.5f;
+        float restitution = 0.0f;
+        float restitutionThreshold = 0.5f;
+
+        void *runtimeFixture = nullptr;
+
+        CapsuleCollider2DComponent() = default;
+        CapsuleCollider2DComponent(const CapsuleCollider2DComponent &) = default;
+    };
+
     struct Rigidbody3DComponent
     {
         enum class BodyType
@@ -501,8 +518,10 @@ namespace Fermion
             ScriptComponent,
             ScriptContainerComponent,
             NativeScriptComponent,
-            Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, BoxSensor2DComponent,
+
+            Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, CapsuleCollider2DComponent, BoxSensor2DComponent,
             Rigidbody3DComponent, BoxCollider3DComponent, CircleCollider3DComponent, CapsuleCollider3DComponent, MeshCollider3DComponent,
+
             TextComponent,
 
             /* Lighting */

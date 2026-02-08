@@ -1,0 +1,55 @@
+Material:
+  Type: 2
+  Name: worn-down-stone
+  Albedo: [1, 1, 1]
+  Metallic: 0
+  Roughness: 0.5
+  AO: 1
+  AlbedoMap: 4849729273315748121
+  NormalMap: 15451889459856812149
+  MetallicMap: 3140918398854054295
+  RoughnessMap: 2848622179459582832
+  AOMap: 8008494346801105381
+Editor:
+  NextNodeID: 7
+  NextLinkID: 6
+  Nodes:
+    - ID: 1
+      Type: 0
+      Position: [400, 100]
+    - ID: 2
+      Type: 1
+      Position: [50, 0]
+      TextureHandle: 4849729273315748121
+    - ID: 3
+      Type: 1
+      Position: [50, 170]
+      TextureHandle: 8008494346801105381
+    - ID: 4
+      Type: 1
+      Position: [50, 340]
+      TextureHandle: 3140918398854054295
+    - ID: 5
+      Type: 1
+      Position: [50, 510]
+      TextureHandle: 15451889459856812149
+    - ID: 6
+      Type: 1
+      Position: [50, 680]
+      TextureHandle: 2848622179459582832
+  Links:
+    - ID: 1
+      StartPin: 601
+      EndPin: 104
+    - ID: 2
+      StartPin: 501
+      EndPin: 102
+    - ID: 3
+      StartPin: 401
+      EndPin: 103
+    - ID: 4
+      StartPin: 301
+      EndPin: 105
+    - ID: 5
+      StartPin: 201
+      EndPin: 101

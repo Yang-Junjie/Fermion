@@ -1,0 +1,1120 @@
+Scene: Name
+Entities:
+  - Entity: 10972301812057677737
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [4.3948874, 1.2778113, -13.818645]
+      Rotation: [0, 0, 0]
+      Scale: [0.64571786, 7.336163, 20.885015]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 3340224728385119143
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 14725205850164154713
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 5990166585705490822
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [25.553394, 1.9378833, 33.8017]
+      Rotation: [0, 1.5707964, 0]
+      Scale: [15.8337555, 0.3993996, 7.3217955]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 2133199778466350573
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 9775782561072601664
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 11578190657125000544
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [21.959398, -0.6474761, 37.03817]
+      Rotation: [0, 0, 4.4316215e-07]
+      Scale: [0.43953195, 6.711172, 10.7166605]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 7934691446500397248
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 9775782561072601664
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 4927098782916422049
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [18.155174, -0.56869996, 37.131496]
+      Rotation: [1.5708, 1.1352103, 1.5708026]
+      Scale: [11.606708, 0.3993996, 7.3217964]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 4850000052011106027
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 9775782561072601664
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 16044159294176710344
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [11.606708, 0.3993996, 7.3217964]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 12684676423860867262
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 9775782561072601664
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 5818284198197085199
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [17.9584, 2.4846501, 41.66061]
+      Rotation: [-1.5761108, -0, 0]
+      Scale: [23.163876, 0.3993996, 14.609404]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 4053449055955508701
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 14725205850164154713
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 16094168722730420099
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [14.417165, -0.64747894, 37.03817]
+      Rotation: [0, 0, 4.4316215e-07]
+      Scale: [0.43953195, 6.711172, 10.7166605]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 7934691446500397248
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 9775782561072601664
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 16656394502168553861
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [28.968151, 4.4459977, 34.007694]
+      Rotation: [0, 0, 0]
+      Scale: [0.64571786, 6.7005076, 17.082594]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 3340224728385119143
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 14725205850164154713
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 6680911215059872767
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [10.540406, 1.824058, 35.91531]
+      Rotation: [0, 1.5707964, 0]
+      Scale: [11.606708, 0.3993996, 7.3217964]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 5183232858848570444
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 9775782561072601664
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 4599725129161755060
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [-7.2363424, 5.4007893, 28.638416]
+      Rotation: [0, -0, 1.5707964]
+      Scale: [11.606708, 0.3993996, 7.3217964]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 13780583836693391957
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 14725205850164154713
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 13425363171609747761
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [-0.121192336, 4.418583, 32.278862]
+      Rotation: [1.5707964, -0, 0]
+      Scale: [14.477965, 0.39939943, 8.305863]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 5555216993158501298
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 14725205850164154713
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 17383102238164671744
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [3.782247, 1.8859076, 27.66434]
+      Rotation: [0, -0, 0]
+      Scale: [22.473482, 0.3993995, 8.8425]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 17870563761747543453
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 9775782561072601664
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 7772182044595338785
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [2.059564, 4.418583, 25.718666]
+      Rotation: [1.5707964, -0, 0]
+      Scale: [22.473482, 0.3993995, 8.8425]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 1777586250083371132
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 14725205850164154713
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 15165163548400999327
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [27.417774, 5.157116, -2.6156805]
+      Rotation: [1.5707964, 0.012147556, -3.1414304]
+      Scale: [6.142301, 0.39939958, 7.3217955]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 15766821586903121774
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 14725205850164154713
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 2024465116757558882
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [27.342108, 5.1571145, 3.613374]
+      Rotation: [1.5707964, 0.012147556, -3.1414304]
+      Scale: [6.142301, 0.39939958, 7.3217955]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 13967492781137901236
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 14725205850164154713
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 509267533857899021
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [28.62479, 4.428376, 0.60207117]
+      Rotation: [0, 0, 0]
+      Scale: [0.78962725, 6.770752, 7.321795]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 10855990143128285058
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 14725205850164154713
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 5800813566331185813
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [2.0979393, 3.296022, 3.9705293]
+      Rotation: [1.5707964, -0, 0]
+      Scale: [22.473482, 0.3993995, 19.752565]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 10213437384838855942
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 14725205850164154713
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 9578736763361707481
+    TagComponent:
+      Tag: player
+    TransformComponent:
+      Translation: [14.118651, 5.4994583, 28.411934]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
+      Children:
+        - 2992368840227869188
+    Rigidbody3DComponent:
+      BodyType: 1
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: true
+    CapsuleCollider3DComponent:
+      Offset: [0, 0, 0]
+      Radius: 0.5
+      Height: 1.5
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+    ScriptContainerComponent:
+      ScriptClassNames:
+        - Photon.FPSCharacterController
+  - Entity: 2609449476826774398
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [0, 0, -7.3967013]
+      Rotation: [0, 0, 0]
+      Scale: [11.606708, 0.3993996, 8.7576]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 330580775833881743
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 9775782561072601664
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 13645459071670415172
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [-0.26167554, 1.6592311, -11.446374]
+      Rotation: [1.5707964, 0, 0]
+      Scale: [9.269656, 0.39939943, 6.697957]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 7431794812389158215
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 14725205850164154713
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 7037202820533116265
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [24.79315, 4.61796, 14.853399]
+      Rotation: [0, 0, 0]
+      Scale: [1, 9.280613, 22.643787]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 7499867757311158170
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 14725205850164154713
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 17937343306699399797
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [18.730957, 1.9285111, 12.934818]
+      Rotation: [0, 0, 0]
+      Scale: [11.606708, 0.3993996, 38.275238]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 13922266788682149433
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 9775782561072601664
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 11896286767755061715
+    TagComponent:
+      Tag: dl
+    TransformComponent:
+      Translation: [18.570322, 22.336824, 23.835024]
+      Rotation: [-0.5564845, -0.27559417, 0.03178696]
+      Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
+    DirectionalLightComponent:
+      Color: [0.96202534, 0.9594562, 0.7590664]
+      Intensity: 5
+      MainLight: true
+  - Entity: 1195437341118568387
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [12.098493, 1.2778113, -13.573002]
+      Rotation: [0, 0, 0]
+      Scale: [0.64571786, 7.336163, 20.885015]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 3340224728385119143
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 14725205850164154713
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 11665203588645902564
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [8.750116, 1.6592195, -3.2381628]
+      Rotation: [1.5707964, 0, -3.1415927]
+      Scale: [9.269656, 0.39939943, 6.697957]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 13583578479995874602
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 9775782561072601664
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 17916288183738211073
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [1.3319778, 8.012694, -16.54536]
+      Rotation: [1.5707964, 0, 0]
+      Scale: [14.098204, 0.39939943, 7.321794]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 14166899467860487292
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 14725205850164154713
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 11494655025537930135
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [8.144551, 8.012694, -18.576397]
+      Rotation: [0, 0, 0]
+      Scale: [0.44077885, 6.2383933, 3.9729648]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 9366285477221760748
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 14725205850164154713
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 6959954446315822691
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [3.5622485, 4.954018, -12.023524]
+      Rotation: [0, -0, 0]
+      Scale: [19.211369, 0.39939952, 17.754934]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 17539942757360971086
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 11417724131040838483
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 10122382822890702450
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [10.474482, 8.236509, -20.395697]
+      Rotation: [1.5707964, 0, 0]
+      Scale: [28.673012, 0.39939946, 7.321794]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 4017705287844660242
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 14725205850164154713
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 9742172332732685467
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [27.15751, 5.1570773, 25.875696]
+      Rotation: [1.5707964, 0.012147556, -3.1414304]
+      Scale: [6.142301, 0.39939958, 7.3217955]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 4691033757260193402
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 14725205850164154713
+  - Entity: 10783109582915271926
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [18.730957, 4.959071, -17.256462]
+      Rotation: [0, -0, 0]
+      Scale: [11.606708, 0.39939964, 6.1597385]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 9438177556553741862
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 9775782561072601664
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 12817818555995785043
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [6.8674164, 4.4185925, 36.946808]
+      Rotation: [0, 0, 0]
+      Scale: [0.64571786, 6.7005076, 9.007314]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 3340224728385119143
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 14725205850164154713
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 3326503950614422166
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [-4.9081583, 4.4459977, -5.418596]
+      Rotation: [0, 0, 0]
+      Scale: [0.64571786, 13.664266, 26.010212]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 3340224728385119143
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 14725205850164154713
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 5133111295969158915
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [18.730957, 3.3689115, -8.341602]
+      Rotation: [0.2526876, -0, 0]
+      Scale: [11.606708, 0.39939964, 12.68382]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 15261096642286827000
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 9775782561072601664
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 1460332154238422166
+    TagComponent:
+      Tag: pl
+    TransformComponent:
+      Translation: [2.6832385, 2.9341128, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
+    PointLightComponent:
+      Color: [1, 1, 1]
+      Intensity: 49.2
+      Range: 11.5
+  - Entity: 933985576182227677
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [25.748484, 1.8940961, 0]
+      Rotation: [0, 0, 0]
+      Scale: [5.6729603, 0.3993996, 7.3217964]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 5629629509649196540
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 9775782561072601664
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 6701235752570777693
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [9.412303, 0.96886224, 0]
+      Rotation: [0, -0, 0.26013994]
+      Scale: [7.461662, 0.39939955, 7.3217964]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 12723046418458284373
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 9775782561072601664
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 2992368840227869188
+    TagComponent:
+      Tag: camera
+    TransformComponent:
+      Translation: [0.0010986328, 0.8644395, -0.008415222]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 9578736763361707481
+    CameraComponent:
+      Camera:
+        ProjectionType: 1
+        PerspectiveFOV: 1.134464
+        PerspectiveNear: 0.01
+        PerspectiveFar: 100
+        OrthographicSize: 10
+        OrthographicNear: -100
+        OrthographicFar: 100
+      Primary: true
+      FixedAspectRatio: false
+    ScriptContainerComponent:
+      ScriptClassNames:
+        - Photon.FPSCameraController
+  - Entity: 3865901342117275184
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [25.01574, 4.4459977, -12.827904]
+      Rotation: [0, 0, 0]
+      Scale: [0.64571786, 7.336163, 20.885015]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 3340224728385119143
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 14725205850164154713
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+  - Entity: 2488666741971175696
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [13.048277, 5.4226885, 14.930782]
+      Rotation: [0, -0, 1.5707964]
+      Scale: [6.496541, 0.39939958, 22.019285]
+    RelationshipComponent:
+      Parent: 0
+    MeshComponent:
+      MeshHandle: 1836149560823657848
+      MemoryOnly: true
+      MemoryMeshType: 1
+      SubmeshMaterials:
+        - 14725205850164154713
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    BoxCollider3DComponent:
+      Offset: [0, 0, 0]
+      Size: [0.5, 0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+EnvironmentSettings:
+  ShowSkybox: true
+  EnableShadows: false
+  AmbientIntensity: 0.1
+  ShadowMapSize: 5120
+  ShadowBias: 0.008
+  ShadowSoftness: 10
+  NormalMapStrength: 1
+  ToksvigStrength: 1
+  UseIBL: false

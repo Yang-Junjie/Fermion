@@ -359,6 +359,23 @@ namespace Fermion
         out->y = vel.y;
     }
 
+    extern "C" void Rigidbody2DComponent_SetLinearVelocity(UUID entityID, glm::vec2 *velocity)
+    {
+        if (!velocity)
+            return;
+
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        auto &rb2d = entity.getComponent<Rigidbody2DComponent>();
+        uint64_t storedId = (uint64_t)(uintptr_t)rb2d.runtimeBody;
+        b2BodyId bodyId = b2LoadBodyId(storedId);
+
+        b2Body_SetLinearVelocity(bodyId, b2Vec2{velocity->x, velocity->y});
+    }
+
     extern "C" bool BoxSensor2D_SensorBegin(UUID entityID)
     {
         Scene *scene = ScriptManager::getSceneContext();
@@ -1115,6 +1132,7 @@ namespace Fermion
         FM_ADD_INTERNAL_CALL(Rigidbody2DComponent_SetType);
         FM_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyLinearImpulseToCenter);
         FM_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetLinearVelocity);
+        FM_ADD_INTERNAL_CALL(Rigidbody2DComponent_SetLinearVelocity);
 
         FM_ADD_INTERNAL_CALL(Rigidbody3DComponent_GetType);
         FM_ADD_INTERNAL_CALL(Rigidbody3DComponent_SetType);

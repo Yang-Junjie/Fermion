@@ -447,6 +447,7 @@ namespace Fermion
             displayAddComponentEntry<Rigidbody2DComponent>("Rigidbody2D");
             displayAddComponentEntry<BoxCollider2DComponent>("Box Collider2D");
             displayAddComponentEntry<CircleCollider2DComponent>("Circle Collider2D");
+            displayAddComponentEntry<CapsuleCollider2DComponent>("Capsule Collider2D");
             displayAddComponentEntry<BoxSensor2DComponent>("Box Sensor2D");
             ImGui::SeparatorText("3D Component");
             displayAddComponentEntry<MeshComponent>("Mesh");
@@ -1079,7 +1080,7 @@ namespace Fermion
             const char *bodyTypeStrings[] = {"Static", "Dynamic", "Kinematic"};
             const char *currentBodyTypeString = bodyTypeStrings[(int) component.type];
             if (ImGui::BeginCombo("Body Type", currentBodyTypeString)) {
-                for (int i = 0; i < 2; i++) {
+                for (int i = 0; i < 3; i++) {
                     bool isSelected = currentBodyTypeString == bodyTypeStrings[i];
                     if (ImGui::Selectable(bodyTypeStrings[i], isSelected)) {
                         currentBodyTypeString = bodyTypeStrings[i];
@@ -1107,6 +1108,15 @@ namespace Fermion
                                                  {
             ui::drawVec2Control("Offset",component.offset,0.0f,100.0f,0.1f);
             ui::drawFloatControl("Radius", component.radius, 150.0f);
+            ui::drawFloatControl("Density", component.density, 150.0f, 0.01f, 0.0f, 1.0f);
+            ui::drawFloatControl("Friction", component.friction, 150.0f, 0.01f, 0.0f, 1.0f);
+            ui::drawFloatControl("Restitution", component.restitution, 150.0f, 0.01f, 0.0f, 1.0f);
+            ui::drawFloatControl("Restitution Threshold", component.restitutionThreshold, 150.0f, 0.01f, 0.0f); });
+        drawComponent<CapsuleCollider2DComponent>("Capsule Collider 2D", entity, [](auto &component)
+                                                  {
+            ui::drawVec2Control("Offset",component.offset,0.0f,100.0f,0.1f);
+            ui::drawFloatControl("Radius", component.radius, 150.0f);
+            ui::drawFloatControl("Height", component.height, 150.0f);
             ui::drawFloatControl("Density", component.density, 150.0f, 0.01f, 0.0f, 1.0f);
             ui::drawFloatControl("Friction", component.friction, 150.0f, 0.01f, 0.0f, 1.0f);
             ui::drawFloatControl("Restitution", component.restitution, 150.0f, 0.01f, 0.0f, 1.0f);

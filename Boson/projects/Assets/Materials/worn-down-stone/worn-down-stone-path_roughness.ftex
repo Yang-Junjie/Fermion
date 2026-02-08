@@ -1,0 +1,9 @@
+TextureAsset:
+  SourcePath: Assets/Materials/worn-down-stone/worn-down-stone-path_roughness.png
+  GenerateMipmaps: true
+  MinFilter: Linear
+  MagFilter: Linear
+  WrapS: Repeat
+  WrapT: Repeat
+  Anisotropy: 1
+  sRGB: false

@@ -238,6 +238,36 @@ namespace Fermion
                 b2ShapeId shapeId = b2CreateCircleShape(bodyId, &shapeDef, &circle);
                 cc2d.runtimeFixture = (void *)(uintptr_t)b2StoreShapeId(shapeId);
             }
+            if (entity.hasComponent<CapsuleCollider2DComponent>())
+            {
+                auto &cc2d = entity.getComponent<CapsuleCollider2DComponent>();
+
+                b2ShapeDef shapeDef = b2DefaultShapeDef();
+                shapeDef.density = cc2d.density;
+                shapeDef.material.friction = cc2d.friction;
+                shapeDef.material.restitution = cc2d.restitution;
+                shapeDef.enableSensorEvents = true;
+
+                b2Capsule capsule;
+              
+                float scaleX = worldTransform.scale.x;
+                float scaleY = worldTransform.scale.y;
+
+                float scaledRadius = cc2d.radius * std::abs(scaleX);
+                float scaledHeight = cc2d.height * std::abs(scaleY);
+
+                float halfSegmentHeight = std::max(0.0f, (scaledHeight / 2.0f) - scaledRadius);
+
+                float offsetX = cc2d.offset.x * scaleX;
+                float offsetY = cc2d.offset.y * scaleY;
+
+                capsule.center1 = b2Vec2{offsetX, offsetY - halfSegmentHeight}; 
+                capsule.center2 = b2Vec2{offsetX, offsetY + halfSegmentHeight}; 
+                capsule.radius = scaledRadius;
+
+                b2ShapeId shapeId = b2CreateCapsuleShape(bodyId, &shapeDef, &capsule);
+                cc2d.runtimeFixture = (void *)(uintptr_t)b2StoreShapeId(shapeId);
+            }
             if (entity.hasComponent<BoxSensor2DComponent>())
             {
                 initPhysicsSensor(entity);
@@ -312,8 +342,7 @@ namespace Fermion
                     DirectionalLight light = {
                         .direction = -worldTransform.getForward(),
                         .color = directionalLight.color,
-                        .intensity = directionalLight.intensity
-                    };
+                        .intensity = directionalLight.intensity};
 
                     if (directionalLight.mainLight)
                     {
@@ -752,8 +781,7 @@ namespace Fermion
                             DirectionalLight light = {
                                 .direction = -worldTransform.getForward(),
                                 .color = directionalLight.color,
-                                .intensity = directionalLight.intensity
-                            };
+                                .intensity = directionalLight.intensity};
 
                             if (directionalLight.mainLight)
                             {
