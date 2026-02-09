@@ -22,6 +22,11 @@ namespace Fermion {
 
         void setEditingEnabled(bool enabled);
 
+        // Forward entity picking API from InspectorPanel
+        bool isEntityPickingActive() const { return m_inspectorPanel.isEntityPickingActive(); }
+        void deliverPickedEntity(Entity entity) { m_inspectorPanel.deliverPickedEntity(entity); }
+        void cancelEntityPicking() { m_inspectorPanel.cancelEntityPicking(); }
+
     private:
         void drawEntityNode(Entity entity);
         bool isDescendant(Entity entity, Entity potentialAncestor) const;

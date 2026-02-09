@@ -293,6 +293,13 @@ namespace Fermion
 
         switch (e.getKeyCode())
         {
+        case KeyCode::Escape:
+            if (m_sceneHierarchyPanel.isEntityPickingActive())
+            {
+                m_sceneHierarchyPanel.cancelEntityPicking();
+                return true;
+            }
+            break;
         case KeyCode::S:
             if (control && shift)
             {
@@ -355,6 +362,21 @@ namespace Fermion
         if (e.getMouseButton() == MouseCode::Left)
         {
             Entity hoveredEntity = m_viewportPanel.getHoveredEntity();
+
+            // If entity picking mode is active (e.g. RevoluteJoint2D connected body selection)
+            if (m_sceneHierarchyPanel.isEntityPickingActive())
+            {
+                if (m_viewportPanel.isViewportHovered() && hoveredEntity && hoveredEntity.isValid())
+                {
+                    m_sceneHierarchyPanel.deliverPickedEntity(hoveredEntity);
+                }
+                else
+                {
+                    m_sceneHierarchyPanel.cancelEntityPicking();
+                }
+                return true;
+            }
+
             if (m_viewportPanel.isViewportHovered() && !ImGuizmo::IsOver())
                 m_sceneHierarchyPanel.setSelectedEntity(
                     hoveredEntity && hoveredEntity.isValid()

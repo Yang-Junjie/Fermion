@@ -356,4 +356,8 @@ namespace Fermion
 		}
 	}
 
+	public class RevoluteJoint2DComponent : Component
+	{
+	}
+
 }

@@ -273,6 +273,43 @@ namespace Fermion
                 initPhysicsSensor(entity);
             }
         }
+
+        // Create revolute joints after all bodies have been created
+        {
+            auto jointView = getRegistry().view<RevoluteJoint2DComponent>();
+            for (auto e : jointView)
+            {
+                Entity entity{e, this};
+                if (!entity.hasComponent<Rigidbody2DComponent>())
+                    continue;
+
+                auto &joint = entity.getComponent<RevoluteJoint2DComponent>();
+                if (static_cast<uint64_t>(joint.connectedBodyID) == 0)
+                    continue;
+
+                auto itA = m_physicsBodyMap.find(entity.getUUID());
+                auto itB = m_physicsBodyMap.find(joint.connectedBodyID);
+                if (itA == m_physicsBodyMap.end() || itB == m_physicsBodyMap.end())
+                    continue;
+
+                b2RevoluteJointDef jointDef = b2DefaultRevoluteJointDef();
+                jointDef.base.bodyIdA = itA->second;
+                jointDef.base.bodyIdB = itB->second;
+                jointDef.base.localFrameA.p = b2Vec2{joint.localAnchorA.x, joint.localAnchorA.y};
+                jointDef.base.localFrameA.q = b2Rot_identity;
+                jointDef.base.localFrameB.p = b2Vec2{joint.localAnchorB.x, joint.localAnchorB.y};
+                jointDef.base.localFrameB.q = b2Rot_identity;
+                jointDef.enableLimit = joint.enableLimit;
+                jointDef.lowerAngle = joint.lowerAngle;
+                jointDef.upperAngle = joint.upperAngle;
+                jointDef.enableMotor = joint.enableMotor;
+                jointDef.motorSpeed = joint.motorSpeed;
+                jointDef.maxMotorTorque = joint.maxMotorTorque;
+
+                b2JointId jointId = b2CreateRevoluteJoint(m_physicsWorld, &jointDef);
+                joint.runtimeJoint = (void *)(uintptr_t)b2StoreJointId(jointId);
+            }
+        }
     }
 
     void Scene::onPhysics2DStop()

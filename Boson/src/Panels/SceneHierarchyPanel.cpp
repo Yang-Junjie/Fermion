@@ -19,6 +19,7 @@ namespace Fermion
         m_contextScene = scene;
         m_selectedEntity = {};
         m_inspectorPanel.setSelectedEntity({});
+        m_inspectorPanel.setContext(scene);
     }
     void SceneHierarchyPanel::onImGuiRender()
     {

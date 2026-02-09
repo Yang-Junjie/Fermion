@@ -6,4 +6,4 @@ Directories:
   AssetDirectory: Assets
   ScriptDirectory: Assets/scripts
 Runtime:
-  StartScene: Assets/scenes/dust2.fmscene
+  StartScene: Assets/scenes/platform_game.fmscene

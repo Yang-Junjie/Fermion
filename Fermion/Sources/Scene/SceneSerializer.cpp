@@ -202,6 +202,22 @@ namespace Fermion
             out << YAML::Key << "RestitutionThreshold" << YAML::Value << cc.restitutionThreshold;
             out << YAML::EndMap;
         }
+        if (entity.hasComponent<RevoluteJoint2DComponent>())
+        {
+            out << YAML::Key << "RevoluteJoint2DComponent";
+            out << YAML::BeginMap;
+            auto &rj = entity.getComponent<RevoluteJoint2DComponent>();
+            out << YAML::Key << "ConnectedBodyID" << YAML::Value << static_cast<uint64_t>(rj.connectedBodyID);
+            out << YAML::Key << "LocalAnchorA" << YAML::Value << rj.localAnchorA;
+            out << YAML::Key << "LocalAnchorB" << YAML::Value << rj.localAnchorB;
+            out << YAML::Key << "EnableLimit" << YAML::Value << rj.enableLimit;
+            out << YAML::Key << "LowerAngle" << YAML::Value << rj.lowerAngle;
+            out << YAML::Key << "UpperAngle" << YAML::Value << rj.upperAngle;
+            out << YAML::Key << "EnableMotor" << YAML::Value << rj.enableMotor;
+            out << YAML::Key << "MotorSpeed" << YAML::Value << rj.motorSpeed;
+            out << YAML::Key << "MaxMotorTorque" << YAML::Value << rj.maxMotorTorque;
+            out << YAML::EndMap;
+        }
         if (entity.hasComponent<Rigidbody3DComponent>())
         {
             out << YAML::Key << "Rigidbody3DComponent";
@@ -663,6 +679,29 @@ namespace Fermion
                         cc.restitutionThreshold = n.as<float>();
                 }
 
+                auto revoluteJoint2DComponent = entity["RevoluteJoint2DComponent"];
+                if (revoluteJoint2DComponent && revoluteJoint2DComponent.IsMap())
+                {
+                    auto &rj = deserializedEntity.addComponent<RevoluteJoint2DComponent>();
+                    if (auto n = revoluteJoint2DComponent["ConnectedBodyID"]; n)
+                        rj.connectedBodyID = UUID(n.as<uint64_t>());
+                    if (auto n = revoluteJoint2DComponent["LocalAnchorA"]; n)
+                        rj.localAnchorA = n.as<glm::vec2>();
+                    if (auto n = revoluteJoint2DComponent["LocalAnchorB"]; n)
+                        rj.localAnchorB = n.as<glm::vec2>();
+                    if (auto n = revoluteJoint2DComponent["EnableLimit"]; n)
+                        rj.enableLimit = n.as<bool>();
+                    if (auto n = revoluteJoint2DComponent["LowerAngle"]; n)
+                        rj.lowerAngle = n.as<float>();
+                    if (auto n = revoluteJoint2DComponent["UpperAngle"]; n)
+                        rj.upperAngle = n.as<float>();
+                    if (auto n = revoluteJoint2DComponent["EnableMotor"]; n)
+                        rj.enableMotor = n.as<bool>();
+                    if (auto n = revoluteJoint2DComponent["MotorSpeed"]; n)
+                        rj.motorSpeed = n.as<float>();
+                    if (auto n = revoluteJoint2DComponent["MaxMotorTorque"]; n)
+                        rj.maxMotorTorque = n.as<float>();
+                }
 
                 auto rigidbody3DComponent = entity["Rigidbody3DComponent"];
                 if (rigidbody3DComponent && rigidbody3DComponent.IsMap())
