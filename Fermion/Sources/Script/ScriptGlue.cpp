@@ -445,6 +445,74 @@ namespace Fermion
         auto &bs2c = entity.getComponent<BoxSensor2DComponent>();
         *out = bs2c.offset;
     }
+
+    extern "C" bool CircleSensor2D_SensorBegin(UUID entityID)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        auto &cs2c = entity.getComponent<CircleSensor2DComponent>();
+        return cs2c.sensorBegin;
+    }
+
+    extern "C" bool CircleSensor2D_SensorEnd(UUID entityID)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        auto &cs2c = entity.getComponent<CircleSensor2DComponent>();
+        return cs2c.sensorEnd;
+    }
+
+    extern "C" void CircleSensor2D_SetRadius(UUID entityID, float radius)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        auto &cs2c = entity.getComponent<CircleSensor2DComponent>();
+        cs2c.radius = radius;
+        if (auto *pw = scene->getPhysicsWorld2D()) pw->initCircleSensor(scene, entity);
+    }
+
+    extern "C" float CircleSensor2D_GetRadius(UUID entityID)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        auto &cs2c = entity.getComponent<CircleSensor2DComponent>();
+        return cs2c.radius;
+    }
+
+    extern "C" void CircleSensor2D_SetOffset(UUID entityID, glm::vec2 *out)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        auto &cs2c = entity.getComponent<CircleSensor2DComponent>();
+        cs2c.offset = *out;
+        if (auto *pw = scene->getPhysicsWorld2D()) pw->initCircleSensor(scene, entity);
+    }
+
+    extern "C" void CircleSensor2D_GetOffset(UUID entityID, glm::vec2 *out)
+    {
+        Scene *scene = ScriptManager::getSceneContext();
+        FERMION_ASSERT(scene, "Scene is null!");
+        Entity entity = scene->getEntityManager().getEntityByUUID(entityID);
+        FERMION_ASSERT(entity, "Entity is null!");
+
+        auto &cs2c = entity.getComponent<CircleSensor2DComponent>();
+        *out = cs2c.offset;
+    }
 #pragma endregion
 
 #pragma region Rigidbody3DComponent
@@ -1070,6 +1138,11 @@ namespace Fermion
                     if (auto *pw = ScriptManager::getSceneContext()->getPhysicsWorld2D())
                         pw->initSensor(ScriptManager::getSceneContext(), entity);
                 }
+                if (entity.hasComponent<CircleSensor2DComponent>())
+                {
+                    if (auto *pw = ScriptManager::getSceneContext()->getPhysicsWorld2D())
+                        pw->initCircleSensor(ScriptManager::getSceneContext(), entity);
+                }
             }
         };
     }
@@ -1189,6 +1262,13 @@ namespace Fermion
         FM_ADD_INTERNAL_CALL(BoxSensor2D_GetSize);
         FM_ADD_INTERNAL_CALL(BoxSensor2D_SetOffset);
         FM_ADD_INTERNAL_CALL(BoxSensor2D_GetOffset);
+
+        FM_ADD_INTERNAL_CALL(CircleSensor2D_SensorBegin);
+        FM_ADD_INTERNAL_CALL(CircleSensor2D_SensorEnd);
+        FM_ADD_INTERNAL_CALL(CircleSensor2D_SetRadius);
+        FM_ADD_INTERNAL_CALL(CircleSensor2D_GetRadius);
+        FM_ADD_INTERNAL_CALL(CircleSensor2D_SetOffset);
+        FM_ADD_INTERNAL_CALL(CircleSensor2D_GetOffset);
 
         FM_ADD_INTERNAL_CALL(Input_IsKeyDown);
         FM_ADD_INTERNAL_CALL(Input_SetCursorMode);

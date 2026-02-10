@@ -207,6 +207,35 @@ namespace Fermion
 			=> InternalCalls.BoxSensor2D_SensorEnd(Entity.ID);
 	}
 
+	public class CircleSensor2DComponent : Component
+	{
+		public float Radius
+		{
+			get => InternalCalls.CircleSensor2D_GetRadius(Entity.ID);
+			set => InternalCalls.CircleSensor2D_SetRadius(Entity.ID, value);
+		}
+
+		public Vector2 Offset
+		{
+			get
+			{
+				Vector2 offset = default(Vector2);
+				InternalCalls.CircleSensor2D_GetOffset(Entity.ID, ref offset);
+				return offset;
+			}
+			set
+			{
+				InternalCalls.CircleSensor2D_SetOffset(Entity.ID, ref value);
+			}
+		}
+
+		public bool SensorBegin
+			=> InternalCalls.CircleSensor2D_SensorBegin(Entity.ID);
+
+		public bool SensorEnd
+			=> InternalCalls.CircleSensor2D_SensorEnd(Entity.ID);
+	}
+
 	public class TextComponent : Component
 	{
 		public string Text

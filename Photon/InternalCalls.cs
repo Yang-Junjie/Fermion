@@ -178,10 +178,19 @@ namespace Fermion
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal extern static void BoxSensor2D_GetOffset(ulong entityID, ref Vector2 size);
 
-
-
-
-
+        // CircleSensor2DComponent
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal extern static bool CircleSensor2D_SensorBegin(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal extern static bool CircleSensor2D_SensorEnd(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal extern static void CircleSensor2D_SetRadius(ulong entityID, float radius);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal extern static float CircleSensor2D_GetRadius(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal extern static void CircleSensor2D_SetOffset(ulong entityID, ref Vector2 offset);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal extern static void CircleSensor2D_GetOffset(ulong entityID, ref Vector2 offset);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern bool Input_IsKeyDown(KeyCode keycode);

@@ -314,6 +314,17 @@ namespace Fermion
             out << YAML::Key << "Size" << YAML::Value << cc.size;
             out << YAML::EndMap;
         }
+        if (entity.hasComponent<CircleSensor2DComponent>())
+        {
+            out << YAML::Key << "CircleSensor2DComponent";
+            out << YAML::BeginMap;
+            auto &cs = entity.getComponent<CircleSensor2DComponent>();
+            out << YAML::Key << "SensorBegin" << YAML::Value << cs.sensorBegin;
+            out << YAML::Key << "SensorEnd" << YAML::Value << cs.sensorEnd;
+            out << YAML::Key << "Offset" << YAML::Value << cs.offset;
+            out << YAML::Key << "Radius" << YAML::Value << cs.radius;
+            out << YAML::EndMap;
+        }
         if (entity.hasComponent<CameraComponent>())
         {
             out << YAML::Key << "CameraComponent";
@@ -851,6 +862,19 @@ namespace Fermion
                         bs2c.offset = n.as<glm::vec2>();
                     if (auto n = boxSensor2DComponent["Size"]; n)
                         bs2c.size = n.as<glm::vec2>();
+                }
+                auto circleSensor2DComponent = entity["CircleSensor2DComponent"];
+                if (circleSensor2DComponent && circleSensor2DComponent.IsMap())
+                {
+                    auto &cs2c = deserializedEntity.addComponent<CircleSensor2DComponent>();
+                    if (auto n = circleSensor2DComponent["SensorBegin"]; n)
+                        cs2c.sensorBegin = n.as<bool>();
+                    if (auto n = circleSensor2DComponent["SensorEnd"]; n)
+                        cs2c.sensorEnd = n.as<bool>();
+                    if (auto n = circleSensor2DComponent["Offset"]; n)
+                        cs2c.offset = n.as<glm::vec2>();
+                    if (auto n = circleSensor2DComponent["Radius"]; n)
+                        cs2c.radius = n.as<float>();
                 }
 
                 auto cameraComponent = entity["CameraComponent"];

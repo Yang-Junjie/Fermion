@@ -292,6 +292,21 @@ namespace Fermion
         BoxSensor2DComponent(const BoxSensor2DComponent &) = default;
     };
 
+    struct CircleSensor2DComponent
+    {
+        glm::vec2 offset = {0.0f, 0.0f};
+        float radius = 0.5f;
+        bool sensorBegin = false;
+        bool sensorEnd = false;
+
+        // Storage for runtime
+        void *runtimeFixture = nullptr;
+
+        CircleSensor2DComponent() = default;
+
+        CircleSensor2DComponent(const CircleSensor2DComponent &) = default;
+    };
+
     struct CircleCollider2DComponent
     {
         glm::vec2 offset = {0.0f, 0.0f};
@@ -565,7 +580,7 @@ namespace Fermion
             ScriptContainerComponent,
             NativeScriptComponent,
 
-            Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, CapsuleCollider2DComponent, BoxSensor2DComponent, RevoluteJoint2DComponent, DistanceJoint2DComponent,
+            Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, CapsuleCollider2DComponent, BoxSensor2DComponent, CircleSensor2DComponent, RevoluteJoint2DComponent, DistanceJoint2DComponent,
             Rigidbody3DComponent, BoxCollider3DComponent, CircleCollider3DComponent, CapsuleCollider3DComponent, MeshCollider3DComponent,
 
             TextComponent,

@@ -481,6 +481,7 @@ namespace Fermion
             displayAddComponentEntry<CircleCollider2DComponent>("Circle Collider2D");
             displayAddComponentEntry<CapsuleCollider2DComponent>("Capsule Collider2D");
             displayAddComponentEntry<BoxSensor2DComponent>("Box Sensor2D");
+            displayAddComponentEntry<CircleSensor2DComponent>("Circle Sensor2D");
             displayAddComponentEntry<RevoluteJoint2DComponent>("Revolute Joint2D");
             displayAddComponentEntry<DistanceJoint2DComponent>("Distance Joint2D");
             ImGui::SeparatorText("3D Component");
@@ -1159,6 +1160,10 @@ namespace Fermion
                                             {
             ui::drawVec2Control("Offset",component.offset,0.0f,100.0f,0.1f);
             ui::drawVec2Control("Size",component.size,0.0f,100.0f,0.1f); });
+        drawComponent<CircleSensor2DComponent>("Circle Sensor 2D", entity, [](auto &component)
+                                               {
+            ui::drawVec2Control("Offset",component.offset,0.0f,100.0f,0.1f);
+            ui::drawFloatControl("Radius", component.radius, 150.0f); });
         drawComponent<RevoluteJoint2DComponent>("Revolute Joint 2D", entity, [this, entity](auto &component)
                                                 {
             // Show connected body info

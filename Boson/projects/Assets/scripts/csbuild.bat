@@ -9,7 +9,8 @@
 ../Boson/projects/Assets/scripts/SnakeGame.cs ^
 ../Boson/projects/Assets/scripts/CubePhysicsDemo.cs ^
 ../Boson/projects/Assets/scripts/CharacterController2D.cs ^
-../Boson/projects/Assets/scripts/XAxisMove2D.cs
+../Boson/projects/Assets/scripts/XAxisMove2D.cs ^
+../Boson/projects/Assets/scripts/CircleSensorTest.cs
 
 
 

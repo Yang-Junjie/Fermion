@@ -56,6 +56,7 @@ namespace Fermion
         void step(Scene *scene, Timestep ts);
 
         void initSensor(Scene *scene, Entity entity);
+        void initCircleSensor(Scene *scene, Entity entity);
 
         b2WorldId getWorld() const { return m_world; }
         bool isValid() const { return B2_IS_NON_NULL(m_world); }

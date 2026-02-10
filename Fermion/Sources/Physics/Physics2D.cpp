@@ -64,6 +64,25 @@ namespace Fermion
         boxSensor2d.runtimeFixture = (void *)(uintptr_t)b2StoreShapeId(shapeId);
     }
 
+    void Physics2DWorld::initCircleSensor(Scene *scene, Entity entity)
+    {
+        TransformComponent worldTransform = scene->getEntityManager().getWorldSpaceTransform(entity);
+        auto &circleSensor2d = entity.getComponent<CircleSensor2DComponent>();
+
+        b2ShapeDef shapeDef = b2DefaultShapeDef();
+        shapeDef.isSensor = true;
+        shapeDef.enableSensorEvents = true;
+
+        b2Circle circle;
+        circle.center = b2Vec2{
+            circleSensor2d.offset.x * worldTransform.scale.x,
+            circleSensor2d.offset.y * worldTransform.scale.y};
+        circle.radius = circleSensor2d.radius * worldTransform.scale.x;
+
+        b2ShapeId shapeId = b2CreateCircleShape(m_bodyMap[entity.getUUID()], &shapeDef, &circle);
+        circleSensor2d.runtimeFixture = (void *)(uintptr_t)b2StoreShapeId(shapeId);
+    }
+
     void Physics2DWorld::createBodies(Scene *scene)
     {
         auto &registry = scene->getRegistry();
@@ -162,6 +181,11 @@ namespace Fermion
             if (entity.hasComponent<BoxSensor2DComponent>())
             {
                 initSensor(scene, entity);
+            }
+
+            if (entity.hasComponent<CircleSensor2DComponent>())
+            {
+                initCircleSensor(scene, entity);
             }
         }
     }
@@ -312,6 +336,44 @@ namespace Fermion
                     B2_ID_EQUALS(end->sensorShapeId, myShapeId))
                 {
                     bs2d.sensorEnd = true;
+                    break;
+                }
+            }
+        }
+
+        auto circleView = registry.view<CircleSensor2DComponent>();
+        for (auto e : circleView)
+        {
+            Entity entity{e, scene};
+            auto &cs2d = entity.getComponent<CircleSensor2DComponent>();
+
+            if (!cs2d.runtimeFixture)
+                continue;
+
+            uint64_t storedShapeId = (uint64_t)(uintptr_t)cs2d.runtimeFixture;
+            b2ShapeId myShapeId = b2LoadShapeId(storedShapeId);
+
+            if (!b2Shape_IsValid(myShapeId))
+                continue;
+
+            cs2d.sensorBegin = false;
+            for (int i = 0; i < sensorEvents.beginCount; ++i)
+            {
+                b2SensorBeginTouchEvent *begin = sensorEvents.beginEvents + i;
+                if (B2_ID_EQUALS(begin->sensorShapeId, myShapeId))
+                {
+                    cs2d.sensorBegin = true;
+                    break;
+                }
+            }
+            cs2d.sensorEnd = false;
+            for (int i = 0; i < sensorEvents.endCount; ++i)
+            {
+                b2SensorEndTouchEvent *end = sensorEvents.endEvents + i;
+                if (b2Shape_IsValid(end->sensorShapeId) &&
+                    B2_ID_EQUALS(end->sensorShapeId, myShapeId))
+                {
+                    cs2d.sensorEnd = true;
                     break;
                 }
             }

@@ -111,6 +111,23 @@ namespace Fermion
                 ctx.viewportRenderer->drawRect(transform, glm::vec4(0, 1, 1, 1));
             }
         }
+        // Circle Sensor
+        {
+            auto view = ctx.activeScene->getAllEntitiesWith<TransformComponent, CircleSensor2DComponent>();
+            for (auto entity : view)
+            {
+                Entity sensor = {entity, ctx.activeScene.get()};
+                auto [tc, cs2d] = view.get<TransformComponent, CircleSensor2DComponent>(entity);
+
+                glm::vec3 scale = tc.scale * glm::vec3(cs2d.radius * 2.0f, cs2d.radius * 2.0f, 1.0f);
+
+                glm::mat4 localTransform =
+                    glm::translate(glm::mat4(1.0f), tc.translation) * glm::rotate(glm::mat4(1.0f), tc.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(cs2d.offset, 0.001f)) * glm::scale(glm::mat4(1.0f), scale);
+                glm::mat4 transform = getParentTransform(sensor) * localTransform;
+
+                ctx.viewportRenderer->drawCircle(transform, glm::vec4(0, 1, 1, 1), 0.05f);
+            }
+        }
     }
     void OverlayRenderPanel::renderPhysics3DColliders(const Context &ctx) const
     {
