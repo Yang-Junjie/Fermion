@@ -15,7 +15,7 @@ namespace Fermion
             EditorCamera *editorCamera = nullptr;
             Entity hoveredEntity;
             bool viewportFocused = false;
-            bool *showPhysicsColliders = nullptr;
+            bool *showPhysicsDebug = nullptr;
             bool *showRenderEntities = nullptr;
         };
 

@@ -12,9 +12,10 @@ namespace Fermion
         if (!beginOverlayPass(ctx))
             return;
 
-        if (ctx.showPhysicsColliders)
+        if (ctx.showPhysicsDebug)
         {
             renderPhysicsColliders(ctx);
+            renderJoints(ctx);
         }
 
         renderSelectedEntityOutline(ctx);
@@ -354,6 +355,79 @@ namespace Fermion
                     ctx.viewportRenderer->drawLine(v0, v1, collider3DColor);
                     ctx.viewportRenderer->drawLine(v1, v2, collider3DColor);
                     ctx.viewportRenderer->drawLine(v2, v0, collider3DColor);
+                }
+            }
+        }
+    }
+    void OverlayRenderPanel::renderJoints(const Context &ctx) const
+    {
+        renderJoint2Ds(ctx);
+    }
+    void OverlayRenderPanel::renderJoint2Ds(const Context &ctx) const
+    {
+        const glm::vec4 jointColor{1.0f, 0.6f, 0.0f, 1.0f};
+        constexpr float anchorRadius = 0.05f;
+
+        auto getAnchorWorldPos = [&](Entity entity, const glm::vec2 &localAnchor) -> glm::vec3
+        {
+            auto &tc = entity.getComponent<TransformComponent>();
+            glm::mat4 parentTransform(1.0f);
+            Entity parent = ctx.activeScene->getEntityManager().tryGetEntityByUUID(entity.getParentUUID());
+            if (parent)
+                parentTransform = ctx.activeScene->getEntityManager().getWorldSpaceTransformMatrix(parent);
+
+            glm::mat4 bodyTransform = parentTransform *
+                                      glm::translate(glm::mat4(1.0f), tc.translation) *
+                                      glm::rotate(glm::mat4(1.0f), tc.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+            return glm::vec3(bodyTransform * glm::vec4(localAnchor, 0.002f, 1.0f));
+        };
+
+        auto drawAnchorCircle = [&](const glm::vec3 &worldPos)
+        {
+            glm::mat4 transform = glm::translate(glm::mat4(1.0f), worldPos) *
+                                  glm::scale(glm::mat4(1.0f), glm::vec3(anchorRadius * 2.0f, anchorRadius * 2.0f, 1.0f));
+            ctx.viewportRenderer->drawCircle(transform, jointColor, 0.3f);
+        };
+
+        // RevoluteJoint
+        {
+            auto view = ctx.activeScene->getAllEntitiesWith<TransformComponent, RevoluteJoint2DComponent>();
+            for (auto e : view)
+            {
+                Entity entity{e, ctx.activeScene.get()};
+                auto &rj = entity.getComponent<RevoluteJoint2DComponent>();
+
+                drawAnchorCircle(getAnchorWorldPos(entity, rj.localAnchorA));
+
+                if (static_cast<uint64_t>(rj.connectedBodyID) != 0)
+                {
+                    Entity connectedEntity = ctx.activeScene->getEntityManager().tryGetEntityByUUID(rj.connectedBodyID);
+                    if (connectedEntity && connectedEntity.hasComponent<TransformComponent>())
+                        drawAnchorCircle(getAnchorWorldPos(connectedEntity, rj.localAnchorB));
+                }
+            }
+        }
+
+        // DistanceJoint
+        {
+            auto view = ctx.activeScene->getAllEntitiesWith<TransformComponent, DistanceJoint2DComponent>();
+            for (auto e : view)
+            {
+                Entity entity{e, ctx.activeScene.get()};
+                auto &dj = entity.getComponent<DistanceJoint2DComponent>();
+
+                glm::vec3 anchorA = getAnchorWorldPos(entity, dj.localAnchorA);
+                drawAnchorCircle(anchorA);
+
+                if (static_cast<uint64_t>(dj.connectedBodyID) != 0)
+                {
+                    Entity connectedEntity = ctx.activeScene->getEntityManager().tryGetEntityByUUID(dj.connectedBodyID);
+                    if (connectedEntity && connectedEntity.hasComponent<TransformComponent>())
+                    {
+                        glm::vec3 anchorB = getAnchorWorldPos(connectedEntity, dj.localAnchorB);
+                        drawAnchorCircle(anchorB);
+                        ctx.viewportRenderer->drawLine(anchorA, anchorB, jointColor);
+                    }
                 }
             }
         }

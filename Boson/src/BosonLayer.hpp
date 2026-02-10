@@ -102,7 +102,7 @@ namespace Fermion
         EditorCamera m_editorCamera;
 
         bool m_primaryCamera = true;
-        bool m_showPhysicsColliders = false;
+        bool m_showPhysicsDebug = false;
         bool m_showRenderEntities = true;
 
         bool m_isInitialized = false;

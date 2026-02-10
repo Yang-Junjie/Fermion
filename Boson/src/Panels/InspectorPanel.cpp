@@ -376,12 +376,21 @@ namespace Fermion
     void InspectorPanel::deliverPickedEntity(Entity pickedEntity)
     {
         if (m_entityPickingActive && m_pickingTargetEntity && pickedEntity &&
-            m_pickingTargetEntity.hasComponent<RevoluteJoint2DComponent>())
+            (m_pickingTargetEntity.hasComponent<RevoluteJoint2DComponent>() ||
+             m_pickingTargetEntity.hasComponent<DistanceJoint2DComponent>()))
         {
             if (pickedEntity != m_pickingTargetEntity)
             {
-                auto &rj = m_pickingTargetEntity.getComponent<RevoluteJoint2DComponent>();
-                rj.connectedBodyID = pickedEntity.getUUID();
+                if (m_pickingTargetEntity.hasComponent<RevoluteJoint2DComponent>())
+                {
+                    auto &rj = m_pickingTargetEntity.getComponent<RevoluteJoint2DComponent>();
+                    rj.connectedBodyID = pickedEntity.getUUID();
+                }
+                if (m_pickingTargetEntity.hasComponent<DistanceJoint2DComponent>())
+                {
+                    auto &dj = m_pickingTargetEntity.getComponent<DistanceJoint2DComponent>();
+                    dj.connectedBodyID = pickedEntity.getUUID();
+                }
             }
         }
         m_entityPickingActive = false;
@@ -473,6 +482,7 @@ namespace Fermion
             displayAddComponentEntry<CapsuleCollider2DComponent>("Capsule Collider2D");
             displayAddComponentEntry<BoxSensor2DComponent>("Box Sensor2D");
             displayAddComponentEntry<RevoluteJoint2DComponent>("Revolute Joint2D");
+            displayAddComponentEntry<DistanceJoint2DComponent>("Distance Joint2D");
             ImGui::SeparatorText("3D Component");
             displayAddComponentEntry<MeshComponent>("Mesh");
             displayAddComponentEntry<AnimatorComponent>("Animator");
@@ -1208,6 +1218,67 @@ namespace Fermion
             ui::drawCheckboxControl("Enable Motor", component.enableMotor, 150.0f);
             ui::drawFloatControl("Motor Speed", component.motorSpeed, 150.0f, 0.1f);
             ui::drawFloatControl("Max Motor Torque", component.maxMotorTorque, 150.0f, 0.1f, 0.0f); });
+        drawComponent<DistanceJoint2DComponent>("Distance Joint 2D", entity, [this, entity](auto &component)
+                                                {
+            // Show connected body info
+            std::string connectedName = "None";
+            if (static_cast<uint64_t>(component.connectedBodyID) != 0 && m_contextScene)
+            {
+                Entity connectedEntity = m_contextScene->getEntityManager().tryGetEntityByUUID(component.connectedBodyID);
+                if (connectedEntity && connectedEntity.hasComponent<TagComponent>())
+                    connectedName = connectedEntity.getComponent<TagComponent>().tag;
+                else
+                    connectedName = std::to_string(static_cast<uint64_t>(component.connectedBodyID));
+            }
+
+            ImGui::Text("Connected Body:");
+            ImGui::SameLine();
+            if (static_cast<uint64_t>(component.connectedBodyID) != 0)
+            {
+                ImGui::TextColored(ImVec4(0.4f, 0.8f, 0.4f, 1.0f), "%s", connectedName.c_str());
+            }
+            else
+            {
+                ImGui::TextColored(ImVec4(0.8f, 0.4f, 0.4f, 1.0f), "None");
+            }
+
+            if (m_entityPickingActive && m_pickingTargetEntity == entity)
+            {
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.92f, 0.45f, 0.11f, 0.8f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.92f, 0.45f, 0.11f, 1.0f));
+                if (ImGui::Button("Picking... (Click entity in viewport)##dj"))
+                {
+                    cancelEntityPicking();
+                }
+                ImGui::PopStyleColor(2);
+            }
+            else
+            {
+                if (ImGui::Button("Pick Connected Body##dj"))
+                {
+                    m_entityPickingActive = true;
+                    m_pickingTargetEntity = entity;
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Clear##dj"))
+            {
+                component.connectedBodyID = UUID(0);
+            }
+
+            ImGui::Separator();
+            ui::drawVec2Control("Local Anchor A",component.localAnchorA,0.0f,100.0f,0.1f);
+            ui::drawVec2Control("Local Anchor B",component.localAnchorB,0.0f,100.0f,0.1f);
+            ImGui::Separator();
+            ui::drawFloatControl("Length", component.length, 150.0f, 0.1f, 0.0f);
+            ImGui::Separator();
+            ui::drawCheckboxControl("Enable Spring", component.enableSpring, 150.0f);
+            ui::drawFloatControl("Damping", component.damping, 150.0f, 0.01f, 0.0f);
+            ui::drawFloatControl("Hertz", component.hertz, 150.0f, 0.1f, 0.0f);
+            ImGui::Separator();
+            ui::drawCheckboxControl("Enable Limit", component.enableLimit, 150.0f);
+            ui::drawFloatControl("Min Length", component.minLength, 150.0f, 0.1f, 0.0f);
+            ui::drawFloatControl("Max Length", component.maxLength, 150.0f, 0.1f, 0.0f); });
         drawComponent<Rigidbody3DComponent>("Rigidbody 3D", entity, [](auto &component)
                                             {
             const char *bodyTypeStrings[] = {"Static", "Dynamic", "Kinematic"};

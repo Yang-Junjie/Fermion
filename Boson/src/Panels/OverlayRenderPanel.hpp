@@ -14,7 +14,7 @@ namespace Fermion
             std::shared_ptr<SceneRenderer> viewportRenderer;
             const EditorCamera *editorCamera = nullptr;
             int sceneState = 0; // 0=Edit, 1=Play, 2=Simulate
-            bool showPhysicsColliders = false;
+            bool showPhysicsDebug = false;
             Entity selectedEntity;
         };
 
@@ -25,6 +25,8 @@ namespace Fermion
         void renderPhysicsColliders(const Context &ctx) const;
         void renderPhysics2DColliders(const Context &ctx) const;
         void renderPhysics3DColliders(const Context &ctx) const;
+        void renderJoints(const Context &ctx) const;
+        void renderJoint2Ds(const Context &ctx) const;
         void renderSelectedEntityOutline(const Context &ctx) const;
     };
 } // namespace Fermion

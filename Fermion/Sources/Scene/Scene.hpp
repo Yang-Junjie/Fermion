@@ -7,13 +7,13 @@
 #include "Renderer/Model/Mesh.hpp"
 #include "Renderer/Camera/EditorCamera.hpp"
 #include "Components.hpp"
-#include <box2d/box2d.h>
 
 namespace Fermion
 {
     class Entity;
     class EntityManager;
     class SceneRenderer;
+    class Physics2DWorld;
     class Physics3DWorld;
 
     struct SceneEnvironmentSettings
@@ -120,16 +120,9 @@ namespace Fermion
             return getRegistry().view<Components...>();
         }
 
-        void initPhysicsSensor(Entity entity);
-
-        b2WorldId getPhysicsWorld() const
+        Physics2DWorld *getPhysicsWorld2D() const
         {
-            return m_physicsWorld;
-        }
-
-        bool isPhysicsWorldValid() const
-        {
-            return B2_IS_NON_NULL(m_physicsWorld);
+            return m_physicsWorld2D.get();
         }
 
         Physics3DWorld *getPhysicsWorld3D() const
@@ -141,8 +134,6 @@ namespace Fermion
         const SceneEnvironmentSettings &getEnvironmentSettings() const { return m_environmentSettings; }
 
     private:
-        void onPhysics2DStart();
-        void onPhysics2DStop();
         void onScriptStart(Timestep ts);
 
         void onRenderEditor(std::shared_ptr<SceneRenderer> renderer, EditorCamera &camera,
@@ -159,19 +150,18 @@ namespace Fermion
 
         EnvironmentLight m_environmentLight;
         SceneEnvironmentSettings m_environmentSettings;
-        b2WorldId m_physicsWorld = b2_nullWorldId;
 
         bool m_hasDirectionalLight = false;
         std::shared_ptr<Texture2D> m_lightTexture = nullptr, m_cameraTexture = nullptr;
 
-        std::unordered_map<UUID, b2BodyId> m_physicsBodyMap;
-
+        std::unique_ptr<Physics2DWorld> m_physicsWorld2D;
         std::unique_ptr<Physics3DWorld> m_physicsWorld3D;
 
         friend class Entity;
         friend class SceneRenderer;
         friend class SceneSerializer;
         friend class SceneHierarchyPanel;
+        friend class Physics2DWorld;
         friend class Physics3DWorld;
     };
 } // namespace Fermion

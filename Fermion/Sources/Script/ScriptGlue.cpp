@@ -409,7 +409,7 @@ namespace Fermion
 
         auto &bs2c = entity.getComponent<BoxSensor2DComponent>();
         bs2c.size = *out;
-        scene->initPhysicsSensor(entity);
+        if (auto *pw = scene->getPhysicsWorld2D()) pw->initSensor(scene, entity);
     }
 
     extern "C" void BoxSensor2D_GetSize(UUID entityID, glm::vec2 *out)
@@ -432,7 +432,7 @@ namespace Fermion
 
         auto &bs2c = entity.getComponent<BoxSensor2DComponent>();
         bs2c.offset = *out;
-        scene->initPhysicsSensor(entity);
+        if (auto *pw = scene->getPhysicsWorld2D()) pw->initSensor(scene, entity);
     }
 
     extern "C" void BoxSensor2D_GetOffset(UUID entityID, glm::vec2 *out)
@@ -1067,7 +1067,8 @@ namespace Fermion
                 auto &component = entity.addComponent<Component>();
                 if (entity.hasComponent<BoxSensor2DComponent>())
                 {
-                    ScriptManager::getSceneContext()->initPhysicsSensor(entity);
+                    if (auto *pw = ScriptManager::getSceneContext()->getPhysicsWorld2D())
+                        pw->initSensor(ScriptManager::getSceneContext(), entity);
                 }
             }
         };

@@ -208,7 +208,7 @@ namespace Fermion
             ImGui::SliderFloat("Depth Power", &ctx.viewportRenderer->getSceneInfo().depthViewPower, 0.1f, 10.0f, "%.2f");
             ImGui::Unindent();
         }
-        ImGui::Checkbox("showPhysicsColliders", ctx.showPhysicsColliders);
+        ImGui::Checkbox("showPhysicsDebug", ctx.showPhysicsDebug);
         ImGui::Checkbox("showRenderEntities", ctx.showRenderEntities);
 
         ImGui::SeparatorText("Infinite Grid Settings");

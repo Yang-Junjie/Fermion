@@ -164,7 +164,7 @@ namespace Fermion
             .viewportRenderer = m_viewportRenderer,
             .editorCamera = &m_editorCamera,
             .sceneState = static_cast<int>(m_sceneState),
-            .showPhysicsColliders = m_showPhysicsColliders,
+            .showPhysicsDebug = m_showPhysicsDebug,
             .selectedEntity = m_sceneHierarchyPanel.getSelectedEntity(),
         };
         m_overlayRenderPanel.render(overlayCtx);
@@ -246,7 +246,7 @@ namespace Fermion
                 .editorCamera = &m_editorCamera,
                 .hoveredEntity = m_viewportPanel.getHoveredEntity(),
                 .viewportFocused = m_viewportPanel.isViewportFocused(),
-                .showPhysicsColliders = &m_showPhysicsColliders,
+                .showPhysicsDebug = &m_showPhysicsDebug,
                 .showRenderEntities = &m_showRenderEntities,
             };
             m_settingsPanel.onImGuiRender(settingsCtx);

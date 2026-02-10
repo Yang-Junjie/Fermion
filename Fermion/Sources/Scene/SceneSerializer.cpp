@@ -218,6 +218,23 @@ namespace Fermion
             out << YAML::Key << "MaxMotorTorque" << YAML::Value << rj.maxMotorTorque;
             out << YAML::EndMap;
         }
+        if (entity.hasComponent<DistanceJoint2DComponent>())
+        {
+            out << YAML::Key << "DistanceJoint2DComponent";
+            out << YAML::BeginMap;
+            auto &dj = entity.getComponent<DistanceJoint2DComponent>();
+            out << YAML::Key << "ConnectedBodyID" << YAML::Value << static_cast<uint64_t>(dj.connectedBodyID);
+            out << YAML::Key << "LocalAnchorA" << YAML::Value << dj.localAnchorA;
+            out << YAML::Key << "LocalAnchorB" << YAML::Value << dj.localAnchorB;
+            out << YAML::Key << "Length" << YAML::Value << dj.length;
+            out << YAML::Key << "EnableSpring" << YAML::Value << dj.enableSpring;
+            out << YAML::Key << "Damping" << YAML::Value << dj.damping;
+            out << YAML::Key << "Hertz" << YAML::Value << dj.hertz;
+            out << YAML::Key << "EnableLimit" << YAML::Value << dj.enableLimit;
+            out << YAML::Key << "MinLength" << YAML::Value << dj.minLength;
+            out << YAML::Key << "MaxLength" << YAML::Value << dj.maxLength;
+            out << YAML::EndMap;
+        }
         if (entity.hasComponent<Rigidbody3DComponent>())
         {
             out << YAML::Key << "Rigidbody3DComponent";
@@ -701,6 +718,32 @@ namespace Fermion
                         rj.motorSpeed = n.as<float>();
                     if (auto n = revoluteJoint2DComponent["MaxMotorTorque"]; n)
                         rj.maxMotorTorque = n.as<float>();
+                }
+
+                auto distanceJoint2DComponent = entity["DistanceJoint2DComponent"];
+                if (distanceJoint2DComponent && distanceJoint2DComponent.IsMap())
+                {
+                    auto &dj = deserializedEntity.addComponent<DistanceJoint2DComponent>();
+                    if (auto n = distanceJoint2DComponent["ConnectedBodyID"]; n)
+                        dj.connectedBodyID = UUID(n.as<uint64_t>());
+                    if (auto n = distanceJoint2DComponent["LocalAnchorA"]; n)
+                        dj.localAnchorA = n.as<glm::vec2>();
+                    if (auto n = distanceJoint2DComponent["LocalAnchorB"]; n)
+                        dj.localAnchorB = n.as<glm::vec2>();
+                    if (auto n = distanceJoint2DComponent["Length"]; n)
+                        dj.length = n.as<float>();
+                    if (auto n = distanceJoint2DComponent["EnableSpring"]; n)
+                        dj.enableSpring = n.as<bool>();
+                    if (auto n = distanceJoint2DComponent["Damping"]; n)
+                        dj.damping = n.as<float>();
+                    if (auto n = distanceJoint2DComponent["Hertz"]; n)
+                        dj.hertz = n.as<float>();
+                    if (auto n = distanceJoint2DComponent["EnableLimit"]; n)
+                        dj.enableLimit = n.as<bool>();
+                    if (auto n = distanceJoint2DComponent["MinLength"]; n)
+                        dj.minLength = n.as<float>();
+                    if (auto n = distanceJoint2DComponent["MaxLength"]; n)
+                        dj.maxLength = n.as<float>();
                 }
 
                 auto rigidbody3DComponent = entity["Rigidbody3DComponent"];

@@ -102,6 +102,7 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Scene/Entity.cpp
     ${FERMION_DIR}/Scene/EntityManager.cpp
     ${FERMION_DIR}/Scene/SceneSerializer.cpp
+    ${FERMION_DIR}/Physics/Physics2D.cpp
     ${FERMION_DIR}/Physics/Physics3D.cpp
     ${FERMION_DIR}/Physics/Physics3DTypes.cpp
     ${FERMION_DIR}/Physics/Physics3DLayers.cpp

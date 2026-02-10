@@ -350,6 +350,30 @@ namespace Fermion
         RevoluteJoint2DComponent(const RevoluteJoint2DComponent &) = default;
     };
 
+    struct DistanceJoint2DComponent
+    { 
+        UUID connectedBodyID = 0;
+        glm::vec2 localAnchorA = {0.0f, 0.0f}; // in own body space
+        glm::vec2 localAnchorB = {0.0f, 0.0f}; // in connected body space
+
+        float length = 1.0f;
+       
+        bool enableSpring = false;
+        float damping = 0.0f;
+        float hertz = 0.0f;
+
+        bool enableLimit = false;
+        float minLength = 0.0f;
+        float maxLength = 0.0f;
+
+        // Storage for runtime
+        void *runtimeJoint = nullptr;
+
+        DistanceJoint2DComponent() = default;
+
+        DistanceJoint2DComponent(const DistanceJoint2DComponent &) = default;
+    };
+
     struct Rigidbody3DComponent
     {
         enum class BodyType
@@ -541,7 +565,7 @@ namespace Fermion
             ScriptContainerComponent,
             NativeScriptComponent,
 
-            Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, CapsuleCollider2DComponent, BoxSensor2DComponent, RevoluteJoint2DComponent,
+            Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, CapsuleCollider2DComponent, BoxSensor2DComponent, RevoluteJoint2DComponent, DistanceJoint2DComponent,
             Rigidbody3DComponent, BoxCollider3DComponent, CircleCollider3DComponent, CapsuleCollider3DComponent, MeshCollider3DComponent,
 
             TextComponent,
