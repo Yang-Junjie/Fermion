@@ -18,6 +18,7 @@ namespace Fermion
             meshSpec.depthWrite = true;
             meshSpec.depthOperator = DepthCompareOperator::Less;
             meshSpec.cull = CullMode::Back;
+            meshSpec.blendEnable = true;
 
             m_phongPipeline = Pipeline::create(meshSpec);
         }
@@ -30,6 +31,7 @@ namespace Fermion
             pbrSpec.depthWrite = true;
             pbrSpec.depthOperator = DepthCompareOperator::Less;
             pbrSpec.cull = CullMode::Back;
+            pbrSpec.blendEnable = true;
 
             m_pbrPipeline = Pipeline::create(pbrSpec);
         }
@@ -42,6 +44,7 @@ namespace Fermion
             skinnedPbrSpec.depthWrite = true;
             skinnedPbrSpec.depthOperator = DepthCompareOperator::Less;
             skinnedPbrSpec.cull = CullMode::Back;
+            skinnedPbrSpec.blendEnable = true;
 
             m_skinnedPBRPipeline = Pipeline::create(skinnedPbrSpec);
         }

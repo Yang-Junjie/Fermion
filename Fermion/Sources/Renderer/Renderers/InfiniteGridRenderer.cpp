@@ -51,6 +51,7 @@ namespace Fermion
         pipelineSpec.depthTest = true;
         pipelineSpec.depthWrite = false;  // Transparent grid should not write to depth buffer
         pipelineSpec.cull = CullMode::None;
+        pipelineSpec.blendEnable = true;
 
         m_gridPipeline = Pipeline::create(pipelineSpec);
 
@@ -85,9 +86,6 @@ namespace Fermion
     {
         if (!m_initialized || !m_gridPipeline || !m_quadVA)
             return;
-
-        // Enable alpha blending for anti-aliased grid lines
-        queue.submit(CmdSetBlendEnabled{true});
 
         queue.submit(CmdCustom{[this, settings]() {
             m_gridPipeline->bind();

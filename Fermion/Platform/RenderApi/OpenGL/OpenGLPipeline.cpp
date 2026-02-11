@@ -41,6 +41,42 @@ namespace Fermion
             return GL_BACK;
         }
     }
+
+    static GLenum toGLBlendFactor(BlendFactor factor)
+    {
+        switch (factor)
+        {
+        case BlendFactor::Zero:                  return GL_ZERO;
+        case BlendFactor::One:                   return GL_ONE;
+        case BlendFactor::SrcColor:              return GL_SRC_COLOR;
+        case BlendFactor::OneMinusSrcColor:      return GL_ONE_MINUS_SRC_COLOR;
+        case BlendFactor::DstColor:              return GL_DST_COLOR;
+        case BlendFactor::OneMinusDstColor:      return GL_ONE_MINUS_DST_COLOR;
+        case BlendFactor::SrcAlpha:              return GL_SRC_ALPHA;
+        case BlendFactor::OneMinusSrcAlpha:      return GL_ONE_MINUS_SRC_ALPHA;
+        case BlendFactor::DstAlpha:              return GL_DST_ALPHA;
+        case BlendFactor::OneMinusDstAlpha:      return GL_ONE_MINUS_DST_ALPHA;
+        case BlendFactor::ConstantColor:         return GL_CONSTANT_COLOR;
+        case BlendFactor::OneMinusConstantColor: return GL_ONE_MINUS_CONSTANT_COLOR;
+        case BlendFactor::ConstantAlpha:         return GL_CONSTANT_ALPHA;
+        case BlendFactor::OneMinusConstantAlpha: return GL_ONE_MINUS_CONSTANT_ALPHA;
+        default:                                 return GL_ONE;
+        }
+    }
+
+    static GLenum toGLBlendFunction(BlendFunction func)
+    {
+        switch (func)
+        {
+        case BlendFunction::Add:             return GL_FUNC_ADD;
+        case BlendFunction::Subtract:        return GL_FUNC_SUBTRACT;
+        case BlendFunction::ReverseSubtract: return GL_FUNC_REVERSE_SUBTRACT;
+        case BlendFunction::Min:             return GL_MIN;
+        case BlendFunction::Max:             return GL_MAX;
+        default:                             return GL_FUNC_ADD;
+        }
+    }
+
     OpenGLPipeline::OpenGLPipeline(const PipelineSpecification &spec) : m_specification(spec)
     {
     }
@@ -84,6 +120,24 @@ namespace Fermion
             glEnable(GL_CULL_FACE);
             glCullFace(GL_BACK);
             break;
+        }
+
+        // Blend
+        if (m_specification.blendEnable)
+        {
+            glEnable(GL_BLEND);
+            glBlendFuncSeparate(
+                toGLBlendFactor(m_specification.srcColorFactor),
+                toGLBlendFactor(m_specification.dstColorFactor),
+                toGLBlendFactor(m_specification.srcAlphaFactor),
+                toGLBlendFactor(m_specification.dstAlphaFactor));
+            glBlendEquationSeparate(
+                toGLBlendFunction(m_specification.colorBlendFunction),
+                toGLBlendFunction(m_specification.alphaBlendFunction));
+        }
+        else
+        {
+            glDisable(GL_BLEND);
         }
     }
     std::shared_ptr<Shader> OpenGLPipeline::getShader() const

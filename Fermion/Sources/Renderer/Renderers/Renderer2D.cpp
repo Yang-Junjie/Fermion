@@ -59,6 +59,7 @@ namespace Fermion
             spec.depthWrite = true;
             spec.cull = CullMode::None;
             spec.depthOperator = DepthCompareOperator::Less;
+            spec.blendEnable = true;
             m_QuadPipeline = Pipeline::create(spec);
         }
 
@@ -70,6 +71,7 @@ namespace Fermion
             spec.depthWrite = true;
             spec.cull = CullMode::None;
             spec.depthOperator = DepthCompareOperator::Less;
+            spec.blendEnable = true;
             m_QuadInstancePipeline = Pipeline::create(spec);
         }
 
@@ -81,6 +83,7 @@ namespace Fermion
             spec.depthWrite = true;
             spec.cull = CullMode::None;
             spec.depthOperator = DepthCompareOperator::Less;
+            spec.blendEnable = true;
             m_CirclePipeline = Pipeline::create(spec);
         }
 
@@ -92,6 +95,7 @@ namespace Fermion
             spec.depthWrite = true;
             spec.cull = CullMode::None;
             spec.depthOperator = DepthCompareOperator::Always;
+            spec.blendEnable = true;
             m_LinePipeline = Pipeline::create(spec);
         }
 
@@ -103,6 +107,7 @@ namespace Fermion
             spec.depthWrite = true;
             spec.cull = CullMode::None;
             spec.depthOperator = DepthCompareOperator::Always;
+            spec.blendEnable = true;
             m_TextPipeline = Pipeline::create(spec);
         }
 

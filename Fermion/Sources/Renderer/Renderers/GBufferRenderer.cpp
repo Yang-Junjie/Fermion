@@ -95,7 +95,6 @@ namespace Fermion
                 return;
 
             queue.submit(CmdBindFramebuffer{m_framebuffer});
-            queue.submit(CmdSetBlendEnabled{false});
             queue.submit(CmdSetClearColor{{0.0f, 0.0f, 0.0f, 1.0f}});
             queue.submit(CmdClear{});
             queue.submit(CmdCustom{[this]() {
@@ -203,7 +202,6 @@ namespace Fermion
                 }});
                 if (context.viewportWidth > 0 && context.viewportHeight > 0)
                     queue.submit(CmdSetViewport{0, 0, context.viewportWidth, context.viewportHeight});
-                queue.submit(CmdSetBlendEnabled{true});
             }
         };
         renderGraph.addPass(pass);

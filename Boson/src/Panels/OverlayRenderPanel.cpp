@@ -309,13 +309,13 @@ namespace Fermion
                 drawCircle(bottomCenter, right, forward, scaledRadius, collider3DColor);
 
                 ctx.viewportRenderer->drawLine(topCenter + right * scaledRadius, bottomCenter + right * scaledRadius,
-                                             collider3DColor);
+                                               collider3DColor);
                 ctx.viewportRenderer->drawLine(topCenter - right * scaledRadius, bottomCenter - right * scaledRadius,
-                                             collider3DColor);
+                                               collider3DColor);
                 ctx.viewportRenderer->drawLine(topCenter + forward * scaledRadius, bottomCenter + forward * scaledRadius,
-                                             collider3DColor);
+                                               collider3DColor);
                 ctx.viewportRenderer->drawLine(topCenter - forward * scaledRadius, bottomCenter - forward * scaledRadius,
-                                             collider3DColor);
+                                               collider3DColor);
 
                 const int arcSegments = kCircleSegments / 2;
                 drawArc(topCenter, right, up, scaledRadius, 0.0f, kTwoPi * 0.5f, arcSegments, collider3DColor);

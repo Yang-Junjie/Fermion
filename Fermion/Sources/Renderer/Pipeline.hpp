@@ -18,6 +18,32 @@ enum class DepthCompareOperator {
     Equal,
     Always,
 };
+
+enum class BlendFactor {
+    Zero,
+    One,
+    SrcColor,
+    OneMinusSrcColor,
+    DstColor,
+    OneMinusDstColor,
+    SrcAlpha,
+    OneMinusSrcAlpha,
+    DstAlpha,
+    OneMinusDstAlpha,
+    ConstantColor,
+    OneMinusConstantColor,
+    ConstantAlpha,
+    OneMinusConstantAlpha,
+};
+
+enum class BlendFunction {
+    Add,
+    Subtract,
+    ReverseSubtract,
+    Min,
+    Max,
+};
+
 struct PipelineSpecification {
     std::shared_ptr<Shader> shader;
     bool depthTest = true;
@@ -25,6 +51,14 @@ struct PipelineSpecification {
 
     CullMode cull = CullMode::Back;
     DepthCompareOperator depthOperator = DepthCompareOperator::Less;
+
+    bool blendEnable = false;
+    BlendFactor srcColorFactor = BlendFactor::SrcAlpha;
+    BlendFactor dstColorFactor = BlendFactor::OneMinusSrcAlpha;
+    BlendFunction colorBlendFunction = BlendFunction::Add;
+    BlendFactor srcAlphaFactor = BlendFactor::One;
+    BlendFactor dstAlphaFactor = BlendFactor::OneMinusSrcAlpha;
+    BlendFunction alphaBlendFunction = BlendFunction::Add;
 };
 class Pipeline {
 public:

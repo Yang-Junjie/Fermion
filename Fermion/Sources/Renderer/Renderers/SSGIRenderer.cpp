@@ -151,7 +151,6 @@ namespace Fermion
             const float intensity = settings.intensity;
 
             queue.submit(CmdBindFramebuffer{currentFramebuffer});
-            queue.submit(CmdSetBlendEnabled{false});
             queue.submit(CmdSetClearColor{{0.0f, 0.0f, 0.0f, 1.0f}});
             queue.submit(CmdClear{});
 
@@ -183,7 +182,6 @@ namespace Fermion
 
             queue.submit(CmdDrawIndexed{m_quadVA, m_quadVA->getIndexBuffer()->getCount()});
             queue.submit(CmdUnbindFramebuffer{currentFramebuffer});
-            queue.submit(CmdSetBlendEnabled{true});
 
             m_currentFramebuffer = currentFramebuffer;
             m_historyIndex = currentIndex;
