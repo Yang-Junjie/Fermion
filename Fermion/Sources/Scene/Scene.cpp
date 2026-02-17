@@ -15,8 +15,8 @@ namespace Fermion
 {
     Scene::Scene() : m_entityManager(std::make_unique<EntityManager>(this))
     {
-        m_lightTexture = Texture2D::create("../Boson/Resources/icons/light.png");
-        m_cameraTexture = Texture2D::create("../Boson/Resources/icons/Camera.png");
+        m_lightTexture = Texture2D::create("../Boson/Resources/Icons/light.png");
+        m_cameraTexture = Texture2D::create("../Boson/Resources/Icons/Camera.png");
         m_physicsWorld2D = std::make_unique<Physics2DWorld>();
         m_physicsWorld3D = std::make_unique<Physics3DWorld>();
     }
