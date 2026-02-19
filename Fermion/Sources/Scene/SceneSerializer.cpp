@@ -303,6 +303,24 @@ namespace Fermion
             out << YAML::Key << "IsTrigger" << YAML::Value << mc.isTrigger;
             out << YAML::EndMap;
         }
+        if (entity.hasComponent<HingeConstraint3DComponent>())
+        {
+            out << YAML::Key << "HingeConstraint3DComponent";
+            out << YAML::BeginMap;
+            auto &hc = entity.getComponent<HingeConstraint3DComponent>();
+            out << YAML::Key << "ConnectedBodyID" << YAML::Value << static_cast<uint64_t>(hc.connectedBodyID);
+            out << YAML::Key << "LocalAnchorA" << YAML::Value << hc.localAnchorA;
+            out << YAML::Key << "LocalAnchorB" << YAML::Value << hc.localAnchorB;
+            out << YAML::Key << "HingeAxisA" << YAML::Value << hc.hingeAxisA;
+            out << YAML::Key << "HingeAxisB" << YAML::Value << hc.hingeAxisB;
+            out << YAML::Key << "EnableLimit" << YAML::Value << hc.enableLimit;
+            out << YAML::Key << "LowerAngle" << YAML::Value << hc.lowerAngle;
+            out << YAML::Key << "UpperAngle" << YAML::Value << hc.upperAngle;
+            out << YAML::Key << "EnableMotor" << YAML::Value << hc.enableMotor;
+            out << YAML::Key << "MotorSpeed" << YAML::Value << hc.motorSpeed;
+            out << YAML::Key << "MaxMotorTorque" << YAML::Value << hc.maxMotorTorque;
+            out << YAML::EndMap;
+        }
         if (entity.hasComponent<BoxSensor2DComponent>())
         {
             out << YAML::Key << "BoxSensor2DComponent";
@@ -849,6 +867,33 @@ namespace Fermion
                         mc.restitution = n.as<float>();
                     if (auto n = meshCollider3DComponent["IsTrigger"]; n)
                         mc.isTrigger = n.as<bool>();
+                }
+                auto hingeConstraint3DComponent = entity["HingeConstraint3DComponent"];
+                if (hingeConstraint3DComponent && hingeConstraint3DComponent.IsMap())
+                {
+                    auto &hc = deserializedEntity.addComponent<HingeConstraint3DComponent>();
+                    if (auto n = hingeConstraint3DComponent["ConnectedBodyID"]; n)
+                        hc.connectedBodyID = UUID(n.as<uint64_t>());
+                    if (auto n = hingeConstraint3DComponent["LocalAnchorA"]; n)
+                        hc.localAnchorA = n.as<glm::vec3>();
+                    if (auto n = hingeConstraint3DComponent["LocalAnchorB"]; n)
+                        hc.localAnchorB = n.as<glm::vec3>();
+                    if (auto n = hingeConstraint3DComponent["HingeAxisA"]; n)
+                        hc.hingeAxisA = n.as<glm::vec3>();
+                    if (auto n = hingeConstraint3DComponent["HingeAxisB"]; n)
+                        hc.hingeAxisB = n.as<glm::vec3>();
+                    if (auto n = hingeConstraint3DComponent["EnableLimit"]; n)
+                        hc.enableLimit = n.as<bool>();
+                    if (auto n = hingeConstraint3DComponent["LowerAngle"]; n)
+                        hc.lowerAngle = n.as<float>();
+                    if (auto n = hingeConstraint3DComponent["UpperAngle"]; n)
+                        hc.upperAngle = n.as<float>();
+                    if (auto n = hingeConstraint3DComponent["EnableMotor"]; n)
+                        hc.enableMotor = n.as<bool>();
+                    if (auto n = hingeConstraint3DComponent["MotorSpeed"]; n)
+                        hc.motorSpeed = n.as<float>();
+                    if (auto n = hingeConstraint3DComponent["MaxMotorTorque"]; n)
+                        hc.maxMotorTorque = n.as<float>();
                 }
                 auto boxSensor2DComponent = entity["BoxSensor2DComponent"];
                 if (boxSensor2DComponent && boxSensor2DComponent.IsMap())

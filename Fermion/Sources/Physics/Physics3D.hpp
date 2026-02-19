@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 #include <unordered_map>
 #include "Core/Timestep.hpp"
 #include "Core/UUID.hpp"
@@ -10,6 +11,7 @@ namespace JPH
     class PhysicsSystem;
     class TempAllocator;
     class JobSystem;
+    class Constraint;
 }
 
 namespace Fermion
@@ -38,5 +40,6 @@ namespace Fermion
         std::unique_ptr<JPH::TempAllocator> m_tempAllocator;
         std::unique_ptr<JPH::JobSystem> m_jobSystem;
         std::unordered_map<UUID, uint32_t> m_bodyMap;
+        std::vector<JPH::Constraint *> m_constraintList;
     };
 } // namespace Fermion

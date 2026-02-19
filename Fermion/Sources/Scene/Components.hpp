@@ -482,6 +482,30 @@ namespace Fermion
         MeshCollider3DComponent(const MeshCollider3DComponent &) = default;
     };
 
+    struct HingeConstraint3DComponent
+    {
+        UUID connectedBodyID = 0;
+        glm::vec3 localAnchorA = {0.0f, 0.0f, 0.0f};
+        glm::vec3 localAnchorB = {0.0f, 0.0f, 0.0f};
+        glm::vec3 hingeAxisA = {0.0f, 1.0f, 0.0f};
+        glm::vec3 hingeAxisB = {0.0f, 1.0f, 0.0f};
+
+        bool enableLimit = false;
+        float lowerAngle = 0.0f;
+        float upperAngle = 0.0f;
+
+        bool enableMotor = false;
+        float motorSpeed = 0.0f;
+        float maxMotorTorque = 0.0f;
+
+        // Storage for runtime
+        void *runtimeConstraint = nullptr;
+
+        HingeConstraint3DComponent() = default;
+
+        HingeConstraint3DComponent(const HingeConstraint3DComponent &) = default;
+    };
+
     struct DirectionalLightComponent
     {
         glm::vec3 color{1.0f, 1.0f, 1.0f};
@@ -581,7 +605,7 @@ namespace Fermion
             NativeScriptComponent,
 
             Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, CapsuleCollider2DComponent, BoxSensor2DComponent, CircleSensor2DComponent, RevoluteJoint2DComponent, DistanceJoint2DComponent,
-            Rigidbody3DComponent, BoxCollider3DComponent, CircleCollider3DComponent, CapsuleCollider3DComponent, MeshCollider3DComponent,
+            Rigidbody3DComponent, BoxCollider3DComponent, CircleCollider3DComponent, CapsuleCollider3DComponent, MeshCollider3DComponent, HingeConstraint3DComponent,
 
             TextComponent,
 

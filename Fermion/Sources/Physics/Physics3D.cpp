@@ -25,6 +25,7 @@
 #include <Jolt/Physics/Body/BodyLock.h>
 #include <Jolt/Physics/Body/Body.h>
 #include <Jolt/Physics/Collision/Shape/Shape.h>
+#include <Jolt/Physics/Constraints/HingeConstraint.h>
 
 #include <thread>
 
@@ -177,12 +178,97 @@ namespace Fermion
             m_bodyMap[entity.getUUID()] = bodyID.GetIndexAndSequenceNumber();
             rb.runtimeBody = reinterpret_cast<void *>(static_cast<uint64_t>(bodyID.GetIndexAndSequenceNumber()));
         }
+
+        // Create hinge constraints after all bodies are created
+        {
+            auto constraintView = scene->getRegistry().view<HingeConstraint3DComponent>();
+            JPH::BodyInterface &bodyInterface = m_physicsSystem->GetBodyInterface();
+            for (auto entityID : constraintView)
+            {
+                Entity entity{entityID, scene};
+                auto &hc = constraintView.get<HingeConstraint3DComponent>(entityID);
+
+                if (static_cast<uint64_t>(hc.connectedBodyID) == 0)
+                    continue;
+
+                auto itA = m_bodyMap.find(entity.getUUID());
+                auto itB = m_bodyMap.find(hc.connectedBodyID);
+                if (itA == m_bodyMap.end() || itB == m_bodyMap.end())
+                    continue;
+
+                JPH::BodyID bodyIDA(itA->second);
+                JPH::BodyID bodyIDB(itB->second);
+
+                JPH::HingeConstraintSettings settings;
+                settings.mPoint1 = Physics3DUtils::ToJoltVec3(hc.localAnchorA);
+                settings.mPoint2 = Physics3DUtils::ToJoltVec3(hc.localAnchorB);
+                settings.mHingeAxis1 = Physics3DUtils::ToJoltVec3(glm::normalize(hc.hingeAxisA));
+                settings.mHingeAxis2 = Physics3DUtils::ToJoltVec3(glm::normalize(hc.hingeAxisB));
+                settings.mSpace = JPH::EConstraintSpace::LocalToBodyCOM;
+
+                if (hc.enableLimit)
+                {
+                    settings.mLimitsMin = hc.lowerAngle;
+                    settings.mLimitsMax = hc.upperAngle;
+                }
+
+                JPH::Body *bodyA = nullptr;
+                JPH::Body *bodyB = nullptr;
+                {
+                    JPH::BodyLockWrite lockA(m_physicsSystem->GetBodyLockInterface(), bodyIDA);
+                    if (lockA.Succeeded())
+                        bodyA = &lockA.GetBody();
+                }
+                {
+                    JPH::BodyLockWrite lockB(m_physicsSystem->GetBodyLockInterface(), bodyIDB);
+                    if (lockB.Succeeded())
+                        bodyB = &lockB.GetBody();
+                }
+
+                if (!bodyA || !bodyB)
+                    continue;
+
+                JPH::Constraint *constraint = settings.Create(*bodyA, *bodyB);
+                m_physicsSystem->AddConstraint(constraint);
+
+                if (hc.enableMotor)
+                {
+                    auto *hingeConstraint = static_cast<JPH::HingeConstraint *>(constraint);
+                    hingeConstraint->SetMotorState(JPH::EMotorState::Velocity);
+                    JPH::MotorSettings &motorSettings = hingeConstraint->GetMotorSettings();
+                    motorSettings.mMaxTorqueLimit = hc.maxMotorTorque;
+                    motorSettings.mMinTorqueLimit = -hc.maxMotorTorque;
+                    hingeConstraint->SetTargetAngularVelocity(hc.motorSpeed);
+                }
+
+                hc.runtimeConstraint = constraint;
+                constraint->AddRef();
+                m_constraintList.push_back(constraint);
+            }
+        }
     }
 
     void Physics3DWorld::stop(Scene *scene)
     {
         if (!m_physicsSystem)
             return;
+
+        // Remove constraints first
+        for (auto *constraint : m_constraintList)
+        {
+            m_physicsSystem->RemoveConstraint(constraint);
+            constraint->Release();
+        }
+        m_constraintList.clear();
+
+        if (scene)
+        {
+            auto constraintView = scene->getRegistry().view<HingeConstraint3DComponent>();
+            for (auto entityID : constraintView)
+            {
+                constraintView.get<HingeConstraint3DComponent>(entityID).runtimeConstraint = nullptr;
+            }
+        }
 
         JPH::BodyInterface &bodyInterface = m_physicsSystem->GetBodyInterface();
         for (auto &[uuid, storedId] : m_bodyMap)

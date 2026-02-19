@@ -377,7 +377,8 @@ namespace Fermion
     {
         if (m_entityPickingActive && m_pickingTargetEntity && pickedEntity &&
             (m_pickingTargetEntity.hasComponent<RevoluteJoint2DComponent>() ||
-             m_pickingTargetEntity.hasComponent<DistanceJoint2DComponent>()))
+             m_pickingTargetEntity.hasComponent<DistanceJoint2DComponent>() ||
+             m_pickingTargetEntity.hasComponent<HingeConstraint3DComponent>()))
         {
             if (pickedEntity != m_pickingTargetEntity)
             {
@@ -390,6 +391,11 @@ namespace Fermion
                 {
                     auto &dj = m_pickingTargetEntity.getComponent<DistanceJoint2DComponent>();
                     dj.connectedBodyID = pickedEntity.getUUID();
+                }
+                if (m_pickingTargetEntity.hasComponent<HingeConstraint3DComponent>())
+                {
+                    auto &hc = m_pickingTargetEntity.getComponent<HingeConstraint3DComponent>();
+                    hc.connectedBodyID = pickedEntity.getUUID();
                 }
             }
         }
@@ -492,6 +498,7 @@ namespace Fermion
             displayAddComponentEntry<CircleCollider3DComponent>("Circle Collider3D");
             displayAddComponentEntry<CapsuleCollider3DComponent>("Capsule Collider3D");
             displayAddComponentEntry<MeshCollider3DComponent>("Mesh Collider3D");
+            displayAddComponentEntry<HingeConstraint3DComponent>("Hinge Constraint3D");
             displayAddComponentEntry<DirectionalLightComponent>("Directional Light");
             displayAddComponentEntry<PointLightComponent>("Point Light");
             displayAddComponentEntry<SpotLightComponent>("Spot Light");
@@ -1369,6 +1376,68 @@ namespace Fermion
             ui::drawFloatControl("Friction",component.friction,150.0f,0.01f,0.0f,1.0f);
             ui::drawFloatControl("Restitution",component.restitution,150.0f,0.01f,0.0f,1.0f);
             ui::drawCheckboxControl("Trigger", component.isTrigger, 150.0f); });
+        drawComponent<HingeConstraint3DComponent>("Hinge Constraint 3D", entity, [this, entity](auto &component)
+                                                  {
+            // Show connected body info
+            std::string connectedName = "None";
+            if (static_cast<uint64_t>(component.connectedBodyID) != 0 && m_contextScene)
+            {
+                Entity connectedEntity = m_contextScene->getEntityManager().tryGetEntityByUUID(component.connectedBodyID);
+                if (connectedEntity && connectedEntity.hasComponent<TagComponent>())
+                    connectedName = connectedEntity.getComponent<TagComponent>().tag;
+                else
+                    connectedName = std::to_string(static_cast<uint64_t>(component.connectedBodyID));
+            }
+
+            ImGui::Text("Connected Body:");
+            ImGui::SameLine();
+            if (static_cast<uint64_t>(component.connectedBodyID) != 0)
+            {
+                ImGui::TextColored(ImVec4(0.4f, 0.8f, 0.4f, 1.0f), "%s", connectedName.c_str());
+            }
+            else
+            {
+                ImGui::TextColored(ImVec4(0.8f, 0.4f, 0.4f, 1.0f), "None");
+            }
+
+            if (m_entityPickingActive && m_pickingTargetEntity == entity)
+            {
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.92f, 0.45f, 0.11f, 0.8f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.92f, 0.45f, 0.11f, 1.0f));
+                if (ImGui::Button("Picking... (Click entity in viewport)##hc"))
+                {
+                    cancelEntityPicking();
+                }
+                ImGui::PopStyleColor(2);
+            }
+            else
+            {
+                if (ImGui::Button("Pick Connected Body##hc"))
+                {
+                    m_entityPickingActive = true;
+                    m_pickingTargetEntity = entity;
+                }
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Clear##hc"))
+            {
+                component.connectedBodyID = UUID(0);
+            }
+
+            ImGui::Separator();
+            ui::drawVec3Control("Local Anchor A", component.localAnchorA, 0.0f, 100.0f, 0.1f);
+            ui::drawVec3Control("Local Anchor B", component.localAnchorB, 0.0f, 100.0f, 0.1f);
+            ImGui::Separator();
+            ui::drawVec3Control("Hinge Axis A", component.hingeAxisA, 0.0f, 100.0f, 0.1f);
+            ui::drawVec3Control("Hinge Axis B", component.hingeAxisB, 0.0f, 100.0f, 0.1f);
+            ImGui::Separator();
+            ui::drawCheckboxControl("Enable Limit", component.enableLimit, 150.0f);
+            ui::drawFloatControl("Lower Angle", component.lowerAngle, 150.0f, 0.01f, -3.14159f, 3.14159f);
+            ui::drawFloatControl("Upper Angle", component.upperAngle, 150.0f, 0.01f, -3.14159f, 3.14159f);
+            ImGui::Separator();
+            ui::drawCheckboxControl("Enable Motor", component.enableMotor, 150.0f);
+            ui::drawFloatControl("Motor Speed", component.motorSpeed, 150.0f, 0.1f);
+            ui::drawFloatControl("Max Motor Torque", component.maxMotorTorque, 150.0f, 0.1f, 0.0f); });
     }
 
     template <typename T>
