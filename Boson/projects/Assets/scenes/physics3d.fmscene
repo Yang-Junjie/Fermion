@@ -1,78 +1,22 @@
 Scene: Name
 Entities:
-  - Entity: 13692180938616563649
+  - Entity: 2543770089875693107
     TagComponent:
-      Tag: Empty Entity
+      Tag: floor
     TransformComponent:
-      Translation: [0.08640665, 4.7744155, 4.932543]
+      Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
+      Scale: [88.75457, 1, 18.316744]
     RelationshipComponent:
       Parent: 0
-      Children:
-        - 1382834807650946631
     MeshComponent:
-      MeshHandle: 9662051154129355527
-      MemoryOnly: true
-      MemoryMeshType: 2
-      SubmeshMaterials:
-        - 7143575055291843919
-    Rigidbody3DComponent:
-      BodyType: 0
-      Mass: 1
-      LinearDamping: 0.01
-      AngularDamping: 0.05
-      UseGravity: true
-      FixedRotation: false
-    CircleCollider3DComponent:
-      Offset: [0, 0, 0]
-      Radius: 0.5
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      IsTrigger: false
-    HingeConstraint3DComponent:
-      ConnectedBodyID: 1382834807650946631
-      LocalAnchorA: [0, 0, 0]
-      LocalAnchorB: [2.5, 0, 0]
-      HingeAxisA: [0, 1, 0]
-      HingeAxisB: [0, 1, 0]
-      EnableLimit: false
-      LowerAngle: 0
-      UpperAngle: 0
-      EnableMotor: true
-      MotorSpeed: 5.7
-      MaxMotorTorque: 18.9
-  - Entity: 12123276999737762844
-    TagComponent:
-      Tag: Empty Entity
-    TransformComponent:
-      Translation: [0, 3.381377, 8.502435]
-      Rotation: [-0.5452399, -0, 0]
-      Scale: [1, 1, 1]
-    RelationshipComponent:
-      Parent: 0
-    DirectionalLightComponent:
-      Color: [1, 1, 1]
-      Intensity: 1
-      MainLight: false
-  - Entity: 1382834807650946631
-    TagComponent:
-      Tag: Empty Entity
-    TransformComponent:
-      Translation: [-2.2378595, -0.017251968, 0.019714005]
-      Rotation: [0, -0, 0]
-      Scale: [3.398017, 0.15620309, 0.18599218]
-    RelationshipComponent:
-      Parent: 13692180938616563649
-    MeshComponent:
-      MeshHandle: 4124239174632507309
+      MeshHandle: 2319227212047313202
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:
-        - 5448258832851368164
+        - 0
     Rigidbody3DComponent:
-      BodyType: 1
+      BodyType: 2
       Mass: 1
       LinearDamping: 0.01
       AngularDamping: 0.05
@@ -105,23 +49,23 @@ Entities:
         OrthographicFar: 100
       Primary: true
       FixedAspectRatio: false
-  - Entity: 2543770089875693107
+  - Entity: 1382834807650946631
     TagComponent:
-      Tag: floor
+      Tag: Empty Entity
     TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [88.75457, 1, 18.316744]
+      Translation: [-2.2378595, -0.017251968, 0.019714005]
+      Rotation: [0, -0, 0]
+      Scale: [3.398017, 0.15620309, 0.18599218]
     RelationshipComponent:
-      Parent: 0
+      Parent: 13692180938616563649
     MeshComponent:
-      MeshHandle: 2281991177399213051
+      MeshHandle: 819746197780195018
       MemoryOnly: true
       MemoryMeshType: 1
       SubmeshMaterials:
-        - 0
+        - 5448258832851368164
     Rigidbody3DComponent:
-      BodyType: 2
+      BodyType: 1
       Mass: 1
       LinearDamping: 0.01
       AngularDamping: 0.05
@@ -134,6 +78,62 @@ Entities:
       Friction: 0.5
       Restitution: 0
       IsTrigger: false
+  - Entity: 12123276999737762844
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [0, 3.381377, 8.502435]
+      Rotation: [-0.5452399, -0, 0]
+      Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
+    DirectionalLightComponent:
+      Color: [1, 1, 1]
+      Intensity: 1
+      MainLight: false
+  - Entity: 13692180938616563649
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [0.08640665, 4.7744155, 4.932543]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
+      Children:
+        - 1382834807650946631
+    MeshComponent:
+      MeshHandle: 8629065369645782847
+      MemoryOnly: true
+      MemoryMeshType: 2
+      SubmeshMaterials:
+        - 7143575055291843919
+    Rigidbody3DComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDamping: 0.01
+      AngularDamping: 0.05
+      UseGravity: true
+      FixedRotation: false
+    CircleCollider3DComponent:
+      Offset: [0, 0, 0]
+      Radius: 0.5
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      IsTrigger: false
+    HingeConstraint3DComponent:
+      ConnectedBodyID: 1382834807650946631
+      LocalAnchorA: [0, 0, 0]
+      LocalAnchorB: [2.5, 0, 0]
+      HingeAxisA: [0, 1, 0]
+      HingeAxisB: [0, 1, 0]
+      EnableLimit: false
+      LowerAngle: 0
+      UpperAngle: 0
+      EnableMotor: true
+      MotorSpeed: 5.7
+      MaxMotorTorque: 18.9
 EnvironmentSettings:
   ShowSkybox: true
   EnableShadows: true

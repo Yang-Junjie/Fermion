@@ -57,20 +57,26 @@ namespace Fermion
                 ImGui::EndPopup();
             }
 
-            if (m_editingEnabled && ImGui::BeginDragDropTarget())
+            // Drop zone: drag entity to empty space to unparent it
+            float dropZoneHeight = ImGui::GetContentRegionAvail().y;
+            if (m_editingEnabled && dropZoneHeight > 0.0f)
             {
-                if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_ENTITY"))
+                ImGui::InvisibleButton("##HierarchyDropZone", ImVec2(-1, dropZoneHeight));
+                if (ImGui::BeginDragDropTarget())
                 {
-                    uint64_t droppedId = *(const uint64_t *)payload->Data;
-                    Entity droppedEntity = m_contextScene->getEntityManager().tryGetEntityByUUID(UUID(droppedId));
-
-                    if (droppedEntity && droppedEntity.getParent())
+                    if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_ENTITY"))
                     {
-                        m_contextScene->getEntityManager().convertToWorldSpace(droppedEntity);
-                        droppedEntity.setParent(Entity{}); 
+                        uint64_t droppedId = *(const uint64_t *)payload->Data;
+                        Entity droppedEntity = m_contextScene->getEntityManager().tryGetEntityByUUID(UUID(droppedId));
+
+                        if (droppedEntity && droppedEntity.getParent())
+                        {
+                            m_contextScene->getEntityManager().convertToWorldSpace(droppedEntity);
+                            droppedEntity.setParent(Entity{});
+                        }
                     }
+                    ImGui::EndDragDropTarget();
                 }
-                ImGui::EndDragDropTarget();
             }
         }
 
@@ -148,6 +154,12 @@ namespace Fermion
         {
             if (ImGui::MenuItem("Create Child"))
                 m_contextScene->createChildEntity(entity, "Empty Entity");
+
+            if (entity.getParent() && ImGui::MenuItem("Detach from Parent"))
+            {
+                m_contextScene->getEntityManager().convertToWorldSpace(entity);
+                entity.setParent(Entity{});
+            }
 
             if (ImGui::MenuItem("Delete Entity"))
                 entityDeleted = true;
