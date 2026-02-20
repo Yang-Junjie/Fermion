@@ -1,90 +1,47 @@
 Scene: Name
 Entities:
-  - Entity: 8303827213874568510
+  - Entity: 14827726805501501174
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [8.286874, 3.0870693, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
+    Rigidbody2DComponent:
+      BodyType: 0
+      FixedRotation: false
+    ScriptContainerComponent:
+      ScriptClassNames:
+        - Photon.CircleSensorTest
+  - Entity: 8796432974993234101
     TagComponent:
       Tag: floor
     TransformComponent:
-      Translation: [-9.353418, 7.4146333, -0.08214325]
+      Translation: [-1.0999999, 8.33, 0.0015258864]
       Rotation: [0, 0, 0]
-      Scale: [0.55319005, 0.55319005, 0.55319005]
+      Scale: [5.9204206, 0.48010296, 1]
     RelationshipComponent:
       Parent: 0
-    CircleRendererComponent:
-      Color: [1, 1, 1, 1]
-      Thickness: 1
-      Fade: 0.005
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0.14509805]
     Rigidbody2DComponent:
-      BodyType: 1
+      BodyType: 0
       FixedRotation: false
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
       Density: 1
-      Friction: 0.5
+      Friction: 1
       Restitution: 0
       RestitutionThreshold: 0.5
-  - Entity: 11684867724683612131
+  - Entity: 17663530091176826639
     TagComponent:
       Tag: floor
     TransformComponent:
-      Translation: [-11.373209, 7.431973, -0.0010375977]
+      Translation: [-1.1084223, 6.4882827, 0.0015258864]
       Rotation: [0, 0, 0]
-      Scale: [0.5, 0.5, 1]
-    RelationshipComponent:
-      Parent: 0
-    SpriteRendererComponent:
-      Color: [1, 0, 0, 1]
-    Rigidbody2DComponent:
-      BodyType: 0
-      FixedRotation: false
-    DistanceJoint2DComponent:
-      ConnectedBodyID: 8303827213874568510
-      LocalAnchorA: [0, 0]
-      LocalAnchorB: [0, 0]
-      Length: 2
-      EnableSpring: false
-      Damping: 0
-      Hertz: 0
-      EnableLimit: false
-      MinLength: 0
-      MaxLength: 0
-  - Entity: 9425918108875504324
-    TagComponent:
-      Tag: floor
-    TransformComponent:
-      Translation: [-5.20119, 7.4170957, 0.01]
-      Rotation: [0, 0, 0]
-      Scale: [1, 0.3, 1]
-    RelationshipComponent:
-      Parent: 0
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 0.30588236]
-    Rigidbody2DComponent:
-      BodyType: 1
-      FixedRotation: false
-    BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
-      Density: 0.5
-      Friction: 0.5
-      Restitution: 0
-      RestitutionThreshold: 0.5
-    RevoluteJoint2DComponent:
-      ConnectedBodyID: 15508373630137251484
-      LocalAnchorA: [0.5, 0]
-      LocalAnchorB: [-1.3, 0]
-      EnableLimit: false
-      LowerAngle: 0
-      UpperAngle: 0
-      EnableMotor: false
-      MotorSpeed: 0
-      MaxMotorTorque: 0
-  - Entity: 18196109829032775604
-    TagComponent:
-      Tag: floor
-    TransformComponent:
-      Translation: [4.76152, 1.0454555, 0]
-      Rotation: [0, -0, 0.38245174]
       Scale: [5.9204206, 0.48010296, 1]
     RelationshipComponent:
       Parent: 0
@@ -97,36 +54,116 @@ Entities:
       Offset: [0, 0]
       Size: [0.5, 0.5]
       Density: 1
-      Friction: 0.5
+      Friction: 1
       Restitution: 0
       RestitutionThreshold: 0.5
-  - Entity: 592665067448821216
-    TagComponent:
-      Tag: camera
-    TransformComponent:
-      Translation: [0.073649615, 1.9354675, 20.070278]
-      Rotation: [0, -0, 0]
-      Scale: [1, 1, 1]
-    RelationshipComponent:
-      Parent: 18169958167074405217
-    CameraComponent:
-      Camera:
-        ProjectionType: 1
-        PerspectiveFOV: 0.7853982
-        PerspectiveNear: 0.01
-        PerspectiveFar: 100
-        OrthographicSize: 10
-        OrthographicNear: -100
-        OrthographicFar: 100
-      Primary: true
-      FixedAspectRatio: false
-  - Entity: 607152051189134835
+  - Entity: 2819932706408147585
     TagComponent:
       Tag: floor
     TransformComponent:
-      Translation: [0, 0, 0]
+      Translation: [-1.1787578, 7.411173, 0.01]
       Rotation: [0, 0, 0]
-      Scale: [26.506388, 0.48010296, 1]
+      Scale: [2, 1.3469919, 1]
+    RelationshipComponent:
+      Parent: 0
+    SpriteRendererComponent:
+      Color: [0.101960786, 1, 0, 0.30588236]
+    Rigidbody2DComponent:
+      BodyType: 1
+      FixedRotation: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 0.5
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+  - Entity: 15508373630137251484
+    TagComponent:
+      Tag: floor
+    TransformComponent:
+      Translation: [-3.3736622, 7.4146333, 0]
+      Rotation: [0, 0, 0]
+      Scale: [3, 0.3, 1]
+    RelationshipComponent:
+      Parent: 0
+    SpriteRendererComponent:
+      Color: [1, 0.9098039, 0, 0.19215687]
+    Rigidbody2DComponent:
+      BodyType: 1
+      FixedRotation: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+    RevoluteJoint2DComponent:
+      ConnectedBodyID: 2819932706408147585
+      LocalAnchorA: [1.5, 0]
+      LocalAnchorB: [-0.8, 0]
+      EnableLimit: false
+      LowerAngle: 0
+      UpperAngle: 0
+      EnableMotor: false
+      MotorSpeed: 0
+      MaxMotorTorque: 0
+  - Entity: 7262116003719942185
+    TagComponent:
+      Tag: floor
+    TransformComponent:
+      Translation: [-5.650365, 7.431973, -0.0010375753]
+      Rotation: [0, 0, 0]
+      Scale: [0.5, 0.5, 1]
+    RelationshipComponent:
+      Parent: 0
+    SpriteRendererComponent:
+      Color: [1, 0, 0, 1]
+    Rigidbody2DComponent:
+      BodyType: 0
+      FixedRotation: false
+    RevoluteJoint2DComponent:
+      ConnectedBodyID: 9425918108875504324
+      LocalAnchorA: [0, 0]
+      LocalAnchorB: [-0.5, 0]
+      EnableLimit: false
+      LowerAngle: 0
+      UpperAngle: 0
+      EnableMotor: true
+      MotorSpeed: 9.1
+      MaxMotorTorque: 38.3
+  - Entity: 10899799654515656379
+    TagComponent:
+      Tag: floor
+    TransformComponent:
+      Translation: [-8.850522, 1.4534076, 0.0015258864]
+      Rotation: [0, 0, 0]
+      Scale: [5.9204206, 0.48010296, 1]
+    RelationshipComponent:
+      Parent: 0
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 0.25490198]
+    Rigidbody2DComponent:
+      BodyType: 2
+      FixedRotation: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 1
+      Restitution: 0
+      RestitutionThreshold: 0.5
+    ScriptContainerComponent:
+      ScriptClassNames:
+        - Photon.XAxisMove2D
+  - Entity: 17061871632087442249
+    TagComponent:
+      Tag: floor
+    TransformComponent:
+      Translation: [10.369367, 2.1315243, 0]
+      Rotation: [0, 0, 0]
+      Scale: [5.9204206, 0.48010296, 1]
     RelationshipComponent:
       Parent: 0
     SpriteRendererComponent:
@@ -168,13 +205,54 @@ Entities:
       RestitutionThreshold: 0.5
     ScriptContainerComponent:
       ScriptClassNames:
-        []
-  - Entity: 17061871632087442249
+        - Photon.CharacterController2D
+  - Entity: 607152051189134835
     TagComponent:
       Tag: floor
     TransformComponent:
-      Translation: [10.369367, 2.1315243, 0]
+      Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
+      Scale: [26.506388, 0.48010296, 1]
+    RelationshipComponent:
+      Parent: 0
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+    Rigidbody2DComponent:
+      BodyType: 0
+      FixedRotation: false
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
+  - Entity: 592665067448821216
+    TagComponent:
+      Tag: camera
+    TransformComponent:
+      Translation: [0.073649615, 1.9354675, 20.070278]
+      Rotation: [0, -0, 0]
+      Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 18169958167074405217
+    CameraComponent:
+      Camera:
+        ProjectionType: 1
+        PerspectiveFOV: 0.7853982
+        PerspectiveNear: 0.01
+        PerspectiveFar: 100
+        OrthographicSize: 10
+        OrthographicNear: -100
+        OrthographicFar: 100
+      Primary: true
+      FixedAspectRatio: false
+  - Entity: 18196109829032775604
+    TagComponent:
+      Tag: floor
+    TransformComponent:
+      Translation: [4.76152, 1.0454555, 0]
+      Rotation: [0, -0, 0.38245174]
       Scale: [5.9204206, 0.48010296, 1]
     RelationshipComponent:
       Parent: 0
@@ -190,96 +268,17 @@ Entities:
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
-  - Entity: 10899799654515656379
+  - Entity: 9425918108875504324
     TagComponent:
       Tag: floor
     TransformComponent:
-      Translation: [-8.850522, 1.4534076, 0.0015258864]
+      Translation: [-5.20119, 7.4170957, 0.01]
       Rotation: [0, 0, 0]
-      Scale: [5.9204206, 0.48010296, 1]
+      Scale: [1, 0.3, 1]
     RelationshipComponent:
       Parent: 0
     SpriteRendererComponent:
-      Color: [1, 1, 1, 0.25490198]
-    Rigidbody2DComponent:
-      BodyType: 2
-      FixedRotation: false
-    BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
-      Density: 1
-      Friction: 1
-      Restitution: 0
-      RestitutionThreshold: 0.5
-    ScriptContainerComponent:
-      ScriptClassNames:
-        []
-  - Entity: 7262116003719942185
-    TagComponent:
-      Tag: floor
-    TransformComponent:
-      Translation: [-5.650365, 7.431973, -0.0010375753]
-      Rotation: [0, 0, 0]
-      Scale: [0.5, 0.5, 1]
-    RelationshipComponent:
-      Parent: 0
-    SpriteRendererComponent:
-      Color: [1, 0, 0, 1]
-    Rigidbody2DComponent:
-      BodyType: 0
-      FixedRotation: false
-    RevoluteJoint2DComponent:
-      ConnectedBodyID: 9425918108875504324
-      LocalAnchorA: [0, 0]
-      LocalAnchorB: [-0.5, 0]
-      EnableLimit: false
-      LowerAngle: 0
-      UpperAngle: 0
-      EnableMotor: true
-      MotorSpeed: 9.1
-      MaxMotorTorque: 38.3
-  - Entity: 15508373630137251484
-    TagComponent:
-      Tag: floor
-    TransformComponent:
-      Translation: [-3.3736622, 7.4146333, 0]
-      Rotation: [0, 0, 0]
-      Scale: [3, 0.3, 1]
-    RelationshipComponent:
-      Parent: 0
-    SpriteRendererComponent:
-      Color: [1, 0.9098039, 0, 0.19215687]
-    Rigidbody2DComponent:
-      BodyType: 1
-      FixedRotation: false
-    BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      RestitutionThreshold: 0.5
-    RevoluteJoint2DComponent:
-      ConnectedBodyID: 2819932706408147585
-      LocalAnchorA: [1.5, 0]
-      LocalAnchorB: [-0.8, 0]
-      EnableLimit: false
-      LowerAngle: 0
-      UpperAngle: 0
-      EnableMotor: false
-      MotorSpeed: 0
-      MaxMotorTorque: 0
-  - Entity: 2819932706408147585
-    TagComponent:
-      Tag: floor
-    TransformComponent:
-      Translation: [-1.1787578, 7.411173, 0.01]
-      Rotation: [0, 0, 0]
-      Scale: [2, 1.3469919, 1]
-    RelationshipComponent:
-      Parent: 0
-    SpriteRendererComponent:
-      Color: [0.101960786, 1, 0, 0.30588236]
+      Color: [1, 1, 1, 0.30588236]
     Rigidbody2DComponent:
       BodyType: 1
       FixedRotation: false
@@ -290,63 +289,64 @@ Entities:
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
-  - Entity: 17663530091176826639
+    RevoluteJoint2DComponent:
+      ConnectedBodyID: 15508373630137251484
+      LocalAnchorA: [0.5, 0]
+      LocalAnchorB: [-1.3, 0]
+      EnableLimit: false
+      LowerAngle: 0
+      UpperAngle: 0
+      EnableMotor: false
+      MotorSpeed: 0
+      MaxMotorTorque: 0
+  - Entity: 11684867724683612131
     TagComponent:
       Tag: floor
     TransformComponent:
-      Translation: [-1.1084223, 6.4882827, 0.0015258864]
+      Translation: [-11.373209, 7.431973, -0.0010375977]
       Rotation: [0, 0, 0]
-      Scale: [5.9204206, 0.48010296, 1]
+      Scale: [0.5, 0.5, 1]
     RelationshipComponent:
       Parent: 0
     SpriteRendererComponent:
+      Color: [1, 0, 0, 1]
+    Rigidbody2DComponent:
+      BodyType: 0
+      FixedRotation: false
+    DistanceJoint2DComponent:
+      ConnectedBodyID: 8303827213874568510
+      LocalAnchorA: [0, 0]
+      LocalAnchorB: [0, 0]
+      Length: 2
+      EnableSpring: false
+      Damping: 0
+      Hertz: 0
+      EnableLimit: false
+      MinLength: 0
+      MaxLength: 0
+  - Entity: 8303827213874568510
+    TagComponent:
+      Tag: floor
+    TransformComponent:
+      Translation: [-9.353418, 7.4146333, -0.08214325]
+      Rotation: [0, 0, 0]
+      Scale: [0.55319005, 0.55319005, 0.55319005]
+    RelationshipComponent:
+      Parent: 0
+    CircleRendererComponent:
       Color: [1, 1, 1, 1]
+      Thickness: 1
+      Fade: 0.005
     Rigidbody2DComponent:
-      BodyType: 0
+      BodyType: 1
       FixedRotation: false
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
       Density: 1
-      Friction: 1
+      Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
-  - Entity: 8796432974993234101
-    TagComponent:
-      Tag: floor
-    TransformComponent:
-      Translation: [-1.0999999, 8.33, 0.0015258864]
-      Rotation: [0, 0, 0]
-      Scale: [5.9204206, 0.48010296, 1]
-    RelationshipComponent:
-      Parent: 0
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 0.14509805]
-    Rigidbody2DComponent:
-      BodyType: 0
-      FixedRotation: false
-    BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
-      Density: 1
-      Friction: 1
-      Restitution: 0
-      RestitutionThreshold: 0.5
-  - Entity: 14827726805501501174
-    TagComponent:
-      Tag: Empty Entity
-    TransformComponent:
-      Translation: [8.286874, 3.0870693, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    RelationshipComponent:
-      Parent: 0
-    Rigidbody2DComponent:
-      BodyType: 0
-      FixedRotation: false
-    ScriptContainerComponent:
-      ScriptClassNames:
-        - Photon.CircleSensorTest
 EnvironmentSettings:
   ShowSkybox: false
   EnableShadows: false

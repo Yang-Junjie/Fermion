@@ -29,6 +29,11 @@
 #include <Jolt/Physics/Body/MotionType.h>
 #include <Jolt/Physics/PhysicsSystem.h>
 
+#ifdef __GNUC__
+#include <cxxabi.h>
+#include <cstdlib>
+#endif
+
 namespace Fermion
 {
     namespace Utils
@@ -1039,6 +1044,40 @@ namespace Fermion
     }
 #pragma endregion
 
+    template <typename T>
+    static std::string getCleanTypeName()
+    {
+        std::string componentName;
+#ifdef __GNUC__
+        int status = 0;
+        char *demangled = abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, &status);
+        if (status == 0 && demangled)
+        {
+            componentName = demangled;
+            std::free(demangled);
+        }
+        else
+        {
+            componentName = typeid(T).name();
+        }
+#else
+        componentName = typeid(T).name();
+        {
+            size_t pos = componentName.find("struct ");
+            if (pos != std::string::npos)
+                componentName = componentName.substr(pos + 7);
+            pos = componentName.find("class ");
+            if (pos != std::string::npos)
+                componentName = componentName.substr(pos + 6);
+        }
+#endif
+        // Strip namespace qualifiers, e.g. "Fermion::TransformComponent" -> "TransformComponent"
+        size_t pos = componentName.rfind("::");
+        if (pos != std::string::npos)
+            componentName = componentName.substr(pos + 2);
+        return componentName;
+    }
+
     template <typename... Components>
     static void RegisterComponent()
     {
@@ -1050,19 +1089,7 @@ namespace Fermion
         {
             using Component = std::tuple_element_t<0, std::tuple<Components...>>;
 
-            std::string_view typeName = typeid(Component).name();
-
-            std::string componentName(typeName);
-            size_t pos = componentName.find("struct ");
-            if (pos != std::string::npos)
-                componentName = componentName.substr(pos + 7);
-            pos = componentName.find("class ");
-            if (pos != std::string::npos)
-                componentName = componentName.substr(pos + 6);
-
-            pos = componentName.find_last_of("::");
-            if (pos != std::string::npos && pos + 1 < componentName.length())
-                componentName = componentName.substr(pos + 1);
+            std::string componentName = getCleanTypeName<Component>();
 
             MonoImage *image = ScriptManager::getCoreImage();
             if (!image)
@@ -1105,16 +1132,7 @@ namespace Fermion
     template <typename Component>
     void registerComponentFactory(MonoImage *image)
     {
-        std::string componentName = typeid(Component).name();
-        size_t pos = componentName.find("struct ");
-        if (pos != std::string::npos)
-            componentName = componentName.substr(pos + 7);
-        pos = componentName.find("class ");
-        if (pos != std::string::npos)
-            componentName = componentName.substr(pos + 6);
-        pos = componentName.find_last_of("::");
-        if (pos != std::string::npos)
-            componentName = componentName.substr(pos + 1);
+        std::string componentName = getCleanTypeName<Component>();
 
         MonoClass *monoClass = mono_class_from_name(image, "Fermion", componentName.c_str());
         if (!monoClass)
