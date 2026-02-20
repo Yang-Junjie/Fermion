@@ -174,9 +174,10 @@ namespace Fermion
 #pragma endregion
 
 #pragma region Entity
-    extern "C" MonoObject *GetScriptInstance(UUID entityID, std::string className)
+    extern "C" MonoObject *GetScriptInstance(UUID entityID, MonoString *className)
     {
-        return (MonoObject *)ScriptManager::getManagedInstance(entityID, className).m_instance;
+        std::string classNameStr = Utils::monoStringToString(className);
+        return (MonoObject *)ScriptManager::getManagedInstance(entityID, classNameStr).m_instance;
     }
 
     extern "C" bool Entity_HasComponent(UUID entityID, MonoReflectionType *componentType)

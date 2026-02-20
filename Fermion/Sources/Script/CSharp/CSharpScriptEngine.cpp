@@ -144,6 +144,8 @@ namespace Fermion
         if (m_initialized)
             return false;
 #ifndef _WIN32
+        // 在 Linux 上使用抢占式 GC 而非协作式 GC，避免线程状态转换冲突
+        setenv("MONO_THREADS_SUSPEND", "preemptive", 1);
         mono_set_dirs("/usr/lib", "/etc");
 #endif
         mono_set_assemblies_path(std::filesystem::current_path().string().c_str());

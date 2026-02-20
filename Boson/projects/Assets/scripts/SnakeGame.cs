@@ -4,51 +4,62 @@ using Fermion;
 
 namespace Photon
 {
+    public class SimpleRandom
+    {
+        private uint m_Seed;
+        public SimpleRandom(uint seed) { m_Seed = seed; }
+        public int Next(int maxValue)
+        {
+            m_Seed = (1103515245u * m_Seed + 12345u) & 0x7fffffffu;
+            return (int)(m_Seed % (uint)maxValue);
+        }
+    }
+
     public class SnakeGame : Entity
     {
-        // --- 可配置参数 ---
+        // ========== 可配置参数 ==========
         public int GridWidth = 20;
         public int GridHeight = 20;
         public float CellSize = 1.0f;
-        public float MoveInterval = 0.15f; // 蛇移动间隔（秒）
+        public float MoveInterval = 0.15f;
 
-        // --- 颜色 ---
-        private readonly Vector4 HeadColor = new Vector4(0.2f, 0.8f, 0.2f, 1.0f);   // 蛇头：亮绿
-        private readonly Vector4 BodyColor = new Vector4(0.1f, 0.6f, 0.1f, 1.0f);   // 蛇身：深绿
-        private readonly Vector4 FoodColor = new Vector4(0.9f, 0.2f, 0.2f, 1.0f);   // 食物：红色
-        private readonly Vector4 BorderColor = new Vector4(0.5f, 0.5f, 0.5f, 1.0f); // 边界：灰色
+        // ========== 颜色配置 ==========
+        private readonly Vector4 HeadColor = new Vector4(0.2f, 0.8f, 0.2f, 1.0f);
+        private readonly Vector4 BodyColor = new Vector4(0.1f, 0.6f, 0.1f, 1.0f);
+        private readonly Vector4 FoodColor = new Vector4(0.9f, 0.2f, 0.2f, 1.0f);
+        private readonly Vector4 BorderColor = new Vector4(0.5f, 0.5f, 0.5f, 1.0f);
         private readonly Vector4 GameOverColor = new Vector4(0.8f, 0.1f, 0.1f, 1.0f);
 
-        // --- 方向 ---
+        // ========== 游戏状态 ==========
         private enum Direction { Up, Down, Left, Right }
 
-        // --- 游戏状态 ---
-        private List<Vector2> m_SnakeBody = new List<Vector2>();       // 蛇身体坐标（网格坐标）
-        private List<Entity> m_SnakeEntities = new List<Entity>();     // 蛇身体对应的实体
+        private List<Vector2> m_SnakeBody = new List<Vector2>();
+        private List<Entity> m_SnakeEntities = new List<Entity>();
         private Vector2 m_FoodPosition;
         private Entity m_FoodEntity;
+        
         private Direction m_CurrentDirection = Direction.Right;
-        private Direction m_NextDirection = Direction.Right;           // 缓冲方向，防止快速按键导致反向
+        private Queue<Direction> m_InputQueue = new Queue<Direction>(); 
+        private const int MAX_INPUT_BUFFER = 2; 
+
         private float m_MoveTimer = 0.0f;
         private float m_CurrentMoveInterval;
         private bool m_GameOver = false;
         private int m_Score = 0;
-        private Random m_Random = new Random();
+        private SimpleRandom m_Random;
         private Entity m_ScoreEntity;
         private TextComponent m_ScoreText;
 
-        // 按键边缘检测
-        private bool m_LastUpDown = false;
-        private bool m_LastDownDown = false;
-        private bool m_LastLeftDown = false;
-        private bool m_LastRightDown = false;
-        private bool m_LastRDown = false;
+        // 按键状态记录
+        private bool m_LastUpDown, m_LastDownDown, m_LastLeftDown, m_LastRightDown, m_LastRDown;
+
+        // ========== 生命周期 ==========
 
         public void OnCreate()
         {
-            // 创建分数文字实体，放在地图边界外左上角
             float halfW = GridWidth * CellSize * 0.5f;
             float halfH = GridHeight * CellSize * 0.5f;
+
             m_ScoreEntity = Scene.CreateEntity("ScoreText");
             m_ScoreEntity.GetComponent<TransformComponent>().Translation =
                 new Vector3(-halfW, halfH + CellSize * 0.5f, 0.0f);
@@ -62,13 +73,12 @@ namespace Photon
         {
             HandleInput();
 
-            if (m_GameOver)
-                return;
+            if (m_GameOver) return;
 
             m_MoveTimer += ts;
             if (m_MoveTimer >= m_CurrentMoveInterval)
             {
-                m_MoveTimer = 0.0f;
+                m_MoveTimer -= m_CurrentMoveInterval; // 使用减法保持计时精度
                 MoveSnake();
             }
         }
@@ -77,33 +87,14 @@ namespace Photon
 
         private void StartGame()
         {
-            // 销毁旧蛇体
-            for (int i = 0; i < m_SnakeEntities.Count; i++)
-                Scene.DestroyEntity(m_SnakeEntities[i]);
-            m_SnakeEntities.Clear();
-            m_SnakeBody.Clear();
+            if (m_Random == null) m_Random = new SimpleRandom((uint)GetHashCode());
 
-            // 销毁旧食物
-            if (m_FoodEntity != null)
-            {
-                Scene.DestroyEntity(m_FoodEntity);
-                m_FoodEntity = null;
-            }
+            ClearOldEntities();
+            InitializeSnake();
 
-            // 初始化蛇（3节，从中间开始向右）
-            int startX = GridWidth / 2;
-            int startY = GridHeight / 2;
-            for (int i = 2; i >= 0; i--)
-            {
-                Vector2 pos = new Vector2(startX - i, startY);
-                m_SnakeBody.Add(pos);
-                bool isHead = (i == 0);
-                Entity segment = CreateSegmentEntity(pos, isHead ? HeadColor : BodyColor);
-                m_SnakeEntities.Add(segment);
-            }
-
+            // 重置状态
+            m_InputQueue.Clear();
             m_CurrentDirection = Direction.Right;
-            m_NextDirection = Direction.Right;
             m_MoveTimer = 0.0f;
             m_CurrentMoveInterval = MoveInterval;
             m_GameOver = false;
@@ -113,57 +104,63 @@ namespace Photon
             SpawnFood();
         }
 
-        // ========== 输入处理 ==========
+        // ========== 输入处理逻辑 (优化核心) ==========
 
         private void HandleInput()
         {
-            // 使用边缘检测，每次按键只触发一次方向改变
             bool upDown = Input.IsKeyDown(KeyCode.Up) || Input.IsKeyDown(KeyCode.W);
             bool downDown = Input.IsKeyDown(KeyCode.Down) || Input.IsKeyDown(KeyCode.S);
             bool leftDown = Input.IsKeyDown(KeyCode.Left) || Input.IsKeyDown(KeyCode.A);
             bool rightDown = Input.IsKeyDown(KeyCode.Right) || Input.IsKeyDown(KeyCode.D);
             bool rDown = Input.IsKeyDown(KeyCode.R);
 
-            // 方向输入（禁止直接反向），方向改变时立即移动
-            if (upDown && !m_LastUpDown && m_CurrentDirection != Direction.Down)
-            {
-                m_NextDirection = Direction.Up;
-                m_MoveTimer = m_CurrentMoveInterval;
-            }
-            else if (downDown && !m_LastDownDown && m_CurrentDirection != Direction.Up)
-            {
-                m_NextDirection = Direction.Down;
-                m_MoveTimer = m_CurrentMoveInterval;
-            }
-            else if (leftDown && !m_LastLeftDown && m_CurrentDirection != Direction.Right)
-            {
-                m_NextDirection = Direction.Left;
-                m_MoveTimer = m_CurrentMoveInterval;
-            }
-            else if (rightDown && !m_LastRightDown && m_CurrentDirection != Direction.Left)
-            {
-                m_NextDirection = Direction.Right;
-                m_MoveTimer = m_CurrentMoveInterval;
-            }
+            // 转向输入检测
+            if (upDown && !m_LastUpDown) TryQueueDirection(Direction.Up);
+            else if (downDown && !m_LastDownDown) TryQueueDirection(Direction.Down);
+            else if (leftDown && !m_LastLeftDown) TryQueueDirection(Direction.Left);
+            else if (rightDown && !m_LastRightDown) TryQueueDirection(Direction.Right);
 
-            // R键重新开始
-            if (rDown && !m_LastRDown)
-                StartGame();
+            if (rDown && !m_LastRDown) StartGame();
 
-            m_LastUpDown = upDown;
-            m_LastDownDown = downDown;
-            m_LastLeftDown = leftDown;
-            m_LastRightDown = rightDown;
-            m_LastRDown = rDown;
+            m_LastUpDown = upDown; m_LastDownDown = downDown; m_LastLeftDown = leftDown;
+            m_LastRightDown = rightDown; m_LastRDown = rDown;
+        }
+
+        private void TryQueueDirection(Direction dir)
+        {
+            if (m_InputQueue.Count >= MAX_INPUT_BUFFER) return;
+
+            // 获取当前逻辑链条中最后一个预定方向
+            Direction lastPending = m_InputQueue.Count > 0 ? 
+                m_InputQueue.ToArray()[m_InputQueue.Count - 1] : m_CurrentDirection;
+
+            // 过滤重复按键和相反方向
+            if (dir != lastPending && !IsOpposite(dir, lastPending))
+            {
+                m_InputQueue.Enqueue(dir);
+            }
+        }
+
+        private bool IsOpposite(Direction a, Direction b)
+        {
+            return (a == Direction.Up && b == Direction.Down) ||
+                   (a == Direction.Down && b == Direction.Up) ||
+                   (a == Direction.Left && b == Direction.Right) ||
+                   (a == Direction.Right && b == Direction.Left);
         }
 
         // ========== 蛇移动逻辑 ==========
 
         private void MoveSnake()
         {
-            m_CurrentDirection = m_NextDirection;
+            if (m_SnakeEntities.Count == 0) return;
 
-            // 计算新蛇头位置
+            // 从缓冲队列中取出下一个待执行方向
+            if (m_InputQueue.Count > 0)
+            {
+                m_CurrentDirection = m_InputQueue.Dequeue();
+            }
+
             Vector2 head = m_SnakeBody[m_SnakeBody.Count - 1];
             Vector2 newHead = head;
 
@@ -175,181 +172,133 @@ namespace Photon
                 case Direction.Right: newHead.X += 1; break;
             }
 
-            // 碰撞检测：边界
-            if (newHead.X < 0 || newHead.X >= GridWidth ||
-                newHead.Y < 0 || newHead.Y >= GridHeight)
+            // 碰撞检测逻辑... (保持你原来的代码逻辑)
+            if (newHead.X < 0 || newHead.X >= GridWidth || newHead.Y < 0 || newHead.Y >= GridHeight)
             {
-                OnGameOver();
-                return;
+                OnGameOver(); return;
             }
 
-            // 碰撞检测：自身（排除尾巴，因为尾巴即将移走）
             for (int i = 1; i < m_SnakeBody.Count; i++)
             {
-                if ((int)m_SnakeBody[i].X == (int)newHead.X &&
-                    (int)m_SnakeBody[i].Y == (int)newHead.Y)
+                if ((int)m_SnakeBody[i].X == (int)newHead.X && (int)m_SnakeBody[i].Y == (int)newHead.Y)
                 {
-                    OnGameOver();
-                    return;
+                    OnGameOver(); return;
                 }
             }
 
-            // 检测是否吃到食物
-            bool ateFood = ((int)newHead.X == (int)m_FoodPosition.X &&
-                            (int)newHead.Y == (int)m_FoodPosition.Y);
-
-            // 旧蛇头变为身体颜色
-            Entity oldHeadEntity = m_SnakeEntities[m_SnakeEntities.Count - 1];
-            oldHeadEntity.GetComponent<SpriteRendererComponent>().Color = BodyColor;
-
-            // 添加新蛇头
+            bool ateFood = ((int)newHead.X == (int)m_FoodPosition.X && (int)newHead.Y == (int)m_FoodPosition.Y);
+            
+            // 更新表现层
+            m_SnakeEntities[m_SnakeEntities.Count - 1].GetComponent<SpriteRendererComponent>().Color = BodyColor;
             m_SnakeBody.Add(newHead);
-            Entity newHeadEntity = CreateSegmentEntity(newHead, HeadColor);
-            m_SnakeEntities.Add(newHeadEntity);
+            m_SnakeEntities.Add(CreateSegmentEntity(newHead, HeadColor));
 
             if (ateFood)
             {
-                // 吃到食物：不移除尾巴（蛇变长），重新生成食物
                 m_Score++;
                 UpdateScoreText();
-
-                // 逐渐加速（最低间隔0.05秒）
                 m_CurrentMoveInterval = Math.Max(0.05f, m_CurrentMoveInterval - 0.003f);
-
                 SpawnFood();
             }
             else
             {
-                // 没吃到食物：销毁尾巴
                 Scene.DestroyEntity(m_SnakeEntities[0]);
                 m_SnakeEntities.RemoveAt(0);
                 m_SnakeBody.RemoveAt(0);
             }
         }
 
-        // ========== 食物生成 ==========
-
-        private void SpawnFood()
+        // ========== 辅助方法 (保持不变) ==========
+        // ... 此处省略 SpawnFood, CreateBorder, GridToWorld 等未变动的辅助方法 ...
+        // [请保留你原始代码中剩下的部分]
+        
+        private void ClearOldEntities()
         {
-            // 在空位生成食物
-            List<Vector2> emptyPositions = new List<Vector2>();
-            for (int x = 0; x < GridWidth; x++)
-            {
-                for (int y = 0; y < GridHeight; y++)
-                {
-                    bool occupied = false;
-                    for (int i = 0; i < m_SnakeBody.Count; i++)
-                    {
-                        if ((int)m_SnakeBody[i].X == x && (int)m_SnakeBody[i].Y == y)
-                        {
-                            occupied = true;
-                            break;
-                        }
-                    }
-                    if (!occupied)
-                        emptyPositions.Add(new Vector2(x, y));
-                }
-            }
-
-            if (emptyPositions.Count == 0)
-            {
-                OnGameOver();
-                return;
-            }
-
-            m_FoodPosition = emptyPositions[m_Random.Next(emptyPositions.Count)];
-
-            if (m_FoodEntity != null)
-                Scene.DestroyEntity(m_FoodEntity);
-
-            m_FoodEntity = Scene.CreateEntity("Food");
-            TransformComponent foodTransform = m_FoodEntity.GetComponent<TransformComponent>();
-            foodTransform.Translation = GridToWorld(m_FoodPosition);
-            foodTransform.Scale = new Vector3(CellSize * 0.8f, CellSize * 0.8f, 1.0f);
-
-            SpriteRendererComponent foodSprite = m_FoodEntity.AddComponent<SpriteRendererComponent>();
-            foodSprite.Color = FoodColor;
+            for (int i = 0; i < m_SnakeEntities.Count; i++) Scene.DestroyEntity(m_SnakeEntities[i]);
+            m_SnakeEntities.Clear();
+            m_SnakeBody.Clear();
+            if (m_FoodEntity != null) { Scene.DestroyEntity(m_FoodEntity); m_FoodEntity = null; }
         }
 
-        // ========== 游戏结束 ==========
+        private void InitializeSnake()
+        {
+            int startX = GridWidth / 2; int startY = GridHeight / 2;
+            for (int i = 2; i >= 0; i--)
+            {
+                Vector2 pos = new Vector2(startX - i, startY);
+                m_SnakeBody.Add(pos);
+                m_SnakeEntities.Add(CreateSegmentEntity(pos, i == 0 ? HeadColor : BodyColor));
+            }
+        }
 
         private void OnGameOver()
         {
             m_GameOver = true;
-
-            // 蛇全部变红
-            for (int i = 0; i < m_SnakeEntities.Count; i++)
-            {
-                if (m_SnakeEntities[i].HasComponent<SpriteRendererComponent>())
-                    m_SnakeEntities[i].GetComponent<SpriteRendererComponent>().Color = GameOverColor;
-            }
-
+            foreach (var entity in m_SnakeEntities)
+                if (entity.HasComponent<SpriteRendererComponent>())
+                    entity.GetComponent<SpriteRendererComponent>().Color = GameOverColor;
             m_ScoreText.Text = $"Game Over! Score: {m_Score}  Press R to Restart";
-            Utils.Log($"Game Over! Final Score: {m_Score}");
         }
-
-        // ========== 辅助方法 ==========
 
         private Entity CreateSegmentEntity(Vector2 gridPos, Vector4 color)
         {
             Entity segment = Scene.CreateEntity("SnakeSegment");
-            TransformComponent transform = segment.GetComponent<TransformComponent>();
+            var transform = segment.GetComponent<TransformComponent>();
             transform.Translation = GridToWorld(gridPos);
             transform.Scale = new Vector3(CellSize * 0.9f, CellSize * 0.9f, 1.0f);
-
-            SpriteRendererComponent sprite = segment.AddComponent<SpriteRendererComponent>();
-            sprite.Color = color;
-
+            segment.AddComponent<SpriteRendererComponent>().Color = color;
             return segment;
         }
 
         private Vector3 GridToWorld(Vector2 gridPos)
         {
-            // 将网格坐标转为世界坐标，以网格中心为原点
             float offsetX = -GridWidth * CellSize * 0.5f + CellSize * 0.5f;
             float offsetY = -GridHeight * CellSize * 0.5f + CellSize * 0.5f;
             return new Vector3(gridPos.X * CellSize + offsetX, gridPos.Y * CellSize + offsetY, 0.0f);
         }
 
+        private void UpdateScoreText() => m_ScoreText.Text = $"Score: {m_Score}";
+
         private void CreateBorder()
         {
-            // 创建四条边界
             float halfW = GridWidth * CellSize * 0.5f;
             float halfH = GridHeight * CellSize * 0.5f;
             float thickness = CellSize * 0.15f;
-
-            // 下
-            CreateBorderSegment("BorderBottom",
-                new Vector3(0, -halfH - thickness * 0.5f, 0),
-                new Vector3(GridWidth * CellSize + thickness * 2, thickness, 1));
-            // 上
-            CreateBorderSegment("BorderTop",
-                new Vector3(0, halfH + thickness * 0.5f, 0),
-                new Vector3(GridWidth * CellSize + thickness * 2, thickness, 1));
-            // 左
-            CreateBorderSegment("BorderLeft",
-                new Vector3(-halfW - thickness * 0.5f, 0, 0),
-                new Vector3(thickness, GridHeight * CellSize + thickness * 2, 1));
-            // 右
-            CreateBorderSegment("BorderRight",
-                new Vector3(halfW + thickness * 0.5f, 0, 0),
-                new Vector3(thickness, GridHeight * CellSize + thickness * 2, 1));
+            CreateBorderSegment("BB", new Vector3(0, -halfH - thickness * 0.5f, 0), new Vector3(GridWidth * CellSize + thickness * 2, thickness, 1));
+            CreateBorderSegment("BT", new Vector3(0, halfH + thickness * 0.5f, 0), new Vector3(GridWidth * CellSize + thickness * 2, thickness, 1));
+            CreateBorderSegment("BL", new Vector3(-halfW - thickness * 0.5f, 0, 0), new Vector3(thickness, GridHeight * CellSize + thickness * 2, 1));
+            CreateBorderSegment("BR", new Vector3(halfW + thickness * 0.5f, 0, 0), new Vector3(thickness, GridHeight * CellSize + thickness * 2, 1));
         }
 
         private void CreateBorderSegment(string name, Vector3 position, Vector3 scale)
         {
             Entity border = Scene.CreateEntity(name);
-            TransformComponent transform = border.GetComponent<TransformComponent>();
-            transform.Translation = position;
-            transform.Scale = scale;
-
-            SpriteRendererComponent sprite = border.AddComponent<SpriteRendererComponent>();
-            sprite.Color = BorderColor;
+            border.GetComponent<TransformComponent>().Translation = position;
+            border.GetComponent<TransformComponent>().Scale = scale;
+            border.AddComponent<SpriteRendererComponent>().Color = BorderColor;
         }
 
-        private void UpdateScoreText()
+        private void SpawnFood()
         {
-            m_ScoreText.Text = $"Score: {m_Score}";
+            List<Vector2> emptyPositions = new List<Vector2>();
+            for (int x = 0; x < GridWidth; x++)
+                for (int y = 0; y < GridHeight; y++)
+                    if (!IsPositionOccupied(x, y)) emptyPositions.Add(new Vector2(x, y));
+
+            if (emptyPositions.Count == 0) { OnGameOver(); return; }
+            m_FoodPosition = emptyPositions[m_Random.Next(emptyPositions.Count)];
+            if (m_FoodEntity != null) Scene.DestroyEntity(m_FoodEntity);
+            m_FoodEntity = Scene.CreateEntity("Food");
+            var transform = m_FoodEntity.GetComponent<TransformComponent>();
+            transform.Translation = GridToWorld(m_FoodPosition);
+            transform.Scale = new Vector3(CellSize * 0.8f, CellSize * 0.8f, 1.0f);
+            m_FoodEntity.AddComponent<SpriteRendererComponent>().Color = FoodColor;
+        }
+
+        private bool IsPositionOccupied(int x, int y)
+        {
+            foreach (var pos in m_SnakeBody) if ((int)pos.X == x && (int)pos.Y == y) return true;
+            return false;
         }
     }
 }

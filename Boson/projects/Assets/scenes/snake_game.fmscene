@@ -1,17 +1,5 @@
 Scene: Name
 Entities:
-  - Entity: 12353425618509625431
-    TagComponent:
-      Tag: Empty Entity
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    RelationshipComponent:
-      Parent: 0
-    ScriptContainerComponent:
-      ScriptClassNames:
-        - Photon.SnakeGame
   - Entity: 9086078924148729629
     TagComponent:
       Tag: camera
@@ -32,6 +20,18 @@ Entities:
         OrthographicFar: 100
       Primary: true
       FixedAspectRatio: false
+  - Entity: 12353425618509625431
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    RelationshipComponent:
+      Parent: 0
+    ScriptContainerComponent:
+      ScriptClassNames:
+        - Photon.SnakeGame
 EnvironmentSettings:
   ShowSkybox: false
   EnableShadows: false
