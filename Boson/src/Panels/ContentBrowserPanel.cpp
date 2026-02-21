@@ -215,6 +215,8 @@ namespace Fermion
                             HandleDragDrop("FERMION_PROJECT");
                         else if (path.extension() == ".png" || path.extension() == ".jpg" || path.extension() == ".jpeg")
                             HandleDragDrop("FERMION_TEXTURE");
+                        else if (path.extension() == ".ftex")
+                            HandleDragDrop("FERMION_FTEX");
                         else if (path.extension() == ".hdr")
                             HandleDragDrop("FERMION_HDR");
                         else if (path.extension() == ".fmodel")

@@ -236,6 +236,7 @@ namespace Fermion
             m_assetManagerPanel.onImGuiRender();
             m_menuBarPanel.OnImGuiRender();
             m_materialEditorPanel.onImGuiRender();
+            m_textureConfigPanel.onImGuiRender();
             ConsolePanel::get().onImGuiRender();
 
             onHelpPanel();
@@ -455,6 +456,13 @@ namespace Fermion
     {
         m_materialEditorPanel.clearData();
         m_materialEditorPanel.setPanelOpenState(true);
+    }
+
+    void BosonLayer::openTextureConfigPanel()
+    {
+        // Don't clear data when opening, only set the panel to open
+        // m_textureConfigPanel.clearData();
+        m_textureConfigPanel.setPanelOpenState(true);
     }
 
     void BosonLayer::onDuplicateEntity()

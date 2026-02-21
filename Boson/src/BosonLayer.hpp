@@ -7,6 +7,7 @@
 #include "Panels/AssetManagerPanel.hpp"
 #include "Panels/MenuBarPanel.hpp"
 #include "Panels/MaterialEditorPanel.hpp"
+#include "Panels/TextureConfigPanel.hpp"
 #include "Panels/ViewportPanel.hpp"
 #include "Panels/SettingsPanel.hpp"
 #include "Panels/OverlayRenderPanel.hpp"
@@ -69,6 +70,7 @@ namespace Fermion
         void onHelpPanel();
         void openAboutWindow();
         void openMaterialEditorPanel();
+        void openTextureConfigPanel();
 
     private:
         ViewportPanel m_viewportPanel;
@@ -77,12 +79,14 @@ namespace Fermion
 
         SceneHierarchyPanel m_sceneHierarchyPanel;
         MaterialEditorPanel m_materialEditorPanel;
+        TextureConfigPanel m_textureConfigPanel;
         ContentBrowserPanel m_contentBrowserPanel;
         AssetManagerPanel m_assetManagerPanel;
         MenuBarPanel m_menuBarPanel;
 
         bool m_isAboutWindowOpen = false;
         bool m_isMaterialEditorOpen = false;
+        bool m_isTextureConfigOpen = false;
         bool m_showNewSceneDialog = false;
 
         std::shared_ptr<Framebuffer> m_framebuffer;

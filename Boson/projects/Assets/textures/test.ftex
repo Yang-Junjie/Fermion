@@ -2,7 +2,7 @@ TextureAsset:
   SourcePath: Assets/textures/test.jpg
   GenerateMipmaps: true
   MinFilter: Linear
-  MagFilter: Linear
+  MagFilter: Nearest
   WrapS: Repeat
   WrapT: Repeat
   Anisotropy: 1

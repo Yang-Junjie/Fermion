@@ -11,6 +11,7 @@ set(BOSON_SOUCES
     ${CMAKE_CURRENT_LIST_DIR}/src/Panels/InspectorPanel.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/Panels/MenuBarPanel.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/Panels/MaterialEditorPanel.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/Panels/TextureConfigPanel.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/Panels/ViewportPanel.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/Panels/SettingsPanel.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/Panels/OverlayRenderPanel.cpp

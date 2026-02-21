@@ -95,6 +95,11 @@ namespace Fermion
                 if (isOpenProject && m_BosonLayer)
                     m_BosonLayer->openMaterialEditorPanel();
             }
+            if (ImGui::MenuItem("Texture Config"))
+            {
+                if (isOpenProject && m_BosonLayer)
+                    m_BosonLayer->openTextureConfigPanel();
+            }
             ImGui::EndDisabled();
             ui::EndPopup();
         }

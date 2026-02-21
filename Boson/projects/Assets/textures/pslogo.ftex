@@ -2,7 +2,7 @@ TextureAsset:
   SourcePath: Assets/textures/pslogo.png
   GenerateMipmaps: true
   MinFilter: Linear
-  MagFilter: Linear
+  MagFilter: Nearest
   WrapS: Repeat
   WrapT: Repeat
   Anisotropy: 1
