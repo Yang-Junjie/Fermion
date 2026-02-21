@@ -42,27 +42,31 @@ namespace Fermion
                     drawEntityNode(entity);
                 }
             }
-            if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsAnyItemHovered())
-            {
-                m_selectedEntity = {};
-                m_inspectorPanel.setSelectedEntity({});
-            }
-
-            if (ImGui::BeginPopupContextWindow("HierarchyContext", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
-            {
-                if (ImGui::MenuItem("Create Empty Entity"))
-                {
-                    m_contextScene->createEntity("Empty Entity");
-                }
-                ImGui::EndPopup();
-            }
-
             // Drop zone: drag entity to empty space to unparent it
             float dropZoneHeight = ImGui::GetContentRegionAvail().y;
-            if (m_editingEnabled && dropZoneHeight > 0.0f)
+            if (dropZoneHeight > 0.0f)
             {
                 ImGui::InvisibleButton("##HierarchyDropZone", ImVec2(-1, dropZoneHeight));
-                if (ImGui::BeginDragDropTarget())
+
+                // Handle left click on empty space to deselect
+                if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+                {
+                    m_selectedEntity = {};
+                    m_inspectorPanel.setSelectedEntity({});
+                }
+
+                // Handle right click on empty space for context menu
+                if (ImGui::BeginPopupContextItem("HierarchyContext", ImGuiPopupFlags_MouseButtonRight))
+                {
+                    if (ImGui::MenuItem("Create Empty Entity"))
+                    {
+                        m_contextScene->createEntity("Empty Entity");
+                    }
+                    ImGui::EndPopup();
+                }
+
+                // Handle drag and drop
+                if (m_editingEnabled && ImGui::BeginDragDropTarget())
                 {
                     if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_ENTITY"))
                     {

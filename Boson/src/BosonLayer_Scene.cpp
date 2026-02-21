@@ -9,6 +9,11 @@ namespace Fermion
 {
     void BosonLayer::newScene()
     {
+        m_showNewSceneDialog = true;
+    }
+
+    void BosonLayer::createScene2D()
+    {
         m_activeScene = std::make_shared<Scene>();
         m_activeScene->onViewportResize(static_cast<uint32_t>(m_viewportPanel.getViewportSize().x),
                                         static_cast<uint32_t>(m_viewportPanel.getViewportSize().y));
@@ -17,6 +22,42 @@ namespace Fermion
         m_editorSceneHandle = AssetHandle{};
         m_sceneHierarchyPanel.setContext(m_activeScene);
         m_viewportRenderer->setScene(m_activeScene);
+
+        // 设置2D相机：位置(0,0,10)，看向原点，正交投影
+        m_editorCamera.setProjectionType(ProjectionType::Orthographic);
+        m_editorCamera.setPosition({0.0f, 0.0f, 10.0f});
+        m_editorCamera.setFocalPoint({0.0f, 0.0f, 0.0f});
+        m_editorCamera.setYawPitch(0.0f, 0.0f);
+        m_editorCamera.setDistance(10.0f);
+
+        // 关闭3D渲染特性
+        auto &rendererEnv = m_viewportRenderer->getSceneInfo().environmentSettings;
+        rendererEnv.showSkybox = false;
+        rendererEnv.useIBL = false;
+        rendererEnv.enableShadows = false;
+        syncEnvironmentSettingsToScene();
+    }
+
+    void BosonLayer::createScene3D()
+    {
+        m_activeScene = std::make_shared<Scene>();
+        m_activeScene->onViewportResize(static_cast<uint32_t>(m_viewportPanel.getViewportSize().x),
+                                        static_cast<uint32_t>(m_viewportPanel.getViewportSize().y));
+        m_editorScene = m_activeScene;
+        m_editorScenePath.clear();
+        m_editorSceneHandle = AssetHandle{};
+        m_sceneHierarchyPanel.setContext(m_activeScene);
+        m_viewportRenderer->setScene(m_activeScene);
+
+        // 保持默认3D相机设置（透视投影）
+        m_editorCamera.setProjectionType(ProjectionType::Perspective);
+
+        // 开启3D渲染特性
+        auto &rendererEnv = m_viewportRenderer->getSceneInfo().environmentSettings;
+        rendererEnv.showSkybox = true;
+        rendererEnv.useIBL = true;
+        rendererEnv.enableShadows = true;
+        syncEnvironmentSettingsToScene();
     }
 
     void BosonLayer::saveSceneAs()

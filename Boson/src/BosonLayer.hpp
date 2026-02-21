@@ -49,6 +49,8 @@ namespace Fermion
         void saveProject();
 
         void newScene();
+        void createScene2D();
+        void createScene3D();
         void saveSceneAs();
         void saveScene();
         void openScene();
@@ -81,6 +83,7 @@ namespace Fermion
 
         bool m_isAboutWindowOpen = false;
         bool m_isMaterialEditorOpen = false;
+        bool m_showNewSceneDialog = false;
 
         std::shared_ptr<Framebuffer> m_framebuffer;
 

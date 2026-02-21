@@ -388,6 +388,35 @@ namespace Fermion
 
     void BosonLayer::onHelpPanel()
     {
+        if (m_showNewSceneDialog)
+        {
+            ui::ModalDialog::Show(
+                {.Title = "Create New Scene",
+                 .ShowConfirm = false,
+                 .ShowCancel = false,
+                 .ShowClose = true,
+                 .ContentFunc = [&]()
+                 {
+                    ImGui::Text("Please select scene type:");
+                    ImGui::Spacing();
+
+                    if (ImGui::Button("2D Scene", ImVec2(120, 0)))
+                    {
+                        createScene2D();
+                        m_showNewSceneDialog = false;
+                        ImGui::CloseCurrentPopup();
+                    }
+
+                    ImGui::SameLine();
+
+                    if (ImGui::Button("3D Scene", ImVec2(120, 0)))
+                    {
+                        createScene3D();
+                        m_showNewSceneDialog = false;
+                        ImGui::CloseCurrentPopup();
+                    } }});
+        }
+
         if (m_isAboutWindowOpen)
         {
             ui::ModalDialog::Show(
