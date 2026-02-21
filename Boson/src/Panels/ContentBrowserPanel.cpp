@@ -1,6 +1,7 @@
 #include "fmpch.hpp"
 #include "ContentBrowserPanel.hpp"
 #include "Asset/AssetExtensions.hpp"
+#include "Asset/AssetRegistry.hpp"
 #include <imgui.h>
 #include <algorithm>
 #include <cctype>
@@ -113,6 +114,41 @@ namespace Fermion
                     if (a.is_directory() != b.is_directory()) return a.is_directory() > b.is_directory();
                     return a.path().filename().string() < b.path().filename().string(); });
 
+                // 空白区域右键菜单
+                if (ImGui::BeginPopupContextWindow("ContentBrowserContextMenu", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
+                {
+                    if (ImGui::MenuItem("Create New Folder"))
+                    {
+                        static int folderCounter = 1;
+                        std::string newFolderName = "NewFolder";
+                        std::filesystem::path newFolderPath = m_currentDirectory / newFolderName;
+
+                        while (std::filesystem::exists(newFolderPath))
+                        {
+                            newFolderName = "NewFolder" + std::to_string(folderCounter++);
+                            newFolderPath = m_currentDirectory / newFolderName;
+                        }
+
+                        std::filesystem::create_directory(newFolderPath);
+                    }
+
+                    if (ImGui::MenuItem("Open in File Manager"))
+                    {
+#ifdef _WIN32
+                        std::string command = "explorer \"" + m_currentDirectory.string() + "\"";
+                        system(command.c_str());
+#elif __APPLE__
+                        std::string command = "open \"" + m_currentDirectory.string() + "\"";
+                        system(command.c_str());
+#else
+                        std::string command = "xdg-open \"" + m_currentDirectory.string() + "\"";
+                        system(command.c_str());
+#endif
+                    }
+
+                    ImGui::EndPopup();
+                }
+
                 for (auto &entry : entries)
                 {
                     const auto &path = entry.path();
@@ -182,6 +218,66 @@ namespace Fermion
                         clicked = ImGui::Button("##icon", ImVec2{thumbnailSize, thumbnailSize});
                     }
                     ImGui::PopStyleColor();
+
+                    // 右键菜单 - 必须紧跟在可交互item之后
+                    if (ImGui::BeginPopupContextItem())
+                    {
+                        bool hasMenuItems = false;
+
+                        if (isDirectory)
+                        {
+                            hasMenuItems = true;
+                            if (ImGui::MenuItem("Open in File Manager"))
+                            {
+#ifdef _WIN32
+                                std::string command = "explorer \"" + path.string() + "\"";
+                                system(command.c_str());
+#elif __APPLE__
+                                std::string command = "open \"" + path.string() + "\"";
+                                system(command.c_str());
+#else
+                                std::string command = "xdg-open \"" + path.string() + "\"";
+                                system(command.c_str());
+#endif
+                            }
+                        }
+                        else
+                        {
+                            // 检查文件是否已被AssetManager注册
+                            const auto &registry = AssetRegistry::getRegistry();
+                            AssetHandle foundHandle = 0;
+
+                            // 规范化路径进行比较
+                            auto normalizedPath = std::filesystem::absolute(path).lexically_normal();
+
+                            for (const auto &[handle, metadata] : registry)
+                            {
+                                auto registryPath = std::filesystem::absolute(metadata.FilePath).lexically_normal();
+                                if (registryPath == normalizedPath)
+                                {
+                                    foundHandle = handle;
+                                    break;
+                                }
+                            }
+
+                            if (foundHandle.isValid())
+                            {
+                                hasMenuItems = true;
+                                if (ImGui::MenuItem("Copy Asset Handle"))
+                                {
+                                    std::string handleStr = foundHandle.toString();
+                                    ImGui::SetClipboardText(handleStr.c_str());
+                                }
+                            }
+                        }
+
+                        if (!hasMenuItems)
+                        {
+                            ImGui::CloseCurrentPopup();
+                        }
+
+                        ImGui::EndPopup();
+                    }
 
                     if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
                     {
