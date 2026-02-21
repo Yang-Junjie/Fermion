@@ -20,6 +20,24 @@ namespace Fermion
     void SettingsPanel::renderRendererInfo(const Context &ctx)
     {
         ImGui::Begin("Renderer Info");
+        ImGui::SeparatorText("Editor Camera Info");
+        ImGui::Text("FPS speed: %.2f", ctx.editorCamera->getFPSSpeed());
+
+        const char *projectionTypes[] = {"Perspective", "Orthographic"};
+        int projTypeIndex = static_cast<int>(ctx.editorCamera->getProjectionType());
+        if (ImGui::Combo("Projection", &projTypeIndex, projectionTypes, IM_ARRAYSIZE(projectionTypes)))
+        {
+            ctx.editorCamera->setProjectionType(static_cast<ProjectionType>(projTypeIndex));
+        }
+
+        if (ctx.editorCamera->getProjectionType() == ProjectionType::Orthographic)
+        {
+            float orthoSize = ctx.editorCamera->getOrthographicSize();
+            if (ImGui::DragFloat("Ortho Size", &orthoSize, 0.1f, 0.1f, 200.0f))
+            {
+                ctx.editorCamera->setOrthographicSize(orthoSize);
+            }
+        }
         ImGui::SeparatorText("Device Info");
         DeviceInfo info = Application::get().getWindow().getDeviceInfo();
         ImGui::Text("vendor: %s", info.vendor.c_str());
@@ -55,24 +73,7 @@ namespace Fermion
         ImGui::Text("Skybox Draw Calls: %u", stats.renderer3D.skyboxDrawCalls);
         ImGui::Text("IBL Draw Calls: %u", stats.renderer3D.iblDrawCalls);
         ImGui::Text("Draw Calls (3D Total): %u", stats.renderer3D.getTotalDrawCalls());
-        ImGui::SeparatorText("Editor Camera Info");
-        ImGui::Text("FPS speed: %.2f", ctx.editorCamera->getFPSSpeed());
-
-        const char *projectionTypes[] = {"Perspective", "Orthographic"};
-        int projTypeIndex = static_cast<int>(ctx.editorCamera->getProjectionType());
-        if (ImGui::Combo("Projection", &projTypeIndex, projectionTypes, IM_ARRAYSIZE(projectionTypes)))
-        {
-            ctx.editorCamera->setProjectionType(static_cast<ProjectionType>(projTypeIndex));
-        }
-
-        if (ctx.editorCamera->getProjectionType() == ProjectionType::Orthographic)
-        {
-            float orthoSize = ctx.editorCamera->getOrthographicSize();
-            if (ImGui::DragFloat("Ortho Size", &orthoSize, 0.1f, 0.1f, 200.0f))
-            {
-                ctx.editorCamera->setOrthographicSize(orthoSize);
-            }
-        }
+        
 
         ImGui::End();
     }

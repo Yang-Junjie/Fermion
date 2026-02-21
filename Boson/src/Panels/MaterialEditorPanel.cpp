@@ -505,6 +505,43 @@ namespace Fermion
             ImGui::EndPopup();
         }
 
+        // Node context menu for deletion
+        ed::NodeId contextNodeId;
+        if (ed::ShowNodeContextMenu(&contextNodeId))
+        {
+            m_ContextMenuNodeId = static_cast<int>(contextNodeId.Get());
+            ImGui::OpenPopup("NodeContextMenu");
+        }
+        if (ImGui::BeginPopup("NodeContextMenu"))
+        {
+            int nodeId = m_ContextMenuNodeId;
+            if (nodeId != PBR_OUTPUT_NODE_ID)
+            {
+                if (ImGui::MenuItem("Delete Node"))
+                {
+                    // Remove associated links
+                    int outPin = outputPinID(nodeId);
+                    m_Links.erase(
+                        std::remove_if(m_Links.begin(), m_Links.end(),
+                                       [outPin](const LinkInfo &l)
+                                       { return l.StartPinID == outPin; }),
+                        m_Links.end());
+                    // Remove node
+                    m_TextureNodes.erase(
+                        std::remove_if(m_TextureNodes.begin(), m_TextureNodes.end(),
+                                       [nodeId](const TextureNodeInfo &n)
+                                       { return n.ID == nodeId; }),
+                        m_TextureNodes.end());
+                    m_NeedUpdatePreview = true;
+                }
+            }
+            else
+            {
+                ImGui::TextDisabled("Cannot delete output node");
+            }
+            ImGui::EndPopup();
+        }
+
         ImGuiWindow *window = ImGui::GetCurrentWindow();
         if (ImGui::BeginDragDropTargetCustom(window->ContentRegionRect, window->ID))
         {

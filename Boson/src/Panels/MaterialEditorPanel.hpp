@@ -102,6 +102,9 @@ namespace Fermion
         bool m_OpenAlbedoPicker = false;
         ImVec2 m_AlbedoPickerPos = ImVec2(0, 0);
 
+        // Node context menu state
+        int m_ContextMenuNodeId = 0;
+
         void drawOutputNode();
         void drawTextureNode(TextureNodeInfo &node);
         float drawNodeHeader(const char *title, float minWidth);
