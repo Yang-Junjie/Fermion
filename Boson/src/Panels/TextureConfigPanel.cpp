@@ -1,5 +1,7 @@
 #include "TextureConfigPanel.hpp"
 #include "Asset/Importer/TextureImporter.hpp"
+#include "Asset/AssetManager/EditorAssetManager.hpp"
+#include "Project/Project.hpp"
 #include "Core/Log.hpp"
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -355,8 +357,39 @@ namespace Fermion
 
     void TextureConfigPanel::saveTexture(TextureConfigData &data)
     {
+        Log::Info(std::format("Saving texture config: {}", data.FtexPath.string()));
         TextureImporter::serializeFtex(data.FtexPath, data.Spec);
         data.Modified = false;
+
+        // Hot reload: find the asset handle and reload it
+        auto editorAssets = Project::getEditorAssetManager();
+        if (editorAssets)
+        {
+            AssetHandle handle = editorAssets->importAsset(data.FtexPath);
+            if (static_cast<uint64_t>(handle) != 0)
+            {
+                Log::Info(std::format("Reloading texture asset - Path: {}, Handle: {}",
+                    data.FtexPath.string(), static_cast<uint64_t>(handle)));
+
+                // Check if asset is loaded before reload
+                bool wasLoaded = editorAssets->isAssetLoaded(handle);
+                Log::Info(std::format("Asset was loaded before reload: {}", wasLoaded));
+
+                editorAssets->reloadAsset(handle);
+
+                // Verify it's loaded after reload
+                bool isLoadedAfter = editorAssets->isAssetLoaded(handle);
+                Log::Info(std::format("Asset is loaded after reload: {}", isLoadedAfter));
+            }
+            else
+            {
+                Log::Warn(std::format("Failed to get asset handle for: {}", data.FtexPath.string()));
+            }
+        }
+        else
+        {
+            Log::Warn("EditorAssetManager is null");
+        }
     }
 
     void TextureConfigPanel::saveAllTextures()

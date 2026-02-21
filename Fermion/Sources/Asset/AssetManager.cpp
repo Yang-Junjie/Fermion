@@ -169,9 +169,22 @@ namespace Fermion
 
     void AssetManager::reloadAsset(AssetHandle handle)
     {
+        // Unload old asset and load new one
         unloadAsset(handle);
+
         if (AssetRegistry::exists(handle))
-            loadAssetInternal(handle);
+        {
+            auto newAsset = loadAssetInternal(handle);
+            if (newAsset)
+            {
+                s_loadedAssets[handle] = newAsset;
+                Log::Info(std::format("Asset reloaded: {}", static_cast<uint64_t>(handle)));
+            }
+            else
+            {
+                Log::Warn(std::format("Failed to reload asset: {}", static_cast<uint64_t>(handle)));
+            }
+        }
     }
 
     static std::unique_ptr<AssetImporter> CreateImporter(AssetType type)
