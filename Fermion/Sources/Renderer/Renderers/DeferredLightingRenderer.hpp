@@ -8,8 +8,6 @@
 namespace Fermion
 {
     class GBufferRenderer;
-    class SSGIRenderer;
-    class GTAORenderer;
     class EnvironmentRenderer;
     class ShadowMapRenderer;
     class VertexArray;
@@ -24,12 +22,8 @@ namespace Fermion
                      const RenderContext& context,
                      const GBufferRenderer& gBuffer,
                      const ShadowMapRenderer* shadowRenderer,
-                     const SSGIRenderer* ssgiRenderer,
-                     const GTAORenderer* gtaoRenderer,
                      EnvironmentRenderer* envRenderer,
-                     ResourceHandle lightingResult,
-                     bool enableSSGI,
-                     bool enableGTAO);
+                     ResourceHandle lightingResult);
 
     private:
         std::shared_ptr<Pipeline> m_pipeline;

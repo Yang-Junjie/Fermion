@@ -6,8 +6,6 @@
 namespace Fermion
 {
     class GBufferRenderer;
-    class SSGIRenderer;
-    class GTAORenderer;
     class Pipeline;
     class VertexArray;
 
@@ -25,9 +23,7 @@ namespace Fermion
             AO = 6,
             Emissive = 7,
             Depth = 8,
-            ObjectID = 9,
-            SSGI = 10,
-            GTAO = 11
+            ObjectID = 9
         };
 
         PostProcessRenderer();
@@ -45,14 +41,10 @@ namespace Fermion
         void addGBufferDebugPass(RenderGraphLegacy& renderGraph,
                                  const RenderContext& context,
                                  const GBufferRenderer& gBuffer,
-                                 const SSGIRenderer* ssgi,
-                                 const GTAORenderer* gtao,
                                  GBufferDebugMode mode,
                                  float depthPower,
                                  ResourceHandle gBufferHandle,
-                                 ResourceHandle sceneDepth,
-                                 ResourceHandle ssgiHandle,
-                                 ResourceHandle gtaoHandle);
+                                 ResourceHandle sceneDepth);
 
     private:
         std::shared_ptr<Pipeline> m_depthViewPipeline;

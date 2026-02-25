@@ -73,8 +73,6 @@ set(CORE_SOURCES
     ${FERMION_DIR}/Renderer/Renderers/EnvironmentRenderer.cpp
     ${FERMION_DIR}/Renderer/Renderers/ShadowMapRenderer.cpp
     ${FERMION_DIR}/Renderer/Renderers/GBufferRenderer.cpp
-    ${FERMION_DIR}/Renderer/Renderers/SSGIRenderer.cpp
-    ${FERMION_DIR}/Renderer/Renderers/GTAORenderer.cpp
     ${FERMION_DIR}/Renderer/Renderers/DeferredLightingRenderer.cpp
     ${FERMION_DIR}/Renderer/Renderers/ForwardRenderer.cpp
     ${FERMION_DIR}/Renderer/Renderers/OutlineRenderer.cpp

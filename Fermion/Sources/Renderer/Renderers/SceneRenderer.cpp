@@ -8,8 +8,6 @@
 #include "EnvironmentRenderer.hpp"
 #include "ShadowMapRenderer.hpp"
 #include "GBufferRenderer.hpp"
-#include "SSGIRenderer.hpp"
-#include "GTAORenderer.hpp"
 #include "DeferredLightingRenderer.hpp"
 #include "ForwardRenderer.hpp"
 #include "OutlineRenderer.hpp"
@@ -50,8 +48,6 @@ namespace Fermion
 
         // Initialize sub-renderers
         m_gBufferRenderer = std::make_unique<GBufferRenderer>();
-        m_ssgiRenderer = std::make_unique<SSGIRenderer>();
-        m_gtaoRenderer = std::make_unique<GTAORenderer>();
         m_lightingRenderer = std::make_unique<DeferredLightingRenderer>();
         m_forwardRenderer = std::make_unique<ForwardRenderer>();
         m_outlineRenderer = std::make_unique<OutlineRenderer>();
@@ -546,8 +542,6 @@ namespace Fermion
     {
         FrameFlags flags;
         flags.useDeferred = m_sceneData.renderMode == RenderMode::DeferredHybrid;
-        flags.useSSGI = flags.useDeferred && (m_sceneData.enableSSGI || m_sceneData.gbufferDebug == GBufferDebugMode::SSGI);
-        flags.useGTAO = flags.useDeferred && (m_sceneData.enableGTAO || m_sceneData.gbufferDebug == GBufferDebugMode::GTAO);
         flags.showGBufferDebug = flags.useDeferred && (m_sceneData.gbufferDebug != GBufferDebugMode::None);
 
         bool hasTransparent = false;
@@ -581,23 +575,6 @@ namespace Fermion
         if (flags.useDeferred)
             m_gBufferRenderer->ensureFramebuffer(viewportWidth, viewportHeight);
 
-        if (flags.useSSGI)
-        {
-            m_ssgiRenderer->ensureFramebuffers(viewportWidth, viewportHeight);
-            resources.ssgi = m_renderGraph.createResource();
-        }
-        else
-        {
-            m_ssgiRenderer->setEnabled(false);
-            m_ssgiRenderer->resetAccumulation();
-        }
-
-        if (flags.useGTAO)
-        {
-            m_gtaoRenderer->ensureFramebuffer(viewportWidth, viewportHeight);
-            resources.gtao = m_renderGraph.createResource();
-        }
-
         return resources;
     }
 
@@ -626,30 +603,6 @@ namespace Fermion
             &m_renderer3DStatistics.geometryDrawCalls,
             &m_renderer3DStatistics.iblDrawCalls);
 
-        // SSGI Pass
-        if (flags.useSSGI)
-        {
-            SSGIRenderer::Settings ssgiSettings;
-            ssgiSettings.intensity = m_sceneData.ssgiIntensity;
-            ssgiSettings.radius = m_sceneData.ssgiRadius;
-            ssgiSettings.bias = m_sceneData.ssgiBias;
-            ssgiSettings.sampleCount = m_sceneData.ssgiSampleCount;
-            m_ssgiRenderer->addPass(m_renderGraph, m_renderContext, *m_gBufferRenderer, resources.ssgi, ssgiSettings);
-        }
-
-        // GTAO Pass
-        if (flags.useGTAO)
-        {
-            GTAORenderer::Settings gtaoSettings;
-            gtaoSettings.intensity = m_sceneData.gtaoIntensity;
-            gtaoSettings.radius = m_sceneData.gtaoRadius;
-            gtaoSettings.bias = m_sceneData.gtaoBias;
-            gtaoSettings.power = m_sceneData.gtaoPower;
-            gtaoSettings.sliceCount = m_sceneData.gtaoSliceCount;
-            gtaoSettings.stepCount = m_sceneData.gtaoStepCount;
-            m_gtaoRenderer->addPass(m_renderGraph, m_renderContext, *m_gBufferRenderer, resources.gtao, gtaoSettings);
-        }
-
         if (flags.showGBufferDebug)
         {
             // GBuffer Debug Pass
@@ -657,14 +610,10 @@ namespace Fermion
                 m_renderGraph,
                 m_renderContext,
                 *m_gBufferRenderer,
-                m_ssgiRenderer.get(),
-                m_gtaoRenderer.get(),
                 static_cast<PostProcessRenderer::GBufferDebugMode>(m_sceneData.gbufferDebug),
                 m_sceneData.depthViewPower,
                 resources.gBuffer,
-                resources.sceneDepth,
-                resources.ssgi,
-                resources.gtao);
+                resources.sceneDepth);
         }
         else
         {
@@ -674,12 +623,8 @@ namespace Fermion
                 m_renderContext,
                 *m_gBufferRenderer,
                 m_shadowRenderer.get(),
-                m_ssgiRenderer.get(),
-                m_gtaoRenderer.get(),
                 m_environmentRenderer.get(),
-                resources.lightingResult,
-                m_sceneData.enableSSGI,
-                m_sceneData.enableGTAO);
+                resources.lightingResult);
 
             if (m_sceneData.environmentSettings.showSkybox)
             {

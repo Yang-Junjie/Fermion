@@ -107,40 +107,6 @@ namespace Fermion
         ImGui::DragFloat("Normal Map Strength", &sceneInfo.environmentSettings.normalMapStrength, 0.1f, 0.0f, 5.0f);
         ImGui::DragFloat("Toksvig Strength", &sceneInfo.environmentSettings.toksvigStrength, 0.05f, 0.0f, 4.0f);
 
-        ImGui::SeparatorText("SSGI");
-        if (ImGui::Checkbox("Enable SSGI", &sceneInfo.enableSSGI))
-        {
-            if (sceneInfo.enableSSGI)
-                sceneInfo.renderMode = SceneRenderer::RenderMode::DeferredHybrid;
-        }
-        if (sceneInfo.enableSSGI)
-        {
-            ImGui::Indent();
-            ImGui::DragFloat("SSGI Intensity", &sceneInfo.ssgiIntensity, 0.05f, 0.0f, 10.0f);
-            ImGui::DragFloat("SSGI Radius", &sceneInfo.ssgiRadius, 0.05f, 0.1f, 10.0f);
-            ImGui::DragFloat("SSGI Bias", &sceneInfo.ssgiBias, 0.001f, 0.0f, 1.0f);
-            ImGui::SliderInt("SSGI Samples", &sceneInfo.ssgiSampleCount, 1, 1024);
-            ImGui::Unindent();
-        }
-
-        ImGui::SeparatorText("GTAO");
-        if (ImGui::Checkbox("Enable GTAO", &sceneInfo.enableGTAO))
-        {
-            if (sceneInfo.enableGTAO)
-                sceneInfo.renderMode = SceneRenderer::RenderMode::DeferredHybrid;
-        }
-        if (sceneInfo.enableGTAO)
-        {
-            ImGui::Indent();
-            ImGui::DragFloat("GTAO Intensity", &sceneInfo.gtaoIntensity, 0.05f, 0.0f, 4.0f);
-            ImGui::DragFloat("GTAO Radius", &sceneInfo.gtaoRadius, 0.05f, 0.1f, 10.0f);
-            ImGui::DragFloat("GTAO Bias", &sceneInfo.gtaoBias, 0.001f, 0.0f, 0.5f);
-            ImGui::DragFloat("GTAO Power", &sceneInfo.gtaoPower, 0.05f, 0.1f, 4.0f);
-            ImGui::SliderInt("GTAO Slices", &sceneInfo.gtaoSliceCount, 1, 12);
-            ImGui::SliderInt("GTAO Steps", &sceneInfo.gtaoStepCount, 1, 16);
-            ImGui::Unindent();
-        }
-
         ImGui::Separator();
         ImGui::DragFloat("Shadow Bias", &sceneInfo.environmentSettings.shadowBias, 0.0001f, 0.0f, 0.1f);
         ImGui::Separator();
@@ -194,7 +160,7 @@ namespace Fermion
                 sceneInfo.gbufferDebug = SceneRenderer::GBufferDebugMode::None;
         }
 
-        const char *gbufferModes[] = {"None", "Albedo", "Normal", "Material", "Roughness", "Metallic", "AO", "Emissive", "Depth", "ObjectID", "SSGI", "GTAO"};
+        const char *gbufferModes[] = {"None", "Albedo", "Normal", "Material", "Roughness", "Metallic", "AO", "Emissive", "Depth", "ObjectID"};
         int gbufferModeIndex = static_cast<int>(sceneInfo.gbufferDebug);
         if (ImGui::Combo("GBuffer Debug", &gbufferModeIndex, gbufferModes, IM_ARRAYSIZE(gbufferModes)))
         {

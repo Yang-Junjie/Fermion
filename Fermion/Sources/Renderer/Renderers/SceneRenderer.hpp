@@ -19,8 +19,6 @@ namespace Fermion
     class EnvironmentRenderer;
     class ShadowMapRenderer;
     class GBufferRenderer;
-    class SSGIRenderer;
-    class GTAORenderer;
     class DeferredLightingRenderer;
     class ForwardRenderer;
     class OutlineRenderer;
@@ -57,9 +55,7 @@ namespace Fermion
             AO = 6,
             Emissive = 7,
             Depth = 8,
-            ObjectID = 9,
-            SSGI = 10,
-            GTAO = 11
+            ObjectID = 9
         };
 
         struct EnvironmentSettings
@@ -91,20 +87,6 @@ namespace Fermion
 
             RenderMode renderMode = RenderMode::DeferredHybrid;
             GBufferDebugMode gbufferDebug = GBufferDebugMode::None;
-
-            // Experimental functionality
-            bool enableSSGI = false;
-            float ssgiIntensity = 1.0f;
-            float ssgiRadius = 1.0f;
-            float ssgiBias = 0.05f;
-            int ssgiSampleCount = 16;
-            bool enableGTAO = false;
-            float gtaoIntensity = 1.0f;
-            float gtaoRadius = 1.0f;
-            float gtaoBias = 0.03f;
-            float gtaoPower = 1.25f;
-            int gtaoSliceCount = 6;
-            int gtaoStepCount = 6;
 
             // IBL settings
             uint32_t irradianceMapSize = 32;
@@ -275,15 +257,11 @@ namespace Fermion
             ResourceHandle gBuffer = ResourceHandle{0};
             ResourceHandle lightingResult = ResourceHandle{0};
             ResourceHandle sceneDepth = ResourceHandle{0};
-            ResourceHandle ssgi = ResourceHandle{0};
-            ResourceHandle gtao = ResourceHandle{0};
         };
 
         struct FrameFlags
         {
             bool useDeferred = false;
-            bool useSSGI = false;
-            bool useGTAO = false;
             bool showGBufferDebug = false;
             bool hasTransparent = false;
         };
@@ -307,8 +285,6 @@ namespace Fermion
 
         std::unique_ptr<GBufferRenderer> m_gBufferRenderer;
         std::unique_ptr<DeferredLightingRenderer> m_lightingRenderer;
-        std::unique_ptr<SSGIRenderer> m_ssgiRenderer;
-        std::unique_ptr<GTAORenderer> m_gtaoRenderer;
         std::unique_ptr<ForwardRenderer> m_forwardRenderer;
         std::unique_ptr<OutlineRenderer> m_outlineRenderer;
         std::unique_ptr<PostProcessRenderer> m_postProcessRenderer;

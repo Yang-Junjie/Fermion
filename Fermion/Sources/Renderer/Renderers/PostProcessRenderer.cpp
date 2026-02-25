@@ -1,7 +1,5 @@
 #include "PostProcessRenderer.hpp"
 #include "GBufferRenderer.hpp"
-#include "SSGIRenderer.hpp"
-#include "GTAORenderer.hpp"
 #include "Renderer.hpp"
 #include "Renderer/RenderCommands.hpp"
 #include "Renderer/Pipeline.hpp"
@@ -102,19 +100,15 @@ namespace Fermion
     void PostProcessRenderer::addGBufferDebugPass(RenderGraphLegacy& renderGraph,
                                                    const RenderContext& context,
                                                    const GBufferRenderer& gBuffer,
-                                                   const SSGIRenderer* ssgi,
-                                                   const GTAORenderer* gtao,
                                                    GBufferDebugMode mode,
                                                    float depthPower,
                                                    ResourceHandle gBufferHandle,
-                                                   ResourceHandle sceneDepth,
-                                                   ResourceHandle ssgiHandle,
-                                                   ResourceHandle gtaoHandle)
+                                                   ResourceHandle sceneDepth)
     {
         LegacyRenderGraphPass pass;
         pass.Name = "GBufferDebugPass";
-        pass.Inputs = {gBufferHandle, sceneDepth, ssgiHandle, gtaoHandle};
-        pass.Execute = [this, &context, &gBuffer, ssgi, gtao, mode, depthPower](RenderCommandQueue& queue)
+        pass.Inputs = {gBufferHandle, sceneDepth};
+        pass.Execute = [this, &context, &gBuffer, mode, depthPower](RenderCommandQueue& queue)
         {
             auto gBufferFramebuffer = gBuffer.getFramebuffer();
             if (!gBufferFramebuffer || !m_debugPipeline)
@@ -130,12 +124,10 @@ namespace Fermion
                     queue.submit(CmdSetViewport{0, 0, context.viewportWidth, context.viewportHeight});
             }
 
-            auto ssgiResultFB = (ssgi && ssgi->getResultFramebuffer()) ? ssgi->getResultFramebuffer() : nullptr;
-            auto gtaoResultFB = (gtao && gtao->getResultFramebuffer()) ? gtao->getResultFramebuffer() : nullptr;
             float nearClip = context.camera.nearClip;
             float farClip = context.camera.farClip;
 
-            queue.submit(CmdCustom{[this, gBufferFramebuffer, ssgiResultFB, gtaoResultFB,
+            queue.submit(CmdCustom{[this, gBufferFramebuffer,
                                     mode, nearClip, farClip, depthPower]() {
                 m_debugPipeline->bind();
                 auto shader = m_debugPipeline->getShader();
@@ -146,8 +138,6 @@ namespace Fermion
                 shader->setInt("u_GBufferEmissive", 3);
                 shader->setInt("u_GBufferObjectID", 4);
                 shader->setInt("u_GBufferDepth", 5);
-                shader->setInt("u_SSGI", 6);
-                shader->setInt("u_GTAO", 7);
                 shader->setInt("u_Mode", static_cast<int>(mode));
                 shader->setFloat("u_Near", nearClip);
                 shader->setFloat("u_Far", farClip);
@@ -159,10 +149,6 @@ namespace Fermion
                 gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Emissive), 3);
                 gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::ObjectID), 4);
                 gBufferFramebuffer->bindDepthAttachment(5);
-                if (ssgiResultFB)
-                    ssgiResultFB->bindColorAttachment(0, 6);
-                if (gtaoResultFB)
-                    gtaoResultFB->bindColorAttachment(0, 7);
             }});
 
             queue.submit(CmdDrawIndexed{m_quadVA, m_quadVA->getIndexBuffer()->getCount()});

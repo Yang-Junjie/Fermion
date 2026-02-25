@@ -20,8 +20,6 @@ namespace Fermion
         s_shaderLibrary->load(s_config.ShaderPath + "GBufferPBRMesh.glsl");
         s_shaderLibrary->load(s_config.ShaderPath + "DeferredLighting.glsl");
         s_shaderLibrary->load(s_config.ShaderPath + "GBufferDebug.glsl");
-        s_shaderLibrary->load(s_config.ShaderPath + "SSGI.glsl");
-        s_shaderLibrary->load(s_config.ShaderPath + "GTAO.glsl");
         s_shaderLibrary->load(s_config.ShaderPath + "Skybox.glsl");
         s_shaderLibrary->load(s_config.ShaderPath + "Shadow.glsl");
         s_shaderLibrary->load(s_config.ShaderPath + "InfiniteGrid.glsl");

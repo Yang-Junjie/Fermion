@@ -25,8 +25,6 @@ uniform sampler2D u_GBufferMaterial;
 uniform sampler2D u_GBufferEmissive;
 uniform sampler2D u_GBufferDepth;
 uniform isampler2D u_GBufferObjectID;
-uniform sampler2D u_SSGI;
-uniform sampler2D u_GTAO;
 
 uniform int u_Mode;
 uniform float u_Near;
@@ -100,16 +98,6 @@ void main()
     {
         int id = texture(u_GBufferObjectID, v_TexCoords).r;
         result = EncodeObjectID(id);
-    }
-    else if (u_Mode == 10)
-    {
-        vec3 ssgi = texture(u_SSGI, v_TexCoords).rgb;
-        result = pow(clamp(ssgi, 0.0, 1.0), vec3(1.0 / 2.2));
-    }
-    else if (u_Mode == 11)
-    {
-        float gtao = texture(u_GTAO, v_TexCoords).r;
-        result = vec3(gtao);
     }
 
     o_Color = vec4(result, 1.0);

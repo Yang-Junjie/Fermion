@@ -1,7 +1,5 @@
 #include "DeferredLightingRenderer.hpp"
 #include "GBufferRenderer.hpp"
-#include "SSGIRenderer.hpp"
-#include "GTAORenderer.hpp"
 #include "EnvironmentRenderer.hpp"
 #include "ShadowMapRenderer.hpp"
 #include "Renderer.hpp"
@@ -51,18 +49,14 @@ namespace Fermion
                                             const RenderContext& context,
                                             const GBufferRenderer& gBuffer,
                                             const ShadowMapRenderer* shadowRenderer,
-                                            const SSGIRenderer* ssgiRenderer,
-                                            const GTAORenderer* gtaoRenderer,
                                             EnvironmentRenderer* envRenderer,
-                                            ResourceHandle lightingResult,
-                                            bool enableSSGI,
-                                            bool enableGTAO)
+                                            ResourceHandle lightingResult)
     {
         LegacyRenderGraphPass pass;
         pass.Name = "LightingPass";
         pass.Inputs = {};  // Dependencies are accessed via references
         pass.Outputs = {lightingResult};
-        pass.Execute = [this, &context, &gBuffer, shadowRenderer, ssgiRenderer, gtaoRenderer, envRenderer, enableSSGI, enableGTAO](RenderCommandQueue& queue)
+        pass.Execute = [this, &context, &gBuffer, shadowRenderer, envRenderer](RenderCommandQueue& queue)
         {
             auto gBufferFramebuffer = gBuffer.getFramebuffer();
             if (!gBufferFramebuffer || !m_pipeline)
@@ -123,8 +117,6 @@ namespace Fermion
                                   context.useIBL, context.ambientIntensity));
             Log::Trace(std::format("[DeferredLighting] envRenderer={}", (void*)envRenderer));
 
-            const bool useSSGI = enableSSGI && ssgiRenderer && ssgiRenderer->getResultFramebuffer();
-            const bool useGTAO = enableGTAO && gtaoRenderer && gtaoRenderer->getResultFramebuffer();
             bool enableShadows = context.enableShadows && shadowRenderer && shadowRenderer->getShadowMapFramebuffer();
 
             // Additional directional lights (excluding the main one)
@@ -136,14 +128,10 @@ namespace Fermion
             }
 
             auto envLight = context.environmentLight;
-            auto ssgiResultFB = useSSGI ? ssgiRenderer->getResultFramebuffer() : nullptr;
-            auto gtaoResultFB = useGTAO ? gtaoRenderer->getResultFramebuffer() : nullptr;
             auto shadowFB = enableShadows ? shadowRenderer->getShadowMapFramebuffer() : nullptr;
 
             queue.submit(CmdCustom{[this, lightUBO = context.lightUBO, lightData,
                                     gBufferFramebuffer, inverseViewProjection,
-                                    useSSGI, ssgiResultFB,
-                                    useGTAO, gtaoResultFB,
                                     envRenderer, iblSettings,
                                     enableShadows, shadowFB,
                                     dirLightCount, envLight]() {
@@ -157,22 +145,12 @@ namespace Fermion
                 shader->setInt("u_GBufferMaterial", 2);
                 shader->setInt("u_GBufferEmissive", 3);
                 shader->setInt("u_GBufferDepth", 4);
-                shader->setInt("u_SSGI", 5);
-                shader->setInt("u_GTAO", 6);
 
                 gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Albedo), 0);
                 gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Normal), 1);
                 gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Material), 2);
                 gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Emissive), 3);
                 gBufferFramebuffer->bindDepthAttachment(4);
-
-                shader->setBool("u_EnableSSGI", useSSGI);
-                if (useSSGI)
-                    ssgiResultFB->bindColorAttachment(0, 5);
-
-                shader->setBool("u_EnableGTAO", useGTAO);
-                if (useGTAO)
-                    gtaoResultFB->bindColorAttachment(0, 6);
 
                 shader->setMat4("u_InverseViewProjection", inverseViewProjection);
 
