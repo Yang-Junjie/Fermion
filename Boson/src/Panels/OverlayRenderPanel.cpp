@@ -387,15 +387,9 @@ namespace Fermion
 
         auto getAnchorWorldPos = [&](Entity entity, const glm::vec2 &localAnchor) -> glm::vec3
         {
-            auto &tc = entity.getComponent<TransformComponent>();
-            glm::mat4 parentTransform(1.0f);
-            Entity parent = ctx.activeScene->getEntityManager().tryGetEntityByUUID(entity.getParentUUID());
-            if (parent)
-                parentTransform = ctx.activeScene->getEntityManager().getWorldSpaceTransformMatrix(parent);
-
-            glm::mat4 bodyTransform = parentTransform *
-                                      glm::translate(glm::mat4(1.0f), tc.translation) *
-                                      glm::rotate(glm::mat4(1.0f), tc.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+            TransformComponent worldTC = ctx.activeScene->getEntityManager().getWorldSpaceTransform(entity);
+            glm::mat4 bodyTransform = glm::translate(glm::mat4(1.0f), worldTC.translation) *
+                                      glm::rotate(glm::mat4(1.0f), worldTC.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
             return glm::vec3(bodyTransform * glm::vec4(localAnchor, 0.002f, 1.0f));
         };
 
