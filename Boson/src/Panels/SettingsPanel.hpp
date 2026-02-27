@@ -25,5 +25,6 @@ namespace Fermion
         void renderRendererInfo(const Context &ctx);
         void renderEnvironmentSettings(const Context &ctx);
         void renderDebugSettings(const Context &ctx);
+        void renderProjectSettings(const Context &ctx);
     };
 } // namespace Fermion

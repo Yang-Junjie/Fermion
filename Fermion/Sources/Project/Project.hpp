@@ -19,6 +19,7 @@ namespace Fermion
         std::filesystem::path startScene;
         std::filesystem::path assetDirectory;
         std::filesystem::path scriptDirectory;
+        std::filesystem::path defaultFont;
     };
 
     class Project

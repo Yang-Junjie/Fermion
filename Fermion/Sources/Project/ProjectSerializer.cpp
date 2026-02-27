@@ -67,6 +67,15 @@ namespace Fermion
                 << YAML::Value << make_relative(config.assetDirectory, projectDir);
             out << YAML::Key << "ScriptDirectory"
                 << YAML::Value << make_relative(config.scriptDirectory, projectDir);
+
+            // 保存默认字体，如果为空则保存为 "None"
+            if (!config.defaultFont.empty())
+                out << YAML::Key << "DefaultFont"
+                    << YAML::Value << make_relative(config.defaultFont, projectDir);
+            else
+                out << YAML::Key << "DefaultFont"
+                    << YAML::Value << "None";
+
             out << YAML::EndMap;
         }
 
@@ -127,6 +136,13 @@ namespace Fermion
                 config.assetDirectory = make_absolute(dirNode["AssetDirectory"].as<std::string>(), projectDir);
             if (dirNode["ScriptDirectory"])
                 config.scriptDirectory = make_absolute(dirNode["ScriptDirectory"].as<std::string>(), projectDir);
+            if (dirNode["DefaultFont"])
+            {
+                std::string fontPath = dirNode["DefaultFont"].as<std::string>();
+                // 如果是 "None" 则保持为空
+                if (fontPath != "None")
+                    config.defaultFont = make_absolute(fontPath, projectDir);
+            }
         }
 
         if (config.scriptDirectory.empty() && !config.assetDirectory.empty())

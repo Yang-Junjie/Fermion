@@ -5,5 +5,6 @@ Project:
 Directories:
   AssetDirectory: Assets
   ScriptDirectory: Assets/scripts
+  DefaultFont: Assets/font/Play-Regular.ttf
 Runtime:
-  StartScene: Assets/scenes/physics3d.fmscene
+  StartScene: Assets/scenes/snake_game.fmscene

@@ -321,6 +321,8 @@ namespace Fermion
                             HandleDragDrop("FERMION_SKELETON");
                         else if (path.extension() == ".fanim")
                             HandleDragDrop("FERMION_ANIMATION");
+                        else if (path.extension() == ".ttf")
+                            HandleDragDrop("FERMION_FONT");
                     }
 
                     ImGui::TextWrapped("%s", filename.c_str());

@@ -2,6 +2,7 @@
 #include "Font.hpp"
 #include "../Texture/Texture.hpp"
 #include "Renderer/Font/MSDFData.hpp"
+#include "Project/Project.hpp"
 
 #include <stb_image_write.h>
 #undef INFINITE
@@ -188,8 +189,23 @@ namespace Fermion
     {
         static std::shared_ptr<Font> DefaultFont;
         if (!DefaultFont)
-            DefaultFont = std::make_shared<
-                Font>("../Boson/Resources/assets/fonts/Play-Regular.ttf");
+        {
+            // 尝试从项目配置加载默认字体
+            auto project = Project::getActive();
+            if (project)
+            {
+                const auto &defaultFontPath = project->getConfig().defaultFont;
+                if (!defaultFontPath.empty() && std::filesystem::exists(defaultFontPath))
+                {
+                    DefaultFont = std::make_shared<Font>(defaultFontPath);
+                    return DefaultFont;
+                }
+            }
+
+            // 回退到硬编码路径
+            Log::Warn("No default font specified in project config, using fallback path");
+            DefaultFont = std::make_shared<Font>("../Boson/Resources/assets/fonts/Play-Regular.ttf");
+        }
 
         return DefaultFont;
     }

@@ -2,6 +2,7 @@
 
 #include <imgui.h>
 #include <glm/gtc/type_ptr.hpp>
+#include "Project/Project.hpp"
 
 namespace Fermion
 {
@@ -12,6 +13,7 @@ namespace Fermion
         if (!s_SettingsFont)
             s_SettingsFont = Font::getDefault();
 
+        renderProjectSettings(ctx);
         renderRendererInfo(ctx);
         renderEnvironmentSettings(ctx);
         renderDebugSettings(ctx);
@@ -191,8 +193,69 @@ namespace Fermion
         ImGui::SeparatorText("Outline Settings");
         ImGui::ColorEdit4("Outline Color", glm::value_ptr(sceneInfo.meshOutlineColor));
         ImGui::Separator();
-        ImGui::Image((ImTextureID)s_SettingsFont->getAtlasTexture()->getRendererID(),
-                     {512, 512}, {0, 1}, {1, 0});
+        // ImGui::Image((ImTextureID)s_SettingsFont->getAtlasTexture()->getRendererID(),
+        //              {512, 512}, {0, 1}, {1, 0});
+        ImGui::End();
+    }
+
+    void SettingsPanel::renderProjectSettings(const Context &ctx)
+    {
+        ImGui::Begin("Project Settings");
+
+        auto project = Project::getActive();
+        if (!project)
+        {
+            ImGui::Text("No active project");
+            ImGui::End();
+            return;
+        }
+
+        auto &config = project->getConfig();
+
+        ImGui::SeparatorText("Project Info");
+        ImGui::Text("Name: %s", config.name.c_str());
+        ImGui::Text("Version: %s", config.version.c_str());
+        ImGui::Text("Author: %s", config.author.c_str());
+
+        ImGui::SeparatorText("Default Font");
+
+        // 显示当前字体路径
+        std::string fontDisplay = "None";
+        if (!config.defaultFont.empty())
+        {
+            fontDisplay = config.defaultFont.filename().string();
+        }
+
+        ImGui::Text("Current Font: %s", fontDisplay.c_str());
+
+        // 拖放区域用于设置字体
+        ImGui::Button("Drag Font File Here (.ttf)");
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("FERMION_FONT"))
+            {
+                const char *fontPath = static_cast<const char *>(payload->Data);
+                if (fontPath && fontPath[0])
+                {
+                    config.defaultFont = fontPath;
+                    Project::saveActive(Project::getProjectPath());
+                    Log::Info(std::format("Default font set to: {}", fontPath));
+                }
+            }
+            ImGui::EndDragDropTarget();
+        }
+
+        // 清除字体按钮
+        if (!config.defaultFont.empty())
+        {
+            if (ImGui::Button("Clear Default Font"))
+            {
+                config.defaultFont.clear();
+                Project::saveActive(Project::getProjectPath());
+                Log::Info("Default font cleared");
+            }
+        }
+
         ImGui::End();
     }
 } // namespace Fermion
