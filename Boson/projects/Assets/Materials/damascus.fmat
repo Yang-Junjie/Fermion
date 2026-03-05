@@ -1,0 +1,55 @@
+Material:
+  Type: 2
+  Name: damascus
+  Albedo: [1, 1, 1]
+  Metallic: 0
+  Roughness: 0.5
+  AO: 1
+  AlbedoMap: 15621861416160974232
+  NormalMap: 13825241657436670426
+  MetallicMap: 6173592689936005211
+  RoughnessMap: 2337298729857474075
+  AOMap: 13479365255513910753
+Editor:
+  NextNodeID: 7
+  NextLinkID: 6
+  Nodes:
+    - ID: 1
+      Type: 0
+      Position: [400, 100]
+    - ID: 2
+      Type: 1
+      Position: [50, 0]
+      TextureHandle: 15621861416160974232
+    - ID: 3
+      Type: 1
+      Position: [50, 170]
+      TextureHandle: 13825241657436670426
+    - ID: 4
+      Type: 1
+      Position: [39, 338]
+      TextureHandle: 6173592689936005211
+    - ID: 5
+      Type: 1
+      Position: [50, 510]
+      TextureHandle: 2337298729857474075
+    - ID: 6
+      Type: 1
+      Position: [50, 680]
+      TextureHandle: 13479365255513910753
+  Links:
+    - ID: 1
+      StartPin: 201
+      EndPin: 101
+    - ID: 2
+      StartPin: 301
+      EndPin: 102
+    - ID: 3
+      StartPin: 401
+      EndPin: 103
+    - ID: 4
+      StartPin: 501
+      EndPin: 104
+    - ID: 5
+      StartPin: 601
+      EndPin: 105
