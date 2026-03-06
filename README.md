@@ -78,9 +78,6 @@ cd ../bin
 ## 参考
 - [Hazel](https://github.com/TheCherno/Hazel.git) 跟着这个教程走的，后期自己进行扩展
 
-## 参考
-- [Hazel](https://github.com/TheCherno/Hazel.git) 跟着这个教程走的，后期自己进行扩展
-
 ## 许可证
 
 本项目基于 MIT License 开源，详情请见 `LICENSE` 文件。
