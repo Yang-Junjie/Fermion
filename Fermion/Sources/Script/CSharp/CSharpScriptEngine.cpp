@@ -160,6 +160,7 @@ namespace Fermion
         mono_domain_set(m_rootDomain, true);
 
         m_coreAssembly = mono_domain_assembly_open(m_rootDomain, "Photon.dll");
+        FERMION_ASSERT(m_coreAssembly, "Failed to load core assembly!");
         m_coreImage = mono_assembly_get_image(m_coreAssembly);
 
         m_initialized = true;
