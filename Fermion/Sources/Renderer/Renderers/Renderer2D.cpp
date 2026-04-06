@@ -11,9 +11,7 @@
 #include "Renderer/Camera/Camera.hpp"
 #include "Renderer/Camera/EditorCamera.hpp"
 #include "Renderer/Font/Font.hpp"
-#include "Renderer/RenderGraphLegacy.hpp"
-#include "Renderer/RenderCommandQueue.hpp"
-#include "Renderer/RenderCommands.hpp"
+#include "Renderer/RenderPassQueue.hpp"
 #include "glad/glad.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include "Renderer.hpp"
@@ -46,9 +44,8 @@ namespace Fermion
         m_LineBatch->init();
         m_TextBatch->init(m_QuadBatch->getIndexBuffer()); // Share index buffer
 
-        // Create render graph and command queue
-        m_RenderGraph = std::make_unique<RenderGraphLegacy>();
-        m_CommandQueue = std::make_unique<RenderCommandQueue>();
+        // Create render pass queue
+        m_PassQueue = std::make_unique<RenderPassQueue>();
 
         // Create pipelines
         // Quad Pipeline
@@ -201,7 +198,7 @@ namespace Fermion
     {
         FM_PROFILE_FUNCTION();
 
-        m_RenderGraph->reset();
+        m_PassQueue->reset();
 
         if (m_QuadBatch->hasData())
             quadPass();
@@ -218,7 +215,7 @@ namespace Fermion
         if (m_TextBatch->hasData())
             textPass();
 
-        m_RenderGraph->execute(*m_CommandQueue, Renderer::getRendererAPI());
+        m_PassQueue->execute(Renderer::getRendererAPI());
     }
 
     void Renderer2D::flushAndReset()
@@ -550,21 +547,6 @@ namespace Fermion
         // (TextBatch adds 6 indices per glyph = 1 quad)
     }
 
-    // --- Outline pass ---
-
-    void Renderer2D::recordOutlinePass(RenderCommandQueue& queue,
-                                       const std::vector<MeshDrawCommand>& drawCommands,
-                                       const glm::vec4& outlineColor)
-    {
-        for (auto& cmd : drawCommands)
-        {
-            if (cmd.drawOutline && cmd.visible)
-            {
-                drawAABB(cmd.aabb, cmd.transform, outlineColor, cmd.objectID);
-            }
-        }
-    }
-
     // --- Statistics ---
 
     void Renderer2D::resetStatistics()
@@ -584,99 +566,89 @@ namespace Fermion
         // Capture 'this' pointer for lambda
         auto* self = this;
 
-        LegacyRenderGraphPass pass;
+        RenderPass pass;
         pass.Name = "QuadPass";
-        pass.Execute = [self](RenderCommandQueue& queue) {
-            queue.submit(CmdCustom{[self]() {
-                self->m_QuadBatch->uploadToGPU();
-                self->m_QuadBatch->bindTextures();
-                self->m_QuadShader->bind();
-            }});
-            queue.submit(CmdBindPipeline{self->m_QuadPipeline});
-            queue.submit(CmdDrawIndexed{self->m_QuadBatch->getVertexArray(),
-                                        self->m_QuadBatch->getIndexCount()});
+        pass.Execute = [self](RendererAPI& api) {
+            self->m_QuadBatch->uploadToGPU();
+            self->m_QuadBatch->bindTextures();
+            self->m_QuadShader->bind();
+            self->m_QuadPipeline->bind();
+            api.drawIndexed(self->m_QuadBatch->getVertexArray(),
+                            self->m_QuadBatch->getIndexCount());
             self->m_Stats.drawCalls++;
         };
-        m_RenderGraph->addPass(pass);
+        m_PassQueue->addPass(pass);
     }
 
     void Renderer2D::quadInstancePass()
     {
         auto* self = this;
 
-        LegacyRenderGraphPass pass;
+        RenderPass pass;
         pass.Name = "QuadInstancePass";
-        pass.Execute = [self](RenderCommandQueue& queue) {
-            queue.submit(CmdCustom{[self]() {
-                self->m_QuadBatch->uploadInstanceDataToGPU();
-                self->m_QuadBatch->bindTextures();
-                self->m_QuadInstanceShader->bind();
-            }});
-            queue.submit(CmdBindPipeline{self->m_QuadInstancePipeline});
-            queue.submit(CmdDrawIndexedInstanced{self->m_QuadBatch->getInstanceVertexArray(),
-                                                 6, self->m_QuadBatch->getInstanceCount()});
+        pass.Execute = [self](RendererAPI& api) {
+            self->m_QuadBatch->uploadInstanceDataToGPU();
+            self->m_QuadBatch->bindTextures();
+            self->m_QuadInstanceShader->bind();
+            self->m_QuadInstancePipeline->bind();
+            api.drawIndexedInstanced(self->m_QuadBatch->getInstanceVertexArray(),
+                                     6, self->m_QuadBatch->getInstanceCount());
             self->m_Stats.drawCalls++;
         };
-        m_RenderGraph->addPass(pass);
+        m_PassQueue->addPass(pass);
     }
 
     void Renderer2D::circlePass()
     {
         auto* self = this;
 
-        LegacyRenderGraphPass pass;
+        RenderPass pass;
         pass.Name = "CirclePass";
-        pass.Execute = [self](RenderCommandQueue& queue) {
-            queue.submit(CmdCustom{[self]() {
-                self->m_CircleBatch->uploadToGPU();
-                self->m_CircleShader->bind();
-            }});
-            queue.submit(CmdBindPipeline{self->m_CirclePipeline});
-            queue.submit(CmdDrawIndexed{self->m_CircleBatch->getVertexArray(),
-                                        self->m_CircleBatch->getIndexCount()});
+        pass.Execute = [self](RendererAPI& api) {
+            self->m_CircleBatch->uploadToGPU();
+            self->m_CircleShader->bind();
+            self->m_CirclePipeline->bind();
+            api.drawIndexed(self->m_CircleBatch->getVertexArray(),
+                            self->m_CircleBatch->getIndexCount());
             self->m_Stats.drawCalls++;
         };
-        m_RenderGraph->addPass(pass);
+        m_PassQueue->addPass(pass);
     }
 
     void Renderer2D::linePass()
     {
         auto* self = this;
 
-        LegacyRenderGraphPass pass;
+        RenderPass pass;
         pass.Name = "LinePass";
-        pass.Execute = [self](RenderCommandQueue& queue) {
-            queue.submit(CmdCustom{[self]() {
-                self->m_LineBatch->uploadToGPU();
-                self->m_LineShader->bind();
-            }});
-            queue.submit(CmdBindPipeline{self->m_LinePipeline});
-            queue.submit(CmdSetLineWidth{self->m_LineBatch->getLineWidth()});
-            queue.submit(CmdDrawLines{self->m_LineBatch->getVertexArray(),
-                                      self->m_LineBatch->getVertexCount()});
+        pass.Execute = [self](RendererAPI& api) {
+            self->m_LineBatch->uploadToGPU();
+            self->m_LineShader->bind();
+            self->m_LinePipeline->bind();
+            api.setLineWidth(self->m_LineBatch->getLineWidth());
+            api.drawLines(self->m_LineBatch->getVertexArray(),
+                          self->m_LineBatch->getVertexCount());
             self->m_Stats.drawCalls++;
         };
-        m_RenderGraph->addPass(pass);
+        m_PassQueue->addPass(pass);
     }
 
     void Renderer2D::textPass()
     {
         auto* self = this;
 
-        LegacyRenderGraphPass pass;
+        RenderPass pass;
         pass.Name = "TextPass";
-        pass.Execute = [self](RenderCommandQueue& queue) {
-            queue.submit(CmdCustom{[self]() {
-                self->m_TextBatch->uploadToGPU();
-                self->m_TextBatch->bindFontAtlas();
-                self->m_TextShader->bind();
-            }});
-            queue.submit(CmdBindPipeline{self->m_TextPipeline});
-            queue.submit(CmdDrawIndexed{self->m_TextBatch->getVertexArray(),
-                                        self->m_TextBatch->getIndexCount()});
+        pass.Execute = [self](RendererAPI& api) {
+            self->m_TextBatch->uploadToGPU();
+            self->m_TextBatch->bindFontAtlas();
+            self->m_TextShader->bind();
+            self->m_TextPipeline->bind();
+            api.drawIndexed(self->m_TextBatch->getVertexArray(),
+                            self->m_TextBatch->getIndexCount());
             self->m_Stats.drawCalls++;
         };
-        m_RenderGraph->addPass(pass);
+        m_PassQueue->addPass(pass);
     }
 
 } // namespace Fermion

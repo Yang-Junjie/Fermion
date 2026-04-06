@@ -1,7 +1,7 @@
 #pragma once
 #include "RenderContext.hpp"
 
-#include "Renderer/RenderGraphLegacy.hpp"
+#include "Renderer/RenderPassQueue.hpp"
 
 #include <memory>
 
@@ -18,7 +18,7 @@ namespace Fermion
     public:
         DeferredLightingRenderer();
 
-        void addPass(RenderGraphLegacy& renderGraph,
+        void addPass(RenderPassQueue& passQueue,
                      const RenderContext& context,
                      const GBufferRenderer& gBuffer,
                      const ShadowMapRenderer* shadowRenderer,

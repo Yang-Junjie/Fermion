@@ -5,7 +5,7 @@
 
 #include <glm/glm.hpp>
 
-#include "Renderer/RenderGraphLegacy.hpp"
+#include "Renderer/RenderPassQueue.hpp"
 
 
 namespace Fermion
@@ -45,7 +45,7 @@ namespace Fermion
 
         void bindIBL(const std::shared_ptr<Shader> &shader, const IBLSettings &settings) const;
 
-        void addSkyboxPass(RenderGraphLegacy &renderGraph,
+        void addSkyboxPass(RenderPassQueue &passQueue,
                            const glm::mat4 &view,
                            const glm::mat4 &projection,
                            uint32_t *skyboxDrawCalls,

@@ -1,14 +1,15 @@
 #pragma once
 #include "RenderContext.hpp"
-#include "Renderer/RenderDrawCommand.hpp"
-#include "Renderer/RenderGraphLegacy.hpp"
+#include "Renderer/RenderPassQueue.hpp"
 #include <glm/glm.hpp>
 #include <memory>
+#include <span>
 #include <vector>
 
 namespace Fermion
 {
     class GBufferRenderer;
+    struct MeshDrawCommand;
     class Pipeline;
     class VertexArray;
 
@@ -23,10 +24,10 @@ namespace Fermion
 
         OutlineRenderer();
 
-        void addPass(RenderGraphLegacy& renderGraph,
+        void addPass(RenderPassQueue& passQueue,
                      const RenderContext& context,
                      const GBufferRenderer* gBuffer,
-                     const std::vector<MeshDrawCommand>& drawList,
+                     std::span<const MeshDrawCommand> drawList,
                      const std::vector<int>& outlineIDs,
                      const Settings& settings,
                      ResourceHandle gBufferHandle,

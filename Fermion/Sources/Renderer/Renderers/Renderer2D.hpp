@@ -1,10 +1,9 @@
-﻿#pragma once
+#pragma once
 #include "Renderer/RendererConfig.hpp"
 #include "Renderer/Batch/QuadBatch.hpp"
 #include "Renderer/Batch/CircleBatch.hpp"
 #include "Renderer/Batch/LineBatch.hpp"
 #include "Renderer/Batch/TextBatch.hpp"
-#include "Renderer/RenderDrawCommand.hpp"
 #include "Math/AABB.hpp"
 #include <glm/glm.hpp>
 #include <memory>
@@ -22,8 +21,7 @@ namespace Fermion
     class Pipeline;
     class Shader;
     class UniformBuffer;
-    class RenderGraphLegacy;
-    class RenderCommandQueue;
+    class RenderPassQueue;
     class RendererAPI;
 
 
@@ -128,12 +126,6 @@ namespace Fermion
         float getLineWidth();
         void setLineWidth(float width);
 
-
-
-        void recordOutlinePass(RenderCommandQueue& queue,
-                              const std::vector<MeshDrawCommand>& drawCommands,
-                              const glm::vec4& outlineColor);
-
         using TextParams = Fermion::TextParams;
 
         void drawString(const std::string& string, std::shared_ptr<Font> font,
@@ -204,9 +196,8 @@ namespace Fermion
         glm::mat4 m_CameraViewProj{1.0f};
         glm::mat4 m_CameraView{1.0f};
 
-        // Render graph
-        std::unique_ptr<RenderGraphLegacy> m_RenderGraph;
-        std::unique_ptr<RenderCommandQueue> m_CommandQueue;
+        // Render pass queue
+        std::unique_ptr<RenderPassQueue> m_PassQueue;
 
         // Statistics
         Satistics m_Stats;

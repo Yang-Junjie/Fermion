@@ -1,14 +1,15 @@
 #pragma once
 #include "RenderContext.hpp"
 
-#include "Renderer/RenderDrawCommand.hpp"
-#include "Renderer/RenderGraphLegacy.hpp"
+#include "Renderer/RenderPassQueue.hpp"
 #include <memory>
+#include <span>
 #include <vector>
 
 namespace Fermion
 {
     class EnvironmentRenderer;
+    struct MeshDrawCommand;
     class ShadowMapRenderer;
     class Pipeline;
 
@@ -17,9 +18,9 @@ namespace Fermion
     public:
         ForwardRenderer();
 
-        void addPass(RenderGraphLegacy& renderGraph,
+        void addPass(RenderPassQueue& passQueue,
                      const RenderContext& context,
-                     const std::vector<MeshDrawCommand>& drawList,
+                     std::span<const MeshDrawCommand> drawList,
                      const ShadowMapRenderer* shadowRenderer,
                      EnvironmentRenderer* envRenderer,
                      ResourceHandle shadowMap,

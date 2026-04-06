@@ -1,6 +1,6 @@
 #pragma once
 #include "RenderContext.hpp"
-#include "Renderer/RenderGraphLegacy.hpp"
+#include "Renderer/RenderPassQueue.hpp"
 #include <memory>
 
 namespace Fermion
@@ -29,7 +29,7 @@ namespace Fermion
         PostProcessRenderer();
 
         // Depth view pass
-        void addDepthViewPass(RenderGraphLegacy& renderGraph,
+        void addDepthViewPass(RenderPassQueue& passQueue,
                               const RenderContext& context,
                               const GBufferRenderer* gBuffer,
                               bool useDeferred,
@@ -38,7 +38,7 @@ namespace Fermion
                               ResourceHandle lightingResult);
 
         // GBuffer debug pass
-        void addGBufferDebugPass(RenderGraphLegacy& renderGraph,
+        void addGBufferDebugPass(RenderPassQueue& passQueue,
                                  const RenderContext& context,
                                  const GBufferRenderer& gBuffer,
                                  GBufferDebugMode mode,

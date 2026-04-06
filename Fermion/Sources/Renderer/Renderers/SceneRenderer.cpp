@@ -3,6 +3,7 @@
 #include "Renderer.hpp"
 
 #include "Renderer/Framebuffer.hpp"
+#include "Renderer/Model/Material.hpp"
 #include "Renderer/UniformBuffer.hpp"
 #include "Renderer/UniformBufferLayout.hpp"
 #include "EnvironmentRenderer.hpp"
@@ -17,6 +18,7 @@
 #include "Project/Project.hpp"
 #include "Asset/AssetManager/RuntimeAssetManager.hpp"
 #include "Scene/Components.hpp"
+#include <span>
 
 
 namespace Fermion
@@ -467,7 +469,7 @@ namespace Fermion
     }
     void SceneRenderer::FlushDrawList()
     {
-        m_renderGraph.reset();
+        m_passQueue.reset();
         updateRenderContext();
 
         m_renderer3DStatistics.meshCount += static_cast<uint32_t>(m_meshDrawList.size());
@@ -484,7 +486,7 @@ namespace Fermion
         AddPostProcessingPasses(resources, flags);
 
 
-        m_renderGraph.execute(m_commandQueue, Renderer::getRendererAPI());
+        m_passQueue.execute(Renderer::getRendererAPI());
         m_meshDrawList.clear();
         m_outlineIDs.clear();
     }
@@ -505,7 +507,7 @@ namespace Fermion
         Log::Trace(std::format("[SceneRenderer::SkyboxPass] hasEnvironment={}",
                               m_environmentRenderer->hasEnvironment()));
 
-        m_environmentRenderer->addSkyboxPass(m_renderGraph,
+        m_environmentRenderer->addSkyboxPass(m_passQueue,
                                              m_sceneData.sceneCamera.view,
                                              m_sceneData.sceneCamera.skyboxProjection,
                                              &m_renderer3DStatistics.skyboxDrawCalls,
@@ -524,9 +526,9 @@ namespace Fermion
         uint32_t viewportWidth = m_scene ? m_scene->getViewportWidth() : 0;
         uint32_t viewportHeight = m_scene ? m_scene->getViewportHeight() : 0;
         m_shadowRenderer->addPass(
-            m_renderGraph,
+            m_passQueue,
             shadowMap,
-            m_meshDrawList,
+            std::span<const MeshDrawCommand>(m_meshDrawList),
             m_sceneData.sceneEnvironmentLight.directionalLights[0],
             m_sceneData.environmentSettings.shadowMapSize,
             m_targetFramebuffer,
@@ -563,11 +565,11 @@ namespace Fermion
         FrameResources resources;
 
         if (m_sceneData.environmentSettings.enableShadows)
-            resources.shadowMap = m_renderGraph.createResource();
+            resources.shadowMap = m_passQueue.createResource();
 
-        resources.gBuffer = m_renderGraph.createResource();
-        resources.lightingResult = m_renderGraph.createResource();
-        resources.sceneDepth = m_renderGraph.createResource();
+        resources.gBuffer = m_passQueue.createResource();
+        resources.lightingResult = m_passQueue.createResource();
+        resources.sceneDepth = m_passQueue.createResource();
 
         const uint32_t viewportWidth = m_renderContext.viewportWidth;
         const uint32_t viewportHeight = m_renderContext.viewportHeight;
@@ -593,9 +595,9 @@ namespace Fermion
 
         // GBuffer Pass
         m_gBufferRenderer->addPass(
-            m_renderGraph,
+            m_passQueue,
             m_renderContext,
-            m_meshDrawList,
+            std::span<const MeshDrawCommand>(m_meshDrawList),
             m_forwardRenderer->getPBRPipeline(),
             m_environmentRenderer.get(),
             resources.gBuffer,
@@ -607,7 +609,7 @@ namespace Fermion
         {
             // GBuffer Debug Pass
             m_postProcessRenderer->addGBufferDebugPass(
-                m_renderGraph,
+                m_passQueue,
                 m_renderContext,
                 *m_gBufferRenderer,
                 static_cast<PostProcessRenderer::GBufferDebugMode>(m_sceneData.gbufferDebug),
@@ -619,7 +621,7 @@ namespace Fermion
         {
             // Deferred Lighting Pass
             m_lightingRenderer->addPass(
-                m_renderGraph,
+                m_passQueue,
                 m_renderContext,
                 *m_gBufferRenderer,
                 m_shadowRenderer.get(),
@@ -639,9 +641,9 @@ namespace Fermion
             if (flags.hasTransparent)
             {
                 m_forwardRenderer->addPass(
-                    m_renderGraph,
+                    m_passQueue,
                     m_renderContext,
-                    m_meshDrawList,
+                    std::span<const MeshDrawCommand>(m_meshDrawList),
                     m_shadowRenderer.get(),
                     m_environmentRenderer.get(),
                     resources.shadowMap,
@@ -658,9 +660,9 @@ namespace Fermion
     {
         // Forward Pass
         m_forwardRenderer->addPass(
-            m_renderGraph,
+            m_passQueue,
             m_renderContext,
-            m_meshDrawList,
+            std::span<const MeshDrawCommand>(m_meshDrawList),
             m_shadowRenderer.get(),
             m_environmentRenderer.get(),
             resources.shadowMap,
@@ -676,9 +678,9 @@ namespace Fermion
         if (flags.hasTransparent)
         {
             m_forwardRenderer->addPass(
-                m_renderGraph,
+                m_passQueue,
                 m_renderContext,
-                m_meshDrawList,
+                std::span<const MeshDrawCommand>(m_meshDrawList),
                 m_shadowRenderer.get(),
                 m_environmentRenderer.get(),
                 resources.shadowMap,
@@ -706,7 +708,7 @@ namespace Fermion
             gridSettings.axisColorZ = m_sceneData.gridAxisColorZ;
 
             m_infiniteGridRenderer->addPass(
-                m_renderGraph,
+                m_passQueue,
                 m_renderContext,
                 gridSettings,
                 resources.lightingResult,
@@ -717,7 +719,7 @@ namespace Fermion
         if (m_sceneData.enableDepthView && !flags.showGBufferDebug)
         {
             m_postProcessRenderer->addDepthViewPass(
-                m_renderGraph,
+                m_passQueue,
                 m_renderContext,
                 m_gBufferRenderer.get(),
                 flags.useDeferred,
@@ -730,10 +732,10 @@ namespace Fermion
         outlineSettings.color = m_sceneData.meshOutlineColor;
         outlineSettings.lineWidth = m_sceneData.outlineThickness;
         m_outlineRenderer->addPass(
-            m_renderGraph,
+            m_passQueue,
             m_renderContext,
             flags.useDeferred ? m_gBufferRenderer.get() : nullptr,
-            m_meshDrawList,
+            std::span<const MeshDrawCommand>(m_meshDrawList),
             m_outlineIDs,
             outlineSettings,
             resources.gBuffer,

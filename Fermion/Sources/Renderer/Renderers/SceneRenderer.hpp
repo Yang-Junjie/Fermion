@@ -5,12 +5,11 @@
 #include "Renderer/Camera/EditorCamera.hpp"
 #include "DebugRenderer.hpp"
 #include "RenderContext.hpp"
+#include "Math/AABB.hpp"
 #include "Renderer/Framebuffer.hpp"
-#include "Renderer/RenderGraphLegacy.hpp"
-#include "Renderer/RenderDrawCommand.hpp"
+#include "Renderer/RenderPassQueue.hpp"
 #include <array>
 #include <vector>
-#include "Renderer/RenderCommandQueue.hpp"
 #include "ProceduralSkyGenerator.hpp"
 
 namespace Fermion
@@ -25,6 +24,29 @@ namespace Fermion
     class PostProcessRenderer;
     class InfiniteGridRenderer;
     class UniformBuffer;
+    class Pipeline;
+    class VertexArray;
+    class Material;
+
+    struct MeshDrawCommand
+    {
+        std::shared_ptr<Pipeline> pipeline = nullptr;
+        std::shared_ptr<VertexArray> vao = nullptr;
+        std::shared_ptr<Material> material = nullptr;
+        glm::mat4 transform{1.0f};
+
+        uint32_t indexCount = 0;
+        uint32_t indexOffset = 0;
+        int objectID = -1;
+
+        AABB aabb;
+        bool transparent = false;
+        bool drawOutline = false;
+        bool visible = true;
+
+        const std::vector<glm::mat4> *boneMatrices = nullptr;
+        bool isSkinned = false;
+    };
 
     class SceneRenderer
     {
@@ -306,8 +328,7 @@ namespace Fermion
 
         std::shared_ptr<Framebuffer> m_targetFramebuffer;
 
-        RenderGraphLegacy m_renderGraph;
-        RenderCommandQueue m_commandQueue;
+        RenderPassQueue m_passQueue;
         SceneInfo m_sceneData;
 
         RenderStatistics::Renderer3DStatistics m_renderer3DStatistics;

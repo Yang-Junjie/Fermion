@@ -1,7 +1,7 @@
 #include "fmpch.hpp"
 #include "ShadowMapRenderer.hpp"
+#include "SceneRenderer.hpp"
 
-#include "Renderer/RenderCommands.hpp"
 #include "Renderer/Renderers/Renderer.hpp"
 #include "Renderer/UniformBufferLayout.hpp"
 #include "Renderer/Framebuffer.hpp"
@@ -34,9 +34,9 @@ namespace Fermion
         m_skinnedShadowPipeline = Pipeline::create(skinnedShadowSpec);
     }
 
-    void ShadowMapRenderer::addPass(RenderGraphLegacy &renderGraph,
+    void ShadowMapRenderer::addPass(RenderPassQueue &passQueue,
                                     ResourceHandle shadowMap,
-                                    const std::vector<MeshDrawCommand> &drawList,
+                                    std::span<const MeshDrawCommand> drawList,
                                     const DirectionalLight &light,
                                     uint32_t shadowMapSize,
                                     const std::shared_ptr<Framebuffer> &targetFramebuffer,
@@ -50,13 +50,13 @@ namespace Fermion
         ensureFramebuffer(shadowMapSize);
         m_lightSpaceMatrix = calculateLightSpaceMatrix(light);
 
-        LegacyRenderGraphPass pass;
+        RenderPass pass;
         pass.Name = "ShadowPass";
         pass.Outputs = {shadowMap};
-        pass.Execute = [this, &drawList, targetFramebuffer, viewportWidth, viewportHeight, shadowDrawCalls, modelUniformBuffer, lightUniformBuffer, boneUniformBuffer](RenderCommandQueue& queue)
+        pass.Execute = [this, drawList, targetFramebuffer, viewportWidth, viewportHeight, shadowDrawCalls, modelUniformBuffer, lightUniformBuffer, boneUniformBuffer](RendererAPI& api)
         {
-            queue.submit(CmdBindFramebuffer{m_shadowMapFB});
-            queue.submit(CmdClear{});
+            m_shadowMapFB->bind();
+            api.clear();
 
             std::shared_ptr<Pipeline> currentPipeline = nullptr;
 
@@ -66,7 +66,7 @@ namespace Fermion
                 if (currentPipeline != desiredPipeline)
                 {
                     currentPipeline = desiredPipeline;
-                    queue.submit(CmdBindPipeline{currentPipeline});
+                    currentPipeline->bind();
                 }
 
                 // Update model uniform buffer for this draw call
@@ -75,33 +75,29 @@ namespace Fermion
                 modelData.normalMatrix = glm::transpose(glm::inverse(cmd.transform));
                 modelData.objectID = cmd.objectID;
 
-                queue.submit(CmdCustom{[modelUniformBuffer, modelData]() {
-                    modelUniformBuffer->setData(&modelData, sizeof(ModelData));
-                }});
+                modelUniformBuffer->setData(&modelData, sizeof(ModelData));
 
                 // Upload bone matrices for skinned meshes
                 if (cmd.isSkinned && cmd.boneMatrices && !cmd.boneMatrices->empty() && boneUniformBuffer)
                 {
-                    queue.submit(CmdCustom{[boneUniformBuffer, boneMatrices = cmd.boneMatrices]() {
-                        boneUniformBuffer->setData(boneMatrices->data(),
-                            static_cast<uint32_t>(boneMatrices->size() * sizeof(glm::mat4)));
-                    }});
+                    boneUniformBuffer->setData(cmd.boneMatrices->data(),
+                        static_cast<uint32_t>(cmd.boneMatrices->size() * sizeof(glm::mat4)));
                 }
 
-                queue.submit(CmdDrawIndexed{cmd.vao, cmd.indexCount, cmd.indexOffset});
+                api.drawIndexed(cmd.vao, cmd.indexCount, cmd.indexOffset);
                 if (shadowDrawCalls)
                     (*shadowDrawCalls)++;
             }
 
             if (targetFramebuffer) {
-                queue.submit(CmdBindFramebuffer{targetFramebuffer});
+                targetFramebuffer->bind();
             } else {
-                queue.submit(CmdUnbindFramebuffer{m_shadowMapFB});
+                m_shadowMapFB->unbind();
                 if (viewportWidth > 0 && viewportHeight > 0)
-                    queue.submit(CmdSetViewport{0, 0, viewportWidth, viewportHeight});
+                    api.setViewport(0, 0, viewportWidth, viewportHeight);
             }
         };
-        renderGraph.addPass(pass);
+        passQueue.addPass(pass);
     }
 
     const glm::mat4 &ShadowMapRenderer::getLightSpaceMatrix() const

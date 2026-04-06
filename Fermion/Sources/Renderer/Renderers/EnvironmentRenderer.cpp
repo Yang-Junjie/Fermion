@@ -2,9 +2,7 @@
 #include "EnvironmentRenderer.hpp"
 #include "Renderer/VertexArray.hpp"
 #include "Renderer/Pipeline.hpp"
-#include "Renderer/RenderDrawCommand.hpp"
 #include "Core/Log.hpp"
-#include "Renderer/RenderCommands.hpp"
 #include "Renderer/Renderers/Renderer.hpp"
 #include "Renderer/Texture/Texture.hpp"
 #include "Renderer/Framebuffer.hpp"
@@ -17,6 +15,15 @@ namespace Fermion
 {
     namespace
     {
+        struct SkyboxDrawCommand
+        {
+            std::shared_ptr<Pipeline> pipeline = nullptr;
+            std::shared_ptr<VertexArray> vao = nullptr;
+            const TextureCube *cubemap = nullptr;
+            glm::mat4 view{1.0f};
+            glm::mat4 projection{1.0f};
+        };
+
         std::shared_ptr<VertexArray> CreateCubeVA()
         {
             float skyboxVertices[] = {
@@ -76,27 +83,22 @@ namespace Fermion
             return value == 0 ? 1 : value;
         }
 
-        void RecordSkyboxPass(RenderCommandQueue& queue, const SkyboxDrawCommand &drawCommand)
+        void RecordSkyboxPass(RendererAPI& api, const SkyboxDrawCommand &drawCommand)
         {
             if (!drawCommand.pipeline || !drawCommand.vao || !drawCommand.cubemap)
                 return;
 
-            queue.submit(CmdCustom{[pipeline = drawCommand.pipeline,
-                                    vao = drawCommand.vao,
-                                    cubemap = drawCommand.cubemap,
-                                    view = drawCommand.view,
-                                    projection = drawCommand.projection]() {
-                pipeline->bind();
-                auto shader = pipeline->getShader();
-                shader->bind();
-                shader->setMat4("u_View", glm::mat4(glm::mat3(view)));
-                shader->setMat4("u_Projection", projection);
+            auto pipeline = drawCommand.pipeline;
+            pipeline->bind();
+            auto shader = pipeline->getShader();
+            shader->bind();
+            shader->setMat4("u_View", glm::mat4(glm::mat3(drawCommand.view)));
+            shader->setMat4("u_Projection", drawCommand.projection);
 
-                cubemap->bind(0);
-                shader->setInt("u_Cubemap", 0);
-            }});
+            drawCommand.cubemap->bind(0);
+            shader->setInt("u_Cubemap", 0);
 
-            queue.submit(CmdDrawIndexed{drawCommand.vao, 36});
+            api.drawIndexed(drawCommand.vao, 36);
         }
     }
 
@@ -229,17 +231,17 @@ namespace Fermion
             m_brdfLUT->bind(13);
     }
 
-    void EnvironmentRenderer::addSkyboxPass(RenderGraphLegacy &renderGraph,
+    void EnvironmentRenderer::addSkyboxPass(RenderPassQueue &passQueue,
                                             const glm::mat4 &view,
                                             const glm::mat4 &projection,
                                             uint32_t *skyboxDrawCalls,
                                             ResourceHandle dependency) const
     {
-        LegacyRenderGraphPass pass;
+        RenderPass pass;
         pass.Name = "SkyboxPass";
         if (dependency.isValid())
             pass.Inputs = {dependency};
-        pass.Execute = [this, view, projection, skyboxDrawCalls](RenderCommandQueue& queue)
+        pass.Execute = [this, view, projection, skyboxDrawCalls](RendererAPI& api)
         {
             if (!m_environmentCubemap)
             {
@@ -259,10 +261,10 @@ namespace Fermion
             if (cmd.pipeline && cmd.vao && cmd.cubemap && skyboxDrawCalls)
                 (*skyboxDrawCalls)++;
 
-            RecordSkyboxPass(queue, cmd);
+            RecordSkyboxPass(api, cmd);
         };
 
-        renderGraph.addPass(pass);
+        passQueue.addPass(pass);
     }
 
     TextureCube *EnvironmentRenderer::getEnvironmentCubemap() const

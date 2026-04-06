@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <glm/glm.hpp>
-#include "Renderer/RenderGraphLegacy.hpp"
+#include "Renderer/RenderPassQueue.hpp"
 
 namespace Fermion
 {
@@ -37,13 +37,13 @@ namespace Fermion
         InfiniteGridRenderer();
         ~InfiniteGridRenderer() = default;
 
-        void addPass(RenderGraphLegacy& renderGraph,
+        void addPass(RenderPassQueue& passQueue,
                      const RenderContext& context,
                      const Settings& settings,
                      ResourceHandle colorTarget,
                      ResourceHandle depthTarget);
 
-        void render(RenderCommandQueue& queue, const RenderContext& context, const Settings& settings);
+        void render(RendererAPI& api, const RenderContext& context, const Settings& settings);
 
     private:
         void initializeResources();

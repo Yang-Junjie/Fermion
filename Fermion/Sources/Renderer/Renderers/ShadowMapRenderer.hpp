@@ -1,16 +1,17 @@
 #pragma once
 #include <memory>
+#include <span>
 #include <vector>
 
 #include <glm/glm.hpp>
 
-#include "Renderer/RenderDrawCommand.hpp"
-#include "Renderer/RenderGraphLegacy.hpp"
+#include "Renderer/RenderPassQueue.hpp"
 #include "Scene/Scene.hpp"
 
 namespace Fermion
 {
     class Framebuffer;
+    struct MeshDrawCommand;
     class Pipeline;
     class UniformBuffer;
 
@@ -19,9 +20,9 @@ namespace Fermion
     public:
         ShadowMapRenderer();
 
-        void addPass(RenderGraphLegacy &renderGraph,
+        void addPass(RenderPassQueue &passQueue,
                      ResourceHandle shadowMap,
-                     const std::vector<MeshDrawCommand> &drawList,
+                     std::span<const MeshDrawCommand> drawList,
                      const DirectionalLight &light,
                      uint32_t shadowMapSize,
                      const std::shared_ptr<Framebuffer> &targetFramebuffer,

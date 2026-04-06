@@ -1,9 +1,10 @@
 #include "GBufferRenderer.hpp"
 #include "EnvironmentRenderer.hpp"
+#include "SceneRenderer.hpp"
 #include "Renderer.hpp"
-#include "Renderer/RenderCommands.hpp"
 #include "Renderer/UniformBufferLayout.hpp"
 #include "Renderer/UniformBuffer.hpp"
+#include "Renderer/Model/Material.hpp"
 #include "Renderer/Pipeline.hpp"
 #include "Core/Log.hpp"
 
@@ -76,9 +77,9 @@ namespace Fermion
         m_framebuffer = Framebuffer::create(gBufferSpec);
     }
 
-    void GBufferRenderer::addPass(RenderGraphLegacy& renderGraph,
+    void GBufferRenderer::addPass(RenderPassQueue& passQueue,
                                    const RenderContext& context,
-                                   const std::vector<MeshDrawCommand>& drawList,
+                                   std::span<const MeshDrawCommand> drawList,
                                    const std::shared_ptr<Pipeline>& forwardPbrPipeline,
                                    EnvironmentRenderer* environmentRenderer,
                                    ResourceHandle gBuffer,
@@ -86,20 +87,18 @@ namespace Fermion
                                    uint32_t* geometryDrawCalls,
                                    uint32_t* iblDrawCalls)
     {
-        LegacyRenderGraphPass pass;
+        RenderPass pass;
         pass.Name = "GBufferPass";
         pass.Outputs = {gBuffer, sceneDepth};
-        pass.Execute = [this, &context, &drawList, forwardPbrPipeline, environmentRenderer, geometryDrawCalls, iblDrawCalls](RenderCommandQueue& queue)
+        pass.Execute = [this, &context, drawList, forwardPbrPipeline, environmentRenderer, geometryDrawCalls, iblDrawCalls](RendererAPI& api)
         {
             if (!m_framebuffer)
                 return;
 
-            queue.submit(CmdBindFramebuffer{m_framebuffer});
-            queue.submit(CmdSetClearColor{{0.0f, 0.0f, 0.0f, 1.0f}});
-            queue.submit(CmdClear{});
-            queue.submit(CmdCustom{[this]() {
-                m_framebuffer->clearAttachment(static_cast<uint32_t>(Attachment::ObjectID), -1);
-            }});
+            m_framebuffer->bind();
+            api.setClearColor({0.0f, 0.0f, 0.0f, 1.0f});
+            api.clear();
+            m_framebuffer->clearAttachment(static_cast<uint32_t>(Attachment::ObjectID), -1);
 
             std::shared_ptr<Pipeline> currentPipeline = nullptr;
 
@@ -143,16 +142,13 @@ namespace Fermion
                 if (currentPipeline != desiredPipeline)
                 {
                     currentPipeline = desiredPipeline;
-                    queue.submit(CmdCustom{[currentPipeline, isPbr, &context]() {
-                        currentPipeline->bind();
-                        auto shader = currentPipeline->getShader();
-                        // Camera UBO is already bound globally
-                        if (isPbr)
-                        {
-                            shader->setFloat("u_NormalStrength", context.normalMapStrength);
-                            shader->setFloat("u_ToksvigStrength", context.toksvigStrength);
-                        }
-                    }});
+                    currentPipeline->bind();
+                    auto shader = currentPipeline->getShader();
+                    if (isPbr)
+                    {
+                        shader->setFloat("u_NormalStrength", context.normalMapStrength);
+                        shader->setFloat("u_ToksvigStrength", context.toksvigStrength);
+                    }
                 }
 
                 // Update model uniform buffer for this draw call
@@ -164,47 +160,39 @@ namespace Fermion
                 // Upload bone matrices for skinned meshes
                 if (cmd.isSkinned && cmd.boneMatrices && !cmd.boneMatrices->empty())
                 {
-                    queue.submit(CmdCustom{[boneUBO = context.boneUBO, boneMatrices = cmd.boneMatrices]() {
-                        boneUBO->setData(boneMatrices->data(),
-                            static_cast<uint32_t>(boneMatrices->size() * sizeof(glm::mat4)));
-                    }});
+                    context.boneUBO->setData(cmd.boneMatrices->data(),
+                        static_cast<uint32_t>(cmd.boneMatrices->size() * sizeof(glm::mat4)));
                 }
 
-                queue.submit(CmdCustom{[modelUBO = context.modelUBO, modelData, currentPipeline, material = cmd.material]() {
-                    modelUBO->setData(&modelData, sizeof(ModelData));
-                    if (material)
-                        material->bind(currentPipeline->getShader());
-                }});
+                context.modelUBO->setData(&modelData, sizeof(ModelData));
+                if (cmd.material)
+                    cmd.material->bind(currentPipeline->getShader());
 
-                queue.submit(CmdDrawIndexed{cmd.vao, cmd.indexCount, cmd.indexOffset});
+                api.drawIndexed(cmd.vao, cmd.indexCount, cmd.indexOffset);
                 if (geometryDrawCalls)
                     (*geometryDrawCalls)++;
             }
 
             if (context.targetFramebuffer)
             {
-                queue.submit(CmdCustom{[this, targetFB = context.targetFramebuffer]() {
-                    Framebuffer::blit(m_framebuffer, targetFB, {
-                        .mask = FramebufferBlitMask::Depth
-                    });
-                    targetFB->bind();
-                }});
+                Framebuffer::blit(m_framebuffer, context.targetFramebuffer, {
+                    .mask = FramebufferBlitMask::Depth
+                });
+                context.targetFramebuffer->bind();
             }
             else
             {
-                // Blit depth to default framebuffer (0) for correct skybox/transparent rendering
-                queue.submit(CmdCustom{[this, vpW = context.viewportWidth, vpH = context.viewportHeight]() {
-                    Log::Trace(std::format("[GBuffer] Blitting depth to default framebuffer (viewport: {}x{})", vpW, vpH));
-                    Framebuffer::blitToDefault(m_framebuffer, vpW, vpH, {
-                        .mask = FramebufferBlitMask::Depth
-                    });
-                    Log::Trace(std::format("[GBuffer] Blit complete, should be bound to default FB (0)"));
-                }});
+                Log::Trace(std::format("[GBuffer] Blitting depth to default framebuffer (viewport: {}x{})",
+                                       context.viewportWidth, context.viewportHeight));
+                Framebuffer::blitToDefault(m_framebuffer, context.viewportWidth, context.viewportHeight, {
+                    .mask = FramebufferBlitMask::Depth
+                });
+                Log::Trace("[GBuffer] Blit complete, should be bound to default FB (0)");
                 if (context.viewportWidth > 0 && context.viewportHeight > 0)
-                    queue.submit(CmdSetViewport{0, 0, context.viewportWidth, context.viewportHeight});
+                    api.setViewport(0, 0, context.viewportWidth, context.viewportHeight);
             }
         };
-        renderGraph.addPass(pass);
+        passQueue.addPass(pass);
     }
 
 } // namespace Fermion

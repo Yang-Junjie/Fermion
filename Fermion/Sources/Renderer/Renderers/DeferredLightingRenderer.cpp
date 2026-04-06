@@ -3,7 +3,7 @@
 #include "EnvironmentRenderer.hpp"
 #include "ShadowMapRenderer.hpp"
 #include "Renderer.hpp"
-#include "Renderer/RenderCommands.hpp"
+#include "Renderer/Framebuffer.hpp"
 #include "Renderer/UniformBufferLayout.hpp"
 #include "Renderer/UniformBuffer.hpp"
 #include "Renderer/VertexArray.hpp"
@@ -45,18 +45,18 @@ namespace Fermion
         m_quadVA->setIndexBuffer(quadIB);
     }
 
-    void DeferredLightingRenderer::addPass(RenderGraphLegacy& renderGraph,
+    void DeferredLightingRenderer::addPass(RenderPassQueue& passQueue,
                                             const RenderContext& context,
                                             const GBufferRenderer& gBuffer,
                                             const ShadowMapRenderer* shadowRenderer,
                                             EnvironmentRenderer* envRenderer,
                                             ResourceHandle lightingResult)
     {
-        LegacyRenderGraphPass pass;
+        RenderPass pass;
         pass.Name = "LightingPass";
         pass.Inputs = {};  // Dependencies are accessed via references
         pass.Outputs = {lightingResult};
-        pass.Execute = [this, &context, &gBuffer, shadowRenderer, envRenderer](RenderCommandQueue& queue)
+        pass.Execute = [this, &context, &gBuffer, shadowRenderer, envRenderer](RendererAPI& api)
         {
             auto gBufferFramebuffer = gBuffer.getFramebuffer();
             if (!gBufferFramebuffer || !m_pipeline)
@@ -66,13 +66,13 @@ namespace Fermion
             if (context.targetFramebuffer)
             {
                 Log::Trace(std::format("[LightingPass] Binding target framebuffer: {}", (void*)context.targetFramebuffer.get()));
-                queue.submit(CmdBindFramebuffer{context.targetFramebuffer});
+                context.targetFramebuffer->bind();
             }
             else
             {
                 Log::Trace(std::format("[LightingPass] No target framebuffer, rendering to default FB (0)"));
                 if (context.viewportWidth > 0 && context.viewportHeight > 0)
-                    queue.submit(CmdSetViewport{0, 0, context.viewportWidth, context.viewportHeight});
+                    api.setViewport(0, 0, context.viewportWidth, context.viewportHeight);
             }
 
             const glm::mat4 viewProjection = context.camera.camera.getProjection() * context.camera.view;
@@ -130,90 +130,83 @@ namespace Fermion
             auto envLight = context.environmentLight;
             auto shadowFB = enableShadows ? shadowRenderer->getShadowMapFramebuffer() : nullptr;
 
-            queue.submit(CmdCustom{[this, lightUBO = context.lightUBO, lightData,
-                                    gBufferFramebuffer, inverseViewProjection,
-                                    envRenderer, iblSettings,
-                                    enableShadows, shadowFB,
-                                    dirLightCount, envLight]() {
-                lightUBO->setData(&lightData, sizeof(LightData));
+            context.lightUBO->setData(&lightData, sizeof(LightData));
 
-                m_pipeline->bind();
-                auto shader = m_pipeline->getShader();
+            m_pipeline->bind();
+            auto shader = m_pipeline->getShader();
 
-                shader->setInt("u_GBufferAlbedo", 0);
-                shader->setInt("u_GBufferNormal", 1);
-                shader->setInt("u_GBufferMaterial", 2);
-                shader->setInt("u_GBufferEmissive", 3);
-                shader->setInt("u_GBufferDepth", 4);
+            shader->setInt("u_GBufferAlbedo", 0);
+            shader->setInt("u_GBufferNormal", 1);
+            shader->setInt("u_GBufferMaterial", 2);
+            shader->setInt("u_GBufferEmissive", 3);
+            shader->setInt("u_GBufferDepth", 4);
 
-                gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Albedo), 0);
-                gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Normal), 1);
-                gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Material), 2);
-                gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Emissive), 3);
-                gBufferFramebuffer->bindDepthAttachment(4);
+            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Albedo), 0);
+            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Normal), 1);
+            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Material), 2);
+            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Emissive), 3);
+            gBufferFramebuffer->bindDepthAttachment(4);
 
-                shader->setMat4("u_InverseViewProjection", inverseViewProjection);
+            shader->setMat4("u_InverseViewProjection", inverseViewProjection);
 
-                if (envRenderer)
-                {
-                    Log::Trace("[DeferredLighting] Binding IBL from envRenderer");
-                    envRenderer->bindIBL(shader, iblSettings);
-                }
-                else
-                {
-                    Log::Trace("[DeferredLighting] No envRenderer available, disabling IBL");
-                    shader->setBool("u_UseIBL", false);
-                }
+            if (envRenderer)
+            {
+                Log::Trace("[DeferredLighting] Binding IBL from envRenderer");
+                envRenderer->bindIBL(shader, iblSettings);
+            }
+            else
+            {
+                Log::Trace("[DeferredLighting] No envRenderer available, disabling IBL");
+                shader->setBool("u_UseIBL", false);
+            }
 
-                if (enableShadows)
-                {
-                    shader->setInt("u_ShadowMap", 10);
-                    shadowFB->bindDepthAttachment(10);
-                }
+            if (enableShadows)
+            {
+                shader->setInt("u_ShadowMap", 10);
+                shadowFB->bindDepthAttachment(10);
+            }
 
-                shader->setInt("u_DirLightCount", dirLightCount);
-                for (uint32_t i = 0; i < dirLightCount; i++)
-                {
-                    const auto& l = envLight.directionalLights[i + 1]; // Skip main light at index 0
-                    std::string base = "u_DirLights[" + std::to_string(i) + "]";
-                    shader->setFloat3(base + ".direction", l.direction);
-                    shader->setFloat3(base + ".color", l.color);
-                    shader->setFloat(base + ".intensity", l.intensity);
-                }
+            shader->setInt("u_DirLightCount", dirLightCount);
+            for (uint32_t i = 0; i < dirLightCount; i++)
+            {
+                const auto& l = envLight.directionalLights[i + 1];
+                std::string base = "u_DirLights[" + std::to_string(i) + "]";
+                shader->setFloat3(base + ".direction", l.direction);
+                shader->setFloat3(base + ".color", l.color);
+                shader->setFloat(base + ".intensity", l.intensity);
+            }
 
-                // Point and spot lights
-                uint32_t maxLights = 16;
-                uint32_t pointCount = std::min(maxLights, (uint32_t)envLight.pointLights.size());
-                shader->setInt("u_PointLightCount", pointCount);
-                for (uint32_t i = 0; i < pointCount; i++)
-                {
-                    const auto& l = envLight.pointLights[i];
-                    std::string base = "u_PointLights[" + std::to_string(i) + "]";
-                    shader->setFloat3(base + ".position", l.position);
-                    shader->setFloat3(base + ".color", l.color);
-                    shader->setFloat(base + ".intensity", l.intensity);
-                    shader->setFloat(base + ".range", l.range);
-                }
+            uint32_t maxLights = 16;
+            uint32_t pointCount = std::min(maxLights, (uint32_t)envLight.pointLights.size());
+            shader->setInt("u_PointLightCount", pointCount);
+            for (uint32_t i = 0; i < pointCount; i++)
+            {
+                const auto& l = envLight.pointLights[i];
+                std::string base = "u_PointLights[" + std::to_string(i) + "]";
+                shader->setFloat3(base + ".position", l.position);
+                shader->setFloat3(base + ".color", l.color);
+                shader->setFloat(base + ".intensity", l.intensity);
+                shader->setFloat(base + ".range", l.range);
+            }
 
-                uint32_t spotCount = std::min(maxLights, (uint32_t)envLight.spotLights.size());
-                shader->setInt("u_SpotLightCount", spotCount);
-                for (uint32_t i = 0; i < spotCount; i++)
-                {
-                    const auto& l = envLight.spotLights[i];
-                    std::string base = "u_SpotLights[" + std::to_string(i) + "]";
-                    shader->setFloat3(base + ".position", l.position);
-                    shader->setFloat3(base + ".direction", glm::normalize(l.direction));
-                    shader->setFloat3(base + ".color", l.color);
-                    shader->setFloat(base + ".intensity", l.intensity);
-                    shader->setFloat(base + ".range", l.range);
-                    shader->setFloat(base + ".innerConeAngle", l.innerConeAngle);
-                    shader->setFloat(base + ".outerConeAngle", l.outerConeAngle);
-                }
-            }});
+            uint32_t spotCount = std::min(maxLights, (uint32_t)envLight.spotLights.size());
+            shader->setInt("u_SpotLightCount", spotCount);
+            for (uint32_t i = 0; i < spotCount; i++)
+            {
+                const auto& l = envLight.spotLights[i];
+                std::string base = "u_SpotLights[" + std::to_string(i) + "]";
+                shader->setFloat3(base + ".position", l.position);
+                shader->setFloat3(base + ".direction", glm::normalize(l.direction));
+                shader->setFloat3(base + ".color", l.color);
+                shader->setFloat(base + ".intensity", l.intensity);
+                shader->setFloat(base + ".range", l.range);
+                shader->setFloat(base + ".innerConeAngle", l.innerConeAngle);
+                shader->setFloat(base + ".outerConeAngle", l.outerConeAngle);
+            }
 
-            queue.submit(CmdDrawIndexed{m_quadVA, m_quadVA->getIndexBuffer()->getCount()});
+            api.drawIndexed(m_quadVA, m_quadVA->getIndexBuffer()->getCount());
         };
-        renderGraph.addPass(pass);
+        passQueue.addPass(pass);
     }
 
 } // namespace Fermion

@@ -1,7 +1,6 @@
 #include "PostProcessRenderer.hpp"
 #include "GBufferRenderer.hpp"
 #include "Renderer.hpp"
-#include "Renderer/RenderCommands.hpp"
 #include "Renderer/Pipeline.hpp"
 #include "Renderer/VertexArray.hpp"
 
@@ -50,7 +49,7 @@ namespace Fermion
         m_quadVA->setIndexBuffer(quadIB);
     }
 
-    void PostProcessRenderer::addDepthViewPass(RenderGraphLegacy& renderGraph,
+    void PostProcessRenderer::addDepthViewPass(RenderPassQueue& passQueue,
                                                 const RenderContext& context,
                                                 const GBufferRenderer* gBuffer,
                                                 bool useDeferred,
@@ -61,43 +60,36 @@ namespace Fermion
         if (!context.targetFramebuffer)
             return;
 
-        LegacyRenderGraphPass pass;
+        RenderPass pass;
         pass.Name = "DepthViewPass";
         pass.Inputs = {sceneDepth, lightingResult};
-        pass.Execute = [this, &context, gBuffer, useDeferred, power](RenderCommandQueue& queue)
+        pass.Execute = [this, &context, gBuffer, useDeferred, power](RendererAPI& api)
         {
             auto gBufferFB = (gBuffer && useDeferred) ? gBuffer->getFramebuffer() : nullptr;
             auto targetFB = context.targetFramebuffer;
             float nearClip = context.camera.nearClip;
             float farClip = context.camera.farClip;
 
-            queue.submit(CmdCustom{[this, gBufferFB, targetFB, useDeferred, power, nearClip, farClip]() {
-                m_depthViewPipeline->bind();
-                auto shader = m_depthViewPipeline->getShader();
+            m_depthViewPipeline->bind();
+            auto shader = m_depthViewPipeline->getShader();
 
-                shader->setInt("u_Depth", 0);
-                if (gBufferFB && useDeferred)
-                {
-                    gBufferFB->bindDepthAttachment(0);
-                }
-                else
-                {
-                    targetFB->bindDepthAttachment(0);
-                }
+            shader->setInt("u_Depth", 0);
+            if (gBufferFB && useDeferred)
+                gBufferFB->bindDepthAttachment(0);
+            else
+                targetFB->bindDepthAttachment(0);
 
-                shader->setFloat("u_Near", nearClip);
-                shader->setFloat("u_Far", farClip);
-                shader->setInt("u_IsPerspective", 1);
+            shader->setFloat("u_Near", nearClip);
+            shader->setFloat("u_Far", farClip);
+            shader->setInt("u_IsPerspective", 1);
+            shader->setFloat("u_Power", power);
 
-                shader->setFloat("u_Power", power);
-            }});
-
-            queue.submit(CmdDrawIndexed{m_quadVA, m_quadVA->getIndexBuffer()->getCount()});
+            api.drawIndexed(m_quadVA, m_quadVA->getIndexBuffer()->getCount());
         };
-        renderGraph.addPass(pass);
+        passQueue.addPass(pass);
     }
 
-    void PostProcessRenderer::addGBufferDebugPass(RenderGraphLegacy& renderGraph,
+    void PostProcessRenderer::addGBufferDebugPass(RenderPassQueue& passQueue,
                                                    const RenderContext& context,
                                                    const GBufferRenderer& gBuffer,
                                                    GBufferDebugMode mode,
@@ -105,10 +97,10 @@ namespace Fermion
                                                    ResourceHandle gBufferHandle,
                                                    ResourceHandle sceneDepth)
     {
-        LegacyRenderGraphPass pass;
+        RenderPass pass;
         pass.Name = "GBufferDebugPass";
         pass.Inputs = {gBufferHandle, sceneDepth};
-        pass.Execute = [this, &context, &gBuffer, mode, depthPower](RenderCommandQueue& queue)
+        pass.Execute = [this, &context, &gBuffer, mode, depthPower](RendererAPI& api)
         {
             auto gBufferFramebuffer = gBuffer.getFramebuffer();
             if (!gBufferFramebuffer || !m_debugPipeline)
@@ -116,44 +108,41 @@ namespace Fermion
 
             if (context.targetFramebuffer)
             {
-                queue.submit(CmdBindFramebuffer{context.targetFramebuffer});
+                context.targetFramebuffer->bind();
             }
             else
             {
                 if (context.viewportWidth > 0 && context.viewportHeight > 0)
-                    queue.submit(CmdSetViewport{0, 0, context.viewportWidth, context.viewportHeight});
+                    api.setViewport(0, 0, context.viewportWidth, context.viewportHeight);
             }
 
             float nearClip = context.camera.nearClip;
             float farClip = context.camera.farClip;
 
-            queue.submit(CmdCustom{[this, gBufferFramebuffer,
-                                    mode, nearClip, farClip, depthPower]() {
-                m_debugPipeline->bind();
-                auto shader = m_debugPipeline->getShader();
+            m_debugPipeline->bind();
+            auto shader = m_debugPipeline->getShader();
 
-                shader->setInt("u_GBufferAlbedo", 0);
-                shader->setInt("u_GBufferNormal", 1);
-                shader->setInt("u_GBufferMaterial", 2);
-                shader->setInt("u_GBufferEmissive", 3);
-                shader->setInt("u_GBufferObjectID", 4);
-                shader->setInt("u_GBufferDepth", 5);
-                shader->setInt("u_Mode", static_cast<int>(mode));
-                shader->setFloat("u_Near", nearClip);
-                shader->setFloat("u_Far", farClip);
-                shader->setFloat("u_DepthPower", depthPower);
+            shader->setInt("u_GBufferAlbedo", 0);
+            shader->setInt("u_GBufferNormal", 1);
+            shader->setInt("u_GBufferMaterial", 2);
+            shader->setInt("u_GBufferEmissive", 3);
+            shader->setInt("u_GBufferObjectID", 4);
+            shader->setInt("u_GBufferDepth", 5);
+            shader->setInt("u_Mode", static_cast<int>(mode));
+            shader->setFloat("u_Near", nearClip);
+            shader->setFloat("u_Far", farClip);
+            shader->setFloat("u_DepthPower", depthPower);
 
-                gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Albedo), 0);
-                gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Normal), 1);
-                gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Material), 2);
-                gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Emissive), 3);
-                gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::ObjectID), 4);
-                gBufferFramebuffer->bindDepthAttachment(5);
-            }});
+            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Albedo), 0);
+            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Normal), 1);
+            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Material), 2);
+            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Emissive), 3);
+            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::ObjectID), 4);
+            gBufferFramebuffer->bindDepthAttachment(5);
 
-            queue.submit(CmdDrawIndexed{m_quadVA, m_quadVA->getIndexBuffer()->getCount()});
+            api.drawIndexed(m_quadVA, m_quadVA->getIndexBuffer()->getCount());
         };
-        renderGraph.addPass(pass);
+        passQueue.addPass(pass);
     }
 
 } // namespace Fermion

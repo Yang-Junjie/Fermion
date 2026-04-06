@@ -1,0 +1,167 @@
+# =========================================================
+# 基础风格
+# =========================================================
+BasedOnStyle: LLVM
+Standard: Latest
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 100
+ContinuationIndentWidth: 4
+AccessModifierOffset: -4          # public/private 与 class 齐平
+IndentAccessModifiers: false
+IndentWrappedFunctionNames: true  # 折行的函数名缩进
+
+# =========================================================
+# 大括号风格
+# =========================================================
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: false
+  AfterControlStatement: Never
+  AfterEnum: false
+  AfterFunction: true
+  AfterNamespace: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterExternBlock: false
+  BeforeElse: false
+  BeforeCatch: false
+  BeforeLambdaBody: false
+  IndentBraces: false
+  SplitEmptyFunction: false       # 空函数体 {} 不拆行
+  SplitEmptyRecord: false         # 空 class/struct {} 不拆行
+
+# =========================================================
+# 函数与短语句控制 — 强制展开，可读性优先
+# =========================================================
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+
+# =========================================================
+# 头文件排序
+# =========================================================
+SortIncludes: CaseInsensitive
+IncludeBlocks: Regroup
+IncludeCategories:
+  # 1. 对应的主头文件（同名 .h）
+  - Regex: '^".*"'
+    Priority: 0
+  # 2. C 标准库
+  - Regex: '^<c(assert|complex|ctype|errno|fenv|float|inttypes|limits|locale|math|setjmp|signal|stdarg|stddef|stdint|stdio|stdlib|string|time|uchar|wchar|wctype)>'
+    Priority: 1
+  # 3. C++ 标准库
+  - Regex: '^<'
+    Priority: 2
+  # 4. 第三方库
+  - Regex: '.*'
+    Priority: 3
+
+# =========================================================
+# 指针与引用风格
+# =========================================================
+PointerAlignment: Left            # int* ptr
+ReferenceAlignment: Left          # int& ref
+DerivePointerAlignment: false
+
+# =========================================================
+# 空格控制
+# =========================================================
+SpaceBeforeParens: ControlStatements
+SpaceInEmptyParentheses: false
+SpacesInCStyleCastParentheses: false
+SpacesInParentheses: false
+SpacesInAngles: false
+SpaceBeforeAssignmentOperators: true
+SpaceAfterCStyleCast: true
+SpaceBeforeCpp11BracedList: false
+SpaceBeforeSquareBrackets: false
+SpaceAroundPointerQualifiers: Default
+SpacesInContainerLiterals: false
+SpacesInLineCommentPrefix:
+  Minimum: 1
+  Maximum: 1                      # 注释 // 后统一一个空格
+
+# =========================================================
+# 对齐策略
+# =========================================================
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignConsecutiveMacros: true      # 连续宏定义对齐
+AlignTrailingComments: true
+AlignOperands: Align
+AlignAfterOpenBracket: Align
+AlignEscapedNewlines: Left        # 宏续行反斜杠左对齐
+
+# =========================================================
+# 函数参数 & 调用换行
+# =========================================================
+BinPackArguments: false            # 函数实参：每行一个（超宽时）
+BinPackParameters: false           # 函数形参：每行一个（超宽时）
+AllowAllArgumentsOnNextLine: true
+AllowAllParametersOfDeclarationOnNextLine: true
+
+# =========================================================
+# 构造函数初始化列表
+# =========================================================
+BreakConstructorInitializers: BeforeColon
+ConstructorInitializerIndentWidth: 4
+PackConstructorInitializers: Never
+
+# =========================================================
+# 继承列表
+# =========================================================
+BreakInheritanceList: BeforeColon
+
+# =========================================================
+# Lambda & 现代 C++
+# =========================================================
+AllowShortLambdasOnASingleLine: Empty
+LambdaBodyIndentation: Signature
+
+# =========================================================
+# 模板相关
+# =========================================================
+BreakTemplateDeclarations: Yes
+
+# =========================================================
+# switch 风格
+# =========================================================
+IndentCaseLabels: true
+IndentCaseBlocks: false           # case 下的语句已被 label 缩进，不需要再缩
+
+# =========================================================
+# 命名空间
+# =========================================================
+CompactNamespaces: false
+NamespaceIndentation: None        # namespace 内容不缩进
+FixNamespaceComments: true        # 自动补 } // namespace xxx
+
+# =========================================================
+# 注释
+# =========================================================
+ReflowComments: true
+CommentPragmas: '^ IWYU pragma:'
+
+# =========================================================
+# 现代 C++ & 其他
+# =========================================================
+Cpp11BracedListStyle: true
+SortUsingDeclarations: Lexicographic
+InsertBraces: true                # if/for/while 单行自动加 {}
+InsertNewlineAtEOF: true          # 文件末尾确保有换行
+RemoveSemicolon: true             # 移除多余分号
+SeparateDefinitionBlocks: Always  # 函数/类定义之间空行分隔
+EmptyLineAfterAccessModifier: Never
+EmptyLineBeforeAccessModifier: Always
+QualifierAlignment: Left          # const int 而非 int const
+RequiresClausePosition: OwnLine   # C++20 requires 子句独占一行
+RequiresExpressionIndentation: OuterScope
+IntegerLiteralSeparator:          # 数字字面量分隔符（C++14）
+  Binary: 4                       # 0b0001'0000
+  Decimal: 3                      # 1'000'000
+  Hex: 2                          # 0xFF'AB

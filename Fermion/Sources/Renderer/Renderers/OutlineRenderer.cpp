@@ -1,6 +1,7 @@
 #include "OutlineRenderer.hpp"
 #include "GBufferRenderer.hpp"
 #include "Renderer2DCompat.hpp"
+#include "SceneRenderer.hpp"
 
 namespace Fermion
 {
@@ -8,10 +9,10 @@ namespace Fermion
     {
     }
 
-    void OutlineRenderer::addPass(RenderGraphLegacy& renderGraph,
+    void OutlineRenderer::addPass(RenderPassQueue& passQueue,
                                    const RenderContext& context,
                                    const GBufferRenderer* gBuffer,
-                                   const std::vector<MeshDrawCommand>& drawList,
+                                   std::span<const MeshDrawCommand> drawList,
                                    const std::vector<int>& outlineIDs,
                                    const Settings& settings,
                                    ResourceHandle gBufferHandle,
@@ -53,10 +54,10 @@ namespace Fermion
             return;
 
        
-        LegacyRenderGraphPass pass;
+        RenderPass pass;
         pass.Name = "OutlinePass";
         pass.Inputs = {lightingResult};
-        pass.Execute = [&drawList, uniqueIDs = std::move(uniqueIDs), settings](RenderCommandQueue& queue)
+        pass.Execute = [drawList, uniqueIDs = std::move(uniqueIDs), settings](RendererAPI&)
         {
             for (const auto& cmd : drawList)
             {
@@ -79,7 +80,7 @@ namespace Fermion
                 }
             }
         };
-        renderGraph.addPass(pass);
+        passQueue.addPass(pass);
     }
 
 } // namespace Fermion

@@ -210,13 +210,6 @@ namespace Fermion
             g_Instance->setLineWidth(width);
         }
 
-        inline void recordOutlinePass(RenderCommandQueue& queue,
-                                     const std::vector<MeshDrawCommand>& drawCommands,
-                                     const glm::vec4& outlineColor)
-        {
-            g_Instance->recordOutlinePass(queue, drawCommands, outlineColor);
-        }
-
         using TextParams = Renderer2D::TextParams;
 
         inline void drawString(const std::string& string, std::shared_ptr<Font> font,

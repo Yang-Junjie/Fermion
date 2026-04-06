@@ -1,11 +1,13 @@
 #include "ForwardRenderer.hpp"
 #include "EnvironmentRenderer.hpp"
+#include "SceneRenderer.hpp"
 #include "ShadowMapRenderer.hpp"
 #include "Renderer.hpp"
-#include "Renderer/RenderCommands.hpp"
+#include "Renderer/Framebuffer.hpp"
 #include "Renderer/UniformBufferLayout.hpp"
 #include "Renderer/UniformBuffer.hpp"
 #include "Renderer/Pipeline.hpp"
+#include "Renderer/Model/Material.hpp"
 namespace Fermion
 {
     ForwardRenderer::ForwardRenderer()
@@ -50,9 +52,9 @@ namespace Fermion
         }
     }
 
-    void ForwardRenderer::addPass(RenderGraphLegacy& renderGraph,
+    void ForwardRenderer::addPass(RenderPassQueue& passQueue,
                                    const RenderContext& context,
-                                   const std::vector<MeshDrawCommand>& drawList,
+                                   std::span<const MeshDrawCommand> drawList,
                                    const ShadowMapRenderer* shadowRenderer,
                                    EnvironmentRenderer* envRenderer,
                                    ResourceHandle shadowMap,
@@ -62,7 +64,7 @@ namespace Fermion
                                    uint32_t* geometryDrawCalls,
                                    uint32_t* iblDrawCalls)
     {
-        LegacyRenderGraphPass pass;
+        RenderPass pass;
         pass.Name = transparentOnly ? "TransparentPass" : "ForwardPass";
         pass.Inputs = {shadowMap};
         if (transparentOnly)
@@ -74,7 +76,7 @@ namespace Fermion
         {
             pass.Outputs = {sceneDepth, lightingResult};
         }
-        pass.Execute = [this, &context, &drawList, shadowRenderer, envRenderer, transparentOnly, geometryDrawCalls, iblDrawCalls](RenderCommandQueue& queue)
+        pass.Execute = [this, &context, drawList, shadowRenderer, envRenderer, transparentOnly, geometryDrawCalls, iblDrawCalls](RendererAPI& api)
         {
             std::shared_ptr<Pipeline> currentPipeline = nullptr;
             EnvironmentRenderer::IBLSettings iblSettings = {
@@ -111,9 +113,7 @@ namespace Fermion
             lightData.ambientIntensity = context.ambientIntensity;
             lightData.numPointLights = std::min(16u, (uint32_t)context.environmentLight.pointLights.size());
             lightData.numSpotLights = std::min(16u, (uint32_t)context.environmentLight.spotLights.size());
-            queue.submit(CmdCustom{[lightUBO = context.lightUBO, lightData]() {
-                lightUBO->setData(&lightData, sizeof(LightData));
-            }});
+            context.lightUBO->setData(&lightData, sizeof(LightData));
 
             for (const auto& cmd : drawList)
             {
@@ -124,9 +124,7 @@ namespace Fermion
                 if (currentPipeline != cmd.pipeline)
                 {
                     currentPipeline = cmd.pipeline;
-                    queue.submit(CmdCustom{[pipeline = currentPipeline]() {
-                        pipeline->bind();
-                    }});
+                    currentPipeline->bind();
                 }
 
                 auto shader = currentPipeline->getShader();
@@ -136,35 +134,27 @@ namespace Fermion
                 modelData.model = cmd.transform;
                 modelData.normalMatrix = glm::transpose(glm::inverse(cmd.transform));
                 modelData.objectID = cmd.objectID;
-                queue.submit(CmdCustom{[modelUBO = context.modelUBO, modelData]() {
-                    modelUBO->setData(&modelData, sizeof(ModelData));
-                }});
+                context.modelUBO->setData(&modelData, sizeof(ModelData));
 
                 // Upload bone matrices for skinned meshes
                 if (cmd.isSkinned && cmd.boneMatrices && !cmd.boneMatrices->empty())
                 {
-                    queue.submit(CmdCustom{[boneUBO = context.boneUBO, boneMatrices = cmd.boneMatrices]() {
-                        boneUBO->setData(boneMatrices->data(),
-                            static_cast<uint32_t>(boneMatrices->size() * sizeof(glm::mat4)));
-                    }});
+                    context.boneUBO->setData(cmd.boneMatrices->data(),
+                        static_cast<uint32_t>(cmd.boneMatrices->size() * sizeof(glm::mat4)));
                 }
 
                 if (cmd.pipeline == m_pbrPipeline || cmd.pipeline == m_skinnedPBRPipeline)
                 {
                     if (envRenderer)
                     {
-                        queue.submit(CmdCustom{[envRenderer, iblSettings, targetFB = context.targetFramebuffer,
-                                                vpW = context.viewportWidth, vpH = context.viewportHeight,
-                                                iblDrawCalls, shader]() {
-                            envRenderer->ensureIBLInitialized(iblSettings, targetFB, vpW, vpH, iblDrawCalls);
-                            envRenderer->bindIBL(shader, iblSettings);
-                        }});
+                        envRenderer->ensureIBLInitialized(iblSettings, context.targetFramebuffer,
+                                                          context.viewportWidth, context.viewportHeight,
+                                                          iblDrawCalls);
+                        envRenderer->bindIBL(shader, iblSettings);
                     }
                     else
                     {
-                        queue.submit(CmdCustom{[shader]() {
-                            shader->setBool("u_UseIBL", false);
-                        }});
+                        shader->setBool("u_UseIBL", false);
                     }
                 }
 
@@ -172,10 +162,9 @@ namespace Fermion
                 bool enableShadows = context.enableShadows && shadowRenderer && shadowRenderer->getShadowMapFramebuffer();
                 if (enableShadows)
                 {
-                    queue.submit(CmdCustom{[shader, shadowFB = shadowRenderer->getShadowMapFramebuffer()]() {
-                        shader->setInt("u_ShadowMap", 10);
-                        shadowFB->bindDepthAttachment(10);
-                    }});
+                    auto shadowFB = shadowRenderer->getShadowMapFramebuffer();
+                    shader->setInt("u_ShadowMap", 10);
+                    shadowFB->bindDepthAttachment(10);
                 }
 
                 // Additional directional lights (excluding the main one)
@@ -186,69 +175,63 @@ namespace Fermion
                     dirLightCount = std::min(maxDirLights, (uint32_t)(context.environmentLight.directionalLights.size() - 1));
                 }
 
-                // Capture light data for the CmdCustom lambda
+                // Capture light data for the deferred execution lambda
                 {
                     auto envLight = context.environmentLight;
                     float normalStrength = context.normalMapStrength;
                     float toksvigStrength = context.toksvigStrength;
                     auto material = cmd.material;
+                    shader->setInt("u_DirLightCount", dirLightCount);
+                    for (uint32_t i = 0; i < dirLightCount; i++)
+                    {
+                        const auto& l = envLight.directionalLights[i + 1];
+                        std::string base = "u_DirLights[" + std::to_string(i) + "]";
+                        shader->setFloat3(base + ".direction", l.direction);
+                        shader->setFloat3(base + ".color", l.color);
+                        shader->setFloat(base + ".intensity", l.intensity);
+                    }
 
-                    queue.submit(CmdCustom{[shader, dirLightCount, envLight, normalStrength, toksvigStrength, material]() {
-                        shader->setInt("u_DirLightCount", dirLightCount);
-                        for (uint32_t i = 0; i < dirLightCount; i++)
-                        {
-                            const auto& l = envLight.directionalLights[i + 1]; // Skip main light at index 0
-                            std::string base = "u_DirLights[" + std::to_string(i) + "]";
-                            shader->setFloat3(base + ".direction", l.direction);
-                            shader->setFloat3(base + ".color", l.color);
-                            shader->setFloat(base + ".intensity", l.intensity);
-                        }
+                    uint32_t maxLights = 16;
+                    uint32_t pointCount = std::min(maxLights, (uint32_t)envLight.pointLights.size());
+                    shader->setInt("u_PointLightCount", pointCount);
+                    for (uint32_t i = 0; i < pointCount; i++)
+                    {
+                        const auto& l = envLight.pointLights[i];
+                        std::string base = "u_PointLights[" + std::to_string(i) + "]";
+                        shader->setFloat3(base + ".position", l.position);
+                        shader->setFloat3(base + ".color", l.color);
+                        shader->setFloat(base + ".intensity", l.intensity);
+                        shader->setFloat(base + ".range", l.range);
+                    }
 
-                        // Point lights
-                        uint32_t maxLights = 16;
-                        uint32_t pointCount = std::min(maxLights, (uint32_t)envLight.pointLights.size());
-                        shader->setInt("u_PointLightCount", pointCount);
-                        for (uint32_t i = 0; i < pointCount; i++)
-                        {
-                            const auto& l = envLight.pointLights[i];
-                            std::string base = "u_PointLights[" + std::to_string(i) + "]";
-                            shader->setFloat3(base + ".position", l.position);
-                            shader->setFloat3(base + ".color", l.color);
-                            shader->setFloat(base + ".intensity", l.intensity);
-                            shader->setFloat(base + ".range", l.range);
-                        }
+                    uint32_t spotCount = std::min(maxLights, (uint32_t)envLight.spotLights.size());
+                    shader->setInt("u_SpotLightCount", spotCount);
+                    for (uint32_t i = 0; i < spotCount; i++)
+                    {
+                        const auto& l = envLight.spotLights[i];
+                        std::string base = "u_SpotLights[" + std::to_string(i) + "]";
+                        shader->setFloat3(base + ".position", l.position);
+                        shader->setFloat3(base + ".direction", glm::normalize(l.direction));
+                        shader->setFloat3(base + ".color", l.color);
+                        shader->setFloat(base + ".intensity", l.intensity);
+                        shader->setFloat(base + ".range", l.range);
+                        shader->setFloat(base + ".innerConeAngle", l.innerConeAngle);
+                        shader->setFloat(base + ".outerConeAngle", l.outerConeAngle);
+                    }
 
-                        // Spot lights
-                        uint32_t spotCount = std::min(maxLights, (uint32_t)envLight.spotLights.size());
-                        shader->setInt("u_SpotLightCount", spotCount);
-                        for (uint32_t i = 0; i < spotCount; i++)
-                        {
-                            const auto& l = envLight.spotLights[i];
-                            std::string base = "u_SpotLights[" + std::to_string(i) + "]";
-                            shader->setFloat3(base + ".position", l.position);
-                            shader->setFloat3(base + ".direction", glm::normalize(l.direction));
-                            shader->setFloat3(base + ".color", l.color);
-                            shader->setFloat(base + ".intensity", l.intensity);
-                            shader->setFloat(base + ".range", l.range);
-                            shader->setFloat(base + ".innerConeAngle", l.innerConeAngle);
-                            shader->setFloat(base + ".outerConeAngle", l.outerConeAngle);
-                        }
+                    shader->setFloat("u_NormalStrength", normalStrength);
+                    shader->setFloat("u_ToksvigStrength", toksvigStrength);
 
-                        // Normal map strength
-                        shader->setFloat("u_NormalStrength", normalStrength);
-                        shader->setFloat("u_ToksvigStrength", toksvigStrength);
-
-                        if (material)
-                            material->bind(shader);
-                    }});
+                    if (material)
+                        material->bind(shader);
                 }
 
-                queue.submit(CmdDrawIndexed{cmd.vao, cmd.indexCount, cmd.indexOffset});
+                api.drawIndexed(cmd.vao, cmd.indexCount, cmd.indexOffset);
                 if (geometryDrawCalls)
                     (*geometryDrawCalls)++;
             }
         };
-        renderGraph.addPass(pass);
+        passQueue.addPass(pass);
     }
 
 } // namespace Fermion

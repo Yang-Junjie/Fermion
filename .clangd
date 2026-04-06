@@ -1,0 +1,9 @@
+# .clangd 配置文件
+CompileFlags:
+  CompilationDatabase: "build"
+
+Index:
+  Background: Build
+  StandardLibrary: true
+
+
