@@ -1,6 +1,6 @@
 #include "OutlineRenderer.hpp"
 #include "GBufferRenderer.hpp"
-#include "Renderer2DCompat.hpp"
+#include "Renderer2D.hpp"
 #include "SceneRenderer.hpp"
 
 namespace Fermion
@@ -76,7 +76,7 @@ namespace Fermion
 
                 if (shouldOutline)
                 {
-                    Renderer2DCompat::drawAABB(cmd.aabb, cmd.transform, settings.color, cmd.objectID);
+                    Renderer2D::Get().drawAABB(cmd.aabb, cmd.transform, settings.color, cmd.objectID);
                 }
             }
         };

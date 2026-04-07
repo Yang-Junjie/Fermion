@@ -43,12 +43,17 @@ namespace Fermion
             return m_window;
         }
 
+        GraphicsContext *getGraphicsContext() const override
+        {
+            return m_context.get();
+        }
+
     private:
         virtual void init(const WindowProps &props);
         virtual void shutdown();
 
     private:
-        GLFWwindow *m_window;
+        GLFWwindow *m_window = nullptr;
         std::unique_ptr<GraphicsContext> m_context;
         struct WindowData
         {

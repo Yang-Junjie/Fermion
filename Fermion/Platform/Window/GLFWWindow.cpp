@@ -1,224 +1,248 @@
-﻿#include "GLFWWindow.hpp"
-
 #include "Core/Log.hpp"
-#include "GLFWKeyCodes.hpp"
-#include "GLFWMouseCodes.hpp"
-
 #include "Events/ApplicationEvent.hpp"
 #include "Events/Event.hpp"
-#include "Events/MouseEvent.hpp"
 #include "Events/KeyEvent.hpp"
+#include "Events/MouseEvent.hpp"
+#include "GLFWKeyCodes.hpp"
+#include "GLFWMouseCodes.hpp"
+#include "GLFWWindow.hpp"
+#include "Renderer/RendererAPI.hpp"
 
-namespace Fermion
+namespace Fermion {
+static uint8_t s_GLFWWindowCount = 0;
+
+static void GLFWErrorCallback(int error, const char* description)
 {
-    static uint8_t s_GLFWWindowCount = 0;
+    Log::Error(std::format("GLFW Error {}: {}", error, description ? description : "Unknown"));
+}
 
-    static void GLFWErrorCallback(int error, const char *description)
-    {
+GLFWWindow::GLFWWindow(const WindowProps& props)
+{
+    FM_PROFILE_FUNCTION();
+
+    init(props);
+}
+
+GLFWWindow::~GLFWWindow()
+{
+    FM_PROFILE_FUNCTION();
+
+    shutdown();
+}
+
+void GLFWWindow::init(const WindowProps& props)
+{
+    FM_PROFILE_FUNCTION();
+
+    m_data.title = props.title;
+    m_data.width = props.width;
+    m_data.height = props.height;
+    m_data.VSync = false;
+
+    if (s_GLFWWindowCount == 0) {
+        int success = glfwInit();
+        FERMION_ASSERT(success == GLFW_TRUE, "Failed to initialize GLFW");
+        glfwSetErrorCallback(GLFWErrorCallback);
     }
 
-    GLFWWindow::GLFWWindow(const WindowProps &props)
-    {
-        FM_PROFILE_FUNCTION();
-
-        init(props);
+    glfwDefaultWindowHints();
+    switch (RendererAPI::getAPI()) {
+        case RendererAPI::API::OpenGL:
+            glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
+            break;
+        case RendererAPI::API::Vulkan:
+        case RendererAPI::API::None:
+            glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+            break;
     }
 
-    GLFWWindow::~GLFWWindow()
-    {
-        FM_PROFILE_FUNCTION();
-
-        shutdown();
+    if (props.maximized) {
+        glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
     }
 
-    void GLFWWindow::init(const WindowProps &props)
-    {
-        FM_PROFILE_FUNCTION();
+    m_window = glfwCreateWindow(static_cast<int>(props.width),
+                                static_cast<int>(props.height),
+                                m_data.title.c_str(),
+                                nullptr,
+                                nullptr);
+    if (!m_window) {
+        Log::Error("Window creation failed");
+        return;
+    }
 
-        m_data.title = props.title;
-        m_data.width = props.width;
-        m_data.height = props.height;
+    Log::Info(std::format("Window created: {}", props.title));
+    ++s_GLFWWindowCount;
 
-        if (s_GLFWWindowCount == 0)
-        {
-            int success = glfwInit();
-            glfwSetErrorCallback(GLFWErrorCallback);
-        }
-
-        {
-            // glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-            // glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-            if (props.maximized)
-                glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
-
-            m_window = glfwCreateWindow(static_cast<int>(props.width), static_cast<int>(props.height), m_data.title.c_str(), nullptr, nullptr);
-            if (m_window)
-            {
-                Log::Info(std::format("Window created: {}", props.title));
-            }
-            else
-            {
-                Log::Error("Window creation failed");
-            }
-            ++s_GLFWWindowCount;
-        }
-        m_context = GraphicsContext::create(m_window);
+    m_context = GraphicsContext::create(m_window);
+    if (m_context) {
         m_context->init();
-        glfwSetWindowUserPointer(m_window, &m_data);
-
-        glfwSetWindowSizeCallback(m_window, [](GLFWwindow *window, int width, int height)
-                                  {
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
-			data.width = width;
-			data.height = height;
-
-			WindowResizeEvent event(width, height);
-			data.eventCallback(event); });
-
-        glfwSetWindowCloseCallback(m_window, [](GLFWwindow *window)
-                                   {
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
-			WindowCloseEvent event;
-			data.eventCallback(event); });
-
-        glfwSetKeyCallback(m_window, [](GLFWwindow *window, int key, int scancode, int action, int mods)
-                           {
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
-
-			switch (action)
-			{
-				case GLFW_PRESS:
-				{
-					KeyPressedEvent event(GLFWKeyCodeToFMKeyCode(key), 0);
-					data.eventCallback(event);
-                    Log::Trace(std::format("Key pressed: {}", key));
-					break;
-				}
-				case GLFW_RELEASE:
-				{
-					KeyReleasedEvent event(GLFWKeyCodeToFMKeyCode(key));
-					data.eventCallback(event);
-                    Log::Trace(std::format("Key released: {}", key));
-					break;
-				}
-				case GLFW_REPEAT:
-				{
-					KeyPressedEvent event(GLFWKeyCodeToFMKeyCode(key), true);
-					data.eventCallback(event);
-                    Log::Trace(std::format("Key pressed (repeat): {}", key));
-					break;
-				}
-			} });
-
-        glfwSetCharCallback(m_window, [](GLFWwindow *window, unsigned int keycode)
-                            {
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
-
-			KeyTypedEvent event(GLFWKeyCodeToFMKeyCode(keycode));
-			data.eventCallback(event); });
-
-        glfwSetMouseButtonCallback(m_window, [](GLFWwindow *window, int button, int action, int mods)
-                                   {
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
-
-			switch (action)
-			{
-				case GLFW_PRESS:
-				{
-					MouseButtonPressedEvent event(GLFWMouseCodeToFMouseCode(button));
-					data.eventCallback(event);
-                    Log::Trace(std::format("Mouse button pressed: {}", button));
-					break;
-				}
-				case GLFW_RELEASE:
-				{
-					MouseButtonReleasedEvent event(GLFWMouseCodeToFMouseCode(button));
-					data.eventCallback(event);
-                    Log::Trace(std::format("Mouse button released: {}", button));
-					break;
-				}
-			} });
-
-        glfwSetScrollCallback(m_window, [](GLFWwindow *window, double xOffset, double yOffset)
-                              {
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
-
-			MouseScrolledEvent event((float)xOffset, (float)yOffset);
-			data.eventCallback(event); });
-
-        glfwSetCursorPosCallback(m_window, [](GLFWwindow *window, double xPos, double yPos)
-                                 {
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
-
-			MouseMovedEvent event((float)xPos, (float)yPos);
-			data.eventCallback(event); });
     }
 
-    void GLFWWindow::shutdown()
-    {
-        FM_PROFILE_FUNCTION();
+    glfwSetWindowUserPointer(m_window, this);
 
-        glfwDestroyWindow(m_window);
-        --s_GLFWWindowCount;
+    glfwSetWindowSizeCallback(m_window, [](GLFWwindow* window, int width, int height) {
+        auto* self = static_cast<GLFWWindow*>(glfwGetWindowUserPointer(window));
+        self->m_data.width = width;
+        self->m_data.height = height;
 
-        if (s_GLFWWindowCount == 0)
-        {
-            glfwTerminate();
+        if (self->m_context) {
+            self->m_context->resize(static_cast<uint32_t>(width), static_cast<uint32_t>(height));
         }
-        Log::Info("Window destroyed");
+
+        WindowResizeEvent event(width, height);
+        self->m_data.eventCallback(event);
+    });
+
+    glfwSetWindowCloseCallback(m_window, [](GLFWwindow* window) {
+        auto* self = static_cast<GLFWWindow*>(glfwGetWindowUserPointer(window));
+        WindowCloseEvent event;
+        self->m_data.eventCallback(event);
+    });
+
+    glfwSetKeyCallback(m_window,
+                       [](GLFWwindow* window, int key, int scancode, int action, int mods) {
+                           auto* self = static_cast<GLFWWindow*>(glfwGetWindowUserPointer(window));
+
+                           switch (action) {
+                               case GLFW_PRESS: {
+                                   KeyPressedEvent event(GLFWKeyCodeToFMKeyCode(key), 0);
+                                   self->m_data.eventCallback(event);
+                                   Log::Trace(std::format("Key pressed: {}", key));
+                                   break;
+                               }
+                               case GLFW_RELEASE: {
+                                   KeyReleasedEvent event(GLFWKeyCodeToFMKeyCode(key));
+                                   self->m_data.eventCallback(event);
+                                   Log::Trace(std::format("Key released: {}", key));
+                                   break;
+                               }
+                               case GLFW_REPEAT: {
+                                   KeyPressedEvent event(GLFWKeyCodeToFMKeyCode(key), true);
+                                   self->m_data.eventCallback(event);
+                                   Log::Trace(std::format("Key pressed (repeat): {}", key));
+                                   break;
+                               }
+                           }
+                       });
+
+    glfwSetCharCallback(m_window, [](GLFWwindow* window, unsigned int keycode) {
+        auto* self = static_cast<GLFWWindow*>(glfwGetWindowUserPointer(window));
+
+        KeyTypedEvent event(GLFWKeyCodeToFMKeyCode(keycode));
+        self->m_data.eventCallback(event);
+    });
+
+    glfwSetMouseButtonCallback(m_window, [](GLFWwindow* window, int button, int action, int mods) {
+        auto* self = static_cast<GLFWWindow*>(glfwGetWindowUserPointer(window));
+
+        switch (action) {
+            case GLFW_PRESS: {
+                MouseButtonPressedEvent event(GLFWMouseCodeToFMouseCode(button));
+                self->m_data.eventCallback(event);
+                Log::Trace(std::format("Mouse button pressed: {}", button));
+                break;
+            }
+            case GLFW_RELEASE: {
+                MouseButtonReleasedEvent event(GLFWMouseCodeToFMouseCode(button));
+                self->m_data.eventCallback(event);
+                Log::Trace(std::format("Mouse button released: {}", button));
+                break;
+            }
+        }
+    });
+
+    glfwSetScrollCallback(m_window, [](GLFWwindow* window, double xOffset, double yOffset) {
+        auto* self = static_cast<GLFWWindow*>(glfwGetWindowUserPointer(window));
+
+        MouseScrolledEvent event((float) xOffset, (float) yOffset);
+        self->m_data.eventCallback(event);
+    });
+
+    glfwSetCursorPosCallback(m_window, [](GLFWwindow* window, double xPos, double yPos) {
+        auto* self = static_cast<GLFWWindow*>(glfwGetWindowUserPointer(window));
+
+        MouseMovedEvent event((float) xPos, (float) yPos);
+        self->m_data.eventCallback(event);
+    });
+}
+
+void GLFWWindow::shutdown()
+{
+    FM_PROFILE_FUNCTION();
+
+    m_context.reset();
+
+    if (m_window) {
+        glfwDestroyWindow(m_window);
+        m_window = nullptr;
+        --s_GLFWWindowCount;
     }
 
-    void GLFWWindow::onUpdate()
-    {
-        FM_PROFILE_FUNCTION();
+    if (s_GLFWWindowCount == 0) {
+        glfwTerminate();
+    }
+    Log::Info("Window destroyed");
+}
 
-        m_context->swapBuffers();
+void GLFWWindow::onUpdate()
+{
+    FM_PROFILE_FUNCTION();
 
-        glfwPollEvents();
+    if (m_context) {
+        m_context->present();
     }
 
-    void GLFWWindow::setVSync(bool enabled)
-    {
-        FM_PROFILE_FUNCTION();
+    glfwPollEvents();
+}
 
-        if (enabled)
-            glfwSwapInterval(1);
-        else
-            glfwSwapInterval(0);
+void GLFWWindow::setVSync(bool enabled)
+{
+    FM_PROFILE_FUNCTION();
 
-        m_data.VSync = enabled;
-    }
-
-    void GLFWWindow::getWindowPos(int *x, int *y) const
-    {
-        glfwGetWindowPos(m_window, x, y);
+    if (m_context) {
+        m_context->setVSync(enabled);
     }
 
-    void GLFWWindow::setWindowPos(int x, int y)
-    {
-        glfwSetWindowPos(m_window, x, y);
+    m_data.VSync = enabled;
+}
+
+void GLFWWindow::getWindowPos(int* x, int* y) const
+{
+    glfwGetWindowPos(m_window, x, y);
+}
+
+void GLFWWindow::setWindowPos(int x, int y)
+{
+    glfwSetWindowPos(m_window, x, y);
+}
+
+void GLFWWindow::setMaximized()
+{
+    glfwMaximizeWindow(m_window);
+}
+
+void GLFWWindow::setRestored()
+{
+    glfwRestoreWindow(m_window);
+}
+
+void GLFWWindow::setMinimized()
+{
+    glfwIconifyWindow(m_window);
+}
+
+bool GLFWWindow::isVSync() const
+{
+    return m_data.VSync;
+}
+
+DeviceInfo GLFWWindow::getDeviceInfo() const
+{
+    if (!m_context) {
+        return {};
     }
 
-    void GLFWWindow::setMaximized()
-    {
-        glfwMaximizeWindow(m_window);
-    }
-    void GLFWWindow::setRestored()
-    {
-        glfwRestoreWindow(m_window);
-    }
-    void GLFWWindow::setMinimized()
-    {
-        glfwIconifyWindow(m_window);
-    }
-    bool GLFWWindow::isVSync() const
-    {
-        return m_data.VSync;
-    }
-
-    DeviceInfo GLFWWindow::getDeviceInfo() const
-    {
-        return m_context->getDeviceInfo();
-    }
+    return m_context->getDeviceInfo();
+}
 
 } // namespace Fermion

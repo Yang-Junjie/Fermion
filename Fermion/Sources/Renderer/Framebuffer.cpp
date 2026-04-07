@@ -13,6 +13,9 @@ namespace Fermion
             return nullptr;
         case RendererAPI::API::OpenGL:
             return std::make_shared<OpenGLFramebuffer>(spec);
+        case RendererAPI::API::Vulkan:
+            FERMION_ASSERT(false, "Vulkan framebuffer creation is not implemented yet.");
+            return nullptr;
         }
 
         FERMION_ASSERT(false, "Unknown RendererAPI!");

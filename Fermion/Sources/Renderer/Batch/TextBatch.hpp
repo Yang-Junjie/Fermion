@@ -1,6 +1,7 @@
 #pragma once
 #include "Renderer/Batch/BatchBuffer.hpp"
 #include "Renderer/Buffer.hpp"
+#include "Renderer/TextParams.hpp"
 #include "Renderer/VertexArray.hpp"
 #include "Renderer/Texture/Texture.hpp"
 #include <glm/glm.hpp>
@@ -18,14 +19,6 @@ namespace Fermion
         glm::vec2 texCoord;
         int objectID;
     };
-
-    struct TextParams
-    {
-        glm::vec4 color{1.0f};
-        float kerning = 0.0f;
-        float lineSpacing = 0.0f;
-    };
-
 
     class TextBatch
     {

@@ -14,6 +14,9 @@ namespace Fermion
             return nullptr;
         case RendererAPI::API::OpenGL:
             return std::make_shared<OpenGLUniformBuffer>(bindingPoint, size);
+        case RendererAPI::API::Vulkan:
+            FERMION_ASSERT(false, "Vulkan uniform buffer creation is not implemented yet.");
+            return nullptr;
         }
 
         FERMION_ASSERT(false, "Unknown RendererAPI!");

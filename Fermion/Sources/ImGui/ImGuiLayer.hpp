@@ -1,15 +1,17 @@
-﻿#pragma once
+#pragma once
 
 #include "Core/Layer.hpp"
 #include "Events/Event.hpp"
-#include <GLFW/glfw3.h>
+#include "Renderer/RendererAPI.hpp"
 
 namespace Fermion
 {
+    class IWindow;
+
     class ImGuiLayer : public Layer
     {
     public:
-        explicit ImGuiLayer(void *nativeWindow);
+        explicit ImGuiLayer(IWindow &window);
 
         ~ImGuiLayer() override = default;
 
@@ -34,6 +36,10 @@ namespace Fermion
 
     private:
         bool m_blockEvents = true;
-        GLFWwindow *m_window;
+        IWindow &m_window;
+        void *m_nativeWindow = nullptr;
+        RendererAPI::API m_rendererAPI = RendererAPI::API::None;
+        bool m_platformBackendInitialized = false;
+        bool m_rendererBackendInitialized = false;
     };
 } // namespace Fermion

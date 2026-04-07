@@ -1,12 +1,14 @@
-﻿#include "fmpch.hpp"
+#include "fmpch.hpp"
 #include "OpenGLContext.hpp"
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 namespace Fermion
 {
 
-    OpenGLContext::OpenGLContext(GLFWwindow *windowHandle) : m_windowHandle(windowHandle)
+    OpenGLContext::OpenGLContext(void *windowHandle)
+        : m_windowHandle(static_cast<GLFWwindow *>(windowHandle))
     {
         Log::Info("OpenGL Context created successfully.");
     }
@@ -33,11 +35,16 @@ namespace Fermion
         Log::Info(std::format("  GLSL:{}", std::string(reinterpret_cast<const char *>(glGetString(GL_SHADING_LANGUAGE_VERSION)))));
     }
 
-    void OpenGLContext::swapBuffers()
+    void OpenGLContext::present()
     {
         FM_PROFILE_FUNCTION();
 
         glfwSwapBuffers(m_windowHandle);
+    }
+
+    void OpenGLContext::setVSync(bool enabled)
+    {
+        glfwSwapInterval(enabled ? 1 : 0);
     }
 
 } // namespace Fermion

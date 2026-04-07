@@ -1,15 +1,18 @@
-﻿
 #include "Renderer/Renderers/Renderer.hpp"
-#include "Renderer/Renderers/Renderer2DCompat.hpp"
-#include "OpenGLShader.hpp"
+#include "Renderer/Renderers/Renderer2D.hpp"
+
 namespace Fermion
 {
     std::unique_ptr<Renderer::SceneData> Renderer::s_sceneData = std::make_unique<Renderer::SceneData>();
+
     void Renderer::init()
     {
         FM_PROFILE_FUNCTION();
 
         s_rendererAPI = RendererAPI::create();
+        FERMION_ASSERT(s_rendererAPI != nullptr,
+                       std::format("Renderer backend '{}' could not be created",
+                                   RendererAPI::toString(RendererAPI::getAPI())));
         s_rendererAPI->init();
 
         s_shaderLibrary = std::make_unique<ShaderLibrary>();
@@ -43,15 +46,27 @@ namespace Fermion
         s_shaderLibrary->load(s_config.ShaderPath + "Line.glsl");
         s_shaderLibrary->load(s_config.ShaderPath + "Text.glsl");
 
-        Renderer2DCompat::init(s_config);
+        Renderer2D::InitGlobal(s_config);
     }
 
     void Renderer::setConfig(const RendererConfig &config)
     {
         s_config = config;
+
+        if (!RendererAPI::isBackendImplemented(s_config.Backend))
+        {
+            Log::Warn(std::format(
+                "Renderer backend '{}' is not implemented yet, falling back to OpenGL.",
+                RendererAPI::toString(s_config.Backend)));
+            s_config.Backend = RendererAPI::API::OpenGL;
+        }
+
+        RendererAPI::setAPI(s_config.Backend);
     }
+
     void Renderer::shutdown()
     {
+        Renderer2D::ShutdownGlobal();
     }
 
     void Renderer::onWindowResize(uint32_t width, uint32_t height)
@@ -59,7 +74,9 @@ namespace Fermion
         s_rendererAPI->setViewport(0, 0, width, height);
     }
 
-    void Renderer::submit(const std::shared_ptr<Shader> &shader, const std::shared_ptr<VertexArray> &vertexArray, const glm::mat4 &transform)
+    void Renderer::submit(const std::shared_ptr<Shader> &shader,
+                          const std::shared_ptr<VertexArray> &vertexArray,
+                          const glm::mat4 &transform)
     {
         shader->bind();
         shader->setMat4("u_ViewProjection", s_sceneData->viewProjectionMatrix);

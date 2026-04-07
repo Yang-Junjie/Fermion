@@ -109,7 +109,7 @@ namespace Fermion
         }
 
         // Render
-        Renderer2DCompat::resetStatistics();
+        Renderer2D::Get().resetStatistics();
         if (m_viewportRenderer)
             m_viewportRenderer->resetStatistics();
         m_framebuffer->bind();

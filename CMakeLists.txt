@@ -42,6 +42,7 @@ set(YAML_BUILD_SHARED_LIBS OFF CACHE BOOL "Build yaml-cpp as static library" FOR
 
 option(BUILD_NEUTRINO "Build Neutrino" ON)
 option(BUILD_LAUNCHER "Build Launcher" ON)
+option(BUILD_TEST_APPLICATIONS "Build TestApplications" ON)
 add_compile_definitions(YAML_CPP_STATIC_DEFINE)
 
 # 输出目录
@@ -123,5 +124,10 @@ endif()
 if(BUILD_LAUNCHER)
     add_subdirectory(FermionLauncher)
     message("BUILD LAUNCHER" :${BUILD_LAUNCHER})
+endif()
+
+if(BUILD_TEST_APPLICATIONS)
+    add_subdirectory(TestApplications)
+    message("BUILD TEST APPLICATIONS:${BUILD_TEST_APPLICATIONS}")
 endif()
 

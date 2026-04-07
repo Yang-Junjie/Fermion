@@ -1,20 +1,31 @@
-﻿#include "ImGuiLayer.hpp"
+#include "ImGuiLayer.hpp"
+
 #include "Core/Log.hpp"
-#include <imgui.h>
+#include "Core/Window.hpp"
+#include "Renderer/Renderers/Renderer.hpp"
 #include "fmpch.hpp"
+
+#include <imgui.h>
+
 #ifdef FM_PLATFORM_DESKTOP
+#include <GLFW/glfw3.h>
 #include <backends/imgui_impl_glfw.h>
 #endif
+
+#ifdef FM_HAS_OPENGL
 #include <backends/imgui_impl_opengl3.h>
+#endif
+
 #include <ImGuizmo.h>
 #include <filesystem>
 
-// TODO:该类直接依赖于opengl和glfw，记得抽象出来以支持跨平台
 namespace Fermion
 {
-    ImGuiLayer::ImGuiLayer(void *nativeWindow)
+    ImGuiLayer::ImGuiLayer(IWindow &window)
         : Layer("ImGuiLayer"),
-          m_window(static_cast<GLFWwindow *>(nativeWindow))
+          m_window(window),
+          m_nativeWindow(window.getNativeWindow()),
+          m_rendererAPI(Renderer::getAPI())
     {
     }
 
@@ -68,15 +79,64 @@ namespace Fermion
         setDarkThemeColors();
         setImGuiWidgetStyle();
 
-        ImGui_ImplGlfw_InitForOpenGL(m_window, true);
-        ImGui_ImplOpenGL3_Init("#version 430");
+#ifdef FM_PLATFORM_DESKTOP
+        auto *glfwWindow = static_cast<GLFWwindow *>(m_nativeWindow);
+        switch (m_rendererAPI)
+        {
+        case RendererAPI::API::OpenGL:
+            m_platformBackendInitialized = ImGui_ImplGlfw_InitForOpenGL(glfwWindow, true);
+#ifdef FM_HAS_OPENGL
+            m_rendererBackendInitialized = ImGui_ImplOpenGL3_Init("#version 430");
+#endif
+            break;
+        case RendererAPI::API::Vulkan:
+            m_platformBackendInitialized = ImGui_ImplGlfw_InitForVulkan(glfwWindow, true);
+            Log::Warn("ImGui Vulkan renderer backend is not wired up yet. Input callbacks are active, but ImGui draw data is not submitted.");
+            break;
+        case RendererAPI::API::None:
+            m_platformBackendInitialized = ImGui_ImplGlfw_InitForOther(glfwWindow, true);
+            Log::Warn("ImGui initialized without a graphics backend.");
+            break;
+        }
+#endif
+
+        if (!m_platformBackendInitialized)
+        {
+            Log::Error("Failed to initialize ImGui platform backend.");
+        }
+
+        if (!m_rendererBackendInitialized)
+        {
+            io.ConfigFlags &= ~ImGuiConfigFlags_ViewportsEnable;
+        }
     }
 
     void ImGuiLayer::onDetach()
     {
         FM_PROFILE_FUNCTION();
-        ImGui_ImplOpenGL3_Shutdown();
-        ImGui_ImplGlfw_Shutdown();
+
+        if (m_rendererBackendInitialized)
+        {
+            switch (m_rendererAPI)
+            {
+            case RendererAPI::API::OpenGL:
+#ifdef FM_HAS_OPENGL
+                ImGui_ImplOpenGL3_Shutdown();
+#endif
+                break;
+            case RendererAPI::API::None:
+            case RendererAPI::API::Vulkan:
+                break;
+            }
+        }
+
+        if (m_platformBackendInitialized)
+        {
+#ifdef FM_PLATFORM_DESKTOP
+            ImGui_ImplGlfw_Shutdown();
+#endif
+        }
+
         ImGui::DestroyContext();
     }
 
@@ -97,8 +157,29 @@ namespace Fermion
     void ImGuiLayer::begin()
     {
         FM_PROFILE_FUNCTION();
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
+
+        if (m_rendererBackendInitialized)
+        {
+            switch (m_rendererAPI)
+            {
+            case RendererAPI::API::OpenGL:
+#ifdef FM_HAS_OPENGL
+                ImGui_ImplOpenGL3_NewFrame();
+#endif
+                break;
+            case RendererAPI::API::None:
+            case RendererAPI::API::Vulkan:
+                break;
+            }
+        }
+
+        if (m_platformBackendInitialized)
+        {
+#ifdef FM_PLATFORM_DESKTOP
+            ImGui_ImplGlfw_NewFrame();
+#endif
+        }
+
         ImGui::NewFrame();
         ImGuizmo::BeginFrame();
     }
@@ -106,17 +187,43 @@ namespace Fermion
     void ImGuiLayer::end()
     {
         FM_PROFILE_FUNCTION();
-        // 渲染
+
         ImGuiIO &io = ImGui::GetIO();
         ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        if (m_rendererBackendInitialized)
         {
-            GLFWwindow *backup_current_context = glfwGetCurrentContext();
-            ImGui::UpdatePlatformWindows();
-            ImGui::RenderPlatformWindowsDefault();
-            glfwMakeContextCurrent(backup_current_context);
+            switch (m_rendererAPI)
+            {
+            case RendererAPI::API::OpenGL:
+#ifdef FM_HAS_OPENGL
+                ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+#endif
+                break;
+            case RendererAPI::API::None:
+            case RendererAPI::API::Vulkan:
+                break;
+            }
+        }
+
+        if ((io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) && m_rendererBackendInitialized)
+        {
+            switch (m_rendererAPI)
+            {
+            case RendererAPI::API::OpenGL:
+            {
+#ifdef FM_PLATFORM_DESKTOP
+                GLFWwindow *backupCurrentContext = glfwGetCurrentContext();
+                ImGui::UpdatePlatformWindows();
+                ImGui::RenderPlatformWindowsDefault();
+                glfwMakeContextCurrent(backupCurrentContext);
+#endif
+                break;
+            }
+            case RendererAPI::API::None:
+            case RendererAPI::API::Vulkan:
+                break;
+            }
         }
     }
 
@@ -136,23 +243,20 @@ namespace Fermion
         colors[ImGuiCol_PopupBg] = ImVec4{0.08f, 0.08f, 0.08f, 0.96f};
         colors[ImGuiCol_Border] = ImVec4{0.17f, 0.17f, 0.18f, 1.00f};
 
- 
         colors[ImGuiCol_TitleBg] = ImVec4{0.07f, 0.07f, 0.07f, 1.00f};
         colors[ImGuiCol_TitleBgActive] = ImVec4{0.09f, 0.09f, 0.09f, 1.00f};
         colors[ImGuiCol_TitleBgCollapsed] = ImVec4{0.07f, 0.07f, 0.07f, 1.00f};
-
 
         colors[ImGuiCol_FrameBg] = ImVec4{0.16f, 0.16f, 0.17f, 1.00f};
         colors[ImGuiCol_FrameBgHovered] = ImVec4{0.22f, 0.22f, 0.23f, 1.00f};
         colors[ImGuiCol_FrameBgActive] = ImVec4{0.13f, 0.13f, 0.14f, 1.00f};
 
-
         const ImVec4 orangeMain = ImVec4{0.92f, 0.45f, 0.11f, 1.00f};
-        const ImVec4 orangeHovered = ImVec4{1.00f, 0.55f, 0.20f, 1.00f}; 
-        const ImVec4 orangeActive = ImVec4{0.80f, 0.38f, 0.08f, 1.00f}; 
+        const ImVec4 orangeHovered = ImVec4{1.00f, 0.55f, 0.20f, 1.00f};
+        const ImVec4 orangeActive = ImVec4{0.80f, 0.38f, 0.08f, 1.00f};
 
-        colors[ImGuiCol_Button] = ImVec4{0.20f, 0.20f, 0.21f, 1.00f}; 
-        colors[ImGuiCol_ButtonHovered] = orangeMain;               
+        colors[ImGuiCol_Button] = ImVec4{0.20f, 0.20f, 0.21f, 1.00f};
+        colors[ImGuiCol_ButtonHovered] = orangeMain;
         colors[ImGuiCol_ButtonActive] = orangeActive;
 
         colors[ImGuiCol_Tab] = ImVec4{0.12f, 0.12f, 0.13f, 1.00f};
@@ -176,7 +280,7 @@ namespace Fermion
         colors[ImGuiCol_ResizeGripHovered] = orangeMain;
         colors[ImGuiCol_ResizeGripActive] = orangeActive;
 
-        style.WindowRounding = 2.0f; 
+        style.WindowRounding = 2.0f;
         style.FrameRounding = 2.0f;
         style.PopupRounding = 2.0f;
         style.TabRounding = 2.0f;

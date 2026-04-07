@@ -2,6 +2,15 @@
 set(FERMION_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Sources)
 set(PLATFORM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Platform)
 set(EXTERNAL_DIR ${CMAKE_SOURCE_DIR}/Fermion/external)
+set(FERMION_HAS_VULKAN OFF)
+
+find_package(Vulkan QUIET)
+if(Vulkan_FOUND)
+    set(FERMION_HAS_VULKAN ON)
+    message(STATUS "Fermion: Vulkan SDK found, enabling Vulkan bootstrap sources.")
+else()
+    message(STATUS "Fermion: Vulkan SDK not found, Vulkan bootstrap sources will be skipped.")
+endif()
 
 if(PLATFORM STREQUAL "Desktop")
     set(PLATFORM_DEPENDENCIES_SOURCE
@@ -152,6 +161,12 @@ set(PLATFORM_SOURCES
 
 )
 
+if(FERMION_HAS_VULKAN)
+    list(APPEND PLATFORM_SOURCES
+        ${PLATFORM_DIR}/RenderApi/Vulkan/VulkanContext.cpp
+    )
+endif()
+
 set(THIRD_PARTY_SOURCES
     ${EXTERNAL_DIR}/GLAD/src/glad.c
 
@@ -220,19 +235,11 @@ endif()
 target_include_directories(engine PUBLIC
     ${FERMION_DIR}
 
-    ${PLATFORM_DIR}/RenderApi/OpenGL
-    ${PLATFORM_DIR}/Windows/Utils
-    ${PLATFORM_DIR}/Linux/Utils
-    ${PLATFORM_DIR}/Window
-
 
     ${EXTERNAL_DIR}/spdlog/include
     ${EXTERNAL_DIR}/entt/single_include
     ${EXTERNAL_DIR}/glm
     ${EXTERNAL_DIR}/imgui
-    ${EXTERNAL_DIR}/imgui/backends
-    ${EXTERNAL_DIR}/GLAD/include
-    ${PLATFORM_DEPENDENCIES_INCLUDE_DIRS}
     ${EXTERNAL_DIR}/stb
     ${EXTERNAL_DIR}/yaml-cpp/include
     ${EXTERNAL_DIR}/ImGuizmo
@@ -243,6 +250,17 @@ target_include_directories(engine PUBLIC
     ${EXTERNAL_DIR}/JoltPhysics
     ${EXTERNAL_DIR}/msdf-atlas-gen/msdf-atlas-gen
     ${MONO_INCLUDE}
+)
+
+target_include_directories(engine PRIVATE
+    ${PLATFORM_DIR}/RenderApi/OpenGL
+    ${PLATFORM_DIR}/RenderApi/Vulkan
+    ${PLATFORM_DIR}/Windows/Utils
+    ${PLATFORM_DIR}/Linux/Utils
+    ${PLATFORM_DIR}/Window
+    ${EXTERNAL_DIR}/imgui/backends
+    ${EXTERNAL_DIR}/GLAD/include
+    ${PLATFORM_DEPENDENCIES_INCLUDE_DIRS}
 )
 
 
@@ -275,6 +293,13 @@ elseif(UNIX)
         ${X11_LIBRARIES}
     )
     target_include_directories(engine PRIVATE ${X11_INCLUDE_DIR})
+endif()
+
+target_compile_definitions(engine PRIVATE FM_HAS_OPENGL=1)
+
+if(FERMION_HAS_VULKAN)
+    target_compile_definitions(engine PRIVATE FM_HAS_VULKAN=1)
+    target_link_libraries(engine PRIVATE Vulkan::Vulkan)
 endif()
 
 if(USE_GLFW)

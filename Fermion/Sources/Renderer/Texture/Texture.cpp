@@ -11,6 +11,9 @@ namespace Fermion
             return nullptr;
         case RendererAPI::API::OpenGL:
             return std::make_unique<OpenGLTexture2D>(path, generateMips);
+        case RendererAPI::API::Vulkan:
+            FERMION_ASSERT(false, "Vulkan 2D texture creation is not implemented yet.");
+            return nullptr;
         }
         return nullptr;
     }
@@ -23,6 +26,9 @@ namespace Fermion
             return nullptr;
         case RendererAPI::API::OpenGL:
             return std::make_unique<OpenGLTexture2D>(spec, spec.GenerateMips);
+        case RendererAPI::API::Vulkan:
+            FERMION_ASSERT(false, "Vulkan 2D texture creation is not implemented yet.");
+            return nullptr;
         }
         return nullptr;
     }
@@ -35,6 +41,9 @@ namespace Fermion
             return nullptr;
         case RendererAPI::API::OpenGL:
             return std::make_unique<OpenGLTexture2D>(assetSpec);
+        case RendererAPI::API::Vulkan:
+            FERMION_ASSERT(false, "Vulkan 2D texture creation is not implemented yet.");
+            return nullptr;
         }
         return nullptr;
     }
@@ -47,6 +56,9 @@ namespace Fermion
             return nullptr;
         case RendererAPI::API::OpenGL:
             return std::make_unique<OpenGLTexture2D>(width, height, generateMips);
+        case RendererAPI::API::Vulkan:
+            FERMION_ASSERT(false, "Vulkan 2D texture creation is not implemented yet.");
+            return nullptr;
         }
         return nullptr;
     }
@@ -58,6 +70,9 @@ namespace Fermion
             return nullptr;
         case RendererAPI::API::OpenGL:
             return std::make_unique<OpenGLTextureCube>(path);
+        case RendererAPI::API::Vulkan:
+            FERMION_ASSERT(false, "Vulkan cube texture creation is not implemented yet.");
+            return nullptr;
         }
         return nullptr;
     }
@@ -69,6 +84,9 @@ namespace Fermion
             return nullptr;
         case RendererAPI::API::OpenGL:
             return std::make_unique<OpenGLTextureCube>(spec);
+        case RendererAPI::API::Vulkan:
+            FERMION_ASSERT(false, "Vulkan cube texture creation is not implemented yet.");
+            return nullptr;
         }
         return nullptr;
     }

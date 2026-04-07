@@ -1,72 +1,81 @@
 ﻿#include "OpenGLRendererAPI.hpp"
+
 #include <glad/glad.h>
-namespace Fermion
+
+namespace Fermion {
+void OpenGLRendererAPI::init()
 {
-    void OpenGLRendererAPI::init()
-    {
-        FM_PROFILE_FUNCTION();
+    FM_PROFILE_FUNCTION();
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_LINE_SMOOTH);
+}
+
+void OpenGLRendererAPI::setViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
+{
+    glViewport(x, y, width, height);
+}
+
+void OpenGLRendererAPI::setClearColor(const glm::vec4& color)
+{
+    glClearColor(color.r, color.g, color.b, color.a);
+}
+
+void OpenGLRendererAPI::clear()
+{
+    glDepthMask(GL_TRUE);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void OpenGLRendererAPI::setBlendEnabled(bool enabled)
+{
+    if (enabled) {
         glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_LINE_SMOOTH);
+    } else {
+        glDisable(GL_BLEND);
     }
+}
 
-    void OpenGLRendererAPI::setViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
-    {
-        glViewport(x, y, width, height);
-    }
-    void OpenGLRendererAPI::setClearColor(const glm::vec4 &color)
-    {
-        glClearColor(color.r, color.g, color.b, color.a);
-    }
-    void OpenGLRendererAPI::clear()
-    {
-        glDepthMask(GL_TRUE);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    }
+void OpenGLRendererAPI::drawIndexed(const std::shared_ptr<VertexArray>& vertexArray,
+                                    uint32_t indexCount)
+{
+    vertexArray->bind();
+    uint32_t count = indexCount ? indexCount : vertexArray->getIndexBuffer()->getCount();
+    glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
+}
 
-    void OpenGLRendererAPI::setBlendEnabled(bool enabled)
-    {
-        if (enabled)
-            glEnable(GL_BLEND);
-        else
-            glDisable(GL_BLEND);
-    }
+void OpenGLRendererAPI::drawIndexed(const std::shared_ptr<VertexArray>& vertexArray,
+                                    uint32_t indexCount,
+                                    uint32_t indexOffset)
+{
+    vertexArray->bind();
 
-    void OpenGLRendererAPI::drawIndexed(const std::shared_ptr<VertexArray> &vertexArray, uint32_t indexCount)
-    {
-        vertexArray->bind();
-        uint32_t count = indexCount ? indexCount : vertexArray->getIndexBuffer()->getCount();
-        glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
-        // glBindTexture(GL_TEXTURE_2D, 0);
-    }
+    uint32_t count = indexCount ? indexCount : vertexArray->getIndexBuffer()->getCount();
 
-    void OpenGLRendererAPI::drawIndexed(const std::shared_ptr<VertexArray> &vertexArray, uint32_t indexCount, uint32_t indexOffset)
-    {
-        vertexArray->bind();
+    glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, (void*) (indexOffset * sizeof(uint32_t)));
+}
 
-        uint32_t count = indexCount ? indexCount : vertexArray->getIndexBuffer()->getCount();
+void OpenGLRendererAPI::drawIndexedInstanced(const std::shared_ptr<VertexArray>& vertexArray,
+                                             uint32_t indexCount,
+                                             uint32_t instanceCount)
+{
+    vertexArray->bind();
+    uint32_t count = indexCount ? indexCount : vertexArray->getIndexBuffer()->getCount();
+    glDrawElementsInstanced(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr, instanceCount);
+}
 
-        glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, (void *)(indexOffset * sizeof(uint32_t)));
-    }
+void OpenGLRendererAPI::drawLines(const std::shared_ptr<VertexArray>& vertexArray,
+                                  uint32_t vertexCount)
+{
+    vertexArray->bind();
+    glDrawArrays(GL_LINES, 0, vertexCount);
+}
 
-    void OpenGLRendererAPI::drawIndexedInstanced(const std::shared_ptr<VertexArray> &vertexArray, uint32_t indexCount, uint32_t instanceCount)
-    {
-        vertexArray->bind();
-        uint32_t count = indexCount ? indexCount : vertexArray->getIndexBuffer()->getCount();
-        glDrawElementsInstanced(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr, instanceCount);
-    }
-
-    void OpenGLRendererAPI::drawLines(const std::shared_ptr<VertexArray> &vertexArray, uint32_t vertexCount)
-    {
-        vertexArray->bind();
-        glDrawArrays(GL_LINES, 0, vertexCount);
-    }
-
-    void OpenGLRendererAPI::setLineWidth(float width)
-    {
-        glLineWidth(width);
-    }
+void OpenGLRendererAPI::setLineWidth(float width)
+{
+    glLineWidth(width);
+}
 } // namespace Fermion
