@@ -3,6 +3,7 @@
 #include "Project/Project.hpp"
 #include "Asset/AssetManager/RuntimeAssetManager.hpp"
 #include "../Texture/Texture.hpp"
+#include "Renderer/TextureBinding.hpp"
 
 namespace Fermion
 {
@@ -87,15 +88,15 @@ namespace Fermion
     }
 
     // Bind
-    void Material::bind(const std::shared_ptr<Shader> &shader, int slot) const
+    void Material::bind(const std::shared_ptr<Shader> &shader) const
     {
         if (Type == MaterialType::PBR)
         {
-            bindPBR(shader, slot);
+            bindPBR(shader);
         }
         else
         {
-            bindPhong(shader, slot);
+            bindPhong(shader);
         }
     }
 
@@ -170,7 +171,7 @@ namespace Fermion
         m_EditorData = data;
     }
 
-    void Material::bindPhong(const std::shared_ptr<Shader> &shader, int slot) const
+    void Material::bindPhong(const std::shared_ptr<Shader> &shader) const
     {
         auto assetManager = Project::getRuntimeAssetManager();
         std::shared_ptr<Texture2D> texture = nullptr;
@@ -187,12 +188,11 @@ namespace Fermion
 
         if (hasTexture)
         {
-            texture->bind(slot);
-            shader->setInt("u_Texture", slot);
+            texture->bind(TextureBinding::Material::BaseColor);
         }
     }
 
-    void Material::bindPBR(const std::shared_ptr<Shader> &shader, int slot) const
+    void Material::bindPBR(const std::shared_ptr<Shader> &shader) const
     {
         shader->setFloat3("u_Material.albedo", Albedo);
         shader->setFloat("u_Material.metallic", Metallic);
@@ -200,30 +200,27 @@ namespace Fermion
         shader->setFloat("u_Material.ao", AO);
 
         auto assetManager = Project::getRuntimeAssetManager();
-        int currentSlot = slot;
 
-        auto bindMap = [&](AssetHandle handle, const char *uniformName, const char *useFlag)
+        auto bindMap = [&](AssetHandle handle, uint32_t binding, const char *useFlag)
         {
             if (static_cast<uint64_t>(handle) != 0)
             {
                 auto texture = assetManager->getAsset<Texture2D>(handle);
                 if (texture && texture->isLoaded())
                 {
-                    texture->bind(currentSlot);
-                    shader->setInt(uniformName, currentSlot);
+                    texture->bind(binding);
                     shader->setBool(useFlag, true);
-                    currentSlot++;
                     return;
                 }
             }
             shader->setBool(useFlag, false);
         };
 
-        bindMap(m_Maps.AlbedoMapHandle, "u_AlbedoMap", "u_UseAlbedoMap");
-        bindMap(m_Maps.NormalMapHandle, "u_NormalMap", "u_UseNormalMap");
-        bindMap(m_Maps.MetallicMapHandle, "u_MetallicMap", "u_UseMetallicMap");
-        bindMap(m_Maps.RoughnessMapHandle, "u_RoughnessMap", "u_UseRoughnessMap");
-        bindMap(m_Maps.AOMapHandle, "u_AOMap", "u_UseAOMap");
+        bindMap(m_Maps.AlbedoMapHandle, TextureBinding::Material::BaseColor, "u_UseAlbedoMap");
+        bindMap(m_Maps.NormalMapHandle, TextureBinding::Material::Normal, "u_UseNormalMap");
+        bindMap(m_Maps.MetallicMapHandle, TextureBinding::Material::Metallic, "u_UseMetallicMap");
+        bindMap(m_Maps.RoughnessMapHandle, TextureBinding::Material::Roughness, "u_UseRoughnessMap");
+        bindMap(m_Maps.AOMapHandle, TextureBinding::Material::AmbientOcclusion, "u_UseAOMap");
     }
 
 } // namespace Fermion

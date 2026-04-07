@@ -2,6 +2,7 @@
 #include "GBufferRenderer.hpp"
 #include "Renderer.hpp"
 #include "Renderer/Pipeline.hpp"
+#include "Renderer/TextureBinding.hpp"
 #include "Renderer/VertexArray.hpp"
 
 namespace Fermion
@@ -73,11 +74,10 @@ namespace Fermion
             m_depthViewPipeline->bind();
             auto shader = m_depthViewPipeline->getShader();
 
-            shader->setInt("u_Depth", 0);
             if (gBufferFB && useDeferred)
-                gBufferFB->bindDepthAttachment(0);
+                gBufferFB->bindDepthAttachment(TextureBinding::PostProcess::Depth);
             else
-                targetFB->bindDepthAttachment(0);
+                targetFB->bindDepthAttachment(TextureBinding::PostProcess::Depth);
 
             shader->setFloat("u_Near", nearClip);
             shader->setFloat("u_Far", farClip);
@@ -122,23 +122,22 @@ namespace Fermion
             m_debugPipeline->bind();
             auto shader = m_debugPipeline->getShader();
 
-            shader->setInt("u_GBufferAlbedo", 0);
-            shader->setInt("u_GBufferNormal", 1);
-            shader->setInt("u_GBufferMaterial", 2);
-            shader->setInt("u_GBufferEmissive", 3);
-            shader->setInt("u_GBufferObjectID", 4);
-            shader->setInt("u_GBufferDepth", 5);
             shader->setInt("u_Mode", static_cast<int>(mode));
             shader->setFloat("u_Near", nearClip);
             shader->setFloat("u_Far", farClip);
             shader->setFloat("u_DepthPower", depthPower);
 
-            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Albedo), 0);
-            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Normal), 1);
-            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Material), 2);
-            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Emissive), 3);
-            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::ObjectID), 4);
-            gBufferFramebuffer->bindDepthAttachment(5);
+            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Albedo),
+                                                    TextureBinding::GBufferDebug::Albedo);
+            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Normal),
+                                                    TextureBinding::GBufferDebug::Normal);
+            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Material),
+                                                    TextureBinding::GBufferDebug::Material);
+            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Emissive),
+                                                    TextureBinding::GBufferDebug::Emissive);
+            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::ObjectID),
+                                                    TextureBinding::GBufferDebug::ObjectID);
+            gBufferFramebuffer->bindDepthAttachment(TextureBinding::GBufferDebug::Depth);
 
             api.drawIndexed(m_quadVA, m_quadVA->getIndexBuffer()->getCount());
         };

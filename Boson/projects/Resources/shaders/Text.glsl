@@ -38,7 +38,7 @@ in vec4 v_Color;
 in vec2 v_TexCoord;
 flat in int v_ObjectID;
 
-uniform sampler2D u_Atlas;
+layout(binding = 0) uniform sampler2D u_Atlas;
 
 float median(float r, float g, float b)
 {
@@ -58,4 +58,3 @@ void main()
     o_Color = vec4(v_Color.rgb, v_Color.a * alpha);
     o_ObjectID = v_ObjectID;
 }
-

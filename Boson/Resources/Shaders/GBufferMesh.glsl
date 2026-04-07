@@ -51,7 +51,7 @@ in vec2 v_TexCoords;
 flat in int v_ObjectID;
 
 uniform bool u_UseTexture;
-uniform sampler2D u_Texture;
+layout(binding = 0) uniform sampler2D u_Texture;
 uniform vec4 u_Kd;
 uniform bool u_FlipUV;
 

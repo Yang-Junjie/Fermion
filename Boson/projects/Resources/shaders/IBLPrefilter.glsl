@@ -23,7 +23,7 @@ void main() {
 out vec4 FragColor;
 in vec3 v_WorldPos;
 
-uniform samplerCube u_EnvironmentMap;
+layout(binding = 0) uniform samplerCube u_EnvironmentMap;
 uniform float u_Roughness;
 
 const float PI = 3.14159265359;

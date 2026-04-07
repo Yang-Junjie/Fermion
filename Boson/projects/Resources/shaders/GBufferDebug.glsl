@@ -19,12 +19,12 @@ layout(location = 0) out vec4 o_Color;
 
 in vec2 v_TexCoords;
 
-uniform sampler2D u_GBufferAlbedo;
-uniform sampler2D u_GBufferNormal;
-uniform sampler2D u_GBufferMaterial;
-uniform sampler2D u_GBufferEmissive;
-uniform sampler2D u_GBufferDepth;
-uniform isampler2D u_GBufferObjectID;
+layout(binding = 0) uniform sampler2D u_GBufferAlbedo;
+layout(binding = 1) uniform sampler2D u_GBufferNormal;
+layout(binding = 2) uniform sampler2D u_GBufferMaterial;
+layout(binding = 3) uniform sampler2D u_GBufferEmissive;
+layout(binding = 5) uniform sampler2D u_GBufferDepth;
+layout(binding = 4) uniform isampler2D u_GBufferObjectID;
 
 uniform int u_Mode;
 uniform float u_Near;

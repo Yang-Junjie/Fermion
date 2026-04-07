@@ -130,14 +130,14 @@ uniform int u_SpotLightCount;
 uniform SpotLight u_SpotLights[MAX_SPOT_LIGHTS];
 
 uniform bool u_UseTexture;
-uniform sampler2D u_Texture;
+layout(binding = 0) uniform sampler2D u_Texture;
 
 uniform vec4 u_Kd; // diffuse
 uniform vec4 u_Ka; // ambient
 uniform bool u_FlipUV;
 
 // Shadow mapping
-uniform sampler2D u_ShadowMap;
+layout(binding = 10) uniform sampler2D u_ShadowMap;
 
 float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir)
 {

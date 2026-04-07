@@ -13,7 +13,7 @@ void main() {
 out vec4 FragColor;
 in vec2 vUV;
 
-uniform sampler2D u_Depth;
+layout(binding = 0) uniform sampler2D u_Depth;
 uniform float u_Near;
 uniform float u_Far;
 uniform int u_IsPerspective;

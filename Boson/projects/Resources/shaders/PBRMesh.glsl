@@ -210,32 +210,32 @@ uniform Material u_Material;
 
 // 纹理
 uniform bool u_UseAlbedoMap;
-uniform sampler2D u_AlbedoMap;
+layout(binding = 0) uniform sampler2D u_AlbedoMap;
 
 uniform bool u_UseNormalMap;
-uniform sampler2D u_NormalMap;
+layout(binding = 1) uniform sampler2D u_NormalMap;
 uniform float u_NormalStrength;
 uniform float u_ToksvigStrength;
 
 uniform bool u_UseMetallicMap;
-uniform sampler2D u_MetallicMap;
+layout(binding = 2) uniform sampler2D u_MetallicMap;
 
 uniform bool u_UseRoughnessMap;
-uniform sampler2D u_RoughnessMap;
+layout(binding = 3) uniform sampler2D u_RoughnessMap;
 
 uniform bool u_UseAOMap;
-uniform sampler2D u_AOMap;
+layout(binding = 4) uniform sampler2D u_AOMap;
 
 uniform bool u_FlipUV;
 
 // Shadow mapping
-uniform sampler2D u_ShadowMap;
+layout(binding = 10) uniform sampler2D u_ShadowMap;
 
 // IBL
 uniform bool u_UseIBL;
-uniform samplerCube u_IrradianceMap;
-uniform samplerCube u_PrefilterMap;
-uniform sampler2D u_BRDFLT;
+layout(binding = 11) uniform samplerCube u_IrradianceMap;
+layout(binding = 12) uniform samplerCube u_PrefilterMap;
+layout(binding = 13) uniform sampler2D u_BRDFLT;
 uniform float u_PrefilterMaxLOD;
 
 

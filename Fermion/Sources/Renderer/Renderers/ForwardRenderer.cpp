@@ -8,6 +8,7 @@
 #include "Renderer/UniformBuffer.hpp"
 #include "Renderer/Pipeline.hpp"
 #include "Renderer/Model/Material.hpp"
+#include "Renderer/TextureBinding.hpp"
 namespace Fermion
 {
     ForwardRenderer::ForwardRenderer()
@@ -163,8 +164,7 @@ namespace Fermion
                 if (enableShadows)
                 {
                     auto shadowFB = shadowRenderer->getShadowMapFramebuffer();
-                    shader->setInt("u_ShadowMap", 10);
-                    shadowFB->bindDepthAttachment(10);
+                    shadowFB->bindDepthAttachment(TextureBinding::Shadow::Map);
                 }
 
                 // Additional directional lights (excluding the main one)

@@ -20,7 +20,7 @@ void main() {
 out vec4 FragColor;
 in vec3 v_WorldPos;
 
-uniform samplerCube u_EnvironmentMap;
+layout(binding = 0) uniform samplerCube u_EnvironmentMap;
 
 const float PI = 3.14159265359;
 

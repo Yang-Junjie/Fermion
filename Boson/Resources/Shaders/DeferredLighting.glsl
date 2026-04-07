@@ -105,22 +105,22 @@ layout(std140, binding = 2) uniform LightData
 	int u_NumSpotLights;
 };
 
-uniform sampler2D u_GBufferAlbedo;
-uniform sampler2D u_GBufferNormal;
-uniform sampler2D u_GBufferMaterial;
-uniform sampler2D u_GBufferEmissive;
-uniform sampler2D u_GBufferDepth;
+layout(binding = 0) uniform sampler2D u_GBufferAlbedo;
+layout(binding = 1) uniform sampler2D u_GBufferNormal;
+layout(binding = 2) uniform sampler2D u_GBufferMaterial;
+layout(binding = 3) uniform sampler2D u_GBufferEmissive;
+layout(binding = 4) uniform sampler2D u_GBufferDepth;
 
 uniform mat4 u_InverseViewProjection;
 
 // Shadow mapping
-uniform sampler2D u_ShadowMap;
+layout(binding = 10) uniform sampler2D u_ShadowMap;
 
 // IBL
 uniform bool u_UseIBL;
-uniform samplerCube u_IrradianceMap;
-uniform samplerCube u_PrefilterMap;
-uniform sampler2D u_BRDFLT;
+layout(binding = 11) uniform samplerCube u_IrradianceMap;
+layout(binding = 12) uniform samplerCube u_PrefilterMap;
+layout(binding = 13) uniform sampler2D u_BRDFLT;
 uniform float u_PrefilterMaxLOD;
 
 // ============================================================================

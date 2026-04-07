@@ -149,20 +149,6 @@ void Renderer2D::init(const RendererConfig& config)
     m_LineShader = Renderer::getShaderLibrary()->get("Line");
     m_TextShader = Renderer::getShaderLibrary()->get("Text");
 
-    // Set up texture samplers
-    m_QuadShader->bind();
-    int samplers[QuadBatch::MaxTextureSlots];
-    for (uint32_t i = 0; i < QuadBatch::MaxTextureSlots; i++) {
-        samplers[i] = i;
-    }
-    m_QuadShader->setIntArray("u_Textures", samplers, QuadBatch::MaxTextureSlots);
-
-    m_QuadInstanceShader->bind();
-    m_QuadInstanceShader->setIntArray("u_Textures", samplers, QuadBatch::MaxTextureSlots);
-
-    m_TextShader->bind();
-    m_TextShader->setInt("u_Atlas", 0);
-
     // Create camera uniform buffer (binding point 0)
     m_CameraUBO = UniformBuffer::create(UniformBufferBinding::Camera, CameraData::getSize());
 }

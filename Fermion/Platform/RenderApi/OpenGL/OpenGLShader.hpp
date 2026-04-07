@@ -28,7 +28,6 @@ public:
     }
 
     virtual void setInt(const std::string &name, int value) override;
-    virtual void setIntArray(const std::string &name, int *values, uint32_t count) override;
     virtual void setBool(const std::string &name, bool value) override;
     virtual void setFloat(const std::string &name, float value) override;
     virtual void setFloat3(const std::string &name, float v0, float v1, float v2) override;
@@ -39,7 +38,6 @@ public:
 
     // 设置uniform变量
     void uploadInt(const std::string &name, int value);
-    void uploadIntArray(const std::string &name, int *values, uint32_t count);
     void uploadBool(const std::string &name, bool value);
     void uploadFloat(const std::string &name, float value);
     void uploadFloat3(const std::string &name, float v0, float v1, float v2);

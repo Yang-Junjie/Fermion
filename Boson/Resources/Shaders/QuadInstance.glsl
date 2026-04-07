@@ -62,7 +62,7 @@ in float v_TilingFactor;
 flat in float v_TexIndex;
 flat in int v_ObjectID;
 
-uniform sampler2D u_Textures[32];
+layout(binding = 0) uniform sampler2D u_Textures[32];
 
 void main()
 {

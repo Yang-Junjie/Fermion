@@ -21,7 +21,7 @@ out vec4 FragColor;
 
 in vec3 v_LocalPos;
 
-uniform sampler2D u_EquirectangularMap;
+layout(binding = 0) uniform sampler2D u_EquirectangularMap;
 
 const vec2 invAtan = vec2(0.1591, 0.3183);
 

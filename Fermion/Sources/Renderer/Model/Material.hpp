@@ -68,7 +68,7 @@ namespace Fermion
         void setRoughnessMap(AssetHandle textureHandle);
         void setAOMap(AssetHandle textureHandle);
 
-        void bind(const std::shared_ptr<Shader> &shader, int slot = 0) const;
+        void bind(const std::shared_ptr<Shader> &shader) const;
         std::shared_ptr<Material> clone() const;
         void copyFrom(const Material &other);
 
@@ -103,8 +103,8 @@ namespace Fermion
         void setEditorData(const MaterialNodeEditorData &data);
 
     private:
-        void bindPhong(const std::shared_ptr<Shader> &shader, int slot) const;
-        void bindPBR(const std::shared_ptr<Shader> &shader, int slot) const;
+        void bindPhong(const std::shared_ptr<Shader> &shader) const;
+        void bindPBR(const std::shared_ptr<Shader> &shader) const;
 
     private:
         MaterialType Type;

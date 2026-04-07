@@ -20,7 +20,7 @@ void main() {
 in vec3 v_TexCoords;
 out vec4 FragColor;
 
-uniform samplerCube u_Cubemap;
+layout(binding = 0) uniform samplerCube u_Cubemap;
 
 void main() {
     vec3 color = texture(u_Cubemap, v_TexCoords).rgb;

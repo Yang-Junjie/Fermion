@@ -7,6 +7,7 @@
 #include "Renderer/Texture/Texture.hpp"
 #include "Renderer/Framebuffer.hpp"
 #include "Renderer/Shader.hpp"
+#include "Renderer/TextureBinding.hpp"
 
 #include <cmath>
 #include <glm/gtc/matrix_transform.hpp>
@@ -95,8 +96,7 @@ namespace Fermion
             shader->setMat4("u_View", glm::mat4(glm::mat3(drawCommand.view)));
             shader->setMat4("u_Projection", drawCommand.projection);
 
-            drawCommand.cubemap->bind(0);
-            shader->setInt("u_Cubemap", 0);
+            drawCommand.cubemap->bind(TextureBinding::Skybox::Cubemap);
 
             api.drawIndexed(drawCommand.vao, 36);
         }
@@ -218,17 +218,14 @@ namespace Fermion
             return;
         }
 
-        shader->setInt("u_IrradianceMap", 11);
-        shader->setInt("u_PrefilterMap", 12);
-        shader->setInt("u_BRDFLT", 13);
         shader->setFloat("u_PrefilterMaxLOD", static_cast<float>(settings.prefilterMaxMipLevels - 1));
 
         if (m_irradianceMap)
-            m_irradianceMap->bind(11);
+            m_irradianceMap->bind(TextureBinding::IBL::Irradiance);
         if (m_prefilterMap)
-            m_prefilterMap->bind(12);
+            m_prefilterMap->bind(TextureBinding::IBL::Prefilter);
         if (m_brdfLUT)
-            m_brdfLUT->bind(13);
+            m_brdfLUT->bind(TextureBinding::IBL::BrdfLut);
     }
 
     void EnvironmentRenderer::addSkyboxPass(RenderPassQueue &passQueue,
@@ -332,9 +329,8 @@ namespace Fermion
 
         m_equirectToCubePipeline->bind();
         auto shader = m_equirectToCubePipeline->getShader();
-        shader->setInt("u_EquirectangularMap", 0);
         shader->setMat4("u_Projection", captureProjection);
-        m_hdrEnvironment->bind(0);
+        m_hdrEnvironment->bind(TextureBinding::Environment::Source);
 
         for (uint32_t i = 0; i < 6; ++i)
         {
@@ -391,9 +387,8 @@ namespace Fermion
 
         m_iblIrradiancePipeline->bind();
         auto shader = m_iblIrradiancePipeline->getShader();
-        shader->setInt("u_EnvironmentMap", 0);
         shader->setMat4("u_Projection", captureProjection);
-        m_environmentCubemap->bind(0);
+        m_environmentCubemap->bind(TextureBinding::Environment::Source);
 
         for (uint32_t i = 0; i < 6; ++i)
         {
@@ -440,9 +435,8 @@ namespace Fermion
 
         m_iblPrefilterPipeline->bind();
         auto shader = m_iblPrefilterPipeline->getShader();
-        shader->setInt("u_EnvironmentMap", 0);
         shader->setMat4("u_Projection", captureProjection);
-        m_environmentCubemap->bind(0);
+        m_environmentCubemap->bind(TextureBinding::Environment::Source);
 
         for (uint32_t mip = 0; mip < settings.prefilterMaxMipLevels; ++mip)
         {

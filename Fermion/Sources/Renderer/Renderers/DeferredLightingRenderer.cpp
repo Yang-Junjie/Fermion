@@ -8,6 +8,7 @@
 #include "Renderer/UniformBuffer.hpp"
 #include "Renderer/VertexArray.hpp"
 #include "Renderer/Pipeline.hpp"
+#include "Renderer/TextureBinding.hpp"
 #include "Core/Log.hpp"
 
 namespace Fermion
@@ -135,17 +136,15 @@ namespace Fermion
             m_pipeline->bind();
             auto shader = m_pipeline->getShader();
 
-            shader->setInt("u_GBufferAlbedo", 0);
-            shader->setInt("u_GBufferNormal", 1);
-            shader->setInt("u_GBufferMaterial", 2);
-            shader->setInt("u_GBufferEmissive", 3);
-            shader->setInt("u_GBufferDepth", 4);
-
-            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Albedo), 0);
-            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Normal), 1);
-            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Material), 2);
-            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Emissive), 3);
-            gBufferFramebuffer->bindDepthAttachment(4);
+            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Albedo),
+                                                    TextureBinding::Deferred::Albedo);
+            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Normal),
+                                                    TextureBinding::Deferred::Normal);
+            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Material),
+                                                    TextureBinding::Deferred::Material);
+            gBufferFramebuffer->bindColorAttachment(static_cast<uint32_t>(GBufferRenderer::Attachment::Emissive),
+                                                    TextureBinding::Deferred::Emissive);
+            gBufferFramebuffer->bindDepthAttachment(TextureBinding::Deferred::Depth);
 
             shader->setMat4("u_InverseViewProjection", inverseViewProjection);
 
@@ -162,8 +161,7 @@ namespace Fermion
 
             if (enableShadows)
             {
-                shader->setInt("u_ShadowMap", 10);
-                shadowFB->bindDepthAttachment(10);
+                shadowFB->bindDepthAttachment(TextureBinding::Shadow::Map);
             }
 
             shader->setInt("u_DirLightCount", dirLightCount);

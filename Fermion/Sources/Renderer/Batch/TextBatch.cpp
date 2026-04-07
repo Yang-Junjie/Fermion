@@ -2,6 +2,7 @@
 #include "TextBatch.hpp"
 #include "Renderer/Font/Font.hpp"
 #include "Renderer/Font/MSDFData.hpp"
+#include "Renderer/TextureBinding.hpp"
 
 namespace Fermion
 {
@@ -223,7 +224,7 @@ namespace Fermion
     void TextBatch::bindFontAtlas()
     {
         if (m_FontAtlasTexture)
-            m_FontAtlasTexture->bind(0);
+            m_FontAtlasTexture->bind(TextureBinding::Renderer2D::TextAtlas);
     }
 
 } // namespace Fermion

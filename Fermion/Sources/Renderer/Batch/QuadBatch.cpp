@@ -1,5 +1,6 @@
 #include "fmpch.hpp"
 #include "QuadBatch.hpp"
+#include "Renderer/TextureBinding.hpp"
 
 namespace Fermion
 {
@@ -174,7 +175,7 @@ namespace Fermion
         for (uint32_t i = 0; i < m_TextureSlotIndex; i++)
         {
             if (m_TextureSlots[i])
-                m_TextureSlots[i]->bind(i);
+                m_TextureSlots[i]->bind(TextureBinding::Renderer2D::TextureArrayBase + i);
         }
     }
 
