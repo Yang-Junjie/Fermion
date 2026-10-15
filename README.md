@@ -3,7 +3,7 @@
 [中文](./README_CN.md)
 
 Fermion is a high-performance game engine built with C++20 and AI-assisted programming.
-The engine features a Render Graph architecture with abstracted low-level API encapsulation, currently implementing OpenGL rendering while maintaining extensibility for multi-backend support. It utilizes a Forward+ rendering pipeline and deeply integrates EnTT for ECS architecture. Additionally, the engine includes a complete C# scripting system and 2D/3D physics simulation powered by Box2D and Jolt Physics.
+The engine features a Render Graph architecture with abstracted low-level API encapsulation, currently implementing OpenGL rendering while maintaining extensibility for multi-backend support. It utilizes a deffered rendering pipeline and deeply integrates EnTT for ECS architecture. Additionally, the engine includes a complete C# scripting system and 2D/3D physics simulation powered by Box2D and Jolt Physics.
 
 ## Naming Philosophy
 
